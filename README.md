@@ -1,5 +1,7 @@
 # Team-01-Touhou-Twilight-Dungeons
 
-Kevin
-James Hoang
-Sam Sun
+Kevin  <br />
+James Hoang  <br />
+Sam Sun  <br />
+Lin Su  <br />
+
