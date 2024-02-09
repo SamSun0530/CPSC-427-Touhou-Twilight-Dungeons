@@ -73,10 +73,11 @@ public:
 	void draw();
 
 	mat3 createProjectionMatrix();
+	mat3 createViewMatrix(); // for camera movement
 
 private:
 	// Internal drawing functions for each entity type
-	void drawTexturedMesh(Entity entity, const mat3& projection);
+	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view);
 	void drawToScreen();
 
 	// Window handle
