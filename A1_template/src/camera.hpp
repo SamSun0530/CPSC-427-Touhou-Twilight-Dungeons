@@ -23,5 +23,7 @@ public:
 
 	void setPosition(vec2 position);
 
+	vec2& getPosition();
+
 	mat3 createViewMatrix();
 };

@@ -18,3 +18,7 @@ mat3 Camera::createViewMatrix()
 void Camera::setPosition(vec2 position) {
 	this->position = position;
 };
+
+vec2& Camera::getPosition() {
+	return this->position;
+}

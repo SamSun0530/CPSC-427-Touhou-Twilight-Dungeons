@@ -68,7 +68,7 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 100.f };
+	motion.velocity = { 0, 0 };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way

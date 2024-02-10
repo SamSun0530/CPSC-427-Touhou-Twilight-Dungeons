@@ -137,6 +137,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
 
+	// Set camera position to be equal to player
+	renderer->camera.setPosition(motions_registry.get(player_chicken).position);
+
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
@@ -294,6 +297,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		glfwGetWindowSize(window, &w, &h);
 
         restart_game();
+	}
+
+	if (key == GLFW_KEY_W) {
+		Motion& motion = registry.motions.get(player_chicken);
+		motion.velocity.y = action == GLFW_RELEASE ? 0.f : -100.f;
 	}
 
 	// Debugging
