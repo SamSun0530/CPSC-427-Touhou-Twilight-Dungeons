@@ -84,12 +84,14 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetWindowUserPointer(window, this);
 	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
 	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
+	auto scroll_offset_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_scroll({ _0, _1 }); };
 
 	// Set the cursor origin to start at the center of the screen
 	glfwSetCursorPos(window, window_px_half.x, window_px_half.y);
 
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
+	glfwSetScrollCallback(window, scroll_offset_redirect);
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
@@ -350,4 +352,10 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	}
 
 	(vec2)mouse_position; // dummy to avoid compiler warning
+}
+
+void WorldSystem::on_scroll(vec2 scroll_offset) {
+	renderer->camera.addZoom(scroll_offset.y);
+
+	(vec2)scroll_offset;
 }
