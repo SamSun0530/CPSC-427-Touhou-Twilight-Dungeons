@@ -5,16 +5,16 @@ mat3 Camera::createViewMatrix()
 	/*
 	View matrix for camera - apply view matrix to entities that move
 	For translating camera position in x, y direction (column-major ordering)
-	Take the transpose of M_cam to get M_view
+	Take the inverse of M_cam to get M_view
 	1 0 x
 	0 1 y
 	0 0 1
 	*/
 	Transform transform;
-	transform.translate(origin_offset);
-	transform.translate(-position);
-	transform.translate(-offset);
-	return transform.mat;
+	transform.translate(-origin_offset);
+	transform.translate(position);
+	transform.translate(offset);
+	return inverse(transform.mat);
 }
 
 void Camera::setPosition(vec2 position) {
