@@ -6,24 +6,25 @@ class Camera {
 	// Camera position x,y
 	vec2 position;
 
-	// Camera speed
-	float speed;
+	// Offset for translating origin from top left to center
+	const vec2 origin_offset;
 
+	// Offset for following mouse cursor
+	vec2 offset;
+public:
 	// Determine if camera could be controlled freely
 	bool isFreeCam;
 
-	// Offset for translating origin from top left to center
-	const vec2 origin_offset;
-public:
-	Camera() : origin_offset({ window_width_px / 2, window_height_px / 2 }) {
+	Camera() : origin_offset(window_px_half) {
 		position = { 0.f, 0.f };
-		speed = 2.f;
 		isFreeCam = false;
+		offset = { 0.f, 0.f };
 	}
 
 	void setPosition(vec2 position);
-
+	void setOffset(vec2 offset);
 	vec2& getPosition();
-
+	vec2& getOffset();
 	mat3 createViewMatrix();
+	void print(); // for debugging
 };
