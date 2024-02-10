@@ -6,6 +6,7 @@
 #include "common.hpp"
 #include "components.hpp"
 #include "tiny_ecs.hpp"
+#include "camera.hpp"
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -73,7 +74,9 @@ public:
 	void draw();
 
 	mat3 createProjectionMatrix();
-	mat3 createViewMatrix(); // for camera movement
+
+	// Camera for managing view matrix
+	Camera camera;
 
 private:
 	// Internal drawing functions for each entity type

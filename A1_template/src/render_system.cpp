@@ -211,7 +211,7 @@ void RenderSystem::draw()
 							  // sprites back to front
 	gl_has_errors();
 	mat3 projection_2D = createProjectionMatrix();
-	mat3 view_2D = createViewMatrix();
+	mat3 view_2D = camera.createViewMatrix();
 	// Draw all textured meshes that have a position and size component
 	for (Entity entity : registry.renderRequests.entities)
 	{
@@ -247,16 +247,3 @@ mat3 RenderSystem::createProjectionMatrix()
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
 }
 
-mat3 RenderSystem::createViewMatrix()
-{
-	/*
-	View matrix for camera - apply view matrix to entities that move
-	For translating camera position in x, y direction (since origin is top left):
-	1 0 0
-	0 1 0
-	x y 1
-	*/
-	float x = 100.f;
-	float y = 200.f;
-	return { {1.f, 0.f, 0.f}, {0.f, 1.f, 0.f}, {-x, -y, 1.f} };
-}
