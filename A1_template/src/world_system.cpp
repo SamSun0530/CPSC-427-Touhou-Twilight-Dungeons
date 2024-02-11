@@ -325,6 +325,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			debugging.in_debug_mode = true;
 	}
 
+	// Exit the program
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
+		glfwSetWindowShouldClose(window, true);
+	}
+
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
 		current_speed -= 0.1f;
