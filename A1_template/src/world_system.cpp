@@ -306,9 +306,21 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
         restart_game();
 	}
 
+	Motion& motion = registry.motions.get(player_chicken);
 	if (key == GLFW_KEY_W) {
-		Motion& motion = registry.motions.get(player_chicken);
 		motion.velocity.y = action == GLFW_RELEASE ? 0.f : -100.f;
+	}
+
+	if (key == GLFW_KEY_A) {
+		motion.velocity.x = action == GLFW_RELEASE ? 0.f : -100.f;
+	}
+
+	if (key == GLFW_KEY_S) {
+		motion.velocity.y = action == GLFW_RELEASE ? 0.f : 100.f;
+	}
+
+	if (key == GLFW_KEY_D) {
+		motion.velocity.x = action == GLFW_RELEASE ? 0.f : 100.f;
 	}
 
 	// Toggle between camera-cursor offset
