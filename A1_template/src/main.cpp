@@ -48,7 +48,7 @@ int main()
 		world.step(elapsed_ms);
 		physics.step(elapsed_ms);
 		world.handle_collisions();
-
+		world.updateBulletFiring(elapsed_ms);
 		renderer.draw();
 	}
 

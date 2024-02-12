@@ -7,10 +7,14 @@
 #include <sstream>
 
 #include "physics_system.hpp"
+#include <glm/trigonometric.hpp>
+#include <iostream>
 
 // Game configuration
 const size_t MAX_EAGLES = 15;
 const size_t MAX_BUG = 5;
+const size_t MAX_BULLETS = 999;
+
 const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
 
@@ -154,7 +158,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Reset timer
 		next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
 		// Create eagle with random initial position
-        createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
+        //createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
 	}
 
 	// Spawning new bug
@@ -215,8 +219,8 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create a new chicken
-	player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
-	registry.colors.insert(player_chicken, {1, 0.8f, 0.8f});
+	player = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
+	registry.colors.insert(player, {1, 0.8f, 0.8f});
 
 	// !! TODO A2: Enable static eggs on the ground, for reference
 	// Create eggs on the floor, use this for reference
@@ -317,11 +321,40 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE CHICKEN ROTATION HERE
-	// xpos and ypos are relative to the top-left of the window, the chicken's
-	// default facing direction is (1, 0)
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	if (player != NULL) {
+		// Get the position of the chicken
+		Motion& PlayerMotion = registry.motions.get(player);
 
-	(vec2)mouse_position; // dummy to avoid compiler warning
+		float x = mouse_position.x - PlayerMotion.position.x;
+		float y = mouse_position.y - PlayerMotion.position.y;
+		mouse_rotation_angle = atan2(x, y) + glm::radians(90.0f);
+		PlayerMotion.angle = mouse_rotation_angle;
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS || glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_REPEAT) {
+			// Start firing
+			isFiring = true;
+			//std::cout << "isFiring = true" << std::endl;
+		}
+		else if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
+			// Stop firing
+			isFiring = false;
+			// std::cout << "Stop firing" << std::endl;
+		}
+	}
+}
+
+void WorldSystem::updateBulletFiring(float elapsed_ms_since_last_update) {
+	// Update bullet fire timer
+	if (isFiring) {
+		float currentTime = glfwGetTime();
+		float timeSinceLastBullet = currentTime - lastTimeBulletFire;
+		std::cout << timeSinceLastBullet << std::endl;
+		if (timeSinceLastBullet >= bulletFireRate) {
+			//if (registry.bullets.components.size() <= MAX_BULLETS) {
+				// Reset the fire timer
+			lastTimeBulletFire = currentTime;
+				// Create bullet with random initial position
+			createBullet(renderer, registry.motions.get(player).position, mouse_rotation_angle);
+			//}
+		}
+	}
 }

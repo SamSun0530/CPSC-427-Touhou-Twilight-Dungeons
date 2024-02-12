@@ -37,6 +37,9 @@ public:
 
 	// Should the game be over ?
 	bool is_over()const;
+
+	// handle firing bullets
+	void updateBulletFiring(float elapsed_ms_since_last_update);
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -56,7 +59,11 @@ private:
 	float current_speed;
 	float next_eagle_spawn;
 	float next_bug_spawn;
-	Entity player_chicken;
+	Entity player;
+	float mouse_rotation_angle = 0.0f;
+	bool isFiring = false;
+	float bulletFireRate = 500.0f;
+	float lastTimeBulletFire = 0.0f;
 
 	// music references
 	Mix_Music* background_music;

@@ -1,5 +1,35 @@
 #include "world_init.hpp"
 #include "tiny_ecs_registry.hpp"
+#include <glm/trigonometric.hpp>
+
+
+Entity createBullet(RenderSystem* renderer, vec2 playerPosition, float mouse_rotation_angle)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = mouse_rotation_angle;
+	motion.velocity = glm::normalize(vec2(sin(mouse_rotation_angle - glm::radians(90.0f)), cos(mouse_rotation_angle - glm::radians(90.0f)))) * 100.f;
+	motion.position = playerPosition;
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ -BUG_BB_WIDTH, BUG_BB_HEIGHT });
+
+	// Create and (empty) bullet component to be able to refer to all bullets
+	registry.bullets.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BUG,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
 
 Entity createChicken(RenderSystem* renderer, vec2 pos)
 {
