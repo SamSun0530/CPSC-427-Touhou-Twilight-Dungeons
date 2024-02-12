@@ -45,6 +45,7 @@ private:
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_key(int button, int action, int mods);
+	void on_scroll(vec2 scroll_offset);
 	// restart level
 	void restart_game();
 

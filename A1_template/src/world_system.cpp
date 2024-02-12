@@ -89,10 +89,16 @@ GLFWwindow* WorldSystem::create_window() {
 	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
 	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
 	auto mouse_key_redirect = [](GLFWwindow* wnd, int button, int action, int mods) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_key(button, action, mods); }; 
-	glfwSetKeyCallback(window, key_redirect);
+	auto scroll_offset_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_scroll({ _0, _1 }); };
+  
+		// Set the cursor origin to start at the center of the screen
+	glfwSetCursorPos(window, window_px_half.x, window_px_half.y);
+  
+  glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 	glfwSetMouseButtonCallback(window, mouse_key_redirect);
-
+	glfwSetScrollCallback(window, scroll_offset_redirect);
+  
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
 	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
@@ -142,6 +148,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
+
+	// Set camera position to be equal to player
+	renderer->camera.setPosition(motions_registry.get(player_chicken).position);
 
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
@@ -221,8 +230,10 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create a new chicken
-	player = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
-	registry.colors.insert(player, {1, 0.8f, 0.8f});
+
+	//player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
+	player_chicken = createChicken(renderer, { 0, 0 });
+	registry.colors.insert(player_chicken, {1, 0.8f, 0.8f});
 
 	// !! TODO A2: Enable static eggs on the ground, for reference
 	// Create eggs on the floor, use this for reference
@@ -310,12 +321,28 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
         restart_game();
 	}
 
+	if (key == GLFW_KEY_W) {
+		Motion& motion = registry.motions.get(player_chicken);
+		motion.velocity.y = action == GLFW_RELEASE ? 0.f : -100.f;
+	}
+
+	// Toggle between camera-cursor offset
+	if (key == GLFW_KEY_P) {
+		if (action == GLFW_RELEASE)
+			renderer->camera.isFreeCam = !renderer->camera.isFreeCam;
+	}
+
 	// Debugging
 	if (key == GLFW_KEY_D) {
 		if (action == GLFW_RELEASE)
 			debugging.in_debug_mode = false;
 		else
 			debugging.in_debug_mode = true;
+	}
+
+	// Exit the program
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
+		glfwSetWindowShouldClose(window, true);
 	}
 
 	// Control the current speed with `<` `>`
@@ -339,7 +366,18 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 		float y = mouse_position.y - PlayerMotion.position.y;
 		mouse_rotation_angle = atan2(x, y) + glm::radians(90.0f);
 		PlayerMotion.angle = mouse_rotation_angle;
-		
+	}
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// TODO A1: HANDLE CHICKEN ROTATION HERE
+	// xpos and ypos are relative to the top-left of the window, the chicken's
+	// default facing direction is (1, 0)
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	
+	if (renderer->camera.isFreeCam) {
+		vec2& player_position = registry.motions.get(player_chicken).position;
+		// Set the camera offset to be in between the cursor and the player
+		// Center the mouse position, get the half distance between mouse cursor and player, update offset relative to player position
+		renderer->camera.setOffset(((mouse_position - window_px_half) - player_position) / 2.f + player_position / 2.f);
 	}
 }
 
@@ -371,4 +409,10 @@ void WorldSystem::updateBulletFiring(float elapsed_ms_since_last_update) {
 			//}
 		}
 	}
+}
+
+void WorldSystem::on_scroll(vec2 scroll_offset) {
+	renderer->camera.addZoom(scroll_offset.y);
+
+	(vec2)scroll_offset;
 }

@@ -37,11 +37,8 @@ void PhysicsSystem::step(float elapsed_ms)
 		Motion& motion = motion_registry.components[i];
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
-		if (!registry.players.has(entity))
-		{
-			motion.position += motion.velocity * step_seconds;
-		}
-		(void)elapsed_ms; // placeholder to silence unused warning until implemented
+    // The velocity applies to every entity. Entities that dont move will have velocity of zero
+		motion.position += motion.velocity * step_seconds;
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
