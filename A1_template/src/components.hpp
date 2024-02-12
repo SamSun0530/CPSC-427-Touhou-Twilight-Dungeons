@@ -11,10 +11,6 @@ struct Bullet {
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 1, 1 };
 };
-struct BulletDelayTimer
-{
-	float delay_ms;
-};
 
 // Player component
 struct Player
