@@ -39,7 +39,6 @@ void PhysicsSystem::step(float elapsed_ms)
 		float step_seconds = elapsed_ms / 1000.f;
 		if (!registry.players.has(entity))
 		{
-			float step_seconds = elapsed_ms / 1000.f;
 			motion.position += motion.velocity * step_seconds;
 		}
 		(void)elapsed_ms; // placeholder to silence unused warning until implemented

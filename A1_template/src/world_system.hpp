@@ -44,7 +44,7 @@ private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
-
+	void on_mouse_key(int button, int action, int mods);
 	// restart level
 	void restart_game();
 
@@ -62,7 +62,7 @@ private:
 	Entity player;
 	float mouse_rotation_angle = 0.0f;
 	bool isFiring = false;
-	float bulletFireRate = 500.0f;
+	float bulletFireRate = 0.5f;
 	float lastTimeBulletFire = 0.0f;
 
 	// music references

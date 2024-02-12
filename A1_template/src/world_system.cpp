@@ -88,8 +88,10 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetWindowUserPointer(window, this);
 	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
 	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
+	auto mouse_key_redirect = [](GLFWwindow* wnd, int button, int action, int mods) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_key(button, action, mods); }; 
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
+	glfwSetMouseButtonCallback(window, mouse_key_redirect);
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
@@ -158,7 +160,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Reset timer
 		next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
 		// Create eagle with random initial position
-        //createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
+        createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
 	}
 
 	// Spawning new bug
@@ -248,8 +250,7 @@ void WorldSystem::handle_collisions() {
 
 		// For now, we are only interested in collisions that involve the chicken
 		if (registry.players.has(entity)) {
-			//Player& player = registry.players.get(entity);
-
+			
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
@@ -271,6 +272,15 @@ void WorldSystem::handle_collisions() {
 
 					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the chicken entity by modifying the ECS registry
 				}
+			}
+		}
+		// Checking Bullet - (nonplayer nonBullet) collisions
+		if (registry.bullets.has(entity)) {
+			// if (!registry.bullets.has(entity_other) && !registry.players.has(entity_other)) {
+			if (registry.deadlys.has(entity_other)) {
+				// do damage, for this stage one hit will kill
+				registry.remove_all_components_of(entity);
+				registry.remove_all_components_of(entity_other);
 			}
 		}
 	}
@@ -329,15 +339,19 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 		float y = mouse_position.y - PlayerMotion.position.y;
 		mouse_rotation_angle = atan2(x, y) + glm::radians(90.0f);
 		PlayerMotion.angle = mouse_rotation_angle;
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS || glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_REPEAT) {
+		
+	}
+}
+
+void WorldSystem::on_mouse_key(int button, int action, int mods) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT) {
+		if (action == GLFW_PRESS) {
 			// Start firing
 			isFiring = true;
-			//std::cout << "isFiring = true" << std::endl;
 		}
-		else if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
+		else if (action == GLFW_RELEASE) {
 			// Stop firing
 			isFiring = false;
-			// std::cout << "Stop firing" << std::endl;
 		}
 	}
 }
@@ -347,7 +361,7 @@ void WorldSystem::updateBulletFiring(float elapsed_ms_since_last_update) {
 	if (isFiring) {
 		float currentTime = glfwGetTime();
 		float timeSinceLastBullet = currentTime - lastTimeBulletFire;
-		std::cout << timeSinceLastBullet << std::endl;
+		// std::cout << timeSinceLastBullet << std::endl;
 		if (timeSinceLastBullet >= bulletFireRate) {
 			//if (registry.bullets.components.size() <= MAX_BULLETS) {
 				// Reset the fire timer

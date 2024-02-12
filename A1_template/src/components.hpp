@@ -6,10 +6,10 @@
 
 
 struct Bullet {
-	vec2 position = { 0, 0 };
-	float angle = 0;
-	vec2 velocity = { 0, 0 };
-	vec2 scale = { 1, 1 };
+};
+
+struct HitAble {
+	int hp = 1;
 };
 
 // Player component
@@ -35,7 +35,7 @@ struct Motion {
 	vec2 position = { 0, 0 };
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
-	vec2 scale = { 10, 10 };
+	vec2 scale = { 1, 1 };
 };
 
 // Stucture to store collision information
