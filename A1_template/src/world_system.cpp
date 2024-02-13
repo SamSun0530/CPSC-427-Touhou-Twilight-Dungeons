@@ -398,7 +398,7 @@ void WorldSystem::updateBulletFiring(float elapsed_ms_since_last_update) {
 				// Reset the fire timer
 			lastTimeBulletFire = currentTime;
 				// Create bullet with random initial position
-			createBullet(renderer, registry.motions.get(player).position, mouse_rotation_angle, last_mouse_position);
+			createBullet(renderer, registry.motions.get(player), mouse_rotation_angle, last_mouse_position);
 			//}
 		}
 	}
