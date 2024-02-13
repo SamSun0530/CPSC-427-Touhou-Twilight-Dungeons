@@ -6,6 +6,7 @@
 - `WASD` - Player movement (up, left, down, right, respectively)
 - `ESC` - Exit the program
 - `R` - Reset the program
+- Scroll wheel - Zooming in/out
 
 ## Background Story
 

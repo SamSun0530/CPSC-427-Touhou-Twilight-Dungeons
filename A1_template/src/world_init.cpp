@@ -14,7 +14,9 @@ Entity createBullet(RenderSystem* renderer, const Motion& player_motion, float m
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = mouse_rotation_angle;
-	motion.velocity = normalize(last_mouse_position - player_motion.position) * 100.f + player_motion.velocity;
+	motion.speed_base = 200.f;
+	motion.speed_modified = 1.f * motion.speed_base;
+	motion.velocity = normalize(last_mouse_position - player_motion.position) * motion.speed_modified + player_motion.velocity * player_motion.speed_modified;
 	motion.position = player_motion.position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
@@ -43,7 +45,9 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
+	motion.speed_base = 100.f;
+	motion.speed_modified = 1.f * motion.speed_base;
+	motion.velocity = { 0, 0 };
 	motion.scale = mesh.original_size * 300.f;
 	motion.scale.y *= -1; // point front to the right
 
@@ -70,7 +74,9 @@ Entity createBug(RenderSystem* renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 50 };
+	motion.speed_base = 50.f;
+	motion.speed_modified = 1.f * motion.speed_base;
+	motion.velocity = { 0, 1 };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
@@ -98,6 +104,8 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
+	motion.speed_base = 100.f;
+	motion.speed_modified = 1.f * motion.speed_base;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
 

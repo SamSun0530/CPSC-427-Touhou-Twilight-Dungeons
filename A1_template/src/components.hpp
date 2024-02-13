@@ -34,6 +34,8 @@ struct Eatable
 struct Motion {
 	vec2 position = { 0, 0 };
 	float angle = 0;
+	float speed_base = 0.f;
+	float speed_modified = 0.f;
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 1, 1 };
 };
