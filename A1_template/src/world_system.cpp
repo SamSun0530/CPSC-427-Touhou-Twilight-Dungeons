@@ -358,14 +358,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	Motion& playerMotion = registry.motions.get(player);
-	// Since mouse position starts at top left, we subtract half the window width/height to center the position
-	// Then update it relative to player's current position
-	last_mouse_position = mouse_position - window_px_half + playerMotion.position;
-	float x = last_mouse_position.x - playerMotion.position.x;
-	float y = last_mouse_position.y - playerMotion.position.y;
-	mouse_rotation_angle = atan2(x, y) + glm::radians(90.0f);
-
 	if (renderer->camera.isFreeCam) {
 		vec2& player_position = registry.motions.get(player).position;
 		// Set the camera offset to be in between the cursor and the player
@@ -393,6 +385,18 @@ void WorldSystem::updateBulletFiring(float elapsed_ms_since_last_update) {
 		float currentTime = glfwGetTime();
 		float timeSinceLastBullet = currentTime - lastTimeBulletFire;
 		// std::cout << timeSinceLastBullet << std::endl;
+
+		Motion& playerMotion = registry.motions.get(player);
+		// Since mouse position starts at top left, we subtract half the window width/height to center the position
+		// Then update it relative to player's current position
+		double mouse_pos_x;
+		double mouse_pos_y;
+		glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
+		last_mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + playerMotion.position;
+		float x = last_mouse_position.x - playerMotion.position.x;
+		float y = last_mouse_position.y - playerMotion.position.y;
+		mouse_rotation_angle = atan2(x, y) + glm::radians(90.0f);
+
 		if (timeSinceLastBullet >= bulletFireRate) {
 			//if (registry.bullets.components.size() <= MAX_BULLETS) {
 				// Reset the fire timer
