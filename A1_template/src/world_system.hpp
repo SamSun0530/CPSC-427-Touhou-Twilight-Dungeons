@@ -60,8 +60,11 @@ private:
 	float current_speed;
 	float next_eagle_spawn;
 	float next_bug_spawn;
+
+	// Player state
 	Entity player;
 	float mouse_rotation_angle = 0.0f;
+	vec2 last_mouse_position = { 0, 0 };
 	bool isFiring = false;
 	float bulletFireRate = 0.5f;
 	float lastTimeBulletFire = 0.0f;

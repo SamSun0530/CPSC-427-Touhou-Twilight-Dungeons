@@ -3,7 +3,7 @@
 #include <glm/trigonometric.hpp>
 
 
-Entity createBullet(RenderSystem* renderer, vec2 playerPosition, float mouse_rotation_angle)
+Entity createBullet(RenderSystem* renderer, vec2 playerPosition, float mouse_rotation_angle, vec2 last_mouse_position)
 {
 	auto entity = Entity();
 
@@ -14,7 +14,7 @@ Entity createBullet(RenderSystem* renderer, vec2 playerPosition, float mouse_rot
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = mouse_rotation_angle;
-	motion.velocity = glm::normalize(vec2(sin(mouse_rotation_angle - glm::radians(90.0f)), cos(mouse_rotation_angle - glm::radians(90.0f)))) * 100.f;
+	motion.velocity = normalize(last_mouse_position - playerPosition) * 100.f;
 	motion.position = playerPosition;
 
 	// Setting initial values, scale is negative to make it face the opposite way

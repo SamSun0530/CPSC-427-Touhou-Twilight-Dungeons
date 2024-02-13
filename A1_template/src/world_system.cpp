@@ -358,21 +358,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	if (player != NULL) {
-		// Get the position of the chicken
-		Motion& PlayerMotion = registry.motions.get(player);
+	Motion& playerMotion = registry.motions.get(player);
+	// Since mouse position starts at top left, we subtract half the window width/height to center the position
+	// Then update it relative to player's current position
+	last_mouse_position = mouse_position - window_px_half + playerMotion.position;
+	float x = last_mouse_position.x - playerMotion.position.x;
+	float y = last_mouse_position.y - playerMotion.position.y;
+	mouse_rotation_angle = atan2(x, y) + glm::radians(90.0f);
 
-		float x = mouse_position.x - PlayerMotion.position.x;
-		float y = mouse_position.y - PlayerMotion.position.y;
-		mouse_rotation_angle = atan2(x, y) + glm::radians(90.0f);
-		PlayerMotion.angle = mouse_rotation_angle;
-	}
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE CHICKEN ROTATION HERE
-	// xpos and ypos are relative to the top-left of the window, the chicken's
-	// default facing direction is (1, 0)
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	
 	if (renderer->camera.isFreeCam) {
 		vec2& player_position = registry.motions.get(player).position;
 		// Set the camera offset to be in between the cursor and the player
@@ -405,7 +398,7 @@ void WorldSystem::updateBulletFiring(float elapsed_ms_since_last_update) {
 				// Reset the fire timer
 			lastTimeBulletFire = currentTime;
 				// Create bullet with random initial position
-			createBullet(renderer, registry.motions.get(player).position, mouse_rotation_angle);
+			createBullet(renderer, registry.motions.get(player).position, mouse_rotation_angle, last_mouse_position);
 			//}
 		}
 	}
