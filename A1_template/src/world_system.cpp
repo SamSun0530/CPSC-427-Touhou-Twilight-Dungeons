@@ -125,6 +125,9 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
 
+	//Sets the size of the empty world
+ 	std::vector<std::vector<int>> world_map (world_width, std::vector<int>(world_height, tile_type::empty));
+
 	// Set all states to default
     restart_game();
 }
@@ -227,6 +230,17 @@ void WorldSystem::restart_game() {
 	//player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
 	player_chicken = createChicken(renderer, { 0, 0 });
 	registry.colors.insert(player_chicken, {1, 0.8f, 0.8f});
+
+	// Create rooms
+
+	//Creates 1 room the size of the map
+	for(int row = 0; row < world_map.size(); row++) {
+		for(int col = 0; col < world_map[row].size(); col++ ) {
+			if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
+				world_map[row][col] = tile_type::wall;
+			}
+		}
+	}
 
 	// !! TODO A2: Enable static eggs on the ground, for reference
 	// Create eggs on the floor, use this for reference

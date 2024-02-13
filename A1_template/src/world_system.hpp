@@ -59,6 +59,11 @@ private:
 	float next_bug_spawn;
 	Entity player_chicken;
 
+	// World Map
+	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
+	// std::
+
+
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* chicken_dead_sound;
