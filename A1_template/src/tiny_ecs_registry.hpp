@@ -23,6 +23,9 @@ public:
 	ComponentContainer<Deadly> deadlys;
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
+	ComponentContainer<Decoration_Tile> decoTiles;
+	ComponentContainer<Physical_Tile> physTiles;
+
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -40,6 +43,9 @@ public:
 		registry_list.push_back(&deadlys);
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
+		registry_list.push_back(&decoTiles);
+		registry_list.push_back(&physTiles);
+
 	}
 
 	void clear_all_components() {

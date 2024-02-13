@@ -126,7 +126,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	fprintf(stderr, "Loaded music\n");
 
 	//Sets the size of the empty world
- 	std::vector<std::vector<int>> world_map (world_width, std::vector<int>(world_height, tile_type::empty));
+ 	world_map = std::vector<std::vector<int>> (world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
 
 	// Set all states to default
     restart_game();
@@ -237,10 +237,37 @@ void WorldSystem::restart_game() {
 	for(int row = 0; row < world_map.size(); row++) {
 		for(int col = 0; col < world_map[row].size(); col++ ) {
 			if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
-				world_map[row][col] = tile_type::wall;
+				world_map[row][col] = (int)TILE_TYPE::WALL;
+			} else {
+				world_map[row][col] = (int)TILE_TYPE::FLOOR;
 			}
 		}
 	}
+	int centerX = (world_width >> 1)+1;
+	int centerY = (world_height >> 1)+1;
+
+	//Creates entitiy tiles based on the world map
+	for(int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
+		for(int col = 0; col < world_map[row].size(); col++ ) {
+			// if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
+			// 	world_map[row][col] = (int)TILE_TYPE::WALL;
+			// }
+			int xPos = (col)*world_tile_size;
+			int yPos = (row-3)*world_tile_size;
+			switch (world_map[col][row])
+			{
+			case (int)TILE_TYPE::WALL:
+				createPhysTile(renderer, {xPos,yPos});
+				break;
+			case (int)TILE_TYPE::FLOOR:
+				createDecoTile(renderer, {xPos,yPos});
+				break;
+			default:
+				break;
+			}
+		}
+	}
+
 
 	// !! TODO A2: Enable static eggs on the ground, for reference
 	// Create eggs on the floor, use this for reference

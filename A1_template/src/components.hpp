@@ -22,6 +22,15 @@ struct Eatable
 
 };
 
+// A non interactable tile of the map
+struct Decoration_Tile
+{
+};
+
+// A interactable tile of the map
+struct Physical_Tile {
+};
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };
@@ -86,6 +95,13 @@ struct Mesh
 	std::vector<uint16_t> vertex_indices;
 };
 
+// IDs for each tile type
+enum class TILE_TYPE {
+	EMPTY = 0,
+	FLOOR = EMPTY+1,
+	WALL = FLOOR+1
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -142,4 +158,3 @@ struct RenderRequest {
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 };
-

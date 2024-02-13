@@ -36,15 +36,9 @@ const int window_height_px = 720;
 const vec2 window_px_half = { window_width_px / 2, window_height_px / 2 };
 
 // World Map Data
-const int world_width = 4;
-const int world_height = 4;
-const int world_tile_size = 16; // In pixels
-std::vector<std::vector<int>> world_map; // world_map[Row][Col]
-const enum tile_type {
-	empty,
-	floor,
-	wall
-};
+const int world_width = 7;
+const int world_height = 7;
+const int world_tile_size = 124; // In pixels
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f

@@ -61,8 +61,6 @@ private:
 
 	// World Map
 	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
-	// std::
-
 
 	// music references
 	Mix_Music* background_music;

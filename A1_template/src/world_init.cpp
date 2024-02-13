@@ -85,6 +85,57 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
+Entity createDecoTile(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2(world_tile_size,world_tile_size);
+
+	// Create and (empty) Tile component to be able to refer to all decoration tiles
+	registry.decoTiles.emplace(entity);
+	registry.renderRequests.insert( // TODO Change to ground texture
+		entity,
+		{ TEXTURE_ASSET_ID::BUG,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createPhysTile(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2(world_tile_size,world_tile_size);
+
+
+	// Create and (empty) Tile component to be able to refer to all physical tiles
+	registry.physTiles.emplace(entity);
+	registry.renderRequests.insert( // TODO: Change to wall texture
+		entity,
+		{ TEXTURE_ASSET_ID::EAGLE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createLine(vec2 position, vec2 scale)
 {
 	Entity entity = Entity();
