@@ -38,12 +38,12 @@ void PhysicsSystem::step(float elapsed_ms)
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
 
-		// Normalize velocity vector for all entities with motion
-		vec2 velocity_normalized = motion.velocity;
-		if (motion.velocity.x != 0 && motion.velocity.y != 0) {
-			velocity_normalized = normalize(velocity_normalized);
+		// Normalize direction vector for all entities with motion
+		vec2 direction_normalized = motion.direction;
+		if (motion.direction.x != 0 && motion.direction.y != 0) {
+			direction_normalized = normalize(direction_normalized);
 		}
-		motion.position += velocity_normalized * motion.speed_modified * step_seconds;
+		motion.position += direction_normalized * motion.speed_modified * step_seconds;
 
 		//(void)elapsed_ms; // placeholder to silence unused warning until implemented
 	}
