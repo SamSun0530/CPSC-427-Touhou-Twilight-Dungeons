@@ -143,8 +143,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
 
-	// Set camera position to be equal to player
-	renderer->camera.setPosition(motions_registry.get(player_chicken).position);
+	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
+	// sharpness_factor = 0 (not following) -> 0.5 (delay) -> 1 (always following)
+	// Adapted from: https://gamedev.stackexchange.com/questions/152465/smoothly-move-camera-to-follow-player
+	float sharpness_factor = 0.95f;
+	float K = 1.0f - pow(1.0f - sharpness_factor, elapsed_ms_since_last_update / 1000.f);
+	renderer->camera.setPosition(lerp(renderer->camera.getPosition(), motions_registry.get(player_chicken).position, K));
 
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
@@ -227,6 +231,8 @@ void WorldSystem::restart_game() {
 	//player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
 	player_chicken = createChicken(renderer, { 0, 0 });
 	registry.colors.insert(player_chicken, {1, 0.8f, 0.8f});
+
+	renderer->camera.setPosition({ 0, 0 });
 
 	// !! TODO A2: Enable static eggs on the ground, for reference
 	// Create eggs on the floor, use this for reference
