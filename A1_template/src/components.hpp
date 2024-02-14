@@ -10,10 +10,19 @@ struct Player
 
 };
 
+enum class EnemyState {
+	IDLE = 0,
+	MOVE = IDLE + 1,
+	ALERT = MOVE + 1,
+};
+
 // Eagles have a hard shell
 struct Deadly
 {
-
+	EnemyState state = EnemyState::IDLE;
+	float timer_ms = 5000;
+	float idle_ms = 5000;
+	float moving_ms = 500;
 };
 
 // Bug and Chicken have a soft shell
