@@ -148,7 +148,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Adapted from: https://gamedev.stackexchange.com/questions/152465/smoothly-move-camera-to-follow-player
 	float sharpness_factor = 0.95f;
 	float K = 1.0f - pow(1.0f - sharpness_factor, elapsed_ms_since_last_update / 1000.f);
-	renderer->camera.setPosition(lerp(renderer->camera.getPosition(), motions_registry.get(player_chicken).position, K));
+	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), motions_registry.get(player_chicken).position, K));
 
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
