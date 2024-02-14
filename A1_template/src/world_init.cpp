@@ -13,7 +13,9 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
+	motion.speed_base = 100.f;
+	motion.speed_modified = 1.f * motion.speed_base;
+	motion.velocity = { 0, 0 };
 	motion.scale = mesh.original_size * 300.f;
 	motion.scale.y *= -1; // point front to the right
 
@@ -40,7 +42,9 @@ Entity createBug(RenderSystem* renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 50 };
+	motion.speed_base = 50.f;
+	motion.speed_modified = 1.f * motion.speed_base;
+	motion.velocity = { 0, 1 };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
@@ -68,6 +72,8 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
+	motion.speed_base = 100.f;
+	motion.speed_modified = 1.f * motion.speed_base;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
 
