@@ -5,10 +5,12 @@
 #include "render_system.hpp"
 
 // These are ahrd coded to the dimensions of the entity texture
-const float BUG_BB_WIDTH = 0.6f * 165.f;
-const float BUG_BB_HEIGHT = 0.6f * 165.f;
-const float EAGLE_BB_WIDTH = 0.6f * 300.f;
-const float EAGLE_BB_HEIGHT = 0.6f * 202.f;
+const float BUG_BB_WIDTH = 1.4f * 9.f;
+const float BUG_BB_HEIGHT = 1.4f * 9.f;
+const float CHICKEN_BB_WIDTH = 1.3f * 64.f;
+const float CHICKEN_BB_HEIGHT = 1.3f * 80.f;
+const float EAGLE_BB_WIDTH = 1.f * 80.f;
+const float EAGLE_BB_HEIGHT = 1.f * 90.f;
 
 // the bullet, takes into account entity's speed and position
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet = false);

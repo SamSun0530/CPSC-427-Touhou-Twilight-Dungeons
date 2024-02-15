@@ -161,10 +161,28 @@ struct Mesh
  * enums there are, and as a default value to represent uninitialized fields.
  */
 
+// Note, BUG corresponds to texture Bullet; EAGLE corresponds to texture Enemy; CHICKEN corresponds to texture Reimu
 enum class TEXTURE_ASSET_ID {
 	BUG = 0,
 	EAGLE = BUG + 1,
-	TEXTURE_COUNT = EAGLE + 1
+	CHICKEN = EAGLE + 1,
+	ENEMY_BULLET = CHICKEN + 1,
+	TILE_1 = ENEMY_BULLET + 1,
+	TILE_2 = TILE_1 + 1,
+	INNER_WALL = TILE_2 + 1,
+	TOP_WALL = INNER_WALL + 1,
+	DOOR = TOP_WALL + 1,
+	DOOR_OPEN = DOOR + 1,
+	LEFT_WALL = DOOR_OPEN + 1,
+	RIGHT_WALL = LEFT_WALL + 1,
+	LEFT_TOP_CORNER_WALL = RIGHT_WALL + 1,
+	LEFT_BOTTOM_CORNER_WALL = LEFT_TOP_CORNER_WALL + 1,
+	RIGHT_TOP_CORNER_WALL = LEFT_BOTTOM_CORNER_WALL + 1,
+	RIGHT_BOTTOM_CORNER_WALL = RIGHT_TOP_CORNER_WALL + 1,
+	FULL_HEART = RIGHT_BOTTOM_CORNER_WALL + 1,
+	HALF_HEART = FULL_HEART + 1,
+	EMPTY_HEALT = HALF_HEART + 1,
+	TEXTURE_COUNT = EMPTY_HEALT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
