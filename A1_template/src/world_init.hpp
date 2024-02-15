@@ -12,6 +12,9 @@ const float CHICKEN_BB_HEIGHT = 1.3f * 80.f;
 const float EAGLE_BB_WIDTH = 1.f * 80.f;
 const float EAGLE_BB_HEIGHT = 1.f * 90.f;
 
+// the bullet, takes into account entity's speed and position
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet = false);
+
 // the player
 Entity createChicken(RenderSystem* renderer, vec2 pos);
 // the prey
