@@ -3,7 +3,7 @@
 #include <glm/trigonometric.hpp>
 
 
-Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction)
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet)
 {
 	auto entity = Entity();
 	
@@ -23,12 +23,22 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	motion.scale = vec2({ -BUG_BB_WIDTH, BUG_BB_HEIGHT });
 	
 	// Create and (empty) bullet component to be able to refer to all bullets
-	registry.bullets.emplace(entity);
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::BUG,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+	if (is_player_bullet) {
+		registry.bullets.emplace(entity);
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::BUG,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		registry.enemyBullets.emplace(entity);
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::BUG,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
 
 	return entity;
 }
@@ -64,6 +74,7 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 			GEOMETRY_BUFFER_ID::CHICKEN });
 
 	registry.bulletFireRates.emplace(entity);
+	registry.colors.insert(entity, { 1,1,1 });
 
 	return entity;
 }
@@ -135,6 +146,7 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 	enemy_bullet_rate.fire_rate = 1;
 	enemy_bullet_rate.is_firing = true;
 	registry.bulletFireRates.insert(entity,enemy_bullet_rate);
+	registry.colors.insert(entity, { 1,1,1 });
 
 	return entity;
 }

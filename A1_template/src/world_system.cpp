@@ -203,7 +203,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
-			//glm::vec3 & color = registry.colors.emplace(entity, vec3(1, 0.8f, 0.8f));
+			registry.colors.get(entity) = vec3(1, 1, 1);
 			//color = { 1, 0.8f, 0.8f };
 			return true;
 		}
@@ -262,7 +262,6 @@ void WorldSystem::restart_game() {
 
 	// Create a new chicken
 	player = createChicken(renderer, { 0, 0 });
-	registry.colors.insert(player, {1, 0.8f, 0.8f});
 
 	renderer->camera.setPosition({ 0, 0 });
 
@@ -332,7 +331,7 @@ void WorldSystem::handle_collisions() {
 				if (!registry.deathTimers.has(entity)) {
 					// enemy turn red and decrease hp, bullet disappear
 					registry.deathTimers.emplace(entity);
-					//registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
+					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 
 					registry.hps.get(entity).curr_hp -= registry.bullets.get(entity_other).damage;
 					printf("entity hp: %d\n", registry.hps.get(entity).curr_hp);
@@ -472,7 +471,7 @@ void WorldSystem::updateBulletFiring(float elapsed_ms_since_last_update) {
 				float y = last_mouse_position.y - motion.position.y;
 				mouse_rotation_angle = - atan2(x, y) - glm::radians(90.0f);
 
-				createBullet(renderer, motion.speed_modified, motion.position, mouse_rotation_angle, last_mouse_position - motion.position);
+				createBullet(renderer, motion.speed_modified, motion.position, mouse_rotation_angle, last_mouse_position - motion.position, true);
 			}
 			else {
 				// TODO: Spawn enemy bullets here (ai)
