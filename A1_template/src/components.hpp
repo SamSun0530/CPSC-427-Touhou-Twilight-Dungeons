@@ -6,6 +6,7 @@
 
 
 struct Bullet {
+	int damage = 1;
 };
 
 // Manages when entity is able to fire a bullet again

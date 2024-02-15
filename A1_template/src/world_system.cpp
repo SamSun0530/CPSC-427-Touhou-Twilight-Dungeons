@@ -203,8 +203,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
-			glm::vec3 & color = registry.colors.get(entity);
-			color = { 1, 0.8f, 0.8f };
+			//glm::vec3 & color = registry.colors.emplace(entity, vec3(1, 0.8f, 0.8f));
+			//color = { 1, 0.8f, 0.8f };
 			return true;
 		}
 	}
@@ -310,9 +310,9 @@ void WorldSystem::handle_collisions() {
 						registry.deathTimers.emplace(entity);
 						Mix_PlayChannel(-1, chicken_dead_sound, 0);
 						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
-						registry.remove_all_components_of(entity_other);
 
 						registry.hps.get(player).curr_hp -= registry.enemyBullets.get(entity_other).damage;
+						registry.remove_all_components_of(entity_other);
 						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
@@ -321,15 +321,15 @@ void WorldSystem::handle_collisions() {
 			}
 		}
 		else if (registry.deadlys.has(entity)) {
-			if (registry.eatables.has(entity_other)) {
+			if (registry.bullets.has(entity_other)) {
 				if (!registry.deathTimers.has(entity)) {
 					// enemy turn red and decrease hp, bullet disappear
 					registry.deathTimers.emplace(entity);
-					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
-					registry.remove_all_components_of(entity_other);
+					//registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 
-					registry.hps.get(entity).curr_hp -= registry.eatables.get(entity_other).damage;
-				
+					registry.hps.get(entity).curr_hp -= registry.bullets.get(entity_other).damage;
+					printf("entity hp: %d\n", registry.hps.get(entity).curr_hp);
+					registry.remove_all_components_of(entity_other);
 				}
 			}
 		}
