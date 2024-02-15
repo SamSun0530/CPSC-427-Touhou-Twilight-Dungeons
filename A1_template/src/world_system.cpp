@@ -222,6 +222,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		is_alive = false;
 		restart_game();
 	}
+
+	for (Entity entity : registry.hps.entities) {
+		HP& hp = registry.hps.get(entity);
+		if (hp.curr_hp <= 0.0f) {
+			registry.remove_all_components_of(entity);
+		}
+	}
 	// reduce window brightness if any of the present chickens is dying
 	//screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
