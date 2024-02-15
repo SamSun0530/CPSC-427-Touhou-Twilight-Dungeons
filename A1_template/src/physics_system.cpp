@@ -37,9 +37,9 @@ void PhysicsSystem::step(float elapsed_ms)
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
 
-		// Normalize direction vector for all entities with motion
+		// Normalize direction vector if either x or y is not 0 (prevents divide by 0 when normalizing)
 		vec2 direction_normalized = motion.direction;
-		if (motion.direction.x != 0 && motion.direction.y != 0) {
+		if (motion.direction.x != 0 || motion.direction.y != 0) {
 			direction_normalized = normalize(direction_normalized);
 		}
 

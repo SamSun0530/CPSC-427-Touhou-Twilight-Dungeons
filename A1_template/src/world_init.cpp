@@ -3,26 +3,25 @@
 #include <glm/trigonometric.hpp>
 
 
-Entity createBullet(RenderSystem* renderer, const Motion& player_motion, float mouse_rotation_angle, vec2 last_mouse_position)
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction)
 {
 	auto entity = Entity();
-
+	
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
-	motion.angle = mouse_rotation_angle;
+	motion.angle = rotation_angle;
 	motion.speed_base = 200.f;
-	motion.speed_modified = 1.f * motion.speed_base + player_motion.speed_modified;
-	//motion.velocity = normalize(last_mouse_position - player_motion.position) * motion.speed_modified + player_motion.velocity * player_motion.speed_modified;
-	motion.direction = last_mouse_position - player_motion.position;
-	motion.position = player_motion.position;
+	motion.speed_modified = 1.f * motion.speed_base + entity_speed; // bullet speed takes into account of entity's speed
+	motion.direction = direction;
+	motion.position = entity_position; // bullet spawns from entity's center position
 
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ -BUG_BB_WIDTH, BUG_BB_HEIGHT });
-
+	
 	// Create and (empty) bullet component to be able to refer to all bullets
 	registry.bullets.emplace(entity);
 	registry.renderRequests.insert(
@@ -59,6 +58,8 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::CHICKEN,
 			GEOMETRY_BUFFER_ID::CHICKEN });
+
+	registry.bulletFireRates.emplace(entity);
 
 	return entity;
 }

@@ -8,6 +8,17 @@
 struct Bullet {
 };
 
+// Manages when entity is able to fire a bullet again
+struct BulletFireRate
+{
+	// IMPORTANT: set this to -fire_rate so entity can fire immediately
+	float last_time = -0.2;
+	// fire rate is (fire_rate) second/shot or (fire_rate)^-1 shots/second
+	// e.g. fire_rate = 0.1 s/shot = 10 shots/s
+	float fire_rate = 0.2; 
+	bool is_firing = false;
+};
+
 struct HitAble {
 	int hp = 1;
 };

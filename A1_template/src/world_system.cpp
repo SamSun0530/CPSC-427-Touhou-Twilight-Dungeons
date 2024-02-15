@@ -380,42 +380,45 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 
 void WorldSystem::on_mouse_key(int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT) {
+		BulletFireRate& fireRate = registry.bulletFireRates.get(player);
 		if (action == GLFW_PRESS) {
 			// Start firing
-			isFiring = true;
+			fireRate.is_firing = true;
 		}
 		else if (action == GLFW_RELEASE) {
 			// Stop firing
-			isFiring = false;
+			fireRate.is_firing = false;
 		}
 	}
 }
 
 void WorldSystem::updateBulletFiring(float elapsed_ms_since_last_update) {
 	// Update bullet fire timer
-	if (isFiring) {
-		float currentTime = glfwGetTime();
-		float timeSinceLastBullet = currentTime - lastTimeBulletFire;
-		// std::cout << timeSinceLastBullet << std::endl;
+	for (Entity entity : registry.bulletFireRates.entities) {
+		BulletFireRate& fireRate = registry.bulletFireRates.get(entity);
 
-		Motion& playerMotion = registry.motions.get(player);
-		// Since mouse position starts at top left, we subtract half the window width/height to center the position
-		// Then update it relative to player's current position
-		double mouse_pos_x;
-		double mouse_pos_y;
-		glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
-		last_mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + playerMotion.position;
-		float x = last_mouse_position.x - playerMotion.position.x;
-		float y = last_mouse_position.y - playerMotion.position.y;
-		mouse_rotation_angle = atan2(x, y) + glm::radians(90.0f);
+		// Fire rate will use time to become independent of FPS
+		// Adapted from: https://forum.unity.com/threads/gun-fire-rate-is-frame-rate-dependent.661588/
+		float current_time = glfwGetTime();
+		if (fireRate.is_firing && current_time - fireRate.last_time >= fireRate.fire_rate) {
+			Motion& motion = registry.motions.get(entity);
+			if (entity == player) {
+				// player fires bullet towards mouse position
+				double mouse_pos_x;
+				double mouse_pos_y;
+				glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
+				last_mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + motion.position;
+				float x = last_mouse_position.x - motion.position.x;
+				float y = last_mouse_position.y - motion.position.y;
+				mouse_rotation_angle = - atan2(x, y) - glm::radians(90.0f);
 
-		if (timeSinceLastBullet >= bulletFireRate) {
-			//if (registry.bullets.components.size() <= MAX_BULLETS) {
-				// Reset the fire timer
-			lastTimeBulletFire = currentTime;
-				// Create bullet with random initial position
-			createBullet(renderer, registry.motions.get(player), mouse_rotation_angle, last_mouse_position);
-			//}
+				createBullet(renderer, motion.speed_modified, motion.position, mouse_rotation_angle, last_mouse_position - motion.position);
+			}
+			else {
+				// TODO: Spawn enemy bullets here (ai)
+				// createBullet(renderer, motion.speed_modified, motion.position, ?, ?);
+			}
+			fireRate.last_time = current_time;
 		}
 	}
 }
