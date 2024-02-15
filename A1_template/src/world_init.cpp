@@ -131,6 +131,10 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	registry.idleMoveActions.emplace(entity);
+	BulletFireRate enemy_bullet_rate;
+	enemy_bullet_rate.fire_rate = 1;
+	enemy_bullet_rate.is_firing = true;
+	registry.bulletFireRates.insert(entity,enemy_bullet_rate);
 
 	return entity;
 }

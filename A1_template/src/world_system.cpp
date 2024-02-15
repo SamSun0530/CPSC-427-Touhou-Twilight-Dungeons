@@ -476,7 +476,11 @@ void WorldSystem::updateBulletFiring(float elapsed_ms_since_last_update) {
 			}
 			else {
 				// TODO: Spawn enemy bullets here (ai)
-				// createBullet(renderer, motion.speed_modified, motion.position, ?, ?);
+				Motion& player_motion = registry.motions.get(player);
+				float x = player_motion.position.x - motion.position.x;
+				float y = player_motion.position.y - motion.position.y;
+				float enemy_fire_angle = -atan2(x, y) - glm::radians(90.0f);
+				createBullet(renderer, motion.speed_modified, motion.position, enemy_fire_angle, {x, y});
 			}
 			fireRate.last_time = current_time;
 		}
