@@ -19,9 +19,9 @@ struct BulletFireRate
 	bool is_firing = false;
 };
 
-struct HitAble {
-	int hp = 1;
-};
+//struct HitAble {
+//	int hp = 1;
+//};
 
 // Player component
 struct Player

@@ -91,10 +91,10 @@ GLFWwindow* WorldSystem::create_window() {
 	auto mouse_key_redirect = [](GLFWwindow* wnd, int button, int action, int mods) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_key(button, action, mods); }; 
 	auto scroll_offset_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_scroll({ _0, _1 }); };
   
-		// Set the cursor origin to start at the center of the screen
+	// Set the cursor origin to start at the center of the screen
 	glfwSetCursorPos(window, window_px_half.x, window_px_half.y);
   
-  glfwSetKeyCallback(window, key_redirect);
+	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 	glfwSetMouseButtonCallback(window, mouse_key_redirect);
 	glfwSetScrollCallback(window, scroll_offset_redirect);
@@ -291,15 +291,15 @@ void WorldSystem::handle_collisions() {
 				}
 			}
 		}
-		// Checking Bullet - (nonplayer nonBullet) collisions
-		if (registry.bullets.has(entity)) {
-			// if (!registry.bullets.has(entity_other) && !registry.players.has(entity_other)) {
-			if (registry.deadlys.has(entity_other)) {
-				// do damage, for this stage one hit will kill
-				registry.remove_all_components_of(entity);
-				registry.remove_all_components_of(entity_other);
-			}
-		}
+		//// Checking Bullet - (nonplayer nonBullet) collisions
+		//if (registry.bullets.has(entity)) {
+		//	// if (!registry.bullets.has(entity_other) && !registry.players.has(entity_other)) {
+		//	if (registry.deadlys.has(entity_other)) {
+		//		// do damage, for this stage one hit will kill
+		//		registry.remove_all_components_of(entity);
+		//		registry.remove_all_components_of(entity_other);
+		//	}
+		//}
 	}
 
 	// Remove all collisions from this simulation step
