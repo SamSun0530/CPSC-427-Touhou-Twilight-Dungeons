@@ -28,7 +28,7 @@ public:
 		zoom = 1.0f;
 		zoom_min = 0.5f;
 		zoom_max = 2.0f;
-		zoom_increment = 0.05f;
+		zoom_increment = 0.1f;
 	}
 
 	void setPosition(vec2 position);
