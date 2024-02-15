@@ -111,6 +111,9 @@ GLFWwindow* WorldSystem::create_window() {
 	firing_sound = Mix_LoadWAV(audio_path("spell_sound.wav").c_str());
 	damage_sound = Mix_LoadWAV(audio_path("damage_sound.wav").c_str());
 
+	// Set the music volume
+	Mix_VolumeMusic(40);
+
 	if (background_music == nullptr || chicken_dead_sound == nullptr || chicken_eat_sound == nullptr || 
 		game_ending_sound == nullptr || firing_sound == nullptr || damage_sound == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
