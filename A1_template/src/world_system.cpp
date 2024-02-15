@@ -7,10 +7,14 @@
 #include <sstream>
 
 #include "physics_system.hpp"
+#include <glm/trigonometric.hpp>
+#include <iostream>
 
 // Game configuration
 const size_t MAX_EAGLES = 15;
 const size_t MAX_BUG = 5;
+const size_t MAX_BULLETS = 999;
+
 const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
 
@@ -84,15 +88,17 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetWindowUserPointer(window, this);
 	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
 	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
+	auto mouse_key_redirect = [](GLFWwindow* wnd, int button, int action, int mods) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_key(button, action, mods); }; 
 	auto scroll_offset_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_scroll({ _0, _1 }); };
-
+  
 	// Set the cursor origin to start at the center of the screen
 	glfwSetCursorPos(window, window_px_half.x, window_px_half.y);
-
+  
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
+	glfwSetMouseButtonCallback(window, mouse_key_redirect);
 	glfwSetScrollCallback(window, scroll_offset_redirect);
-
+  
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
 	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
@@ -148,7 +154,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Adapted from: https://gamedev.stackexchange.com/questions/152465/smoothly-move-camera-to-follow-player
 	float sharpness_factor = 0.95f;
 	float K = 1.0f - pow(1.0f - sharpness_factor, elapsed_ms_since_last_update / 1000.f);
-	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), motions_registry.get(player_chicken).position, K));
+	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), motions_registry.get(player).position, K));
 
 	//// Remove entities that leave the screen on the left side
 	//// Iterate backwards to be able to remove without unterfering with the next object to visit
@@ -228,9 +234,10 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create a new chicken
-	//player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
-	player_chicken = createChicken(renderer, { 0, 0 });
-	registry.colors.insert(player_chicken, {1, 0.8f, 0.8f});
+
+	//player = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
+	player = createChicken(renderer, { 0, 0 });
+	registry.colors.insert(player, {1, 0.8f, 0.8f});
 
 	renderer->camera.setPosition({ 0, 0 });
 
@@ -260,8 +267,7 @@ void WorldSystem::handle_collisions() {
 
 		// For now, we are only interested in collisions that involve the chicken
 		if (registry.players.has(entity)) {
-			//Player& player = registry.players.get(entity);
-
+			
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
@@ -285,6 +291,15 @@ void WorldSystem::handle_collisions() {
 				}
 			}
 		}
+		//// Checking Bullet - (nonplayer nonBullet) collisions
+		//if (registry.bullets.has(entity)) {
+		//	// if (!registry.bullets.has(entity_other) && !registry.players.has(entity_other)) {
+		//	if (registry.deadlys.has(entity_other)) {
+		//		// do damage, for this stage one hit will kill
+		//		registry.remove_all_components_of(entity);
+		//		registry.remove_all_components_of(entity_other);
+		//	}
+		//}
 	}
 
 	// Remove all collisions from this simulation step
@@ -313,7 +328,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Handle player movement
-	Motion& motion = registry.motions.get(player_chicken);
+	Motion& motion = registry.motions.get(player);
 	if (key == GLFW_KEY_W && action == GLFW_PRESS) motion.direction.y -= 1;
 	if (key == GLFW_KEY_W && action == GLFW_RELEASE) motion.direction.y += 1;
 	if (key == GLFW_KEY_A && action == GLFW_PRESS) motion.direction.x -= 1;
@@ -327,6 +342,17 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_P) {
 		if (action == GLFW_RELEASE)
 			renderer->camera.isFreeCam = !renderer->camera.isFreeCam;
+	}
+
+	// Fire bullets at mouse cursor (Also mouse1)
+	if (key == GLFW_KEY_SPACE) {
+		BulletFireRate& fireRate = registry.bulletFireRates.get(player);
+		if (action == GLFW_PRESS) {
+			fireRate.is_firing = true;
+		}
+		else if (action == GLFW_RELEASE) {
+			fireRate.is_firing = false;
+		}
 	}
 
 	// Debugging
@@ -355,20 +381,57 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE CHICKEN ROTATION HERE
-	// xpos and ypos are relative to the top-left of the window, the chicken's
-	// default facing direction is (1, 0)
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	
 	if (renderer->camera.isFreeCam) {
-		vec2& player_position = registry.motions.get(player_chicken).position;
+		vec2& player_position = registry.motions.get(player).position;
 		// Set the camera offset to be in between the cursor and the player
 		// Center the mouse position, get the half distance between mouse cursor and player, update offset relative to player position
 		renderer->camera.setOffset(((mouse_position - window_px_half) - player_position) / 2.f + player_position / 2.f);
 	}
+}
 
-	(vec2)mouse_position; // dummy to avoid compiler warning
+void WorldSystem::on_mouse_key(int button, int action, int mods) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT) {
+		BulletFireRate& fireRate = registry.bulletFireRates.get(player);
+		if (action == GLFW_PRESS) {
+			// Start firing
+			fireRate.is_firing = true;
+		}
+		else if (action == GLFW_RELEASE) {
+			// Stop firing
+			fireRate.is_firing = false;
+		}
+	}
+}
+
+void WorldSystem::updateBulletFiring(float elapsed_ms_since_last_update) {
+	// Update bullet fire timer
+	for (Entity entity : registry.bulletFireRates.entities) {
+		BulletFireRate& fireRate = registry.bulletFireRates.get(entity);
+
+		// Fire rate will use time to become independent of FPS
+		// Adapted from: https://forum.unity.com/threads/gun-fire-rate-is-frame-rate-dependent.661588/
+		float current_time = glfwGetTime();
+		if (fireRate.is_firing && current_time - fireRate.last_time >= fireRate.fire_rate) {
+			Motion& motion = registry.motions.get(entity);
+			if (entity == player) {
+				// player fires bullet towards mouse position
+				double mouse_pos_x;
+				double mouse_pos_y;
+				glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
+				last_mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + motion.position;
+				float x = last_mouse_position.x - motion.position.x;
+				float y = last_mouse_position.y - motion.position.y;
+				mouse_rotation_angle = - atan2(x, y) - glm::radians(90.0f);
+
+				createBullet(renderer, motion.speed_modified, motion.position, mouse_rotation_angle, last_mouse_position - motion.position);
+			}
+			else {
+				// TODO: Spawn enemy bullets here (ai)
+				// createBullet(renderer, motion.speed_modified, motion.position, ?, ?);
+			}
+			fireRate.last_time = current_time;
+		}
+	}
 }
 
 void WorldSystem::on_scroll(vec2 scroll_offset) {

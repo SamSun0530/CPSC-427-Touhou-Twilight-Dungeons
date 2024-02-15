@@ -7,6 +7,7 @@
 - `ESC` - Exit the program
 - `R` - Reset the program
 - Scroll wheel - Zooming in/out
+- Mouse 1 (left click) - Fire bullet towards mouse cursor
 
 ## Background Story
 
