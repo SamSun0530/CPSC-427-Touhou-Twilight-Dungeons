@@ -344,6 +344,17 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			renderer->camera.isFreeCam = !renderer->camera.isFreeCam;
 	}
 
+	// Fire bullets at mouse cursor (Also mouse1)
+	if (key == GLFW_KEY_SPACE) {
+		BulletFireRate& fireRate = registry.bulletFireRates.get(player);
+		if (action == GLFW_PRESS) {
+			fireRate.is_firing = true;
+		}
+		else if (action == GLFW_RELEASE) {
+			fireRate.is_firing = false;
+		}
+	}
+
 	// Debugging
 	if (key == GLFW_KEY_D) {
 		if (action == GLFW_RELEASE)
