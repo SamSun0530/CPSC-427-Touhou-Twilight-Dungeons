@@ -88,6 +88,8 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
+	registry.idleMoveActions.emplace(entity);
+
 	return entity;
 }
 

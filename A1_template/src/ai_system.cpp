@@ -4,21 +4,21 @@
 void AISystem::step(float elapsed_ms)
 {
 	// Randomized enemy position based on their state
-	for (Entity entity : registry.deadlys.entities) {
+	for (Entity entity : registry.idleMoveActions.entities) {
 		// progress timer
-		Deadly& deadly = registry.deadlys.get(entity);
-		deadly.timer_ms = deadly.timer_ms < elapsed_ms ? 0.f : deadly.timer_ms - elapsed_ms;
-		if (deadly.timer_ms <= 0) {
+		IdleMoveAction& action = registry.idleMoveActions.get(entity);
+		action.timer_ms = action.timer_ms < elapsed_ms ? 0.f : action.timer_ms - elapsed_ms;
+		if (action.timer_ms <= 0) {
 			Motion& motion = registry.motions.get(entity);
-			switch (deadly.state) {
-			case EnemyState::IDLE:
-				deadly.state = EnemyState::MOVE;
-				deadly.timer_ms = deadly.moving_ms;
+			switch (action.state) {
+			case State::IDLE:
+				action.state = State::MOVE;
+				action.timer_ms = action.moving_ms;
 				motion.velocity = { uniform_dist(rng), uniform_dist(rng) };
 				break;
-			case EnemyState::MOVE:
-				deadly.state = EnemyState::IDLE;
-				deadly.timer_ms = deadly.idle_ms;
+			case State::MOVE:
+				action.state = State::IDLE;
+				action.timer_ms = action.idle_ms;
 				motion.velocity = { 0, 0 };
 				break;
 			default:
