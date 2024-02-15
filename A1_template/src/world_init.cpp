@@ -1,6 +1,8 @@
 #include "world_init.hpp"
 #include "tiny_ecs_registry.hpp"
 
+// Note, BUG corresponds to texture Bullet; EAGLE corresponds to texture Enemy; CHICKEN corresponds to texture Reimu
+
 Entity createChicken(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
