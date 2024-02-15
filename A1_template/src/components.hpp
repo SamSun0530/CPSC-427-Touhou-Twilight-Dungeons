@@ -18,10 +18,22 @@ struct Player
 
 };
 
+enum class State {
+	IDLE = 0,
+	MOVE = IDLE + 1,
+	ALERT = MOVE + 1,
+};
+
+struct IdleMoveAction {
+	State state = State::IDLE;
+	float timer_ms = 5000;
+	float idle_ms = 5000;
+	float moving_ms = 500;
+};
+
 // Eagles have a hard shell
 struct Deadly
 {
-
 };
 
 // Bug and Chicken have a soft shell
@@ -37,7 +49,8 @@ struct Motion {
 	float speed_base = 0.f;
 	float speed_modified = 0.f;
 	vec2 velocity = { 0, 0 };
-	vec2 scale = { 1, 1 };
+	vec2 direction = { 0, 0 };
+	vec2 scale = { 10, 10 };
 };
 
 // Stucture to store collision information

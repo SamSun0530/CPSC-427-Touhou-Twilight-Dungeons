@@ -400,5 +400,3 @@ FodyWeavers.xsd
 **/out/
 
 **/*.bak
-
-/A1_template/ext/project_path.hpp
