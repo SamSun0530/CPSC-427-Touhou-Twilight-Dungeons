@@ -19,6 +19,10 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	motion.scale = mesh.original_size * 300.f;
 	motion.scale.y *= -1; // point front to the right
 
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 6;
+	hp.curr_hp = hp.max_hp;
+
 	// Create and (empty) Chicken component to be able to refer to all eagles
 	registry.players.emplace(entity);
 	registry.renderRequests.insert(
@@ -76,6 +80,10 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 	motion.speed_modified = 1.f * motion.speed_base;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
+
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 6;
+	hp.curr_hp = hp.max_hp;
 
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ -EAGLE_BB_WIDTH, EAGLE_BB_HEIGHT });

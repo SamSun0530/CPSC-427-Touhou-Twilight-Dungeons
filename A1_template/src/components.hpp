@@ -7,19 +7,30 @@
 // Player component
 struct Player
 {
-
+	bool invulnerability = false;
 };
 
 // Eagles have a hard shell
 struct Deadly
 {
+	int damage = 1;
+};
 
+struct HP {
+	int max_hp = 6;
+	int curr_hp = 6;
 };
 
 // Bug and Chicken have a soft shell
 struct Eatable
 {
+	int damage = 1;
+};
 
+
+struct EnemyBullet
+{
+	int damage = 1;
 };
 
 // All data relevant to the shape and motion of entities
@@ -62,7 +73,11 @@ struct DebugComponent
 // A timer that will be associated to dying chicken
 struct DeathTimer
 {
-	float counter_ms = 3000;
+	float counter_ms = 50;
+};
+
+struct InvulnerableTimer {
+	float invulnerable_counter_ms = 1000;
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)

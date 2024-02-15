@@ -7,12 +7,15 @@
 #include <sstream>
 
 #include "physics_system.hpp"
+#include <iostream>
 
 // Game configuration
 const size_t MAX_EAGLES = 15;
 const size_t MAX_BUG = 5;
 const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
+
+bool is_alive = true;
 
 // Create the bug world
 WorldSystem::WorldSystem()
@@ -146,16 +149,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Set camera position to be equal to player
 	renderer->camera.setPosition(motions_registry.get(player_chicken).position);
 
-	//// Remove entities that leave the screen on the left side
-	//// Iterate backwards to be able to remove without unterfering with the next object to visit
-	//// (the containers exchange the last element with the current)
-	//for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	//    Motion& motion = motions_registry.components[i];
-	//	if (motion.position.x + abs(motion.scale.x) < 0.f) {
-	//		if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
-	//			registry.remove_all_components_of(motions_registry.entities[i]);
-	//	}
-	//}
+	// Remove entities that leave the screen on the left side
+	// Iterate backwards to be able to remove without unterfering with the next object to visit
+	// (the containers exchange the last element with the current)
+	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
+	    Motion& motion = motions_registry.components[i];
+		if (motion.position.x + abs(motion.scale.x) < 0.f) {
+			if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
+				registry.remove_all_components_of(motions_registry.entities[i]);
+		}
+	}
 
 	// Spawning new eagles
 	next_eagle_spawn -= elapsed_ms_since_last_update * current_speed;
@@ -193,13 +196,34 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
-			screen.darken_screen_factor = 0;
-            restart_game();
+			glm::vec3 & color = registry.colors.get(entity);
+			color = { 1, 0.8f, 0.8f };
 			return true;
 		}
 	}
+
+	float min_invulnerable_time_ms = 3000.f;
+	for (Entity entity : registry.invulnerableTimers.entities) {
+		InvulnerableTimer& counter = registry.invulnerableTimers.get(entity);
+		counter.invulnerable_counter_ms -= elapsed_ms_since_last_update;
+		if (counter.invulnerable_counter_ms < min_invulnerable_time_ms) {
+			min_invulnerable_time_ms = counter.invulnerable_counter_ms;
+		}
+
+		if (counter.invulnerable_counter_ms < 0) {
+			registry.invulnerableTimers.remove(entity);
+			registry.players.get(entity).invulnerability = false;
+			return true;
+		}
+	}
+
+	if (registry.hps.get(player_chicken).curr_hp <= 0) {
+		registry.hps.get(player_chicken).curr_hp = registry.hps.get(player_chicken).max_hp;
+		is_alive = false;
+		restart_game();
+	}
 	// reduce window brightness if any of the present chickens is dying
-	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
+	//screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
 	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
 
@@ -227,7 +251,10 @@ void WorldSystem::restart_game() {
 	//player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
 	player_chicken = createChicken(renderer, { 0, 0 });
 	registry.colors.insert(player_chicken, {1, 0.8f, 0.8f});
-
+	Motion& motion = registry.motions.get(player_chicken);
+	motion.velocity = { 0.f, 0.f };
+	is_alive = true;
+	
 	// !! TODO A2: Enable static eggs on the ground, for reference
 	// Create eggs on the floor, use this for reference
 	/*
@@ -260,22 +287,46 @@ void WorldSystem::handle_collisions() {
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
 				if (!registry.deathTimers.has(entity)) {
-					// Scream, reset timer, and make the chicken sink
-					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, chicken_dead_sound, 0);
-
-					// !!! TODO A1: change the chicken orientation and color on death
+					// player turn red and decrease hp
+					if (!registry.players.get(player_chicken).invulnerability) {
+						registry.deathTimers.emplace(entity);
+						Mix_PlayChannel(-1, chicken_dead_sound, 0);
+						registry.colors.get(player_chicken) = vec3(1.0f, 0.0f, 0.0f);
+						// should decrease HP but not yet implemented
+						registry.hps.get(player_chicken).curr_hp -= registry.deadlys.get(entity_other).damage;
+						registry.players.get(player_chicken).invulnerability = true;
+						registry.invulnerableTimers.emplace(entity);
+					}
 				}
 			}
 			// Checking Player - Eatable collisions
-			else if (registry.eatables.has(entity_other)) {
+			else if (registry.enemyBullets.has(entity_other)) {
 				if (!registry.deathTimers.has(entity)) {
-					// chew, count points, and set the LightUp timer
-					registry.remove_all_components_of(entity_other);
-					Mix_PlayChannel(-1, chicken_eat_sound, 0);
-					++points;
+					// player turn red and decrease hp, bullet disappear
+					if (!registry.players.get(player_chicken).invulnerability) {
+						registry.deathTimers.emplace(entity);
+						Mix_PlayChannel(-1, chicken_dead_sound, 0);
+						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
+						registry.remove_all_components_of(entity_other);
 
-					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the chicken entity by modifying the ECS registry
+						registry.hps.get(player_chicken).curr_hp -= registry.enemyBullets.get(entity_other).damage;
+						registry.players.get(player_chicken).invulnerability = true;
+						registry.invulnerableTimers.emplace(entity);
+					}
+					
+				}
+			}
+		}
+		else if (registry.deadlys.has(entity)) {
+			if (registry.eatables.has(entity_other)) {
+				if (!registry.deathTimers.has(entity)) {
+					// enemy turn red and decrease hp, bullet disappear
+					registry.deathTimers.emplace(entity);
+					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
+					registry.remove_all_components_of(entity_other);
+
+					registry.hps.get(entity).curr_hp -= registry.eatables.get(entity_other).damage;
+				
 				}
 			}
 		}
@@ -308,14 +359,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Handle player movement
 	Motion& motion = registry.motions.get(player_chicken);
-	if (key == GLFW_KEY_W && action == GLFW_PRESS) motion.velocity.y -= 1;
-	if (key == GLFW_KEY_W && action == GLFW_RELEASE) motion.velocity.y += 1;
-	if (key == GLFW_KEY_A && action == GLFW_PRESS) motion.velocity.x -= 1;
-	if (key == GLFW_KEY_A && action == GLFW_RELEASE) motion.velocity.x += 1;
-	if (key == GLFW_KEY_S && action == GLFW_PRESS) motion.velocity.y += 1;
-	if (key == GLFW_KEY_S && action == GLFW_RELEASE) motion.velocity.y -= 1;
-	if (key == GLFW_KEY_D && action == GLFW_PRESS) motion.velocity.x += 1;
-	if (key == GLFW_KEY_D && action == GLFW_RELEASE) motion.velocity.x -= 1;
+
+	if (is_alive) {
+		if (key == GLFW_KEY_W && action == GLFW_PRESS) motion.velocity.y -= 1;
+		if (key == GLFW_KEY_W && action == GLFW_RELEASE) motion.velocity.y += 1;
+		if (key == GLFW_KEY_A && action == GLFW_PRESS) motion.velocity.x -= 1;
+		if (key == GLFW_KEY_A && action == GLFW_RELEASE) motion.velocity.x += 1;
+		if (key == GLFW_KEY_S && action == GLFW_PRESS) motion.velocity.y += 1;
+		if (key == GLFW_KEY_S && action == GLFW_RELEASE) motion.velocity.y -= 1;
+		if (key == GLFW_KEY_D && action == GLFW_PRESS) motion.velocity.x += 1;
+		if (key == GLFW_KEY_D && action == GLFW_RELEASE) motion.velocity.x -= 1;
+	}
+
 
 	// Toggle between camera-cursor offset
 	if (key == GLFW_KEY_P) {
