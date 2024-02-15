@@ -4,10 +4,43 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 
+
+struct Bullet {
+	int damage = 1;
+};
+
+// Manages when entity is able to fire a bullet again
+struct BulletFireRate
+{
+	// IMPORTANT: set this to -fire_rate so entity can fire immediately
+	float last_time = -0.2;
+	// fire rate is (fire_rate) second/shot or (fire_rate)^-1 shots/second
+	// e.g. fire_rate = 0.1 s/shot = 10 shots/s
+	float fire_rate = 0.2; 
+	bool is_firing = false;
+};
+
+//struct HitAble {
+//	int hp = 1;
+//};
+
 // Player component
 struct Player
 {
 	bool invulnerability = false;
+};
+
+enum class State {
+	IDLE = 0,
+	MOVE = IDLE + 1,
+	ALERT = MOVE + 1,
+};
+
+struct IdleMoveAction {
+	State state = State::IDLE;
+	float timer_ms = 5000;
+	float idle_ms = 5000;
+	float moving_ms = 500;
 };
 
 // Eagles have a hard shell
@@ -40,6 +73,7 @@ struct Motion {
 	float speed_base = 0.f;
 	float speed_modified = 0.f;
 	vec2 velocity = { 0, 0 };
+	vec2 direction = { 0, 0 };
 	vec2 scale = { 10, 10 };
 };
 
