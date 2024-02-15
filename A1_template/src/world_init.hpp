@@ -11,9 +11,13 @@ const float CHICKEN_BB_WIDTH = 1.3f * 64.f;
 const float CHICKEN_BB_HEIGHT = 1.3f * 80.f;
 const float EAGLE_BB_WIDTH = 1.f * 80.f;
 const float EAGLE_BB_HEIGHT = 1.f * 90.f;
+const float HP_BB_WIDTH = 5.0f * 11.f;
+const float HP_BB_HEIGHT = 5.0f * 11.f;
 
 // the bullet, takes into account entity's speed and position
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet = false);
+
+std::vector<Entity> createUI(RenderSystem* , int max_hp);
 
 // the player
 Entity createChicken(RenderSystem* renderer, vec2 pos);

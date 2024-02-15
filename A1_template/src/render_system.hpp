@@ -7,6 +7,7 @@
 #include "components.hpp"
 #include "tiny_ecs.hpp"
 #include "camera.hpp"
+#include "ui.hpp"
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -59,7 +60,9 @@ class RenderSystem {
 		shader_path("egg"),
 		shader_path("chicken"),
 		shader_path("textured"),
-		shader_path("wind") };
+		shader_path("wind"),
+		shader_path("ui")
+	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
@@ -95,10 +98,11 @@ public:
 
 	// Camera for managing view matrix
 	Camera camera;
+	UI ui;
 
 private:
 	// Internal drawing functions for each entity type
-	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view);
+	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);
 	void drawToScreen();
 
 	// Window handle

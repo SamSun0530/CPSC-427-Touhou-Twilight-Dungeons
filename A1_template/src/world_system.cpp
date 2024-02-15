@@ -155,6 +155,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	float sharpness_factor = 0.95f;
 	float K = 1.0f - pow(1.0f - sharpness_factor, elapsed_ms_since_last_update / 1000.f);
 	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), motions_registry.get(player).position, K));
+	renderer->ui.setPosition(motions_registry.get(player).position);
+	vec2 ui_pos = { 50.f, 50.f };
+	for (int i = 0; i < ui.size(); i++) {
+		vec2 padding = { i * 60, 0 };
+		motions_registry.get(ui[i]).position = motions_registry.get(player).position - window_px_half + ui_pos + padding;
+	}
+	for (int i = registry.hps.get(player).curr_hp; i < ui.size(); i++) {
+		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::EMPTY_HEALT;
+	}
 
 	//// Remove entities that leave the screen on the left side
 	//// Iterate backwards to be able to remove without unterfering with the next object to visit
@@ -262,6 +271,7 @@ void WorldSystem::restart_game() {
 
 	// Create a new chicken
 	player = createChicken(renderer, { 0, 0 });
+	ui = createUI(renderer, registry.hps.get(player).max_hp);
 
 	renderer->camera.setPosition({ 0, 0 });
 
