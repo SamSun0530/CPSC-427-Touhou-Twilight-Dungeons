@@ -63,6 +63,7 @@ private:
 
 	// Player state
 	Entity player;
+	std::vector<Entity> ui;
 	float mouse_rotation_angle = 0.0f;
 	vec2 last_mouse_position = { 0, 0 };
 

@@ -155,6 +155,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	float sharpness_factor = 0.95f;
 	float K = 1.0f - pow(1.0f - sharpness_factor, elapsed_ms_since_last_update / 1000.f);
 	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), motions_registry.get(player).position, K));
+	renderer->ui.setPosition(motions_registry.get(player).position);
+	vec2 ui_pos = { 50.f, 50.f };
+	for (int i = 0; i < ui.size(); i++) {
+		vec2 padding = { i * 60, 0 };
+		motions_registry.get(ui[i]).position = motions_registry.get(player).position - window_px_half + ui_pos + padding;
+	}
+	for (int i = registry.hps.get(player).curr_hp; i < ui.size(); i++) {
+		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::EMPTY_HEALT;
+	}
 
 	//// Remove entities that leave the screen on the left side
 	//// Iterate backwards to be able to remove without unterfering with the next object to visit
@@ -203,13 +212,40 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
-			screen.darken_screen_factor = 0;
-            restart_game();
+			registry.colors.get(entity) = vec3(1, 1, 1);
+			//color = { 1, 0.8f, 0.8f };
 			return true;
 		}
 	}
+
+	float min_invulnerable_time_ms = 3000.f;
+	for (Entity entity : registry.invulnerableTimers.entities) {
+		InvulnerableTimer& counter = registry.invulnerableTimers.get(entity);
+		counter.invulnerable_counter_ms -= elapsed_ms_since_last_update;
+		if (counter.invulnerable_counter_ms < min_invulnerable_time_ms) {
+			min_invulnerable_time_ms = counter.invulnerable_counter_ms;
+		}
+
+		if (counter.invulnerable_counter_ms < 0) {
+			registry.invulnerableTimers.remove(entity);
+			registry.players.get(entity).invulnerability = false;
+			return true;
+		}
+	}
+
+	if (registry.hps.get(player).curr_hp <= 0) {
+		registry.hps.get(player).curr_hp = registry.hps.get(player).max_hp;
+		restart_game();
+	}
+
+	for (Entity entity : registry.hps.entities) {
+		HP& hp = registry.hps.get(entity);
+		if (hp.curr_hp <= 0.0f) {
+			registry.remove_all_components_of(entity);
+		}
+	}
 	// reduce window brightness if any of the present chickens is dying
-	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
+	//screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
 	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
 
@@ -234,10 +270,8 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create a new chicken
-
-	//player = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
 	player = createChicken(renderer, { 0, 0 });
-	registry.colors.insert(player, {1, 0.8f, 0.8f});
+	ui = createUI(renderer, registry.hps.get(player).max_hp);
 
 	renderer->camera.setPosition({ 0, 0 });
 
@@ -272,22 +306,45 @@ void WorldSystem::handle_collisions() {
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
 				if (!registry.deathTimers.has(entity)) {
-					// Scream, reset timer, and make the chicken sink
-					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, chicken_dead_sound, 0);
-
-					// !!! TODO A1: change the chicken orientation and color on death
+					// player turn red and decrease hp
+					if (!registry.players.get(player).invulnerability) {
+						registry.deathTimers.emplace(entity);
+						Mix_PlayChannel(-1, chicken_dead_sound, 0);
+						registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
+						// should decrease HP but not yet implemented
+						registry.hps.get(player).curr_hp -= registry.deadlys.get(entity_other).damage;
+						registry.players.get(player).invulnerability = true;
+						registry.invulnerableTimers.emplace(entity);
+					}
 				}
 			}
 			// Checking Player - Eatable collisions
-			else if (registry.eatables.has(entity_other)) {
+			else if (registry.enemyBullets.has(entity_other)) {
 				if (!registry.deathTimers.has(entity)) {
-					// chew, count points, and set the LightUp timer
-					registry.remove_all_components_of(entity_other);
-					Mix_PlayChannel(-1, chicken_eat_sound, 0);
-					++points;
+					// player turn red and decrease hp, bullet disappear
+					if (!registry.players.get(player).invulnerability) {
+						registry.deathTimers.emplace(entity);
+						Mix_PlayChannel(-1, chicken_dead_sound, 0);
+						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 
-					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the chicken entity by modifying the ECS registry
+						registry.hps.get(player).curr_hp -= registry.enemyBullets.get(entity_other).damage;
+						registry.remove_all_components_of(entity_other);
+						registry.players.get(player).invulnerability = true;
+						registry.invulnerableTimers.emplace(entity);
+					}
+					
+				}
+			}
+		}
+		else if (registry.deadlys.has(entity)) {
+			if (registry.bullets.has(entity_other)) {
+				if (!registry.deathTimers.has(entity)) {
+					// enemy turn red and decrease hp, bullet disappear
+					registry.deathTimers.emplace(entity);
+					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
+
+					registry.hps.get(entity).curr_hp -= registry.bullets.get(entity_other).damage;
+					registry.remove_all_components_of(entity_other);
 				}
 			}
 		}
@@ -324,11 +381,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 
-        restart_game();
+		restart_game();
 	}
 
 	// Handle player movement
-	Motion& motion = registry.motions.get(player);
+	Motion & motion = registry.motions.get(player);
 	if (key == GLFW_KEY_W && action == GLFW_PRESS) motion.direction.y -= 1;
 	if (key == GLFW_KEY_W && action == GLFW_RELEASE) motion.direction.y += 1;
 	if (key == GLFW_KEY_A && action == GLFW_PRESS) motion.direction.x -= 1;
@@ -423,11 +480,15 @@ void WorldSystem::updateBulletFiring(float elapsed_ms_since_last_update) {
 				float y = last_mouse_position.y - motion.position.y;
 				mouse_rotation_angle = - atan2(x, y) - glm::radians(90.0f);
 
-				createBullet(renderer, motion.speed_modified, motion.position, mouse_rotation_angle, last_mouse_position - motion.position);
+				createBullet(renderer, motion.speed_modified, motion.position, mouse_rotation_angle, last_mouse_position - motion.position, true);
 			}
 			else {
 				// TODO: Spawn enemy bullets here (ai)
-				// createBullet(renderer, motion.speed_modified, motion.position, ?, ?);
+				Motion& player_motion = registry.motions.get(player);
+				float x = player_motion.position.x - motion.position.x;
+				float y = player_motion.position.y - motion.position.y;
+				float enemy_fire_angle = -atan2(x, y) - glm::radians(90.0f);
+				createBullet(renderer, motion.speed_modified, motion.position, enemy_fire_angle, {x, y});
 			}
 			fireRate.last_time = current_time;
 		}

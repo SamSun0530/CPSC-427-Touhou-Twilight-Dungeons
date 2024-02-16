@@ -23,9 +23,10 @@ public:
 	ComponentContainer<Deadly> deadlys;
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
+	ComponentContainer<EnemyBullet> enemyBullets;
+	ComponentContainer<InvulnerableTimer> invulnerableTimers;
+	ComponentContainer<HP> hps;
 	ComponentContainer<Bullet> bullets;
-	//ComponentContainer<HitAble> hitAbles;
-
 	ComponentContainer<IdleMoveAction> idleMoveActions;
 	ComponentContainer<BulletFireRate> bulletFireRates;
 
@@ -45,8 +46,10 @@ public:
 		registry_list.push_back(&deadlys);
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
+		registry_list.push_back(&enemyBullets);
+		registry_list.push_back(&invulnerableTimers);
+		registry_list.push_back(&hps);
 		registry_list.push_back(&bullets);
-		//registry_list.push_back(&hitAbles);
 		registry_list.push_back(&idleMoveActions);
 		registry_list.push_back(&bulletFireRates);
 	}

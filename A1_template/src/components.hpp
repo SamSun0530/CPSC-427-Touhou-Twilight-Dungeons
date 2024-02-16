@@ -6,6 +6,7 @@
 
 
 struct Bullet {
+	int damage = 1;
 };
 
 // Manages when entity is able to fire a bullet again
@@ -26,7 +27,7 @@ struct BulletFireRate
 // Player component
 struct Player
 {
-
+	bool invulnerability = false;
 };
 
 enum class State {
@@ -45,12 +46,24 @@ struct IdleMoveAction {
 // Eagles have a hard shell
 struct Deadly
 {
+	int damage = 1;
+};
+
+struct HP {
+	int max_hp = 6;
+	int curr_hp = 6;
 };
 
 // Bug and Chicken have a soft shell
 struct Eatable
 {
+	int damage = 1;
+};
 
+
+struct EnemyBullet
+{
+	int damage = 1;
 };
 
 // All data relevant to the shape and motion of entities
@@ -94,7 +107,11 @@ struct DebugComponent
 // A timer that will be associated to dying chicken
 struct DeathTimer
 {
-	float counter_ms = 3000;
+	float counter_ms = 50;
+};
+
+struct InvulnerableTimer {
+	float invulnerable_counter_ms = 1000;
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)
@@ -144,10 +161,28 @@ struct Mesh
  * enums there are, and as a default value to represent uninitialized fields.
  */
 
+// Note, BUG corresponds to texture Bullet; EAGLE corresponds to texture Enemy; CHICKEN corresponds to texture Reimu
 enum class TEXTURE_ASSET_ID {
 	BUG = 0,
 	EAGLE = BUG + 1,
-	TEXTURE_COUNT = EAGLE + 1
+	CHICKEN = EAGLE + 1,
+	ENEMY_BULLET = CHICKEN + 1,
+	TILE_1 = ENEMY_BULLET + 1,
+	TILE_2 = TILE_1 + 1,
+	INNER_WALL = TILE_2 + 1,
+	TOP_WALL = INNER_WALL + 1,
+	DOOR = TOP_WALL + 1,
+	DOOR_OPEN = DOOR + 1,
+	LEFT_WALL = DOOR_OPEN + 1,
+	RIGHT_WALL = LEFT_WALL + 1,
+	LEFT_TOP_CORNER_WALL = RIGHT_WALL + 1,
+	LEFT_BOTTOM_CORNER_WALL = LEFT_TOP_CORNER_WALL + 1,
+	RIGHT_TOP_CORNER_WALL = LEFT_BOTTOM_CORNER_WALL + 1,
+	RIGHT_BOTTOM_CORNER_WALL = RIGHT_TOP_CORNER_WALL + 1,
+	FULL_HEART = RIGHT_BOTTOM_CORNER_WALL + 1,
+	HALF_HEART = FULL_HEART + 1,
+	EMPTY_HEALT = HALF_HEART + 1,
+	TEXTURE_COUNT = EMPTY_HEALT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -157,7 +192,8 @@ enum class EFFECT_ASSET_ID {
 	CHICKEN = EGG + 1,
 	TEXTURED = CHICKEN + 1,
 	WIND = TEXTURED + 1,
-	EFFECT_COUNT = WIND + 1
+	UI = WIND + 1,
+	EFFECT_COUNT = UI + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

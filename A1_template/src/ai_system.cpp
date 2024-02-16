@@ -14,12 +14,12 @@ void AISystem::step(float elapsed_ms)
 			case State::IDLE:
 				action.state = State::MOVE;
 				action.timer_ms = action.moving_ms;
-				motion.velocity = { uniform_dist(rng), uniform_dist(rng) };
+				motion.direction = { uniform_dist(rng), uniform_dist(rng) };
 				break;
 			case State::MOVE:
 				action.state = State::IDLE;
 				action.timer_ms = action.idle_ms;
-				motion.velocity = { 0, 0 };
+				motion.direction = { 0, 0 };
 				break;
 			default:
 				break;
