@@ -344,7 +344,6 @@ void WorldSystem::handle_collisions() {
 					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 
 					registry.hps.get(entity).curr_hp -= registry.bullets.get(entity_other).damage;
-					printf("entity hp: %d\n", registry.hps.get(entity).curr_hp);
 					registry.remove_all_components_of(entity_other);
 				}
 			}

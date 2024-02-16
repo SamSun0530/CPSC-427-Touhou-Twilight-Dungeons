@@ -59,7 +59,7 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	motion.angle = 0.f;
 	motion.speed_base = 100.f;
 	motion.speed_modified = 1.f * motion.speed_base;
-	motion.velocity = { 0, 0 };
+	motion.direction = { 0, 0 };
 	motion.scale = vec2({ -CHICKEN_BB_WIDTH, CHICKEN_BB_HEIGHT });
 	motion.scale.x = -motion.scale.x;
 
