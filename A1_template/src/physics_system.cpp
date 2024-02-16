@@ -26,6 +26,26 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	return false;
 }
 
+bool collides_AABB(const Motion& motion1, const Motion& motion2)
+{
+	const vec2 bounding_box1 = get_bounding_box(motion1) / 2.f;
+	const vec2 bounding_box2 = get_bounding_box(motion2) / 2.f;
+
+	const float top1 = motion1.position.y - bounding_box1.y;
+	const float bottom1 = motion1.position.y + bounding_box1.y;
+	const float left1 = motion1.position.x - bounding_box1.x;
+	const float right1 = motion1.position.x + bounding_box1.x;
+
+	const float top2 = motion2.position.y - bounding_box2.y;
+	const float bottom2 = motion2.position.y + bounding_box2.y;
+	const float left2 = motion2.position.x - bounding_box2.x;
+	const float right2 = motion2.position.x + bounding_box2.x;
+
+	if (left2 <= right1 && left1 <= right2 && top2 <= bottom1 && top1 <= bottom2)
+		return true;
+	return false;
+}
+
 void PhysicsSystem::step(float elapsed_ms)
 {
 	// Move bug based on how much time has passed, this is to (partially) avoid
@@ -47,6 +67,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		// K factor (0,30] = ~0 (not zero, slippery, ice) -> 10-20 (quick start up/slow down, natural) -> 30 (instant velocity, jittery)
 		float K = 10.f;
 		motion.velocity = vec2_lerp(motion.velocity, direction_normalized * motion.speed_modified, step_seconds * K);
+		motion.last_position = motion.position;
 		motion.position += motion.velocity * step_seconds;
 	}
 
@@ -66,7 +87,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for(uint j = i+1; j<motion_container.components.size(); j++)
 		{
 			Motion& motion_j = motion_container.components[j];
-			if (collides(motion_i, motion_j))
+			if (collides_AABB(motion_i, motion_j))
 			{
 				Entity entity_j = motion_container.entities[j];
 				// Create a collisions event
