@@ -256,9 +256,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	float min_death_time_ms = 3000.f;
-	for (Entity entity : registry.deathTimers.entities) {
+	for (Entity entity : registry.realDeathTimers.entities) {
 
-		DeathTimer& death_counter = registry.deathTimers.get(entity);
+		DeathTimer& death_counter = registry.realDeathTimers.get(entity);
 		death_counter.death_counter_ms -= elapsed_ms_since_last_update;
 
 		if (death_counter.death_counter_ms < min_death_time_ms) {
@@ -266,7 +266,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 
 		if (death_counter.death_counter_ms < 0) {
-			registry.deathTimers.remove(entity);
+			registry.realDeathTimers.remove(entity);
 
 			restart_game();
 			return true;
@@ -279,7 +279,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		is_alive = false; 
 		pressed = { 0 };
 		registry.motions.get(player).direction = { 0,0 };
-		registry.deathTimers.emplace(player);
+		registry.realDeathTimers.emplace(player);
 		//screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 	}
 
@@ -368,7 +368,7 @@ void WorldSystem::restart_game() {
 				else {
 					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
 				}
-				textureIDs.push_back(TEXTURE_ASSET_ID::BOTTOM_WALL);
+				textureIDs.push_back(TEXTURE_ASSET_ID::WALL_EDGE);
 			}
 			else if (col == 0) {
 				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
@@ -440,7 +440,7 @@ void WorldSystem::handle_collisions() {
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
-				if (!registry.hitTimers.has(entity) && !registry.deathTimers.has(player)) {
+				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(player)) {
 
 					// player turn red and decrease hp
 					if (!registry.players.get(player).invulnerability) {
