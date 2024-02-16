@@ -116,11 +116,13 @@ GLFWwindow* WorldSystem::create_window() {
 	game_ending_sound = Mix_LoadWAV(audio_path("game_ending_sound.wav").c_str());
 	firing_sound = Mix_LoadWAV(audio_path("spell_sound.wav").c_str());
 	damage_sound = Mix_LoadWAV(audio_path("damage_sound.wav").c_str());
+	hit_spell = Mix_LoadWAV(audio_path("hit_spell.wav").c_str());
 
 	// Set the music volume
-	Mix_VolumeMusic(40);
+	Mix_VolumeMusic(15);
+	Mix_Volume(-1, 30);
 
-	if (background_music == nullptr || chicken_dead_sound == nullptr || chicken_eat_sound == nullptr || 
+	if (background_music == nullptr || chicken_dead_sound == nullptr || chicken_eat_sound == nullptr ||
 		game_ending_sound == nullptr || firing_sound == nullptr || damage_sound == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("backgroundmusic.wav").c_str(),
@@ -128,8 +130,9 @@ GLFWwindow* WorldSystem::create_window() {
 			audio_path("spell_sound.wav").c_str(),
 			audio_path("damage_sound.wav").c_str(),
 			audio_path("chicken_dead.wav").c_str(),
-			audio_path("chicken_eat.wav").c_str());
-			
+			audio_path("chicken_eat.wav").c_str(),
+			audio_path("hit_spell.wav").c_str());
+
 		return nullptr;
 	}
 
@@ -197,7 +200,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
 		Motion& motion = registry.motions.get(player);
 		// Create eagle with random initial position
-        //createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
+		//createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
 		float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
 		float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
 		createEagle(renderer, vec2(spawn_x, spawn_y));
@@ -409,7 +412,7 @@ void WorldSystem::handle_collisions() {
 					// player turn red and decrease hp
 					if (!registry.players.get(player).invulnerability) {
 						registry.deathTimers.emplace(entity);
-						Mix_PlayChannel(-1, chicken_dead_sound, 0);
+						Mix_PlayChannel(-1, damage_sound, 0);
 						registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
 						// should decrease HP but not yet implemented
 						registry.hps.get(player).curr_hp -= registry.deadlys.get(entity_other).damage;
@@ -424,7 +427,7 @@ void WorldSystem::handle_collisions() {
 					// player turn red and decrease hp, bullet disappear
 					if (!registry.players.get(player).invulnerability) {
 						registry.deathTimers.emplace(entity);
-						Mix_PlayChannel(-1, chicken_dead_sound, 0);
+						Mix_PlayChannel(-1, damage_sound, 0);
 						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 
 						registry.hps.get(player).curr_hp -= registry.enemyBullets.get(entity_other).damage;
@@ -479,6 +482,7 @@ void WorldSystem::handle_collisions() {
 					registry.deathTimers.emplace(entity);
 					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 
+					Mix_PlayChannel(-1, hit_spell, 0);
 					registry.hps.get(entity).curr_hp -= registry.bullets.get(entity_other).damage;
 					registry.remove_all_components_of(entity_other);
 				}
@@ -589,8 +593,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Toggle between camera-cursor offset
 	if (key == GLFW_KEY_P) {
-		if (action == GLFW_RELEASE)
+		if (action == GLFW_RELEASE) {
 			renderer->camera.isFreeCam = !renderer->camera.isFreeCam;
+			if (!renderer->camera.isFreeCam) {
+				renderer->camera.setOffset({ 0, 0 });
+			}
+		}
 	}
 
 	// Fire bullets at mouse cursor (Also mouse1)
@@ -673,6 +681,7 @@ void WorldSystem::updateBulletFiring(float elapsed_ms_since_last_update) {
 					float y = last_mouse_position.y - motion.position.y;
 					mouse_rotation_angle = -atan2(x, y) - glm::radians(90.0f);
 
+					Mix_PlayChannel(-1, firing_sound, 0);
 					createBullet(renderer, motion.speed_modified, motion.position, mouse_rotation_angle, last_mouse_position - motion.position, true);
 				}
 				else {

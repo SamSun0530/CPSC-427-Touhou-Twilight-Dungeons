@@ -83,6 +83,7 @@ private:
 	Mix_Chunk* game_ending_sound;
 	Mix_Chunk* firing_sound;
 	Mix_Chunk* damage_sound;
+	Mix_Chunk* hit_spell;
 
 	// C++ random number generator
 	std::default_random_engine rng;
