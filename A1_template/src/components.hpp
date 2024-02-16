@@ -23,12 +23,12 @@ struct Eatable
 };
 
 // A non interactable tile of the map
-struct Decoration_Tile
+struct DecorationTile
 {
 };
 
 // A interactable tile of the map
-struct Physical_Tile {
+struct PhysicalTile {
 };
 
 // All data relevant to the shape and motion of entities

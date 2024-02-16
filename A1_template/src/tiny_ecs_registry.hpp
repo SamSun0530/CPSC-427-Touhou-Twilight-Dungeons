@@ -23,8 +23,8 @@ public:
 	ComponentContainer<Deadly> deadlys;
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
-	ComponentContainer<Decoration_Tile> decoTiles;
-	ComponentContainer<Physical_Tile> physTiles;
+	ComponentContainer<DecorationTile> decoTiles;
+	ComponentContainer<PhysicalTile> physTiles;
 
 
 	// constructor that adds all containers for looping over them

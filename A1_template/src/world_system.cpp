@@ -161,19 +161,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	//}
 
 	// Spawning new eagles
-	next_eagle_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.deadlys.components.size() <= MAX_EAGLES && next_eagle_spawn < 0.f) {
-		// Reset timer
-		next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
-		// Create eagle with random initial position
-        createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
-	}
+	//next_eagle_spawn -= elapsed_ms_since_last_update * current_speed;
+	//if (registry.deadlys.components.size() <= MAX_EAGLES && next_eagle_spawn < 0.f) {
+	//	// Reset timer
+	//	next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
+	//	// Create eagle with random initial position
+ //       createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
+	//}
 
 	// Spawning new bug
-	next_bug_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.eatables.components.size() <= MAX_BUG && next_bug_spawn < 0.f) {
-		// !!!  TODO A1: Create new bug with createBug({0,0}), as for the Eagles above
-	}
+	//next_bug_spawn -= elapsed_ms_since_last_update * current_speed;
+	//if (registry.eatables.components.size() <= MAX_BUG && next_bug_spawn < 0.f) {
+	//	// !!!  TODO A1: Create new bug with createBug({0,0}), as for the Eagles above
+	//}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A2: HANDLE EGG SPAWN HERE
@@ -234,39 +234,42 @@ void WorldSystem::restart_game() {
 	// Create rooms
 
 	//Creates 1 room the size of the map
-	for(int row = 0; row < world_map.size(); row++) {
-		for(int col = 0; col < world_map[row].size(); col++ ) {
-			if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
-				world_map[row][col] = (int)TILE_TYPE::WALL;
-			} else {
-				world_map[row][col] = (int)TILE_TYPE::FLOOR;
-			}
-		}
-	}
-	int centerX = (world_width >> 1)+1;
-	int centerY = (world_height >> 1)+1;
+	
+	createPhysTile(renderer, { 0, -200 }); // for testing collision
+	
+	//for(int row = 0; row < world_map.size(); row++) {
+	//	for(int col = 0; col < world_map[row].size(); col++ ) {
+	//		if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
+	//			world_map[row][col] = (int)TILE_TYPE::WALL;
+	//		} else {
+	//			world_map[row][col] = (int)TILE_TYPE::FLOOR;
+	//		}
+	//	}
+	//}
+	//int centerX = (world_width >> 1)+1;
+	//int centerY = (world_height >> 1)+1;
 
-	//Creates entitiy tiles based on the world map
-	for(int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
-		for(int col = 0; col < world_map[row].size(); col++ ) {
-			// if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
-			// 	world_map[row][col] = (int)TILE_TYPE::WALL;
-			// }
-			int xPos = (col)*world_tile_size;
-			int yPos = (row-3)*world_tile_size;
-			switch (world_map[col][row])
-			{
-			case (int)TILE_TYPE::WALL:
-				createPhysTile(renderer, {xPos,yPos});
-				break;
-			case (int)TILE_TYPE::FLOOR:
-				createDecoTile(renderer, {xPos,yPos});
-				break;
-			default:
-				break;
-			}
-		}
-	}
+	////Creates entitiy tiles based on the world map
+	//for(int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
+	//	for(int col = 0; col < world_map[row].size(); col++ ) {
+	//		// if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
+	//		// 	world_map[row][col] = (int)TILE_TYPE::WALL;
+	//		// }
+	//		int xPos = (col)*world_tile_size;
+	//		int yPos = (row-3)*world_tile_size;
+	//		switch (world_map[col][row])
+	//		{
+	//		case (int)TILE_TYPE::WALL:
+	//			createPhysTile(renderer, {xPos,yPos});
+	//			break;
+	//		case (int)TILE_TYPE::FLOOR:
+	//			createDecoTile(renderer, {xPos,yPos});
+	//			break;
+	//		default:
+	//			break;
+	//		}
+	//	}
+	//}
 
 
 	// !! TODO A2: Enable static eggs on the ground, for reference
@@ -318,6 +321,11 @@ void WorldSystem::handle_collisions() {
 
 					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the chicken entity by modifying the ECS registry
 				}
+			}
+		}
+		else if (registry.physTiles.has(entity)) {
+			if (registry.players.has(entity_other)) {
+				printf("collided!\n");
 			}
 		}
 	}

@@ -27,6 +27,13 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 			EFFECT_ASSET_ID::CHICKEN,
 			GEOMETRY_BUFFER_ID::CHICKEN });
 
+	//printf("motion.position: (x,y)=(%f,%f)\n", motion.position.x, motion.position.y);
+	//printf("motion.scale: (x,y)=(%f,%f)\n", motion.scale.x, motion.scale.y);
+	//printf("motion.min_x: %f\n", motion.position.x - motion.scale.x / 2.0f);
+	//printf("motion.max_x: %f\n", motion.position.x + motion.scale.x / 2.0f);	
+	//printf("motion.min_y: %f\n", motion.position.y - motion.scale.y / 2.0f);
+	//printf("motion.max_y: %f\n", motion.position.y + motion.scale.y / 2.0f);
+
 	return entity;
 }
 
