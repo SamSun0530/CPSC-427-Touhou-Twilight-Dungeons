@@ -187,7 +187,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Motion& motion = registry.motions.get(player);
 		// Create eagle with random initial position
         //createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
-        createEagle(renderer, vec2(motion.position.x + uniform_dist(rng) * 1000.f, motion.position.y + uniform_dist(rng) * 1000.f));
+		float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
+		float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
+		createEagle(renderer, vec2(spawn_x, spawn_y));
 	}
 
 	//// Spawning new bug
@@ -279,10 +281,10 @@ void WorldSystem::restart_game() {
 
 	// Create rooms
 
-// createPhysTile(renderer, { 0, -200 }); // for testing collision
-// createPhysTile(renderer, { -124, -324 }); // for testing collision
+	// createPhysTile(renderer, { 0, -200 }); // for testing collision
+	// createPhysTile(renderer, { -124, -324 }); // for testing collision
 
-// Creates 1 room the size of the map
+	// Creates 1 room the size of the map
 	for (int row = 0; row < world_map.size(); row++) {
 		for (int col = 0; col < world_map[row].size(); col++) {
 			if (row == 0 || col == 0 || row == world_height - 1 || col == world_width - 1) {
@@ -337,7 +339,6 @@ void WorldSystem::restart_game() {
 				}
 			}
 
-
 			int xPos = (col - centerX) * world_tile_size;
 			int yPos = (row - centerY) * world_tile_size;
 			switch (world_map[col][row])
@@ -357,8 +358,6 @@ void WorldSystem::restart_game() {
 	// Create a new chicken
 	player = createChicken(renderer, { 0, 0 });
 	ui = createUI(renderer, registry.hps.get(player).max_hp);
-
-
 
 	renderer->camera.setPosition({ 0, 0 });
 
@@ -405,7 +404,7 @@ void WorldSystem::handle_collisions() {
 					}
 				}
 			}
-			// Checking Player - Eatable collisions
+			// Checking Player - enemy bullet collisions
 			else if (registry.enemyBullets.has(entity_other)) {
 				if (!registry.deathTimers.has(entity)) {
 					// player turn red and decrease hp, bullet disappear
@@ -426,7 +425,6 @@ void WorldSystem::handle_collisions() {
 				Motion& motion = registry.motions.get(entity);
 				Motion& wall_motion = registry.motions.get(entity_other);
 				vec2 normal = motion.position - wall_motion.position;
-				float position_delta_squared = dot(normal, normal);
 
 				// clamp vector from entity to wall to get wall normal
 				if (abs(normal.x) > abs(normal.y)) {
@@ -475,6 +473,30 @@ void WorldSystem::handle_collisions() {
 		else if (registry.physTiles.has(entity)) {
 			if (registry.bullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
 				registry.remove_all_components_of(entity_other);
+			}
+			else if (registry.deadlys.has(entity_other)) {
+				Motion& wall_motion = registry.motions.get(entity);
+				Motion& motion = registry.motions.get(entity_other);
+				vec2 normal = motion.position - wall_motion.position;
+
+				// clamp vector from entity to wall to get wall normal
+				if (abs(normal.x) > abs(normal.y)) {
+					normal = normal.x > 0 ? vec2(1, 0) : vec2(-1, 0);
+				}
+				else {
+					normal = normal.y > 0 ? vec2(0, 1) : vec2(0, -1);
+				}
+
+				if (normal.x == 0) {
+					motion.direction = { motion.direction.x, 0 };
+					motion.velocity = { motion.velocity.x, 0 };
+				}
+				else {
+					motion.direction = { 0, motion.direction.y };
+					motion.velocity = { 0, motion.velocity.y };
+				}
+
+				motion.position = motion.last_position;
 			}
 		}
 	}
@@ -618,35 +640,37 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 
 void WorldSystem::updateBulletFiring(float elapsed_ms_since_last_update) {
 	// Update bullet fire timer
-	for (Entity entity : registry.bulletFireRates.entities) {
-		BulletFireRate& fireRate = registry.bulletFireRates.get(entity);
+	if (registry.bullets.components.size() + registry.enemyBullets.components.size() <= MAX_BULLETS) {
+		for (Entity entity : registry.bulletFireRates.entities) {
+			BulletFireRate& fireRate = registry.bulletFireRates.get(entity);
 
-		// Fire rate will use time to become independent of FPS
-		// Adapted from: https://forum.unity.com/threads/gun-fire-rate-is-frame-rate-dependent.661588/
-		float current_time = glfwGetTime();
-		if (fireRate.is_firing && current_time - fireRate.last_time >= fireRate.fire_rate) {
-			Motion& motion = registry.motions.get(entity);
-			if (entity == player) {
-				// player fires bullet towards mouse position
-				double mouse_pos_x;
-				double mouse_pos_y;
-				glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
-				last_mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + motion.position;
-				float x = last_mouse_position.x - motion.position.x;
-				float y = last_mouse_position.y - motion.position.y;
-				mouse_rotation_angle = -atan2(x, y) - glm::radians(90.0f);
+			// Fire rate will use time to become independent of FPS
+			// Adapted from: https://forum.unity.com/threads/gun-fire-rate-is-frame-rate-dependent.661588/
+			float current_time = glfwGetTime();
+			if (fireRate.is_firing && current_time - fireRate.last_time >= fireRate.fire_rate) {
+				Motion& motion = registry.motions.get(entity);
+				if (entity == player) {
+					// player fires bullet towards mouse position
+					double mouse_pos_x;
+					double mouse_pos_y;
+					glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
+					last_mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + motion.position;
+					float x = last_mouse_position.x - motion.position.x;
+					float y = last_mouse_position.y - motion.position.y;
+					mouse_rotation_angle = -atan2(x, y) - glm::radians(90.0f);
 
-				createBullet(renderer, motion.speed_modified, motion.position, mouse_rotation_angle, last_mouse_position - motion.position, true);
+					createBullet(renderer, motion.speed_modified, motion.position, mouse_rotation_angle, last_mouse_position - motion.position, true);
+				}
+				else {
+					// TODO: Spawn enemy bullets here (ai)
+					Motion& player_motion = registry.motions.get(player);
+					float x = player_motion.position.x - motion.position.x;
+					float y = player_motion.position.y - motion.position.y;
+					float enemy_fire_angle = -atan2(x, y) - glm::radians(90.0f);
+					createBullet(renderer, motion.speed_modified, motion.position, enemy_fire_angle, { x, y });
+				}
+				fireRate.last_time = current_time;
 			}
-			else {
-				// TODO: Spawn enemy bullets here (ai)
-				Motion& player_motion = registry.motions.get(player);
-				float x = player_motion.position.x - motion.position.x;
-				float y = player_motion.position.y - motion.position.y;
-				float enemy_fire_angle = -atan2(x, y) - glm::radians(90.0f);
-				createBullet(renderer, motion.speed_modified, motion.position, enemy_fire_angle, { x, y });
-			}
-			fireRate.last_time = current_time;
 		}
 	}
 }

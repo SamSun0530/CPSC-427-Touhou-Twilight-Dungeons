@@ -58,7 +58,7 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.speed_base = 100.f;
-	motion.speed_modified = 5.f * motion.speed_base;
+	motion.speed_modified = 3.f * motion.speed_base;
 	motion.direction = { 0, 0 };
 	motion.scale = vec2({ -CHICKEN_BB_WIDTH, CHICKEN_BB_HEIGHT });
 	motion.scale.x = -motion.scale.x;
@@ -77,13 +77,6 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 
 	registry.bulletFireRates.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
-
-	//printf("motion.position: (x,y)=(%f,%f)\n", motion.position.x, motion.position.y);
-	//printf("motion.scale: (x,y)=(%f,%f)\n", motion.scale.x, motion.scale.y);
-	//printf("motion.min_x: %f\n", motion.position.x - motion.scale.x / 2.0f);
-	//printf("motion.max_x: %f\n", motion.position.x + motion.scale.x / 2.0f);	
-	//printf("motion.min_y: %f\n", motion.position.y - motion.scale.y / 2.0f);
-	//printf("motion.max_y: %f\n", motion.position.y + motion.scale.y / 2.0f);
 
 	return entity;
 }
@@ -179,7 +172,7 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 
 	registry.idleMoveActions.emplace(entity);
 	BulletFireRate enemy_bullet_rate;
-	enemy_bullet_rate.fire_rate = 1;
+	enemy_bullet_rate.fire_rate = 3;
 	enemy_bullet_rate.is_firing = true;
 	registry.bulletFireRates.insert(entity,enemy_bullet_rate);
 	registry.colors.insert(entity, { 1,1,1 });
