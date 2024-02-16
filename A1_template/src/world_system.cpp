@@ -146,8 +146,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
 
-	// Set camera position to be equal to player
-	renderer->camera.setPosition(motions_registry.get(player_chicken).position);
+	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
+	// sharpness_factor = 0 (not following) -> 0.5 (delay) -> 1 (always following)
+	// Adapted from: https://gamedev.stackexchange.com/questions/152465/smoothly-move-camera-to-follow-player
+	float sharpness_factor = 0.95f;
+	float K = 1.0f - pow(1.0f - sharpness_factor, elapsed_ms_since_last_update / 1000.f);
+	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), motions_registry.get(player_chicken).position, K));
 
 	//// Remove entities that leave the screen on the left side
 	//// Iterate backwards to be able to remove without unterfering with the next object to visit
@@ -268,6 +272,7 @@ void WorldSystem::restart_game() {
 		}
 	}
 
+	renderer->camera.setPosition({ 0, 0 });
 
 	// !! TODO A2: Enable static eggs on the ground, for reference
 	// Create eggs on the floor, use this for reference
@@ -349,14 +354,50 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Handle player movement
 	Motion& motion = registry.motions.get(player_chicken);
-	if (key == GLFW_KEY_W && action == GLFW_PRESS) motion.velocity.y -= 1;
-	if (key == GLFW_KEY_W && action == GLFW_RELEASE) motion.velocity.y += 1;
-	if (key == GLFW_KEY_A && action == GLFW_PRESS) motion.velocity.x -= 1;
-	if (key == GLFW_KEY_A && action == GLFW_RELEASE) motion.velocity.x += 1;
-	if (key == GLFW_KEY_S && action == GLFW_PRESS) motion.velocity.y += 1;
-	if (key == GLFW_KEY_S && action == GLFW_RELEASE) motion.velocity.y -= 1;
-	if (key == GLFW_KEY_D && action == GLFW_PRESS) motion.velocity.x += 1;
-	if (key == GLFW_KEY_D && action == GLFW_RELEASE) motion.velocity.x -= 1;
+	switch (key) {
+	case GLFW_KEY_W:
+		if (!pressed[key] && action == GLFW_PRESS) {
+			motion.direction.y -= 1;
+			pressed[key] = true;
+		}
+		else if (pressed[key] && action == GLFW_RELEASE) {
+			motion.direction.y += 1;
+			pressed[key] = false;
+		}
+		break;
+	case GLFW_KEY_A:
+		if (!pressed[key] && action == GLFW_PRESS) {
+			motion.direction.x -= 1;
+			pressed[key] = true;
+		}
+		else if (pressed[key] && action == GLFW_RELEASE) {
+			motion.direction.x += 1;
+			pressed[key] = false;
+		}
+		break;
+	case GLFW_KEY_S:
+		if (!pressed[key] && action == GLFW_PRESS) {
+			motion.direction.y += 1;
+			pressed[key] = true;
+		}
+		else if (pressed[key] && action == GLFW_RELEASE) {
+			motion.direction.y -= 1;
+			pressed[key] = false;
+		}
+		break;
+	case GLFW_KEY_D:
+		if (!pressed[key] && action == GLFW_PRESS) {
+			motion.direction.x += 1;
+			pressed[key] = true;
+		}
+		else if (pressed[key] && action == GLFW_RELEASE) {
+			motion.direction.x -= 1;
+			pressed[key] = false;
+		}
+		break;
+	default:
+		break;
+	}
 
 	// Toggle between camera-cursor offset
 	if (key == GLFW_KEY_P) {

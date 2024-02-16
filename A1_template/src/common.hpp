@@ -55,3 +55,5 @@ struct Transform {
 };
 
 bool gl_has_errors();
+
+vec2 vec2_lerp(vec2 start, vec2 end, float t);

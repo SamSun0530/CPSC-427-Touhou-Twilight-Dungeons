@@ -15,7 +15,7 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	motion.angle = 0.f;
 	motion.speed_base = 100.f;
 	motion.speed_modified = 1.f * motion.speed_base;
-	motion.velocity = { 0, 0 };
+	motion.direction = { 0, 0 };
 	motion.scale = mesh.original_size * 300.f;
 	motion.scale.y *= -1; // point front to the right
 
@@ -51,7 +51,7 @@ Entity createBug(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.speed_base = 50.f;
 	motion.speed_modified = 1.f * motion.speed_base;
-	motion.velocity = { 0, 1 };
+	motion.direction = { 0, 1 };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
@@ -81,7 +81,7 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.speed_base = 100.f;
 	motion.speed_modified = 1.f * motion.speed_base;
-	motion.velocity = { 0, 0 };
+	motion.direction = { 0, 0 };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
@@ -108,7 +108,7 @@ Entity createDecoTile(RenderSystem* renderer, vec2 position) {
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
+	motion.direction = { 0, 0 };
 	motion.position = position;
 	motion.scale = vec2(world_tile_size,world_tile_size);
 
@@ -133,7 +133,7 @@ Entity createPhysTile(RenderSystem* renderer, vec2 position) {
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
+	motion.direction = { 0, 0 };
 	motion.position = position;
 	motion.scale = vec2(world_tile_size,world_tile_size);
 
@@ -163,7 +163,7 @@ Entity createLine(vec2 position, vec2 scale)
 	// Create motion
 	Motion& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
+	motion.direction = { 0, 0 };
 	motion.position = position;
 	motion.scale = scale;
 
@@ -179,7 +179,7 @@ Entity createEgg(vec2 pos, vec2 size)
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
+	motion.direction = { 0.f, 0.f };
 	motion.scale = size;
 
 	// Create and (empty) Chicken component to be able to refer to all eagles
