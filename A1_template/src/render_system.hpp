@@ -50,7 +50,8 @@ class RenderSystem {
 			textures_path("RightBottomCorner.png"),
 			textures_path("FullHeart.png"),
 			textures_path("HalfHeart.png"),
-			textures_path("EmptyHeart.png")
+			textures_path("EmptyHeart.png"),
+			textures_path("BottomWall.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

@@ -320,38 +320,45 @@ void WorldSystem::restart_game() {
 			// if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
 			// 	world_map[row][col] = (int)TILE_TYPE::WALL;
 			// }
-			TEXTURE_ASSET_ID textureID;
+			std::vector<TEXTURE_ASSET_ID> textureIDs;
 			if (row == 0 && col == 0) {
-				textureID = TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL;
+				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
 			}
 			else if (row == world_height - 1 && col == world_width - 1) {
-				textureID = TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL;
+				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
 			}
 			else if (row == 0 && col == world_width - 1) {
-				textureID = TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL;
+				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
 			}
 			else if (row == world_height - 1 && col == 0) {
-				textureID = TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL;
+				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
 			}
 			else if (row == 0) {
-				textureID = TEXTURE_ASSET_ID::INNER_WALL;
+				textureIDs.push_back(TEXTURE_ASSET_ID::TOP_WALL);
 			}
 			else if (row == world_height - 1) {
-				textureID = TEXTURE_ASSET_ID::TOP_WALL;
+				float rand = uniform_dist(rng);
+				if (rand < 0.5f) {
+					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
+				}
+				else {
+					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
+				}
+				textureIDs.push_back(TEXTURE_ASSET_ID::BOTTOM_WALL);
 			}
 			else if (col == 0) {
-				textureID = TEXTURE_ASSET_ID::LEFT_WALL;
+				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
 			}
 			else if (col == world_width - 1) {
-				textureID = TEXTURE_ASSET_ID::RIGHT_WALL;
+				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
 			}
 			else {
 				float rand = uniform_dist(rng);
 				if (rand < 0.5f) {
-					textureID = TEXTURE_ASSET_ID::TILE_1;
+					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
 				}
 				else {
-					textureID = TEXTURE_ASSET_ID::TILE_2;
+					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
 				}
 			}
 
@@ -360,10 +367,10 @@ void WorldSystem::restart_game() {
 			switch (world_map[col][row])
 			{
 			case (int)TILE_TYPE::WALL:
-				createPhysTile(renderer, { xPos,yPos }, textureID);
+				createPhysTile(renderer, { xPos,yPos }, textureIDs);
 				break;
 			case (int)TILE_TYPE::FLOOR:
-				createDecoTile(renderer, { xPos,yPos }, textureID);
+				createDecoTile(renderer, { xPos,yPos }, textureIDs);
 				break;
 			default:
 				break;
