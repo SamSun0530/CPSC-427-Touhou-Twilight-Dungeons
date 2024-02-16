@@ -53,19 +53,21 @@ void PhysicsSystem::step(float elapsed_ms)
 	auto& motion_registry = registry.motions;
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
-		// !!! TODO A1: update motion.position based on step_seconds and motion.velocity
 		Motion& motion = motion_registry.components[i];
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
 
-		// Normalize velocity vector for all entities with motion
-		vec2 velocity_normalized = motion.velocity;
-		if (motion.velocity.x != 0 && motion.velocity.y != 0) {
-			velocity_normalized = normalize(velocity_normalized);
+		// Normalize direction vector for all entities with motion
+		vec2 direction_normalized = motion.direction;
+		if (motion.direction.x != 0 && motion.direction.y != 0) {
+			direction_normalized = normalize(direction_normalized);
 		}
-		motion.position += velocity_normalized * motion.speed_modified * step_seconds;
 
-		//(void)elapsed_ms; // placeholder to silence unused warning until implemented
+		// Linear interpolation of velocity
+		// K factor (0,30] = ~0 (not zero, slippery, ice) -> 10-20 (quick start up/slow down, natural) -> 30 (instant velocity, jittery)
+		float K = 10.f;
+		motion.velocity = vec2_lerp(motion.velocity, direction_normalized * motion.speed_modified, step_seconds * K);
+		motion.position += motion.velocity * step_seconds;
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
