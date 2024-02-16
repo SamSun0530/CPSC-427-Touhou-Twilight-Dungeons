@@ -34,6 +34,7 @@ struct PhysicalTile {
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };
+	vec2 last_position = { 0, 0 };
 	float angle = 0;
 	float speed_base = 0.f;
 	float speed_modified = 0.f;

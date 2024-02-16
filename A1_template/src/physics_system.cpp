@@ -67,6 +67,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		// K factor (0,30] = ~0 (not zero, slippery, ice) -> 10-20 (quick start up/slow down, natural) -> 30 (instant velocity, jittery)
 		float K = 10.f;
 		motion.velocity = vec2_lerp(motion.velocity, direction_normalized * motion.speed_modified, step_seconds * K);
+		motion.last_position = motion.position;
 		motion.position += motion.velocity * step_seconds;
 	}
 

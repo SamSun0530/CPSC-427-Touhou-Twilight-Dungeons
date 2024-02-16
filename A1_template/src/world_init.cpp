@@ -14,7 +14,7 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.speed_base = 100.f;
-	motion.speed_modified = 1.f * motion.speed_base;
+	motion.speed_modified = 5.f * motion.speed_base;
 	motion.direction = { 0, 0 };
 	motion.scale = mesh.original_size * 300.f;
 	motion.scale.y *= -1; // point front to the right

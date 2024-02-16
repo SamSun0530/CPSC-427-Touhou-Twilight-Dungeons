@@ -219,6 +219,9 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 	printf("Restarting\n");
 
+	// Reset keyboard presses
+	pressed = { 0 };
+
 	// Reset the game speed
 	current_speed = 1.f;
 
@@ -238,6 +241,7 @@ void WorldSystem::restart_game() {
 	// Create rooms
 
 	createPhysTile(renderer, { 0, -200 }); // for testing collision
+	createPhysTile(renderer, { -124, -324 }); // for testing collision
 
 	//Creates 1 room the size of the map
 	//for(int row = 0; row < world_map.size(); row++) {
@@ -325,6 +329,58 @@ void WorldSystem::handle_collisions() {
 
 					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the chicken entity by modifying the ECS registry
 				}
+			}
+			else if (registry.physTiles.has(entity_other)) {
+				Motion& motion = registry.motions.get(entity);
+				Motion& wall_motion = registry.motions.get(entity_other);
+				vec2 normal = motion.position - wall_motion.position;
+				float position_delta_squared = dot(normal, normal);
+				//printf("normal: (x,y)=(%f,%f)\n", normal.x, normal.y);
+
+				// clamp vector from entity to wall to get wall normal
+				if (abs(normal.x) > abs(normal.y)) {
+					normal = normal.x > 0 ? vec2(1, 0) : vec2(-1, 0);
+				}
+				else {
+					normal = normal.y > 0 ? vec2(0, 1) : vec2(0, -1);
+				}
+				printf("===========\n");
+				//printf("BEFORE motion.direction: (x,y)=(%f,%f)\n", motion.direction.x, motion.direction.y);
+				printf("motion.direction: (x,y)=(%f,%f)\n", motion.direction.x, motion.direction.y);
+
+				if (normal.x == 0) {
+					motion.direction = { motion.direction.x, 0 };
+					motion.velocity = { motion.velocity.x, 0 };
+					if (normal.y > 0) {
+						pressed[GLFW_KEY_W] = false;
+					}
+					else {
+						pressed[GLFW_KEY_S] = false;
+					}
+				}
+				else {
+					motion.direction = { 0, motion.direction.y };
+					motion.velocity = { 0, motion.velocity.y };
+					if (normal.x > 0) {
+						pressed[GLFW_KEY_A] = false;
+					}
+					else {
+						pressed[GLFW_KEY_D] = false;
+					}
+				}
+
+				//printf("AFTER motion.direction: (x,y)=(%f,%f)\n", motion.direction.x, motion.direction.y);
+				//printf("motion.normal: (x,y)=(%f,%f)\n", normal.x, normal.y);
+				
+				motion.position = motion.last_position;
+				//motion.velocity = { 0, 0 };
+				//motion.direction = { 0, 0 };
+
+				printf("motion.direction: (x,y)=(%f,%f)\n", motion.direction.x, motion.direction.y);
+				printf("===========\n");
+
+				//printf("motion.last_position: (x,y)=(%f,%f)\n", motion.last_position.x, motion.last_position.y);
+				//printf("motion.position: (x,y)=(%f,%f)\n", motion.position.x, motion.position.y);
 			}
 		}
 	}
