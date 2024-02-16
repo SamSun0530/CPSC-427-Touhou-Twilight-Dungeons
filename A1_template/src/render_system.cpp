@@ -6,7 +6,8 @@
 
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection,
-									const mat3 &view)
+									const mat3 &view,
+									const mat3 &view_ui)
 {
 	Motion &motion = registry.motions.get(entity);
 	// Transformation code, see Rendering and Transformation in the template
@@ -14,6 +15,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	// thus ORDER IS IMPORTANT
 	Transform transform;
 	transform.translate(motion.position);
+	transform.rotate(motion.angle);
 	transform.scale(motion.scale);
 	// !!! TODO A1: add rotation to the chain of transformations, mind the order
 	// of transformations
@@ -39,7 +41,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 
 	// Input data location as in the vertex buffer
-	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
+	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED || render_request.used_effect == EFFECT_ASSET_ID::UI)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -123,6 +125,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float *)&projection);
 	GLuint view_loc = glGetUniformLocation(currProgram, "view");
 	glUniformMatrix3fv(view_loc, 1, GL_FALSE, (float*)&view);
+	GLuint view_loc_ui = glGetUniformLocation(currProgram, "view_ui");
+	glUniformMatrix3fv(view_loc_ui, 1, GL_FALSE, (float*)&view_ui);
 	gl_has_errors();
 	// Drawing of num_indices/3 triangles specified in the index buffer
 	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
@@ -201,7 +205,8 @@ void RenderSystem::draw()
 	// Clearing backbuffer
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
-	glClearColor(0.674, 0.847, 1.0 , 1.0);
+	//glClearColor(0.674, 0.847, 1.0 , 1.0);
+	glClearColor(0, 0, 0 , 1.0);
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
@@ -212,6 +217,7 @@ void RenderSystem::draw()
 	gl_has_errors();
 	mat3 projection_2D = createProjectionMatrix();
 	mat3 view_2D = camera.createViewMatrix();
+	mat3 view_2D_ui = ui.createViewMatrix();
 	// Draw all textured meshes that have a position and size component
 	for (Entity entity : registry.renderRequests.entities)
 	{
@@ -219,7 +225,7 @@ void RenderSystem::draw()
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
-		drawTexturedMesh(entity, projection_2D, view_2D);
+		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
 
 	// Truely render to the screen

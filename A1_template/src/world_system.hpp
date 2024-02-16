@@ -38,10 +38,14 @@ public:
 
 	// Should the game be over ?
 	bool is_over()const;
+
+	// handle firing bullets
+	void updateBulletFiring(float elapsed_ms_since_last_update);
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
+	void on_mouse_key(int button, int action, int mods);
 	void on_scroll(vec2 scroll_offset);
 
 	// State of keyboard
@@ -62,7 +66,12 @@ private:
 	float current_speed;
 	float next_eagle_spawn;
 	float next_bug_spawn;
-	Entity player_chicken;
+
+	// Player state
+	Entity player;
+	std::vector<Entity> ui;
+	float mouse_rotation_angle = 0.0f;
+	vec2 last_mouse_position = { 0, 0 };
 
 	// World Map
 	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
