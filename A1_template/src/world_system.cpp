@@ -110,15 +110,26 @@ GLFWwindow* WorldSystem::create_window() {
 		return nullptr;
 	}
 
-	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
+	background_music = Mix_LoadMUS(audio_path("backgroundmusic.wav").c_str());
 	chicken_dead_sound = Mix_LoadWAV(audio_path("chicken_dead.wav").c_str());
 	chicken_eat_sound = Mix_LoadWAV(audio_path("chicken_eat.wav").c_str());
+	game_ending_sound = Mix_LoadWAV(audio_path("game_ending_sound.wav").c_str());
+	firing_sound = Mix_LoadWAV(audio_path("spell_sound.wav").c_str());
+	damage_sound = Mix_LoadWAV(audio_path("damage_sound.wav").c_str());
 
-	if (background_music == nullptr || chicken_dead_sound == nullptr || chicken_eat_sound == nullptr) {
+	// Set the music volume
+	Mix_VolumeMusic(40);
+
+	if (background_music == nullptr || chicken_dead_sound == nullptr || chicken_eat_sound == nullptr || 
+		game_ending_sound == nullptr || firing_sound == nullptr || damage_sound == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
-			audio_path("music.wav").c_str(),
+			audio_path("backgroundmusic.wav").c_str(),
+			audio_path("game_ending_sound.wav").c_str(),
+			audio_path("spell_sound.wav").c_str(),
+			audio_path("damage_sound.wav").c_str(),
 			audio_path("chicken_dead.wav").c_str(),
 			audio_path("chicken_eat.wav").c_str());
+			
 		return nullptr;
 	}
 
@@ -260,6 +271,8 @@ void WorldSystem::restart_game() {
 
 	// Reset the game speed
 	current_speed = 1.f;
+	// Reset bgm
+	Mix_PlayMusic(background_music, -1);
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
@@ -306,6 +319,7 @@ void WorldSystem::handle_collisions() {
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
 				if (!registry.deathTimers.has(entity)) {
+
 					// player turn red and decrease hp
 					if (!registry.players.get(player).invulnerability) {
 						registry.deathTimers.emplace(entity);
