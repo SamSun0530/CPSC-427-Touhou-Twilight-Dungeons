@@ -215,6 +215,9 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 	printf("Restarting\n");
 
+	// Reset keyboard presses
+	pressed = { 0 };
+
 	// Reset the game speed
 	current_speed = 1.f;
 
@@ -326,6 +329,8 @@ void WorldSystem::handle_collisions() {
 		else if (registry.physTiles.has(entity)) {
 			if (registry.players.has(entity_other)) {
 				printf("collided!\n");
+				//Motion& motion = registry.motions.get(entity_other);
+
 			}
 		}
 	}
@@ -352,19 +357,56 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 
-        restart_game();
+		restart_game();
 	}
 
 	// Handle player movement
 	Motion& motion = registry.motions.get(player_chicken);
-	if (key == GLFW_KEY_W && action == GLFW_PRESS) motion.velocity.y -= 1;
-	if (key == GLFW_KEY_W && action == GLFW_RELEASE) motion.velocity.y += 1;
-	if (key == GLFW_KEY_A && action == GLFW_PRESS) motion.velocity.x -= 1;
-	if (key == GLFW_KEY_A && action == GLFW_RELEASE) motion.velocity.x += 1;
-	if (key == GLFW_KEY_S && action == GLFW_PRESS) motion.velocity.y += 1;
-	if (key == GLFW_KEY_S && action == GLFW_RELEASE) motion.velocity.y -= 1;
-	if (key == GLFW_KEY_D && action == GLFW_PRESS) motion.velocity.x += 1;
-	if (key == GLFW_KEY_D && action == GLFW_RELEASE) motion.velocity.x -= 1;
+	switch (key) {
+	case GLFW_KEY_W:
+		printf("what: %d\n", pressed[key]);
+		if (!pressed[key] && action == GLFW_PRESS) {
+			motion.velocity.y -= 1;
+			pressed[key] = true;
+		}
+		else if (pressed[key] && action == GLFW_RELEASE) {
+			motion.velocity.y += 1;
+			pressed[key] = false;
+		}
+		break;
+	case GLFW_KEY_A:
+		if (!pressed[key] && action == GLFW_PRESS) {
+			motion.velocity.x -= 1;
+			pressed[key] = true;
+		}
+		else if (pressed[key] && action == GLFW_RELEASE) {
+			motion.velocity.x += 1;
+			pressed[key] = false;
+		}
+		break;
+	case GLFW_KEY_S:
+		if (!pressed[key] && action == GLFW_PRESS) {
+			motion.velocity.y += 1;
+			pressed[key] = true;
+		}
+		else if (pressed[key] && action == GLFW_RELEASE) {
+			motion.velocity.y -= 1;
+			pressed[key] = false;
+		}
+		break;
+	case GLFW_KEY_D:
+		if (!pressed[key] && action == GLFW_PRESS) {
+			motion.velocity.x += 1;
+			pressed[key] = true;
+		}
+		else if (pressed[key] && action == GLFW_RELEASE) {
+			motion.velocity.x -= 1;
+			pressed[key] = false;
+		}
+		break;
+	default:
+		break;
+	}
 
 	// Toggle between camera-cursor offset
 	if (key == GLFW_KEY_P) {

@@ -6,6 +6,7 @@
 // stlib
 #include <vector>
 #include <random>
+#include <array>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -42,6 +43,10 @@ private:
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_scroll(vec2 scroll_offset);
+
+	// State of keyboard
+	// Initial state is all false
+	std::array<bool, 512> pressed = { 0 };
 
 	// restart level
 	void restart_game();
