@@ -233,50 +233,52 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
+		// Create rooms
+
+	// createPhysTile(renderer, { 0, -200 }); // for testing collision
+	// createPhysTile(renderer, { -124, -324 }); // for testing collision
+
+	// Creates 1 room the size of the map
+	for(int row = 0; row < world_map.size(); row++) {
+		for(int col = 0; col < world_map[row].size(); col++ ) {
+			if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
+				world_map[row][col] = (int)TILE_TYPE::WALL;
+			} else {
+				world_map[row][col] = (int)TILE_TYPE::FLOOR;
+			}
+		}
+	}
+	int centerX = (world_width >> 1);
+	int centerY = (world_height >> 1);
+
+	//Creates entitiy tiles based on the world map
+	for(int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
+		for(int col = 0; col < world_map[row].size(); col++ ) {
+			// if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
+			// 	world_map[row][col] = (int)TILE_TYPE::WALL;
+			// }
+			int xPos = (col-centerX)*world_tile_size;
+			int yPos = (row-centerY)*world_tile_size;
+			switch (world_map[col][row])
+			{
+			case (int)TILE_TYPE::WALL:
+				createPhysTile(renderer, {xPos,yPos});
+				break;
+			case (int)TILE_TYPE::FLOOR:
+				createDecoTile(renderer, {xPos,yPos});
+				break;
+			default:
+				break;
+			}
+		}
+	}
+
 	// Create a new chicken
 	//player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
 	player_chicken = createChicken(renderer, { 0, 0 });
 	registry.colors.insert(player_chicken, {1, 0.8f, 0.8f});
 
-	// Create rooms
 
-	createPhysTile(renderer, { 0, -200 }); // for testing collision
-	createPhysTile(renderer, { -124, -324 }); // for testing collision
-
-	//Creates 1 room the size of the map
-	//for(int row = 0; row < world_map.size(); row++) {
-	//	for(int col = 0; col < world_map[row].size(); col++ ) {
-	//		if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
-	//			world_map[row][col] = (int)TILE_TYPE::WALL;
-	//		} else {
-	//			world_map[row][col] = (int)TILE_TYPE::FLOOR;
-	//		}
-	//	}
-	//}
-	//int centerX = (world_width >> 1);
-	//int centerY = (world_height >> 1);
-
-	////Creates entitiy tiles based on the world map
-	//for(int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
-	//	for(int col = 0; col < world_map[row].size(); col++ ) {
-	//		// if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
-	//		// 	world_map[row][col] = (int)TILE_TYPE::WALL;
-	//		// }
-	//		int xPos = (col-centerX)*world_tile_size;
-	//		int yPos = (row-centerY)*world_tile_size;
-	//		switch (world_map[col][row])
-	//		{
-	//		case (int)TILE_TYPE::WALL:
-	//			createPhysTile(renderer, {xPos,yPos});
-	//			break;
-	//		case (int)TILE_TYPE::FLOOR:
-	//			createDecoTile(renderer, {xPos,yPos});
-	//			break;
-	//		default:
-	//			break;
-	//		}
-	//	}
-	//}
 
 	renderer->camera.setPosition({ 0, 0 });
 
