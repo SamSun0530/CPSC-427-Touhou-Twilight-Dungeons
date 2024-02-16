@@ -161,19 +161,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	//}
 
 	// Spawning new eagles
-	//next_eagle_spawn -= elapsed_ms_since_last_update * current_speed;
-	//if (registry.deadlys.components.size() <= MAX_EAGLES && next_eagle_spawn < 0.f) {
-	//	// Reset timer
-	//	next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
-	//	// Create eagle with random initial position
- //       createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
-	//}
+	next_eagle_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (registry.deadlys.components.size() <= MAX_EAGLES && next_eagle_spawn < 0.f) {
+		// Reset timer
+		next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
+		// Create eagle with random initial position
+        createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
+	}
 
 	// Spawning new bug
-	//next_bug_spawn -= elapsed_ms_since_last_update * current_speed;
-	//if (registry.eatables.components.size() <= MAX_BUG && next_bug_spawn < 0.f) {
-	//	// !!!  TODO A1: Create new bug with createBug({0,0}), as for the Eagles above
-	//}
+	next_bug_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (registry.eatables.components.size() <= MAX_BUG && next_bug_spawn < 0.f) {
+		// !!!  TODO A1: Create new bug with createBug({0,0}), as for the Eagles above
+	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A2: HANDLE EGG SPAWN HERE
@@ -215,9 +215,6 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 	printf("Restarting\n");
 
-	// Reset keyboard presses
-	pressed = { 0 };
-
 	// Reset the game speed
 	current_speed = 1.f;
 
@@ -237,42 +234,39 @@ void WorldSystem::restart_game() {
 	// Create rooms
 
 	//Creates 1 room the size of the map
-	
-	createPhysTile(renderer, { 0, -200 }); // for testing collision
-	
-	//for(int row = 0; row < world_map.size(); row++) {
-	//	for(int col = 0; col < world_map[row].size(); col++ ) {
-	//		if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
-	//			world_map[row][col] = (int)TILE_TYPE::WALL;
-	//		} else {
-	//			world_map[row][col] = (int)TILE_TYPE::FLOOR;
-	//		}
-	//	}
-	//}
-	//int centerX = (world_width >> 1)+1;
-	//int centerY = (world_height >> 1)+1;
+	for(int row = 0; row < world_map.size(); row++) {
+		for(int col = 0; col < world_map[row].size(); col++ ) {
+			if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
+				world_map[row][col] = (int)TILE_TYPE::WALL;
+			} else {
+				world_map[row][col] = (int)TILE_TYPE::FLOOR;
+			}
+		}
+	}
+	int centerX = (world_width >> 1);
+	int centerY = (world_height >> 1);
 
-	////Creates entitiy tiles based on the world map
-	//for(int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
-	//	for(int col = 0; col < world_map[row].size(); col++ ) {
-	//		// if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
-	//		// 	world_map[row][col] = (int)TILE_TYPE::WALL;
-	//		// }
-	//		int xPos = (col)*world_tile_size;
-	//		int yPos = (row-3)*world_tile_size;
-	//		switch (world_map[col][row])
-	//		{
-	//		case (int)TILE_TYPE::WALL:
-	//			createPhysTile(renderer, {xPos,yPos});
-	//			break;
-	//		case (int)TILE_TYPE::FLOOR:
-	//			createDecoTile(renderer, {xPos,yPos});
-	//			break;
-	//		default:
-	//			break;
-	//		}
-	//	}
-	//}
+	//Creates entitiy tiles based on the world map
+	for(int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
+		for(int col = 0; col < world_map[row].size(); col++ ) {
+			// if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
+			// 	world_map[row][col] = (int)TILE_TYPE::WALL;
+			// }
+			int xPos = (col-centerX)*world_tile_size;
+			int yPos = (row-centerY)*world_tile_size;
+			switch (world_map[col][row])
+			{
+			case (int)TILE_TYPE::WALL:
+				createPhysTile(renderer, {xPos,yPos});
+				break;
+			case (int)TILE_TYPE::FLOOR:
+				createDecoTile(renderer, {xPos,yPos});
+				break;
+			default:
+				break;
+			}
+		}
+	}
 
 
 	// !! TODO A2: Enable static eggs on the ground, for reference
@@ -326,13 +320,6 @@ void WorldSystem::handle_collisions() {
 				}
 			}
 		}
-		else if (registry.physTiles.has(entity)) {
-			if (registry.players.has(entity_other)) {
-				printf("collided!\n");
-				//Motion& motion = registry.motions.get(entity_other);
-
-			}
-		}
 	}
 
 	// Remove all collisions from this simulation step
@@ -357,56 +344,19 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 
-		restart_game();
+        restart_game();
 	}
 
 	// Handle player movement
 	Motion& motion = registry.motions.get(player_chicken);
-	switch (key) {
-	case GLFW_KEY_W:
-		printf("what: %d\n", pressed[key]);
-		if (!pressed[key] && action == GLFW_PRESS) {
-			motion.velocity.y -= 1;
-			pressed[key] = true;
-		}
-		else if (pressed[key] && action == GLFW_RELEASE) {
-			motion.velocity.y += 1;
-			pressed[key] = false;
-		}
-		break;
-	case GLFW_KEY_A:
-		if (!pressed[key] && action == GLFW_PRESS) {
-			motion.velocity.x -= 1;
-			pressed[key] = true;
-		}
-		else if (pressed[key] && action == GLFW_RELEASE) {
-			motion.velocity.x += 1;
-			pressed[key] = false;
-		}
-		break;
-	case GLFW_KEY_S:
-		if (!pressed[key] && action == GLFW_PRESS) {
-			motion.velocity.y += 1;
-			pressed[key] = true;
-		}
-		else if (pressed[key] && action == GLFW_RELEASE) {
-			motion.velocity.y -= 1;
-			pressed[key] = false;
-		}
-		break;
-	case GLFW_KEY_D:
-		if (!pressed[key] && action == GLFW_PRESS) {
-			motion.velocity.x += 1;
-			pressed[key] = true;
-		}
-		else if (pressed[key] && action == GLFW_RELEASE) {
-			motion.velocity.x -= 1;
-			pressed[key] = false;
-		}
-		break;
-	default:
-		break;
-	}
+	if (key == GLFW_KEY_W && action == GLFW_PRESS) motion.velocity.y -= 1;
+	if (key == GLFW_KEY_W && action == GLFW_RELEASE) motion.velocity.y += 1;
+	if (key == GLFW_KEY_A && action == GLFW_PRESS) motion.velocity.x -= 1;
+	if (key == GLFW_KEY_A && action == GLFW_RELEASE) motion.velocity.x += 1;
+	if (key == GLFW_KEY_S && action == GLFW_PRESS) motion.velocity.y += 1;
+	if (key == GLFW_KEY_S && action == GLFW_RELEASE) motion.velocity.y -= 1;
+	if (key == GLFW_KEY_D && action == GLFW_PRESS) motion.velocity.x += 1;
+	if (key == GLFW_KEY_D && action == GLFW_RELEASE) motion.velocity.x -= 1;
 
 	// Toggle between camera-cursor offset
 	if (key == GLFW_KEY_P) {
