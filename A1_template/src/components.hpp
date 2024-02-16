@@ -40,7 +40,7 @@ struct IdleMoveAction {
 	State state = State::IDLE;
 	float timer_ms = 5000;
 	float idle_ms = 5000;
-	float moving_ms = 500;
+	float moving_ms = 1000;
 };
 
 // Eagles have a hard shell
@@ -66,9 +66,19 @@ struct EnemyBullet
 	int damage = 1;
 };
 
+// A non interactable tile of the map
+struct DecorationTile
+{
+};
+
+// A interactable tile of the map
+struct PhysicalTile {
+};
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };
+	vec2 last_position = { 0, 0 };
 	float angle = 0;
 	float speed_base = 0.f;
 	float speed_modified = 0.f;
@@ -135,6 +145,13 @@ struct Mesh
 	vec2 original_size = {1,1};
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
+};
+
+// IDs for each tile type
+enum class TILE_TYPE {
+	EMPTY = 0,
+	FLOOR = EMPTY+1,
+	WALL = FLOOR+1
 };
 
 /**
@@ -212,4 +229,3 @@ struct RenderRequest {
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 };
-

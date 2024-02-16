@@ -58,7 +58,7 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.speed_base = 100.f;
-	motion.speed_modified = 1.f * motion.speed_base;
+	motion.speed_modified = 3.f * motion.speed_base;
 	motion.direction = { 0, 0 };
 	motion.scale = vec2({ -CHICKEN_BB_WIDTH, CHICKEN_BB_HEIGHT });
 	motion.scale.x = -motion.scale.x;
@@ -172,10 +172,61 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 
 	registry.idleMoveActions.emplace(entity);
 	BulletFireRate enemy_bullet_rate;
-	enemy_bullet_rate.fire_rate = 1;
+	enemy_bullet_rate.fire_rate = 3;
 	enemy_bullet_rate.is_firing = true;
 	registry.bulletFireRates.insert(entity,enemy_bullet_rate);
 	registry.colors.insert(entity, { 1,1,1 });
+
+	return entity;
+}
+
+Entity createDecoTile(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID textureID) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.direction = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2(world_tile_size,world_tile_size);
+
+	// Create and (empty) Tile component to be able to refer to all decoration tiles
+	registry.decoTiles.emplace(entity);
+	registry.renderRequests.insert( // TODO Change to ground texture
+		entity,
+		{ textureID,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createPhysTile(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID textureID) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.direction = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2(world_tile_size,world_tile_size);
+
+
+	// Create and (empty) Tile component to be able to refer to all physical tiles
+	registry.physTiles.emplace(entity);
+	registry.renderRequests.insert( // TODO: Change to wall texture
+		entity,
+		{ textureID,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }
