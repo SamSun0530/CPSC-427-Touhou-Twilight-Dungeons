@@ -337,7 +337,6 @@ void WorldSystem::handle_collisions() {
 				Motion& wall_motion = registry.motions.get(entity_other);
 				vec2 normal = motion.position - wall_motion.position;
 				float position_delta_squared = dot(normal, normal);
-				//printf("normal: (x,y)=(%f,%f)\n", normal.x, normal.y);
 
 				// clamp vector from entity to wall to get wall normal
 				if (abs(normal.x) > abs(normal.y)) {
@@ -346,9 +345,6 @@ void WorldSystem::handle_collisions() {
 				else {
 					normal = normal.y > 0 ? vec2(0, 1) : vec2(0, -1);
 				}
-				printf("===========\n");
-				//printf("BEFORE motion.direction: (x,y)=(%f,%f)\n", motion.direction.x, motion.direction.y);
-				printf("motion.direction: (x,y)=(%f,%f)\n", motion.direction.x, motion.direction.y);
 
 				if (normal.x == 0) {
 					motion.direction = { motion.direction.x, 0 };
@@ -371,18 +367,7 @@ void WorldSystem::handle_collisions() {
 					}
 				}
 
-				//printf("AFTER motion.direction: (x,y)=(%f,%f)\n", motion.direction.x, motion.direction.y);
-				//printf("motion.normal: (x,y)=(%f,%f)\n", normal.x, normal.y);
-				
 				motion.position = motion.last_position;
-				//motion.velocity = { 0, 0 };
-				//motion.direction = { 0, 0 };
-
-				printf("motion.direction: (x,y)=(%f,%f)\n", motion.direction.x, motion.direction.y);
-				printf("===========\n");
-
-				//printf("motion.last_position: (x,y)=(%f,%f)\n", motion.last_position.x, motion.last_position.y);
-				//printf("motion.position: (x,y)=(%f,%f)\n", motion.position.x, motion.position.y);
 			}
 		}
 	}
