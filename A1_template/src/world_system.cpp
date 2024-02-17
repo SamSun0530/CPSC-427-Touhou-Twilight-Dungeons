@@ -17,6 +17,7 @@ const size_t MAX_BULLETS = 999;
 
 const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
+bool is_alive = true;
 
 // Create the bug world
 WorldSystem::WorldSystem()
@@ -179,7 +180,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		motions_registry.get(ui[i]).position = motions_registry.get(player).position - window_px_half + ui_pos + padding;
 	}
 	for (int i = registry.hps.get(player).curr_hp; i < ui.size(); i++) {
-		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::EMPTY_HEALT;
+		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::EMPTY_HEART;
 	}
 
 	//// Remove entities that leave the screen on the left side
@@ -221,10 +222,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	assert(registry.screenStates.components.size() <= 1);
 	ScreenState& screen = registry.screenStates.components[0];
 
-	float min_counter_ms = 3000.f;
-	for (Entity entity : registry.deathTimers.entities) {
+	float min_counter_ms = 50.f;
+	for (Entity entity : registry.hitTimers.entities) {
 		// progress timer
-		DeathTimer& counter = registry.deathTimers.get(entity);
+		HitTimer& counter = registry.hitTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
 		if (counter.counter_ms < min_counter_ms) {
 			min_counter_ms = counter.counter_ms;
@@ -232,14 +233,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
-			registry.deathTimers.remove(entity);
+			registry.hitTimers.remove(entity);
 			registry.colors.get(entity) = vec3(1, 1, 1);
 			//color = { 1, 0.8f, 0.8f };
 			return true;
 		}
 	}
 
-	float min_invulnerable_time_ms = 3000.f;
+	float min_invulnerable_time_ms = 1000.f;
 	for (Entity entity : registry.invulnerableTimers.entities) {
 		InvulnerableTimer& counter = registry.invulnerableTimers.get(entity);
 		counter.invulnerable_counter_ms -= elapsed_ms_since_last_update;
@@ -254,9 +255,32 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	float min_death_time_ms = 3000.f;
+	for (Entity entity : registry.realDeathTimers.entities) {
+
+		DeathTimer& death_counter = registry.realDeathTimers.get(entity);
+		death_counter.death_counter_ms -= elapsed_ms_since_last_update;
+
+		if (death_counter.death_counter_ms < min_death_time_ms) {
+			min_death_time_ms = death_counter.death_counter_ms;
+		}
+
+		if (death_counter.death_counter_ms < 0) {
+			registry.realDeathTimers.remove(entity);
+
+			restart_game();
+			return true;
+		}
+	}
+
+
 	if (registry.hps.get(player).curr_hp <= 0) {
 		registry.hps.get(player).curr_hp = registry.hps.get(player).max_hp;
-		restart_game();
+		is_alive = false; 
+		pressed = { 0 };
+		registry.motions.get(player).direction = { 0,0 };
+		registry.realDeathTimers.emplace(player);
+		//screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 	}
 
 	for (Entity entity : registry.hps.entities) {
@@ -266,7 +290,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 	// reduce window brightness if any of the present chickens is dying
-	//screen.darken_screen_factor = 1 - min_counter_ms / 3000;
+	screen.darken_screen_factor = 1 - min_death_time_ms / 3000;
 
 	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
 
@@ -320,38 +344,45 @@ void WorldSystem::restart_game() {
 			// if (row == 0 || col == 0 || row == world_height-1 || col == world_width-1 ) {
 			// 	world_map[row][col] = (int)TILE_TYPE::WALL;
 			// }
-			TEXTURE_ASSET_ID textureID;
+			std::vector<TEXTURE_ASSET_ID> textureIDs;
 			if (row == 0 && col == 0) {
-				textureID = TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL;
+				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
 			}
 			else if (row == world_height - 1 && col == world_width - 1) {
-				textureID = TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL;
+				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
 			}
 			else if (row == 0 && col == world_width - 1) {
-				textureID = TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL;
+				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
 			}
 			else if (row == world_height - 1 && col == 0) {
-				textureID = TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL;
+				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
 			}
 			else if (row == 0) {
-				textureID = TEXTURE_ASSET_ID::INNER_WALL;
+				textureIDs.push_back(TEXTURE_ASSET_ID::TOP_WALL);
 			}
 			else if (row == world_height - 1) {
-				textureID = TEXTURE_ASSET_ID::TOP_WALL;
+				float rand = uniform_dist(rng);
+				if (rand < 0.5f) {
+					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
+				}
+				else {
+					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
+				}
+				textureIDs.push_back(TEXTURE_ASSET_ID::WALL_EDGE);
 			}
 			else if (col == 0) {
-				textureID = TEXTURE_ASSET_ID::LEFT_WALL;
+				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
 			}
 			else if (col == world_width - 1) {
-				textureID = TEXTURE_ASSET_ID::RIGHT_WALL;
+				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
 			}
 			else {
 				float rand = uniform_dist(rng);
 				if (rand < 0.5f) {
-					textureID = TEXTURE_ASSET_ID::TILE_1;
+					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
 				}
 				else {
-					textureID = TEXTURE_ASSET_ID::TILE_2;
+					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
 				}
 			}
 
@@ -360,10 +391,10 @@ void WorldSystem::restart_game() {
 			switch (world_map[col][row])
 			{
 			case (int)TILE_TYPE::WALL:
-				createPhysTile(renderer, { xPos,yPos }, textureID);
+				createPhysTile(renderer, { xPos,yPos }, textureIDs);
 				break;
 			case (int)TILE_TYPE::FLOOR:
-				createDecoTile(renderer, { xPos,yPos }, textureID);
+				createDecoTile(renderer, { xPos,yPos }, textureIDs);
 				break;
 			default:
 				break;
@@ -373,6 +404,7 @@ void WorldSystem::restart_game() {
 
 	// Create a new chicken
 	player = createChicken(renderer, { 0, 0 });
+	is_alive = true;
 	ui = createUI(renderer, registry.hps.get(player).max_hp);
 
 	renderer->camera.setPosition({ 0, 0 });
@@ -402,16 +434,17 @@ void WorldSystem::handle_collisions() {
 		Entity entity_other = collisionsRegistry.components[i].other;
 
 		// For now, we are only interested in collisions that involve the chicken
+
 		if (registry.players.has(entity)) {
 
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
-				if (!registry.deathTimers.has(entity)) {
+				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(player)) {
 
 					// player turn red and decrease hp
 					if (!registry.players.get(player).invulnerability) {
-						registry.deathTimers.emplace(entity);
+						registry.hitTimers.emplace(entity);
 						Mix_PlayChannel(-1, damage_sound, 0);
 						registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
 						// should decrease HP but not yet implemented
@@ -423,10 +456,10 @@ void WorldSystem::handle_collisions() {
 			}
 			// Checking Player - enemy bullet collisions
 			else if (registry.enemyBullets.has(entity_other)) {
-				if (!registry.deathTimers.has(entity)) {
+				if (!registry.hitTimers.has(entity)) {
 					// player turn red and decrease hp, bullet disappear
 					if (!registry.players.get(player).invulnerability) {
-						registry.deathTimers.emplace(entity);
+						registry.hitTimers.emplace(entity);
 						Mix_PlayChannel(-1, damage_sound, 0);
 						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 
@@ -477,9 +510,9 @@ void WorldSystem::handle_collisions() {
 		}
 		else if (registry.deadlys.has(entity)) {
 			if (registry.bullets.has(entity_other)) {
-				if (!registry.deathTimers.has(entity)) {
+				if (!registry.hitTimers.has(entity)) {
 					// enemy turn red and decrease hp, bullet disappear
-					registry.deathTimers.emplace(entity);
+					registry.hitTimers.emplace(entity);
 					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 
 					Mix_PlayChannel(-1, hit_spell, 0);
@@ -546,50 +579,53 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Handle player movement
 	Motion& motion = registry.motions.get(player);
-	switch (key) {
-	case GLFW_KEY_W:
-		if (!pressed[key] && action == GLFW_PRESS) {
-			motion.direction.y -= 1;
-			pressed[key] = true;
+	if (is_alive) {
+		switch (key) {
+		case GLFW_KEY_W:
+			if (!pressed[key] && action == GLFW_PRESS) {
+				motion.direction.y -= 1;
+				pressed[key] = true;
+			}
+			else if (pressed[key] && action == GLFW_RELEASE) {
+				motion.direction.y += 1;
+				pressed[key] = false;
+			}
+			break;
+		case GLFW_KEY_A:
+			if (!pressed[key] && action == GLFW_PRESS) {
+				motion.direction.x -= 1;
+				pressed[key] = true;
+			}
+			else if (pressed[key] && action == GLFW_RELEASE) {
+				motion.direction.x += 1;
+				pressed[key] = false;
+			}
+			break;
+		case GLFW_KEY_S:
+			if (!pressed[key] && action == GLFW_PRESS) {
+				motion.direction.y += 1;
+				pressed[key] = true;
+			}
+			else if (pressed[key] && action == GLFW_RELEASE) {
+				motion.direction.y -= 1;
+				pressed[key] = false;
+			}
+			break;
+		case GLFW_KEY_D:
+			if (!pressed[key] && action == GLFW_PRESS) {
+				motion.direction.x += 1;
+				pressed[key] = true;
+			}
+			else if (pressed[key] && action == GLFW_RELEASE) {
+				motion.direction.x -= 1;
+				pressed[key] = false;
+			}
+			break;
+		default:
+			break;
 		}
-		else if (pressed[key] && action == GLFW_RELEASE) {
-			motion.direction.y += 1;
-			pressed[key] = false;
-		}
-		break;
-	case GLFW_KEY_A:
-		if (!pressed[key] && action == GLFW_PRESS) {
-			motion.direction.x -= 1;
-			pressed[key] = true;
-		}
-		else if (pressed[key] && action == GLFW_RELEASE) {
-			motion.direction.x += 1;
-			pressed[key] = false;
-		}
-		break;
-	case GLFW_KEY_S:
-		if (!pressed[key] && action == GLFW_PRESS) {
-			motion.direction.y += 1;
-			pressed[key] = true;
-		}
-		else if (pressed[key] && action == GLFW_RELEASE) {
-			motion.direction.y -= 1;
-			pressed[key] = false;
-		}
-		break;
-	case GLFW_KEY_D:
-		if (!pressed[key] && action == GLFW_PRESS) {
-			motion.direction.x += 1;
-			pressed[key] = true;
-		}
-		else if (pressed[key] && action == GLFW_RELEASE) {
-			motion.direction.x -= 1;
-			pressed[key] = false;
-		}
-		break;
-	default:
-		break;
 	}
+	
 
 	// Toggle between camera-cursor offset
 	if (key == GLFW_KEY_P) {
@@ -647,6 +683,9 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 }
 
 void WorldSystem::on_mouse_key(int button, int action, int mods) {
+	if (!is_alive) {
+		return;
+	}
 	if (button == GLFW_MOUSE_BUTTON_LEFT) {
 		BulletFireRate& fireRate = registry.bulletFireRates.get(player);
 		if (action == GLFW_PRESS) {

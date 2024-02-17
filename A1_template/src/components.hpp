@@ -1,6 +1,7 @@
 #pragma once
 #include "common.hpp"
 #include <vector>
+#include <set>
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 
@@ -115,9 +116,14 @@ struct DebugComponent
 };
 
 // A timer that will be associated to dying chicken
-struct DeathTimer
+struct HitTimer
 {
 	float counter_ms = 50;
+};
+
+struct DeathTimer
+{
+	float death_counter_ms = 3000;
 };
 
 struct InvulnerableTimer {
@@ -198,8 +204,10 @@ enum class TEXTURE_ASSET_ID {
 	RIGHT_BOTTOM_CORNER_WALL = RIGHT_TOP_CORNER_WALL + 1,
 	FULL_HEART = RIGHT_BOTTOM_CORNER_WALL + 1,
 	HALF_HEART = FULL_HEART + 1,
-	EMPTY_HEALT = HALF_HEART + 1,
-	TEXTURE_COUNT = EMPTY_HEALT + 1
+	EMPTY_HEART = HALF_HEART + 1,
+	BOTTOM_WALL = EMPTY_HEART + 1,
+	WALL_EDGE = BOTTOM_WALL + 1,
+	TEXTURE_COUNT = WALL_EDGE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

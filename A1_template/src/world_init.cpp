@@ -1,6 +1,7 @@
 #include "world_init.hpp"
 #include "tiny_ecs_registry.hpp"
 #include <glm/trigonometric.hpp>
+#include <iostream>
 
 
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet)
@@ -180,55 +181,63 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
-Entity createDecoTile(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID textureID) {
-	auto entity = Entity();
+std::vector<Entity> createDecoTile(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs) {
+	std::vector<Entity> entities;
+	std::cout << textureIDs.size() << std::endl;
+	for (int i = 0; i < textureIDs.size(); i++) {
+		auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
+		// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(entity, &mesh);
 
-	// Initialize the motion
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.direction = { 0, 0 };
-	motion.position = position;
-	motion.scale = vec2(world_tile_size,world_tile_size);
+		// Initialize the motion
+		auto& motion = registry.motions.emplace(entity);
+		motion.angle = 0.f;
+		motion.direction = { 0, 0 };
+		motion.position = position;
+		motion.scale = vec2(world_tile_size, world_tile_size);
 
-	// Create and (empty) Tile component to be able to refer to all decoration tiles
-	registry.decoTiles.emplace(entity);
-	registry.renderRequests.insert( // TODO Change to ground texture
-		entity,
-		{ textureID,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
-
-	return entity;
+		// Create and (empty) Tile component to be able to refer to all decoration tiles
+		registry.decoTiles.emplace(entity);
+		registry.renderRequests.insert( // TODO Change to ground texture
+			entity,
+			{ textureIDs[i],
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+		entities.push_back(entity);
+	}
+	return entities;
 }
 
-Entity createPhysTile(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID textureID) {
-	auto entity = Entity();
+std::vector<Entity> createPhysTile(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs) {
+	std::vector<Entity> entities;
+	for (int i = 0; i < textureIDs.size(); i++) {
+		auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
+		// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(entity, &mesh);
 
-	// Initialize the motion
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.direction = { 0, 0 };
-	motion.position = position;
-	motion.scale = vec2(world_tile_size,world_tile_size);
+		// Initialize the motion
+		auto& motion = registry.motions.emplace(entity);
+		motion.angle = 0.f;
+		motion.direction = { 0, 0 };
+		motion.position = position;
+		motion.scale = vec2(world_tile_size, world_tile_size);
 
 
-	// Create and (empty) Tile component to be able to refer to all physical tiles
-	registry.physTiles.emplace(entity);
-	registry.renderRequests.insert( // TODO: Change to wall texture
-		entity,
-		{ textureID,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+		// Create and (empty) Tile component to be able to refer to all physical tiles
+		registry.physTiles.emplace(entity);
+		registry.renderRequests.insert( // TODO: Change to wall texture
+			entity,
+			{ textureIDs[i],
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
 
-	return entity;
+		entities.push_back(entity);
+	}
+	return entities;
 }
 
 Entity createLine(vec2 position, vec2 scale)
