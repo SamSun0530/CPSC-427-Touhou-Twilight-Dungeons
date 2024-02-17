@@ -26,6 +26,26 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	return false;
 }
 
+bool collides_AABB(const Motion& motion1, const Motion& motion2)
+{
+	const vec2 bounding_box1 = get_bounding_box(motion1) / 2.f;
+	const vec2 bounding_box2 = get_bounding_box(motion2) / 2.f;
+
+	const float top1 = motion1.position.y - bounding_box1.y;
+	const float bottom1 = motion1.position.y + bounding_box1.y;
+	const float left1 = motion1.position.x - bounding_box1.x;
+	const float right1 = motion1.position.x + bounding_box1.x;
+
+	const float top2 = motion2.position.y - bounding_box2.y;
+	const float bottom2 = motion2.position.y + bounding_box2.y;
+	const float left2 = motion2.position.x - bounding_box2.x;
+	const float right2 = motion2.position.x + bounding_box2.x;
+
+	if (left2 <= right1 && left1 <= right2 && top2 <= bottom1 && top1 <= bottom2)
+		return true;
+	return false;
+}
+
 void PhysicsSystem::step(float elapsed_ms)
 {
 	// Move bug based on how much time has passed, this is to (partially) avoid
@@ -33,19 +53,22 @@ void PhysicsSystem::step(float elapsed_ms)
 	auto& motion_registry = registry.motions;
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
-		// !!! TODO A1: update motion.position based on step_seconds and motion.velocity
 		Motion& motion = motion_registry.components[i];
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
 
-		// Normalize velocity vector for all entities with motion
-		vec2 velocity_normalized = motion.velocity;
-		if (motion.velocity.x != 0 && motion.velocity.y != 0) {
-			velocity_normalized = normalize(velocity_normalized);
+		// Normalize direction vector if either x or y is not 0 (prevents divide by 0 when normalizing)
+		vec2 direction_normalized = motion.direction;
+		if (motion.direction.x != 0 || motion.direction.y != 0) {
+			direction_normalized = normalize(direction_normalized);
 		}
-		motion.position += velocity_normalized * motion.speed_modified * step_seconds;
 
-		//(void)elapsed_ms; // placeholder to silence unused warning until implemented
+		// Linear interpolation of velocity
+		// K factor (0,30] = ~0 (not zero, slippery, ice) -> 10-20 (quick start up/slow down, natural) -> 30 (instant velocity, jittery)
+		float K = 10.f;
+		motion.velocity = vec2_lerp(motion.velocity, direction_normalized * motion.speed_modified, step_seconds * K);
+		motion.last_position = motion.position;
+		motion.position += motion.velocity * step_seconds;
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -64,7 +87,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for(uint j = i+1; j<motion_container.components.size(); j++)
 		{
 			Motion& motion_j = motion_container.components[j];
-			if (collides(motion_i, motion_j))
+			if (collides_AABB(motion_i, motion_j))
 			{
 				Entity entity_j = motion_container.entities[j];
 				// Create a collisions event

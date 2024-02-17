@@ -1,12 +1,57 @@
 #include "world_init.hpp"
 #include "tiny_ecs_registry.hpp"
+#include <glm/trigonometric.hpp>
+#include <iostream>
+
+
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet)
+{
+	auto entity = Entity();
+	
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = rotation_angle;
+	motion.speed_base = 200.f;
+	motion.speed_modified = 1.f * motion.speed_base + entity_speed; // bullet speed takes into account of entity's speed
+	motion.direction = direction;
+	motion.position = entity_position; // bullet spawns from entity's center position
+
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ -BUG_BB_WIDTH, BUG_BB_HEIGHT });
+	
+	// Create and (empty) bullet component to be able to refer to all bullets
+	if (is_player_bullet) {
+		registry.bullets.emplace(entity);
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::BUG,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		registry.enemyBullets.emplace(entity);
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ENEMY_BULLET,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+	return entity;
+}
+
+// Note, BUG corresponds to texture Bullet; EAGLE corresponds to texture Enemy; CHICKEN corresponds to texture Reimu
 
 Entity createChicken(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::CHICKEN);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Setting initial motion values
@@ -14,20 +59,54 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.speed_base = 100.f;
-	motion.speed_modified = 1.f * motion.speed_base;
-	motion.velocity = { 0, 0 };
-	motion.scale = mesh.original_size * 300.f;
-	motion.scale.y *= -1; // point front to the right
+	motion.speed_modified = 3.f * motion.speed_base;
+	motion.direction = { 0, 0 };
+	motion.scale = vec2({ -CHICKEN_BB_WIDTH, CHICKEN_BB_HEIGHT });
+	motion.scale.x = -motion.scale.x;
+
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 6;
+	hp.curr_hp = hp.max_hp;
 
 	// Create and (empty) Chicken component to be able to refer to all eagles
 	registry.players.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::CHICKEN,
-			GEOMETRY_BUFFER_ID::CHICKEN });
+		{ TEXTURE_ASSET_ID::CHICKEN, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	registry.bulletFireRates.emplace(entity);
+	registry.colors.insert(entity, { 1,1,1 });
 
 	return entity;
+}
+
+std::vector<Entity> createUI(RenderSystem* renderer, int max_hp)
+{
+	std::vector<Entity> hp_entities;
+	for (int i = 0; i < max_hp; i++) {
+		auto entity = Entity();
+
+		// Store a reference to the potentially re-used mesh object
+		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(entity, &mesh);
+
+		// Setting initial motion values
+		Motion& motion = registry.motions.emplace(entity);
+
+		motion.scale = vec2({ -HP_BB_WIDTH, HP_BB_HEIGHT });
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::FULL_HEART, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::UI,
+				GEOMETRY_BUFFER_ID::SPRITE });
+		registry.colors.insert(entity, { 1,1,1 });
+		hp_entities.push_back(entity);
+	}
+	
+
+	return hp_entities;
 }
 
 Entity createBug(RenderSystem* renderer, vec2 position)
@@ -44,7 +123,7 @@ Entity createBug(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.speed_base = 50.f;
 	motion.speed_modified = 1.f * motion.speed_base;
-	motion.velocity = { 0, 1 };
+	motion.direction = { 0, 1 };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
@@ -74,8 +153,12 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.speed_base = 100.f;
 	motion.speed_modified = 1.f * motion.speed_base;
-	motion.velocity = { 0, 0 };
+	motion.direction = { 0, 0 };
 	motion.position = position;
+
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 6;
+	hp.curr_hp = hp.max_hp;
 
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ -EAGLE_BB_WIDTH, EAGLE_BB_HEIGHT });
@@ -88,7 +171,72 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
+	registry.idleMoveActions.emplace(entity);
+	BulletFireRate enemy_bullet_rate;
+	enemy_bullet_rate.fire_rate = 3;
+	enemy_bullet_rate.is_firing = true;
+	registry.bulletFireRates.insert(entity,enemy_bullet_rate);
+	registry.colors.insert(entity, { 1,1,1 });
+
 	return entity;
+}
+
+std::vector<Entity> createDecoTile(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs) {
+	std::vector<Entity> entities;
+	for (int i = 0; i < textureIDs.size(); i++) {
+		auto entity = Entity();
+
+		// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(entity, &mesh);
+
+		// Initialize the motion
+		auto& motion = registry.motions.emplace(entity);
+		motion.angle = 0.f;
+		motion.direction = { 0, 0 };
+		motion.position = position;
+		motion.scale = vec2(world_tile_size, world_tile_size);
+
+		// Create and (empty) Tile component to be able to refer to all decoration tiles
+		registry.decoTiles.emplace(entity);
+		registry.renderRequests.insert( // TODO Change to ground texture
+			entity,
+			{ textureIDs[i],
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+		entities.push_back(entity);
+	}
+	return entities;
+}
+
+std::vector<Entity> createPhysTile(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs) {
+	std::vector<Entity> entities;
+	for (int i = 0; i < textureIDs.size(); i++) {
+		auto entity = Entity();
+
+		// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(entity, &mesh);
+
+		// Initialize the motion
+		auto& motion = registry.motions.emplace(entity);
+		motion.angle = 0.f;
+		motion.direction = { 0, 0 };
+		motion.position = position;
+		motion.scale = vec2(world_tile_size, world_tile_size);
+
+
+		// Create and (empty) Tile component to be able to refer to all physical tiles
+		registry.physTiles.emplace(entity);
+		registry.renderRequests.insert( // TODO: Change to wall texture
+			entity,
+			{ textureIDs[i],
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+
+		entities.push_back(entity);
+	}
+	return entities;
 }
 
 Entity createLine(vec2 position, vec2 scale)
@@ -105,7 +253,7 @@ Entity createLine(vec2 position, vec2 scale)
 	// Create motion
 	Motion& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
+	motion.direction = { 0, 0 };
 	motion.position = position;
 	motion.scale = scale;
 
@@ -121,7 +269,7 @@ Entity createEgg(vec2 pos, vec2 size)
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
+	motion.direction = { 0.f, 0.f };
 	motion.scale = size;
 
 	// Create and (empty) Chicken component to be able to refer to all eagles

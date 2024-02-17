@@ -6,6 +6,7 @@
 // stlib
 #include <vector>
 #include <random>
+#include <array>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -37,11 +38,19 @@ public:
 
 	// Should the game be over ?
 	bool is_over()const;
+
+	// handle firing bullets
+	void updateBulletFiring(float elapsed_ms_since_last_update);
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
+	void on_mouse_key(int button, int action, int mods);
 	void on_scroll(vec2 scroll_offset);
+
+	// State of keyboard
+	// Initial state is all false
+	std::array<bool, 512> pressed = { 0 };
 
 	// restart level
 	void restart_game();
@@ -57,12 +66,24 @@ private:
 	float current_speed;
 	float next_eagle_spawn;
 	float next_bug_spawn;
-	Entity player_chicken;
+
+	// Player state
+	Entity player;
+	std::vector<Entity> ui;
+	float mouse_rotation_angle = 0.0f;
+	vec2 last_mouse_position = { 0, 0 };
+
+	// World Map
+	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
 
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* chicken_dead_sound;
 	Mix_Chunk* chicken_eat_sound;
+	Mix_Chunk* game_ending_sound;
+	Mix_Chunk* firing_sound;
+	Mix_Chunk* damage_sound;
+	Mix_Chunk* hit_spell;
 
 	// C++ random number generator
 	std::default_random_engine rng;
