@@ -22,10 +22,6 @@ void Camera::setPosition(vec2 position) {
 	this->position = position;
 };
 
-void Camera::setOffset(vec2 offset) {
-	this->offset = offset;
-}
-
 void Camera::addZoom(float scroll_offset_y) {
 	float new_zoom = zoom + scroll_offset_y * zoom_increment;
 	if (new_zoom >= zoom_min && new_zoom <= zoom_max) {
@@ -35,10 +31,6 @@ void Camera::addZoom(float scroll_offset_y) {
 
 vec2& Camera::getPosition() {
 	return this->position;
-}
-
-vec2& Camera::getOffset() {
-	return this->offset;
 }
 
 void Camera::print() {

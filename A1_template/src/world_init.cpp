@@ -183,7 +183,6 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 
 std::vector<Entity> createDecoTile(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs) {
 	std::vector<Entity> entities;
-	std::cout << textureIDs.size() << std::endl;
 	for (int i = 0; i < textureIDs.size(); i++) {
 		auto entity = Entity();
 

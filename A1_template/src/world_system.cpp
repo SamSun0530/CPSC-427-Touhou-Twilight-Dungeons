@@ -168,12 +168,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	auto& motions_registry = registry.motions;
 
 	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
-	// sharpness_factor = 0 (not following) -> 0.5 (delay) -> 1 (always following)
+	// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
 	// Adapted from: https://gamedev.stackexchange.com/questions/152465/smoothly-move-camera-to-follow-player
-	float sharpness_factor = 0.95f;
-	float K = 1.0f - pow(1.0f - sharpness_factor, elapsed_ms_since_last_update / 1000.f);
+	float sharpness_factor_camera = 0.95f;
+	float K = 1.0f - pow(1.0f - sharpness_factor_camera, elapsed_ms_since_last_update / 1000.f);
 	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), motions_registry.get(player).position, K));
 	renderer->ui.setPosition(motions_registry.get(player).position);
+
+	// Interpolate mouse-camera offset
+	// sharpness_factor_camera_offset possible values:
+	// - 0.0 - offset
+	// - 0.0 to 1.0 - slow offset transition speed
+	// - 10.0 - medium offset transition speed
+	// - 30.0 - very fast offset transition speed
+	float sharpness_factor_camera_offset = 10.0f;
+	renderer->camera.offset = vec2_lerp(renderer->camera.offset, renderer->camera.offset_target, elapsed_ms_since_last_update / 1000.f * sharpness_factor_camera_offset);
+
+	// User interface
 	vec2 ui_pos = { 50.f, 50.f };
 	for (int i = 0; i < ui.size(); i++) {
 		vec2 padding = { i * 60, 0 };
@@ -632,7 +643,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (action == GLFW_RELEASE) {
 			renderer->camera.isFreeCam = !renderer->camera.isFreeCam;
 			if (!renderer->camera.isFreeCam) {
-				renderer->camera.setOffset({ 0, 0 });
+				renderer->camera.offset_target = { 0, 0 };
 			}
 		}
 	}
@@ -678,7 +689,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 		vec2& player_position = registry.motions.get(player).position;
 		// Set the camera offset to be in between the cursor and the player
 		// Center the mouse position, get the half distance between mouse cursor and player, update offset relative to player position
-		renderer->camera.setOffset(((mouse_position - window_px_half) - player_position) / 2.f + player_position / 2.f);
+		renderer->camera.offset_target = ((mouse_position - window_px_half) - player_position) / 2.f + player_position / 2.f;
 	}
 }
 
