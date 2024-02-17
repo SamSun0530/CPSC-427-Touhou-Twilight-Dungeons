@@ -278,7 +278,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (death_counter.death_counter_ms < 0) {
 			registry.realDeathTimers.remove(entity);
-
 			restart_game();
 			return true;
 		}
@@ -290,6 +289,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		is_alive = false; 
 		pressed = { 0 };
 		registry.motions.get(player).direction = { 0,0 };
+		Mix_HaltMusic();
+		Mix_PlayChannel(-1, game_ending_sound, 0);
 		registry.realDeathTimers.emplace(player);
 		//screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 	}
