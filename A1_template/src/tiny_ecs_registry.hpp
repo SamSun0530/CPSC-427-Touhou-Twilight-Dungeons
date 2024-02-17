@@ -23,6 +23,8 @@ public:
 	ComponentContainer<Deadly> deadlys;
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
+	ComponentContainer<DecorationTile> decoTiles;
+	ComponentContainer<PhysicalTile> physTiles;
 	ComponentContainer<EnemyBullet> enemyBullets;
 	ComponentContainer<InvulnerableTimer> invulnerableTimers;
 	ComponentContainer<HP> hps;
@@ -34,7 +36,6 @@ public:
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()
 	{
-		// TODO: A1 add a LightUp component
 		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
@@ -46,6 +47,8 @@ public:
 		registry_list.push_back(&deadlys);
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
+		registry_list.push_back(&decoTiles);
+		registry_list.push_back(&physTiles);
 		registry_list.push_back(&enemyBullets);
 		registry_list.push_back(&invulnerableTimers);
 		registry_list.push_back(&hps);
