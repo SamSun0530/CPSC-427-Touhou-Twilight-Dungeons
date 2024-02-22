@@ -46,7 +46,7 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 
 // Note, BUG corresponds to texture Bullet; EAGLE corresponds to texture Enemy; CHICKEN corresponds to texture Reimu
 
-Entity createChicken(RenderSystem* renderer, vec2 pos)
+Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 
@@ -140,7 +140,7 @@ Entity createBug(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
-Entity createEagle(RenderSystem* renderer, vec2 position)
+Entity createEnemy(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 

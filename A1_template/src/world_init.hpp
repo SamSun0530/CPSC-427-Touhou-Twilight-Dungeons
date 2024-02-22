@@ -20,11 +20,11 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 std::vector<Entity> createUI(RenderSystem* , int max_hp);
 
 // the player
-Entity createChicken(RenderSystem* renderer, vec2 pos);
+Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the prey
 Entity createBug(RenderSystem* renderer, vec2 position);
 // the enemy
-Entity createEagle(RenderSystem* renderer, vec2 position);
+Entity createEnemy(RenderSystem* renderer, vec2 position);
 // Non interactable tile
 std::vector<Entity> createDecoTile(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 
