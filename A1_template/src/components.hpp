@@ -186,10 +186,10 @@ enum class TILE_TYPE {
 
 // Note, BUG corresponds to texture Bullet; EAGLE corresponds to texture Enemy; CHICKEN corresponds to texture Reimu
 enum class TEXTURE_ASSET_ID {
-	BUG = 0,
-	EAGLE = BUG + 1,
-	CHICKEN = EAGLE + 1,
-	ENEMY_BULLET = CHICKEN + 1,
+	BULLET = 0,
+	ENEMY = BULLET + 1,
+	PLAYER = ENEMY + 1,
+	ENEMY_BULLET = PLAYER + 1,
 	TILE_1 = ENEMY_BULLET + 1,
 	TILE_2 = TILE_1 + 1,
 	INNER_WALL = TILE_2 + 1,

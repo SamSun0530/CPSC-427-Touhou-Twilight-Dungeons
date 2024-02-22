@@ -21,14 +21,14 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	motion.position = entity_position; // bullet spawns from entity's center position
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -BUG_BB_WIDTH, BUG_BB_HEIGHT });
+	motion.scale = vec2({ -BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
 	
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
 		registry.bullets.emplace(entity);
 		registry.renderRequests.insert(
 			entity,
-			{ TEXTURE_ASSET_ID::BUG,
+			{ TEXTURE_ASSET_ID::BULLET,
 			 EFFECT_ASSET_ID::TEXTURED,
 			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
@@ -61,7 +61,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	motion.speed_base = 100.f;
 	motion.speed_modified = 3.f * motion.speed_base;
 	motion.direction = { 0, 0 };
-	motion.scale = vec2({ -CHICKEN_BB_WIDTH, CHICKEN_BB_HEIGHT });
+	motion.scale = vec2({ -PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 	motion.scale.x = -motion.scale.x;
 
 	HP& hp = registry.hps.emplace(entity);
@@ -72,7 +72,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	registry.players.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::CHICKEN, // TEXTURE_COUNT indicates that no txture is needed
+		{ TEXTURE_ASSET_ID::PLAYER, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -109,7 +109,7 @@ std::vector<Entity> createUI(RenderSystem* renderer, int max_hp)
 	return hp_entities;
 }
 
-Entity createBug(RenderSystem* renderer, vec2 position)
+Entity createCoin(RenderSystem* renderer, vec2 position)
 {
 	// Reserve en entity
 	auto entity = Entity();
@@ -127,13 +127,13 @@ Entity createBug(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -BUG_BB_WIDTH, BUG_BB_HEIGHT });
+	motion.scale = vec2({ -BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
 
 	// Create an (empty) Bug component to be able to refer to all bug
 	registry.eatables.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::BUG,
+		{ TEXTURE_ASSET_ID::BULLET,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -161,13 +161,13 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 	hp.curr_hp = hp.max_hp;
 
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -EAGLE_BB_WIDTH, EAGLE_BB_HEIGHT });
+	motion.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	// Create and (empty) Eagle component to be able to refer to all eagles
 	registry.deadlys.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::EAGLE,
+		{ TEXTURE_ASSET_ID::ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
