@@ -21,10 +21,6 @@ struct BulletFireRate
 	bool is_firing = false;
 };
 
-//struct HitAble {
-//	int hp = 1;
-//};
-
 // Player component
 struct Player
 {
@@ -44,7 +40,6 @@ struct IdleMoveAction {
 	float moving_ms = 1000;
 };
 
-// Eagles have a hard shell
 struct Deadly
 {
 	int damage = 1;
@@ -55,8 +50,7 @@ struct HP {
 	int curr_hp = 6;
 };
 
-// Bug and Chicken have a soft shell
-struct Eatable
+struct Pickupable
 {
 	int damage = 1;
 };
