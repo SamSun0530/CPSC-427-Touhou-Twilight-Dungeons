@@ -20,7 +20,7 @@ void MapSystem::generateMap(int floor) {
     registry.roomHitbox.clear();
 
     int max_rooms = 5;
-    int generation_circle_radius = 300;
+    int generation_circle_radius = 3*world_tile_size;
     vec2 widthRange = {world_tile_size*5, world_tile_size*11};
     vec2 heightRange = {world_tile_size*5, world_tile_size*11};
     vec2 aspectRatioRange = {0.5, 2.0};
@@ -37,9 +37,7 @@ void MapSystem::generateMap(int floor) {
 		auto& motion = registry.motions.emplace(room);
 		motion.angle = 0.f;
 		motion.direction = { 0, 0 };
-
-        vec2 pos = getRandomPointInCircle(generation_circle_radius);
-		motion.position = pos;
+		motion.position = getRandomPointInCircle(generation_circle_radius);
 		motion.scale = getUniformRectangleDimentions(widthRange, heightRange);
         std::cout << "Position of Room: " << i << " is (" << motion.position.x <<" , " << motion.position.y << ")" << std::endl; 
         // printf("Position of Room:%d is %f,%f\n", i, motion.position.x, motion.position.y);
