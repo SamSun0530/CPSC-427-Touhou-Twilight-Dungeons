@@ -13,7 +13,6 @@
 // Game configuration
 const size_t MAX_ENEMIES = 15;
 const size_t MAX_COINS = 5;
-const size_t MAX_BULLETS = 999;
 
 const size_t ENEMY_SPAWN_DELAY_MS = 2000 * 3;
 bool is_alive = true;
@@ -533,8 +532,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Handle player movement
-	Motion& motion = registry.motions.get(player);
 	if (is_alive) {
+		Motion& motion = registry.motions.get(player);
 		switch (key) {
 		case GLFW_KEY_W:
 			if (!pressed[key] && action == GLFW_PRESS) {
@@ -638,44 +637,6 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 		else if (action == GLFW_RELEASE) {
 			// Stop firing
 			fireRate.is_firing = false;
-		}
-	}
-}
-
-void WorldSystem::updateBulletFiring(float elapsed_ms_since_last_update) {
-	// Update bullet fire timer
-	if (registry.bullets.components.size() + registry.enemyBullets.components.size() <= MAX_BULLETS) {
-		for (Entity entity : registry.bulletFireRates.entities) {
-			BulletFireRate& fireRate = registry.bulletFireRates.get(entity);
-
-			// Fire rate will use time to become independent of FPS
-			// Adapted from: https://forum.unity.com/threads/gun-fire-rate-is-frame-rate-dependent.661588/
-			float current_time = glfwGetTime();
-			if (fireRate.is_firing && current_time - fireRate.last_time >= fireRate.fire_rate) {
-				Motion& motion = registry.motions.get(entity);
-				if (entity == player) {
-					// player fires bullet towards mouse position
-					double mouse_pos_x;
-					double mouse_pos_y;
-					glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
-					last_mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + motion.position;
-					float x = last_mouse_position.x - motion.position.x;
-					float y = last_mouse_position.y - motion.position.y;
-					mouse_rotation_angle = -atan2(x, y) - glm::radians(90.0f);
-
-					Mix_PlayChannel(-1, firing_sound, 0);
-					createBullet(renderer, motion.speed_modified, motion.position, mouse_rotation_angle, last_mouse_position - motion.position, true);
-				}
-				else {
-					// TODO: Spawn enemy bullets here (ai)
-					Motion& player_motion = registry.motions.get(player);
-					float x = player_motion.position.x - motion.position.x;
-					float y = player_motion.position.y - motion.position.y;
-					float enemy_fire_angle = -atan2(x, y) - glm::radians(90.0f);
-					createBullet(renderer, motion.speed_modified, motion.position, enemy_fire_angle, { x, y });
-				}
-				fireRate.last_time = current_time;
-			}
 		}
 	}
 }

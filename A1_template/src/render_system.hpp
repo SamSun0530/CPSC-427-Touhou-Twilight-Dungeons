@@ -60,7 +60,7 @@ class RenderSystem {
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("coloured"),
 		shader_path("egg"),
-		shader_path("chicken"),
+		shader_path("player"),
 		shader_path("textured"),
 		shader_path("wind"),
 		shader_path("ui")
