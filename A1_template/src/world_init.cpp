@@ -129,8 +129,7 @@ Entity createCoin(RenderSystem* renderer, vec2 position)
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ -BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
 
-	// Create an (empty) Bug component to be able to refer to all bug
-	registry.eatables.emplace(entity);
+	registry.pickupables.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::BULLET,
@@ -228,7 +227,7 @@ std::vector<Entity> createPhysTile(RenderSystem* renderer, vec2 position, std::v
 
 		// Create and (empty) Tile component to be able to refer to all physical tiles
 		registry.physTiles.emplace(entity);
-		registry.renderRequests.insert( // TODO: Change to wall texture
+		registry.renderRequests.insert(
 			entity,
 			{ textureIDs[i],
 			 EFFECT_ASSET_ID::TEXTURED,
