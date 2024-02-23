@@ -17,7 +17,7 @@ const size_t MAX_COINS = 5;
 const size_t ENEMY_SPAWN_DELAY_MS = 2000 * 3;
 bool is_alive = true;
 
-// Create the bug world
+// Create the world
 WorldSystem::WorldSystem()
 	: points(0)
 	, next_enemy_spawn(0.f) {
@@ -155,7 +155,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		createEnemy(renderer, vec2(spawn_x, spawn_y));
 	}
 
-	// Processing the chicken state
+	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
 	ScreenState& screen = registry.screenStates.components[0];
 

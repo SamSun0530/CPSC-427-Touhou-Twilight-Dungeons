@@ -44,8 +44,6 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	return entity;
 }
 
-// Note, BUG corresponds to texture Bullet; EAGLE corresponds to texture Enemy; CHICKEN corresponds to texture Reimu
-
 Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
@@ -68,7 +66,6 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	hp.max_hp = 6;
 	hp.curr_hp = hp.max_hp;
 
-	// Create and (empty) Chicken component to be able to refer to all eagles
 	registry.players.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
@@ -162,7 +159,6 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
-	// Create and (empty) Eagle component to be able to refer to all eagles
 	registry.deadlys.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
@@ -260,6 +256,7 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
+// TEMPORARY EGG (remove/refactor later)
 Entity createEgg(vec2 pos, vec2 size)
 {
 	auto entity = Entity();
@@ -271,7 +268,6 @@ Entity createEgg(vec2 pos, vec2 size)
 	motion.direction = { 0.f, 0.f };
 	motion.scale = size;
 
-	// Create and (empty) Chicken component to be able to refer to all eagles
 	registry.deadlys.emplace(entity);
 	registry.renderRequests.insert(
 		entity,

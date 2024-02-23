@@ -56,7 +56,8 @@ private:
 	// OpenGL window handle
 	GLFWwindow* window;
 
-	// Number of bug eaten by the chicken, displayed in the window title
+	// TEMPORARY
+	// Number of coins picked by the player, displayed in the window title
 	unsigned int points;
 
 	// Game state

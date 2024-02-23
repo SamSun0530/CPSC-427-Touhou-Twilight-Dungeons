@@ -178,7 +178,6 @@ enum class TILE_TYPE {
  * enums there are, and as a default value to represent uninitialized fields.
  */
 
-// Note, BUG corresponds to texture Bullet; EAGLE corresponds to texture Enemy; CHICKEN corresponds to texture Reimu
 enum class TEXTURE_ASSET_ID {
 	BULLET = 0,
 	ENEMY = BULLET + 1,
@@ -208,14 +207,15 @@ const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	EGG = COLOURED + 1,
-	CHICKEN = EGG + 1,
-	TEXTURED = CHICKEN + 1,
+	PLAYER = EGG + 1,
+	TEXTURED = PLAYER + 1,
 	WIND = TEXTURED + 1,
 	UI = WIND + 1,
 	EFFECT_COUNT = UI + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
+// We won't use geometry as we are mostly using sprites
 enum class GEOMETRY_BUFFER_ID {
 	CHICKEN = 0,
 	SPRITE = CHICKEN + 1,

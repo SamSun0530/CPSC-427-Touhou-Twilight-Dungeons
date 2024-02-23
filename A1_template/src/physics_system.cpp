@@ -48,7 +48,7 @@ bool collides_AABB(const Motion& motion1, const Motion& motion2)
 
 void PhysicsSystem::step(float elapsed_ms)
 {
-	// Move bug based on how much time has passed, this is to (partially) avoid
+	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
 	auto& motion_registry = registry.motions;
 	for(uint i = 0; i< motion_registry.size(); i++)
