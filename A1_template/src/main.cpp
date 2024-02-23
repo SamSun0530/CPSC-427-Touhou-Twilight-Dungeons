@@ -9,6 +9,7 @@
 #include "physics_system.hpp"
 #include "render_system.hpp"
 #include "world_system.hpp"
+#include "map_system.hpp"
 #include "ai_system.hpp"
 #include "bullet_system.hpp"
 #include "audio.hpp"
@@ -24,6 +25,9 @@ int main()
 	PhysicsSystem physics;
 	AISystem ai;
 	BulletSystem bullets;
+	MapSystem map;
+
+	 map.generateMap(1);
 	
 	// Global classes
 	Audio audio;
