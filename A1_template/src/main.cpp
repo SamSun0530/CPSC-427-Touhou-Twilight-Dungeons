@@ -11,6 +11,7 @@
 #include "world_system.hpp"
 #include "ai_system.hpp"
 #include "bullet_system.hpp"
+#include "audio.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
 
@@ -23,6 +24,9 @@ int main()
 	PhysicsSystem physics;
 	AISystem ai;
 	BulletSystem bullets;
+	
+	// Global classes
+	Audio audio;
 
 	// Initializing window
 	GLFWwindow* window = world.create_window();
@@ -35,8 +39,8 @@ int main()
 
 	// initialize the main systems
 	renderer.init(window);
-	world.init(&renderer);
-	bullets.init(&renderer, window);
+	world.init(&renderer, &audio);
+	bullets.init(&renderer, window, &audio);
 
 	// variable timestep loop
 	auto t = Clock::now();

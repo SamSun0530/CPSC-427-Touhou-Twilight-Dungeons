@@ -1,9 +1,10 @@
 // internal
 #include "bullet_system.hpp"
 
-void BulletSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
+void BulletSystem::init(RenderSystem* renderer_arg, GLFWwindow* window, Audio* audio) {
 	this->renderer = renderer_arg;
 	this->window = window;
+	this->audio = audio;
 }
 
 void BulletSystem::step(float elapsed_ms)
@@ -30,7 +31,7 @@ void BulletSystem::step(float elapsed_ms)
 						float y = last_mouse_position.y - motion.position.y;
 						mouse_rotation_angle = -atan2(x, y) - glm::radians(90.0f);
 
-						//Mix_PlayChannel(-1, firing_sound, 0); // TODO: Refactor into sound/audio system
+						Mix_PlayChannel(-1, audio->firing_sound, 0);
 						createBullet(renderer, motion.speed_modified, motion.position, mouse_rotation_angle, last_mouse_position - motion.position, true);
 					}
 					else {

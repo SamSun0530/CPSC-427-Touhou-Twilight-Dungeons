@@ -26,20 +26,6 @@ WorldSystem::WorldSystem()
 }
 
 WorldSystem::~WorldSystem() {
-	// Destroy music components
-	if (background_music != nullptr)
-		Mix_FreeMusic(background_music);
-	if (game_ending_sound != nullptr)
-		Mix_FreeChunk(game_ending_sound);
-	if (firing_sound != nullptr)
-		Mix_FreeChunk(firing_sound);
-	if (damage_sound != nullptr)
-		Mix_FreeChunk(damage_sound);
-	if (hit_spell != nullptr)
-		Mix_FreeChunk(hit_spell);
-
-	Mix_CloseAudio();
-
 	// Destroy all created components
 	registry.clear_all_components();
 
@@ -102,46 +88,12 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetMouseButtonCallback(window, mouse_key_redirect);
 	glfwSetScrollCallback(window, scroll_offset_redirect);
 
-	//////////////////////////////////////
-	// Loading music and sounds with SDL
-	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-		fprintf(stderr, "Failed to initialize SDL Audio");
-		return nullptr;
-	}
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
-		fprintf(stderr, "Failed to open audio device");
-		return nullptr;
-	}
-
-	background_music = Mix_LoadMUS(audio_path("backgroundmusic.wav").c_str());
-	game_ending_sound = Mix_LoadWAV(audio_path("game_ending_sound.wav").c_str());
-	firing_sound = Mix_LoadWAV(audio_path("spell_sound.wav").c_str());
-	damage_sound = Mix_LoadWAV(audio_path("damage_sound.wav").c_str());
-	hit_spell = Mix_LoadWAV(audio_path("hit_spell.wav").c_str());
-
-	// Set the music volume
-	Mix_VolumeMusic(15);
-	Mix_Volume(-1, 30);
-
-	if (background_music == nullptr || game_ending_sound == nullptr || firing_sound == nullptr || damage_sound == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
-			audio_path("backgroundmusic.wav").c_str(),
-			audio_path("game_ending_sound.wav").c_str(),
-			audio_path("spell_sound.wav").c_str(),
-			audio_path("damage_sound.wav").c_str(),
-			audio_path("hit_spell.wav").c_str());
-
-		return nullptr;
-	}
-
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg) {
+void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio) {
 	this->renderer = renderer_arg;
-	// Playing background music indefinitely
-	Mix_PlayMusic(background_music, -1);
-	fprintf(stderr, "Loaded music\n");
+	this->audio = audio;
 
 	//Sets the size of the empty world
 	world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
@@ -263,7 +215,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		pressed = { 0 };
 		registry.motions.get(player).direction = { 0,0 };
 		Mix_HaltMusic();
-		Mix_PlayChannel(-1, game_ending_sound, 0);
+		Mix_PlayChannel(-1, audio->game_ending_sound, 0);
 		registry.realDeathTimers.emplace(player);
 	}
 
@@ -289,7 +241,7 @@ void WorldSystem::restart_game() {
 	pressed = { 0 };
 
 	// Reset bgm
-	Mix_PlayMusic(background_music, -1);
+	Mix_PlayMusic(audio->background_music, -1);
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all enemies, coins, ... but that would be more cumbersome
@@ -406,7 +358,7 @@ void WorldSystem::handle_collisions() {
 					// player turn red and decrease hp
 					if (!registry.players.get(player).invulnerability) {
 						registry.hitTimers.emplace(entity);
-						Mix_PlayChannel(-1, damage_sound, 0);
+						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
 						// should decrease HP but not yet implemented
 						registry.hps.get(player).curr_hp -= registry.deadlys.get(entity_other).damage;
@@ -421,7 +373,7 @@ void WorldSystem::handle_collisions() {
 					// player turn red and decrease hp, bullet disappear
 					if (!registry.players.get(player).invulnerability) {
 						registry.hitTimers.emplace(entity);
-						Mix_PlayChannel(-1, damage_sound, 0);
+						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 
 						registry.hps.get(player).curr_hp -= registry.enemyBullets.get(entity_other).damage;
@@ -476,7 +428,7 @@ void WorldSystem::handle_collisions() {
 					registry.hitTimers.emplace(entity);
 					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 
-					Mix_PlayChannel(-1, hit_spell, 0);
+					Mix_PlayChannel(-1, audio->hit_spell, 0);
 					registry.hps.get(entity).curr_hp -= registry.bullets.get(entity_other).damage;
 					registry.remove_all_components_of(entity_other);
 				}

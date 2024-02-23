@@ -4,6 +4,8 @@
 #include "common.hpp"
 #include "world_init.hpp"
 #include "world_system.hpp"
+#include "audio.hpp"
+
 #include <glm/trigonometric.hpp> // for glm::radians
 
 class BulletSystem
@@ -17,8 +19,9 @@ class BulletSystem
 	// Misc
 	RenderSystem* renderer;
 	GLFWwindow* window;
+	Audio* audio;
 public:
-	void BulletSystem::init(RenderSystem* renderer_arg, GLFWwindow* window);
+	void BulletSystem::init(RenderSystem* renderer_arg, GLFWwindow* window, Audio* audio);
 
 	void step(float elapsed_ms);
 };

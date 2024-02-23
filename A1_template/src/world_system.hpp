@@ -13,6 +13,7 @@
 #include <SDL_mixer.h>
 
 #include "render_system.hpp"
+#include "audio.hpp"
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -25,7 +26,7 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer);
+	void init(RenderSystem* renderer, Audio* audio);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -61,6 +62,7 @@ private:
 	// Game state
 	RenderSystem* renderer;
 	float next_enemy_spawn;
+	Audio* audio;
 
 	// Player state
 	Entity player;
@@ -68,13 +70,6 @@ private:
 
 	// World Map
 	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
-
-	// music references
-	Mix_Music* background_music;
-	Mix_Chunk* game_ending_sound;
-	Mix_Chunk* firing_sound;
-	Mix_Chunk* damage_sound;
-	Mix_Chunk* hit_spell;
 
 	// C++ random number generator
 	std::default_random_engine rng;
