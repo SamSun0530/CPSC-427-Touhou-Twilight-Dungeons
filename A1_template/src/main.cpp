@@ -13,6 +13,9 @@
 #include "bullet_system.hpp"
 #include "audio.hpp"
 
+// debug
+#include "time_debug.hpp"
+
 using Clock = std::chrono::high_resolution_clock;
 
 // Entry point
@@ -27,6 +30,7 @@ int main()
 	
 	// Global classes
 	Audio audio;
+	TimeDebug time_debug;
 
 	// Initializing window
 	GLFWwindow* window = world.create_window();
@@ -53,13 +57,32 @@ int main()
 		float elapsed_ms =
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
+		
+		printf("=============\n");
 
+		time_debug.initTime();
 		world.step(elapsed_ms);
+		time_debug.getTime("world");
+
+		time_debug.initTime();
 		physics.step(elapsed_ms);
+		time_debug.getTime("physics");
+
+		time_debug.initTime();
 		ai.step(elapsed_ms);
+		time_debug.getTime("ai");
+
+		time_debug.initTime();
 		bullets.step(elapsed_ms);
+		time_debug.getTime("bullets");
+
+		time_debug.initTime();
 		world.handle_collisions();
+		time_debug.getTime("handle_collisions");
+
+		time_debug.initTime();
 		renderer.draw();
+		time_debug.getTime("renderer");
 	}
 
 	return EXIT_SUCCESS;
