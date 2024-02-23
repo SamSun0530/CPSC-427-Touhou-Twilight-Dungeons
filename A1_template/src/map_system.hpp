@@ -6,6 +6,7 @@
 
 #include "tiny_ecs_registry.hpp"
 #include "common.hpp"
+#include "physics_system.hpp"
 
 class MapSystem{
 private:

@@ -2,6 +2,7 @@
 
 // internal
 #include "map_system.hpp"
+#include <iostream>
 
 const vec2 small_world_map_size = {500,500};
 const vec2 med_world_map_size = {1000,1000};
@@ -15,8 +16,11 @@ MapSystem::MapSystem() {
 }
 
 void MapSystem::generateMap(int floor) {
-    int max_rooms = 50;
-    int generation_circle_radius = 1000;
+    // Resets all values
+    registry.roomHitbox.clear();
+
+    int max_rooms = 5;
+    int generation_circle_radius = 300;
     vec2 widthRange = {world_tile_size*5, world_tile_size*11};
     vec2 heightRange = {world_tile_size*5, world_tile_size*11};
     vec2 aspectRatioRange = {0.5, 2.0};
@@ -24,6 +28,7 @@ void MapSystem::generateMap(int floor) {
     Entity room;
 
     // Creates all the rooms entities uniformly inside a radius
+    // with normal distributed room size
     for (int i = 0; i < max_rooms; i++) {
         room = Entity();
         registry.roomHitbox.emplace(room);
@@ -32,8 +37,65 @@ void MapSystem::generateMap(int floor) {
 		auto& motion = registry.motions.emplace(room);
 		motion.angle = 0.f;
 		motion.direction = { 0, 0 };
-		motion.position = getRandomPointInCircle(generation_circle_radius);
+
+        vec2 pos = getRandomPointInCircle(generation_circle_radius);
+		motion.position = pos;
 		motion.scale = getUniformRectangleDimentions(widthRange, heightRange);
+        std::cout << "Position of Room: " << i << " is (" << motion.position.x <<" , " << motion.position.y << ")" << std::endl; 
+        // printf("Position of Room:%d is %f,%f\n", i, motion.position.x, motion.position.y);
+    }
+
+    // // Seperates the rooms if collided
+    // std::vector<Motion> motion_container;
+    // for (Entity roomBox : registry.roomHitbox.entities) {
+    //     motion_container.insert(registry.motions.get(roomBox));
+    // }
+
+
+    // Checks collision between all rooms
+    // Similar collision code as physics system
+    for (uint i = 0; i <  registry.roomHitbox.size(); i++) {
+        
+        Entity entity_i = registry.roomHitbox.entities[i];
+        Motion motion_i = registry.motions.get(entity_i);
+
+		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
+        for(uint j = i+1; j < registry.roomHitbox.size(); j++) {
+            Entity entity_j = registry.roomHitbox.entities[j];
+			Motion motion_j = registry.motions.get(entity_j);
+
+            if(PhysicsSystem::collides_AABB(motion_i,motion_j)) {
+                // Create collision event
+                // Only 1 collsion is taken into consideration
+				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+                // Exit loop since entity_i has collided at least 1 time
+                continue;
+            }
+        }
+    }
+
+    	// Loop over all collisions detected by the physics system
+	auto& collisionsRegistry = registry.collisions;
+	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
+		// The entity and its collider
+		Entity entity = collisionsRegistry.entities[i];
+		Entity entity_other = collisionsRegistry.components[i].other;
+
+        if (registry.roomHitbox.has(entity)) {
+            Motion& room_motion = registry.motions.get(entity);
+            Motion& other_room_motion = registry.motions.get(entity_other);
+            vec2 dir;
+
+            // Calculates the unormalized vector between the center points of the 2 colliding rooms
+            vec2 center_room = {room_motion.position.x + room_motion.scale.x/2, 
+                                room_motion.position.y + room_motion.scale.y/2};
+            vec2 center_other_room = {other_room_motion.position.x + other_room_motion.scale.x/2, 
+                                      other_room_motion.position.y + other_room_motion.scale.y/2};
+            dir = normalize(center_room - center_other_room);
+
+            // Moves the room 1 world tile away from the other room in both x and y directions
+            room_motion.position = room_motion.position + vec2{world_tile_size * dir.x, world_tile_size * dir.y};
+        }
     }
 
     // creates rooms and insert it into map

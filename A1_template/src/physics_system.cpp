@@ -26,7 +26,7 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	return false;
 }
 
-bool collides_AABB(const Motion& motion1, const Motion& motion2)
+bool PhysicsSystem::collides_AABB(const Motion& motion1, const Motion& motion2)
 {
 	const vec2 bounding_box1 = get_bounding_box(motion1) / 2.f;
 	const vec2 bounding_box2 = get_bounding_box(motion2) / 2.f;
@@ -82,7 +82,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for(uint j = i+1; j<motion_container.components.size(); j++)
 		{
 			Motion& motion_j = motion_container.components[j];
-			if (collides_AABB(motion_i, motion_j))
+			if (PhysicsSystem::collides_AABB(motion_i, motion_j))
 			{
 				Entity entity_j = motion_container.entities[j];
 				// Create a collisions event
