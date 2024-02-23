@@ -32,6 +32,7 @@ public:
 	ComponentContainer<IdleMoveAction> idleMoveActions;
 	ComponentContainer<BulletFireRate> bulletFireRates;
 	ComponentContainer<DeathTimer> realDeathTimers;
+	ComponentContainer<RoomHitbox> roomHitbox;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
