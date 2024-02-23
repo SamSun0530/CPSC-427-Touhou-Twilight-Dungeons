@@ -21,10 +21,6 @@ struct BulletFireRate
 	bool is_firing = false;
 };
 
-//struct HitAble {
-//	int hp = 1;
-//};
-
 // Player component
 struct Player
 {
@@ -44,7 +40,6 @@ struct IdleMoveAction {
 	float moving_ms = 1000;
 };
 
-// Eagles have a hard shell
 struct Deadly
 {
 	int damage = 1;
@@ -55,8 +50,7 @@ struct HP {
 	int curr_hp = 6;
 };
 
-// Bug and Chicken have a soft shell
-struct Eatable
+struct Pickupable
 {
 	int damage = 1;
 };
@@ -184,12 +178,11 @@ enum class TILE_TYPE {
  * enums there are, and as a default value to represent uninitialized fields.
  */
 
-// Note, BUG corresponds to texture Bullet; EAGLE corresponds to texture Enemy; CHICKEN corresponds to texture Reimu
 enum class TEXTURE_ASSET_ID {
-	BUG = 0,
-	EAGLE = BUG + 1,
-	CHICKEN = EAGLE + 1,
-	ENEMY_BULLET = CHICKEN + 1,
+	BULLET = 0,
+	ENEMY = BULLET + 1,
+	PLAYER = ENEMY + 1,
+	ENEMY_BULLET = PLAYER + 1,
 	TILE_1 = ENEMY_BULLET + 1,
 	TILE_2 = TILE_1 + 1,
 	INNER_WALL = TILE_2 + 1,
@@ -214,14 +207,15 @@ const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	EGG = COLOURED + 1,
-	CHICKEN = EGG + 1,
-	TEXTURED = CHICKEN + 1,
+	PLAYER = EGG + 1,
+	TEXTURED = PLAYER + 1,
 	WIND = TEXTURED + 1,
 	UI = WIND + 1,
 	EFFECT_COUNT = UI + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
+// We won't use geometry as we are mostly using sprites
 enum class GEOMETRY_BUFFER_ID {
 	CHICKEN = 0,
 	SPRITE = CHICKEN + 1,
