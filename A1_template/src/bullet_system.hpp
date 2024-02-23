@@ -21,7 +21,7 @@ class BulletSystem
 	GLFWwindow* window;
 	Audio* audio;
 public:
-	void BulletSystem::init(RenderSystem* renderer_arg, GLFWwindow* window, Audio* audio);
+	void init(RenderSystem* renderer_arg, GLFWwindow* window, Audio* audio);
 
 	void step(float elapsed_ms);
 };
