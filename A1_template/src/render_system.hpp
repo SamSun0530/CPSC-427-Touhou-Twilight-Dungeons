@@ -26,8 +26,8 @@ class RenderSystem {
 	// Associated id with .obj path
 	const std::vector < std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths =
 	{
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::CHICKEN, mesh_path("chicken.obj"))
-		  // specify meshes of other assets here
+		// specify meshes of other assets here
+		// e.g. std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::CHICKEN, mesh_path("chicken.obj"))
 	};
 
 	// Make sure these paths remain in sync with the associated enumerators.
@@ -60,7 +60,7 @@ class RenderSystem {
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("coloured"),
 		shader_path("egg"),
-		shader_path("chicken"),
+		shader_path("player"),
 		shader_path("textured"),
 		shader_path("wind"),
 		shader_path("ui")
