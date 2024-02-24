@@ -15,6 +15,11 @@ mat3 Camera::createViewMatrix()
 	transform.translate(-position);
 	transform.translate(-offset);
 
+	mat3 camera_mat = inverse(transform.mat);
+	top = (camera_mat * (vec3(position, 0) - vec3(0, origin_offset.y, 0))).y;
+	bottom = (camera_mat * (vec3(position, 0) + vec3(0, origin_offset.y, 0))).y;
+	left = (camera_mat * (vec3(position, 0) - vec3(origin_offset.x, 0, 0))).x;
+	right = (camera_mat * (vec3(position, 0) + vec3(origin_offset.x, 0, 0))).x;
 	return transform.mat;
 }
 
@@ -36,4 +41,8 @@ vec2& Camera::getPosition() {
 void Camera::print() {
 	printf("camera pos (x,y)=(%f,%f) ", position.x, position.y);
 	printf("camera offset (x,y)=(%f,%f)\n", offset.x, offset.y);
+}
+
+bool Camera::isInCameraView(vec2 position) {
+	return position.y >= top && position.y <= bottom && position.x >= left && position.x <= right;
 }
