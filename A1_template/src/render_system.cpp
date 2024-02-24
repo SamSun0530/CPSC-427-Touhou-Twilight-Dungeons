@@ -225,7 +225,10 @@ void RenderSystem::draw()
 	{
 		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 			continue;
-		}
+		}		
+		//if (!registry.motions.has(entity)) {
+		//	continue;
+		//}
 		
 
 		TEXTURE_ASSET_ID texture_id = registry.renderRequests.get(entity).used_texture;
