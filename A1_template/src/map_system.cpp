@@ -39,7 +39,7 @@ void MapSystem::generateMap(int floor) {
 		motion.direction = { 0, 0 };
 		motion.position = getRandomPointInCircle(generation_circle_radius);
 		motion.scale = getUniformRectangleDimentions(widthRange, heightRange);
-        std::cout << "Position of Room: " << i << " is (" << motion.position.x <<" , " << motion.position.y << ")" << std::endl; 
+        std::cout << " Start: Position of Room: " << i << " is (" << motion.position.x <<" , " << motion.position.y << ")" << std::endl;
         // printf("Position of Room:%d is %f,%f\n", i, motion.position.x, motion.position.y);
     }
 
@@ -49,52 +49,61 @@ void MapSystem::generateMap(int floor) {
     //     motion_container.insert(registry.motions.get(roomBox));
     // }
 
+    // Checks for collisions and move all rooms until no more collisions are detected
+    
+    do {
+        // Resets all collision flags
+        registry.collisions.clear();
+    
+        // Checks collision between all rooms
+        // Similar collision code as physics system
+        for (uint i = 0; i <  registry.roomHitbox.size(); i++) {
+            
+            Entity entity_i = registry.roomHitbox.entities[i];
+            Motion motion_i = registry.motions.get(entity_i);
 
-    // Checks collision between all rooms
-    // Similar collision code as physics system
-    for (uint i = 0; i <  registry.roomHitbox.size(); i++) {
-        
-        Entity entity_i = registry.roomHitbox.entities[i];
-        Motion motion_i = registry.motions.get(entity_i);
+            // note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
+            for(uint j = i+1; j < registry.roomHitbox.size(); j++) {
+                Entity entity_j = registry.roomHitbox.entities[j];
+                Motion motion_j = registry.motions.get(entity_j);
 
-		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
-        for(uint j = i+1; j < registry.roomHitbox.size(); j++) {
-            Entity entity_j = registry.roomHitbox.entities[j];
-			Motion motion_j = registry.motions.get(entity_j);
-
-            if(PhysicsSystem::collides_AABB(motion_i,motion_j)) {
-                // Create collision event
-                // Only 1 collsion is taken into consideration
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-                // Exit loop since entity_i has collided at least 1 time
-                continue;
+                if(PhysicsSystem::collides_AABB(motion_i,motion_j)) {
+                    // Create collision event
+                    // Only 1 collsion is taken into consideration
+                    registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+                    // Exit loop since entity_i has collided at least 1 time
+                    break;
+                }
             }
         }
-    }
 
-    	// Loop over all collisions detected by the physics system
-	auto& collisionsRegistry = registry.collisions;
-	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
-		// The entity and its collider
-		Entity entity = collisionsRegistry.entities[i];
-		Entity entity_other = collisionsRegistry.components[i].other;
+            // Loop over all collisions detected by the physics system
+        auto& collisionsRegistry = registry.collisions;
+        for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
+            // The entity and its collider
+            Entity entity = collisionsRegistry.entities[i];
+            Entity entity_other = collisionsRegistry.components[i].other;
 
-        if (registry.roomHitbox.has(entity)) {
-            Motion& room_motion = registry.motions.get(entity);
-            Motion& other_room_motion = registry.motions.get(entity_other);
-            vec2 dir;
+            if (registry.roomHitbox.has(entity)) {
+                Motion& room_motion = registry.motions.get(entity);
+                Motion& other_room_motion = registry.motions.get(entity_other);
+                vec2 dir;
 
-            // Calculates the unormalized vector between the center points of the 2 colliding rooms
-            vec2 center_room = {room_motion.position.x + room_motion.scale.x/2, 
-                                room_motion.position.y + room_motion.scale.y/2};
-            vec2 center_other_room = {other_room_motion.position.x + other_room_motion.scale.x/2, 
-                                      other_room_motion.position.y + other_room_motion.scale.y/2};
-            dir = normalize(center_room - center_other_room);
+                // Calculates the unormalized vector between the center points of the 2 colliding rooms
+                vec2 center_room = {room_motion.position.x + room_motion.scale.x/2, 
+                                    room_motion.position.y + room_motion.scale.y/2};
+                vec2 center_other_room = {other_room_motion.position.x + other_room_motion.scale.x/2, 
+                                        other_room_motion.position.y + other_room_motion.scale.y/2};
+                dir = ceil((center_room - center_other_room)/vec2{world_tile_size,world_tile_size});
 
-            // Moves the room 1 world tile away from the other room in both x and y directions
-            room_motion.position = room_motion.position + vec2{world_tile_size * dir.x, world_tile_size * dir.y};
-        }
-    }
+                // Moves the room 1 world tile away from the other room in both x and y directions
+                room_motion.position = room_motion.position + vec2{world_tile_size * dir.x, world_tile_size * dir.y};
+                std::cout << "Moved: Position of Room: " << i << " is (" << room_motion.position.x <<" , " << room_motion.position.y << ")" << std::endl;
+            }
+        } 
+
+    // Removes all collisions, ie marks them as resolved
+    } while (registry.collisions.size() > 0);
 
     // creates rooms and insert it into map
     // creates entities and textures from the map
