@@ -193,7 +193,7 @@ std::vector<Entity> createDecoTile(RenderSystem* renderer, vec2 position, std::v
 		motion.scale = vec2(world_tile_size, world_tile_size);
 
 		// Create and (empty) Tile component to be able to refer to all decoration tiles
-		registry.decoTiles.emplace(entity);
+		registry.floors.emplace(entity);
 		registry.renderRequests.insert( // TODO Change to ground texture
 			entity,
 			{ textureIDs[i],
@@ -222,7 +222,7 @@ std::vector<Entity> createPhysTile(RenderSystem* renderer, vec2 position, std::v
 
 
 		// Create and (empty) Tile component to be able to refer to all physical tiles
-		registry.physTiles.emplace(entity);
+		registry.walls.emplace(entity);
 		registry.renderRequests.insert(
 			entity,
 			{ textureIDs[i],

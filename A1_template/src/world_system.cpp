@@ -384,7 +384,7 @@ void WorldSystem::handle_collisions() {
 
 				}
 			}
-			else if (registry.physTiles.has(entity_other)) {
+			else if (registry.walls.has(entity_other)) {
 				Motion& motion = registry.motions.get(entity);
 				Motion& wall_motion = registry.motions.get(entity_other);
 				vec2 normal = motion.position - wall_motion.position;
@@ -434,7 +434,7 @@ void WorldSystem::handle_collisions() {
 				}
 			}
 		}
-		else if (registry.physTiles.has(entity)) {
+		else if (registry.walls.has(entity)) {
 			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
 				registry.remove_all_components_of(entity_other);
 			}
