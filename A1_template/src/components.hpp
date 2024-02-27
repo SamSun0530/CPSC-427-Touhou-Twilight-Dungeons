@@ -6,7 +6,7 @@
 #include "../ext/stb_image/stb_image.h"
 
 
-struct Bullet {
+struct PlayerBullet {
 	int damage = 1;
 };
 
@@ -62,12 +62,12 @@ struct EnemyBullet
 };
 
 // A non interactable tile of the map
-struct DecorationTile
+struct Floor
 {
 };
 
 // A interactable tile of the map
-struct PhysicalTile {
+struct Wall {
 };
 
 // All data relevant to the shape and motion of entities

@@ -10,7 +10,7 @@ void BulletSystem::init(RenderSystem* renderer_arg, GLFWwindow* window, Audio* a
 void BulletSystem::step(float elapsed_ms)
 {
 	// Manages fire rate for spawning bullet/enemy-bullets
-	if (registry.bullets.components.size() + registry.enemyBullets.components.size() <= MAX_BULLETS) {
+	if (registry.playerBullets.components.size() + registry.enemyBullets.components.size() <= MAX_BULLETS) {
 		for (Entity entity : registry.bulletFireRates.entities) {
 			BulletFireRate& fireRate = registry.bulletFireRates.get(entity);
 

@@ -422,20 +422,20 @@ void WorldSystem::handle_collisions() {
 			}
 		}
 		else if (registry.deadlys.has(entity)) {
-			if (registry.bullets.has(entity_other)) {
+			if (registry.playerBullets.has(entity_other)) {
 				if (!registry.hitTimers.has(entity)) {
 					// enemy turn red and decrease hp, bullet disappear
 					registry.hitTimers.emplace(entity);
 					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
-					registry.hps.get(entity).curr_hp -= registry.bullets.get(entity_other).damage;
+					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
 					registry.remove_all_components_of(entity_other);
 				}
 			}
 		}
 		else if (registry.physTiles.has(entity)) {
-			if (registry.bullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
+			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
 				registry.remove_all_components_of(entity_other);
 			}
 			else if (registry.deadlys.has(entity_other)) {

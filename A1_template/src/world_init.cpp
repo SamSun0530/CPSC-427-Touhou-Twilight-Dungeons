@@ -25,7 +25,7 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
-		registry.bullets.emplace(entity);
+		registry.playerBullets.emplace(entity);
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::BULLET,
