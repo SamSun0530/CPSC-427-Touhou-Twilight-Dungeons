@@ -14,6 +14,12 @@ class Camera {
 	float zoom_min;
 	float zoom_max;
 	float zoom_increment;
+
+	// camera world coordinate screen bounds
+	float top;
+	float bottom;
+	float left;
+	float right;
 public:
 	// Determine if camera could be controlled freely
 	bool isFreeCam;
@@ -37,6 +43,10 @@ public:
 	void addZoom(float scroll_offset_y);
 
 	vec2& getPosition();
+
+	// Checks whether the position is inside the camera screen view
+	// Used for optimizing rendering by rendering only entities inside of the screen
+	bool isInCameraView(vec2 position);
 
 	mat3 createViewMatrix();
 	void print(); // for debugging

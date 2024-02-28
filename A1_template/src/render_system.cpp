@@ -218,13 +218,19 @@ void RenderSystem::draw()
 	mat3 projection_2D = createProjectionMatrix();
 	mat3 view_2D = camera.createViewMatrix();
 	mat3 view_2D_ui = ui.createViewMatrix();
+	
 	// Draw all textured meshes that have a position and size component
 	std::vector<Entity> ui_entities;
 	for (Entity entity : registry.renderRequests.entities)
 	{
-		if (!registry.motions.has(entity)) {
+		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 			continue;
-		}
+		}		
+		//if (!registry.motions.has(entity)) {
+		//	continue;
+		//}
+		
+
 		TEXTURE_ASSET_ID texture_id = registry.renderRequests.get(entity).used_texture;
 		if (texture_id == TEXTURE_ASSET_ID::EMPTY_HEART || texture_id == TEXTURE_ASSET_ID::FULL_HEART) 
 		{
