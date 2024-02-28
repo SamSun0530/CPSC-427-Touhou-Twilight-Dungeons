@@ -77,7 +77,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	//collidable.size = { motion.scale.x, motion.scale.y / 4.f };
 	//collidable.shift = { 0, motion.scale.y / 4.f };
 
-	HP & hp = registry.hps.emplace(entity);
+	HP& hp = registry.hps.emplace(entity);
 	hp.max_hp = 6;
 	hp.curr_hp = hp.max_hp;
 
@@ -241,6 +241,36 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 		// Set the collision box
 		auto& collidable = registry.collidables.emplace(entity);
 		collidable.size = motion.scale;
+
+		if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_WALL) {
+			collidable.size = { motion.scale.x / 2, motion.scale.y };
+			collidable.shift = { -motion.scale.x / 4, 0 };
+		}
+		else if (textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_WALL) {
+			collidable.size = { motion.scale.x / 2, motion.scale.y };
+			collidable.shift = { motion.scale.x / 4, 0 };
+		}
+		else if (textureIDs[i] == TEXTURE_ASSET_ID::WALL_EDGE) {
+			collidable.size = { motion.scale.x, motion.scale.y / 2 };
+			collidable.shift = { 0, motion.scale.y / 4 };
+		}
+		else if (textureIDs[i] == TEXTURE_ASSET_ID::TOP_WALL) {
+			collidable.size = { motion.scale.x, motion.scale.y / 2 };
+			collidable.shift = { 0, -motion.scale.y / 4 };
+		}
+		else {
+			// Temporary
+			// TODO: Maybe change/refactor this since it's adding floors when its in createWall
+			registry.collidables.remove(entity);
+			registry.floors.emplace(entity);
+			registry.renderRequests.insert(
+				entity,
+				{ textureIDs[i],
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+			entities.push_back(entity);
+			continue;
+		}
 
 		// Create and (empty) Tile component to be able to refer to all physical tiles
 		registry.walls.emplace(entity);

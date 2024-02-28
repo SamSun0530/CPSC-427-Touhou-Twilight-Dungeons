@@ -144,16 +144,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	//// Spawning new enemies
-	next_enemy_spawn -= elapsed_ms_since_last_update;
-	if (registry.deadlys.components.size() <= MAX_ENEMIES && next_enemy_spawn < 0.f) {
-		// Reset timer
-		next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
-		Motion& motion = registry.motions.get(player);
-		// Create enemy with random initial position
-		float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
-		float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
-		createEnemy(renderer, vec2(spawn_x, spawn_y));
-	}
+	//next_enemy_spawn -= elapsed_ms_since_last_update;
+	//if (registry.deadlys.components.size() <= MAX_ENEMIES && next_enemy_spawn < 0.f) {
+	//	// Reset timer
+	//	next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
+	//	Motion& motion = registry.motions.get(player);
+	//	// Create enemy with random initial position
+	//	float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
+	//	float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
+	//	createEnemy(renderer, vec2(spawn_x, spawn_y));
+	//}
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -321,10 +321,8 @@ void WorldSystem::restart_game() {
 			{
 			case (int)TILE_TYPE::WALL:
 				createWall(renderer, { xPos,yPos }, textureIDs);
-				//createFloor(renderer, { xPos,yPos }, textureIDs);
 				break;
 			case (int)TILE_TYPE::FLOOR:
-				//createWall(renderer, { xPos,yPos }, textureIDs);
 				createFloor(renderer, { xPos,yPos }, textureIDs);
 				break;
 			default:
