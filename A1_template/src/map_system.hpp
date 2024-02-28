@@ -16,6 +16,7 @@ private:
 
     vec2 getRandomPointInCircle(int radius);
     vec2 getUniformRectangleDimentions(vec2 widthRange, vec2 heightRange);
+    vec2 roundToTileSizeVec2(vec2 input, float tileSize);
 
     // C++ random number generator
     std::default_random_engine rng;
@@ -24,5 +25,6 @@ private:
 public:
     MapSystem();
     void generateMap(int floor);
+    void debug();
     //foo
 };

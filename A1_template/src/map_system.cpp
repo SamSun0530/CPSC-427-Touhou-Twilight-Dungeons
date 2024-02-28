@@ -2,13 +2,31 @@
 
 // internal
 #include "map_system.hpp"
+#include "map_system.hpp"
+#include "world_init.hpp"
 #include <iostream>
 
 const vec2 small_world_map_size = {500,500};
 const vec2 med_world_map_size = {1000,1000};
 const vec2 large_world_map_size = {2000,2000};
 
-std::vector<Entity> rooms;
+static std::vector<Entity> rooms;
+
+struct roomNode{
+    Entity room;
+    std::vector<roomNode*> neighbors;
+};
+
+struct edge{
+    vec2 point_start;
+    vec2 point_end;
+};
+
+struct triangle{
+    vec2 point_A;
+    vec2 point_B;
+    vec2 point_C;
+};
 
 MapSystem::MapSystem() {
     // Seeding rng with random device
@@ -19,11 +37,11 @@ void MapSystem::generateMap(int floor) {
     // Resets all values
     registry.roomHitbox.clear();
 
-    int max_rooms = 5;
-    int generation_circle_radius = 3*world_tile_size;
+    int max_rooms = 20;
+    int generation_circle_radius = 10*world_tile_size;
     vec2 widthRange = {world_tile_size*5, world_tile_size*11};
     vec2 heightRange = {world_tile_size*5, world_tile_size*11};
-    vec2 aspectRatioRange = {0.5, 2.0};
+    // vec2 aspectRatioRange = {0.5, 2.0};
 
     Entity room;
 
@@ -33,13 +51,14 @@ void MapSystem::generateMap(int floor) {
         room = Entity();
         registry.roomHitbox.emplace(room);
 
-        		// Initialize the motion
+        // Initialize the motion
 		auto& motion = registry.motions.emplace(room);
 		motion.angle = 0.f;
 		motion.direction = { 0, 0 };
 		motion.position = getRandomPointInCircle(generation_circle_radius);
 		motion.scale = getUniformRectangleDimentions(widthRange, heightRange);
-        std::cout << " Start: Position of Room: " << i << " is (" << motion.position.x <<" , " << motion.position.y << ")" << std::endl;
+        //std::cout << " Start: Position of Room: " << i << " is (" << motion.position.x <<" , " << motion.position.y << ")" << std::endl;
+        //std::cout << " Size of Obj: (" << motion.scale.x << "," << motion.scale.y << ")" << std::endl;
         // printf("Position of Room:%d is %f,%f\n", i, motion.position.x, motion.position.y);
     }
 
@@ -71,6 +90,7 @@ void MapSystem::generateMap(int floor) {
                     // Create collision event
                     // Only 1 collsion is taken into consideration
                     registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+                    registry.collisions.emplace_with_duplicates(entity_j, entity_i);
                     // Exit loop since entity_i has collided at least 1 time
                     break;
                 }
@@ -94,11 +114,20 @@ void MapSystem::generateMap(int floor) {
                                     room_motion.position.y + room_motion.scale.y/2};
                 vec2 center_other_room = {other_room_motion.position.x + other_room_motion.scale.x/2, 
                                         other_room_motion.position.y + other_room_motion.scale.y/2};
-                dir = ceil((center_room - center_other_room)/vec2{world_tile_size,world_tile_size});
+                vec2 dist = center_room - center_other_room;
+                if(dist.x != 0 && dist.y != 0) {
+                    // vec2 temp1 = normalize(dist);
+                    // vec2 temp2 = ceil(temp1);
+                    dir = vec2(sign(dist.x),sign(dist.y));
+                } else {
+                    //Sets the direction to a random direction
+                    dir = vec2{roundf(uniform_dist(rng)*2-1),roundf(uniform_dist(rng)*2-1)};
+                }
+                //std::cout << "Direction: (" << dir.x << "," << dir.y << ")" << std::endl;
 
                 // Moves the room 1 world tile away from the other room in both x and y directions
                 room_motion.position = room_motion.position + vec2{world_tile_size * dir.x, world_tile_size * dir.y};
-                std::cout << "Moved: Position of Room: " << i << " is (" << room_motion.position.x <<" , " << room_motion.position.y << ")" << std::endl;
+                //std::cout << "Moved: Position of Room: " << i << " is (" << room_motion.position.x <<" , " << room_motion.position.y << ")" << std::endl;
             }
         } 
 
@@ -107,6 +136,21 @@ void MapSystem::generateMap(int floor) {
 
     // creates rooms and insert it into map
     // creates entities and textures from the map
+
+    //Triangulation: https://www.gorillasun.de/blog/bowyer-watson-algorithm-for-delaunay-triangulation/
+}
+
+void MapSystem::debug() {
+    // createLine({0,0},{100,100});
+    for(Entity room: registry.roomHitbox.entities) {
+        if(!registry.motions.has(room)) {
+            continue;
+        }
+        Motion motion = registry.motions.get(room);
+        vec2 pos = (motion.position/vec2(20,20) + window_px_half);
+        vec2 scale = motion.scale/vec2(20,20);
+        createLine(pos,scale);
+    }
 }
 
 // Takes a value and a tile size and floors it to be a multiple of tile size

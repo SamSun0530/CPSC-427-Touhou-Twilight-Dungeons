@@ -91,9 +91,10 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio) {
+void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
+	this->map = map;
 
 	//Sets the size of the empty world
 	world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
@@ -252,9 +253,7 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create rooms
-
-	// createPhysTile(renderer, { 0, -200 }); // for testing collision
-	// createPhysTile(renderer, { -124, -324 }); // for testing collision
+	map->generateMap(1);
 
 	// Creates 1 room the size of the map
 	for (int row = 0; row < world_map.size(); row++) {
