@@ -19,10 +19,10 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ -BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
 
-	auto& realmotion = registry.realMotions.emplace(entity);
-	realmotion.speed_base = 200.f;
-	realmotion.speed_modified = 1.f * realmotion.speed_base + entity_speed; // bullet speed takes into account of entity's speed
-	realmotion.direction = direction;
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 200.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base + entity_speed; // bullet speed takes into account of entity's speed
+	kinematic.direction = direction;
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
@@ -64,10 +64,10 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ -PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 	motion.scale.x = -motion.scale.x;
 
-	auto& realmotion = registry.realMotions.emplace(entity);
-	realmotion.speed_base = 100.f;
-	realmotion.speed_modified = 3.f * realmotion.speed_base;
-	realmotion.direction = { 0, 0 };
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 100.f;
+	kinematic.speed_modified = 3.f * kinematic.speed_base;
+	kinematic.direction = { 0, 0 };
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
@@ -136,10 +136,10 @@ Entity createCoin(RenderSystem* renderer, vec2 position)
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ -BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
 
-	auto& realmotion = registry.realMotions.emplace(entity);
-	realmotion.speed_base = 50.f;
-	realmotion.speed_modified = 1.f * realmotion.speed_base;
-	realmotion.direction = { 0, 1 };
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 50.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 1 };
 
 	registry.pickupables.emplace(entity);
 	registry.renderRequests.insert(
@@ -166,10 +166,10 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 	// Setting initial values, scale is negative to make it face the opposite way
 	motion.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
-	auto& realmotion = registry.realMotions.emplace(entity);
-	realmotion.speed_base = 100.f;
-	realmotion.speed_modified = 1.f * realmotion.speed_base;
-	realmotion.direction = { 0, 0 };
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 100.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 0 };
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);

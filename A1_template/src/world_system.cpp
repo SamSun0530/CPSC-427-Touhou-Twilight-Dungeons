@@ -213,7 +213,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.hps.get(player).curr_hp = registry.hps.get(player).max_hp;
 		is_alive = false;
 		pressed = { 0 };
-		registry.realMotions.get(player).direction = { 0,0 };
+		registry.kinematics.get(player).direction = { 0,0 };
 		Mix_HaltMusic();
 		Mix_PlayChannel(-1, audio->game_ending_sound, 0);
 		registry.realDeathTimers.emplace(player);
@@ -391,7 +391,7 @@ void WorldSystem::handle_collisions() {
 				printf("wall - player collision\n");
 				Motion& motion = registry.motions.get(entity);
 				Motion& wall_motion = registry.motions.get(entity_other);
-				RealMotion& realmotion = registry.realMotions.get(entity);
+				Kinematic& kinematic = registry.kinematics.get(entity);
 				vec2 normal = motion.position - wall_motion.position;
 
 				// clamp vector from entity to wall to get wall normal
@@ -403,8 +403,8 @@ void WorldSystem::handle_collisions() {
 				}
 
 				if (normal.x == 0) {
-					realmotion.direction = { realmotion.direction.x, 0 };
-					realmotion.velocity = { realmotion.velocity.x, 0 };
+					kinematic.direction = { kinematic.direction.x, 0 };
+					kinematic.velocity = { kinematic.velocity.x, 0 };
 					if (normal.y > 0) {
 						pressed[GLFW_KEY_W] = false;
 					}
@@ -413,8 +413,8 @@ void WorldSystem::handle_collisions() {
 					}
 				}
 				else {
-					realmotion.direction = { 0, realmotion.direction.y };
-					realmotion.velocity = { 0, realmotion.velocity.y };
+					kinematic.direction = { 0, kinematic.direction.y };
+					kinematic.velocity = { 0, kinematic.velocity.y };
 					if (normal.x > 0) {
 						pressed[GLFW_KEY_A] = false;
 					}
@@ -448,7 +448,7 @@ void WorldSystem::handle_collisions() {
 				printf("wall - enemy collision\n");
 				Motion& wall_motion = registry.motions.get(entity);
 				Motion& motion = registry.motions.get(entity_other);
-				RealMotion& realmotion = registry.realMotions.get(entity);
+				Kinematic& kinematic = registry.kinematics.get(entity);
 				vec2 normal = motion.position - wall_motion.position;
 
 				// clamp vector from entity to wall to get wall normal
@@ -460,21 +460,24 @@ void WorldSystem::handle_collisions() {
 				}
 
 				if (normal.x == 0) {
-					realmotion.direction = { realmotion.direction.x, 0 };
-					realmotion.velocity = { realmotion.velocity.x, 0 };
+					kinematic.direction = { kinematic.direction.x, 0 };
+					kinematic.velocity = { kinematic.velocity.x, 0 };
 				}
 				else {
-					realmotion.direction = { 0, realmotion.direction.y };
-					realmotion.velocity = { 0, realmotion.velocity.y };
+					kinematic.direction = { 0, kinematic.direction.y };
+					kinematic.velocity = { 0, kinematic.velocity.y };
 				}
 
 				motion.position = motion.last_position;
 			}
 		}
 	}
+	std::cout << "collision size before: " << registry.collisions.size() << std::endl;
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
+	std::cout << "collision size after: " << registry.collisions.size() << std::endl;
+
 }
 
 // Should the game be over ?
@@ -493,45 +496,45 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Handle player movement
 	if (is_alive) {
-		RealMotion& realmotion = registry.realMotions.get(player);
+		Kinematic& kinematic = registry.kinematics.get(player);
 		switch (key) {
 		case GLFW_KEY_W:
 			if (!pressed[key] && action == GLFW_PRESS) {
-				realmotion.direction.y -= 1;
+				kinematic.direction.y -= 1;
 				pressed[key] = true;
 			}
 			else if (pressed[key] && action == GLFW_RELEASE) {
-				realmotion.direction.y += 1;
+				kinematic.direction.y += 1;
 				pressed[key] = false;
 			}
 			break;
 		case GLFW_KEY_A:
 			if (!pressed[key] && action == GLFW_PRESS) {
-				realmotion.direction.x -= 1;
+				kinematic.direction.x -= 1;
 				pressed[key] = true;
 			}
 			else if (pressed[key] && action == GLFW_RELEASE) {
-				realmotion.direction.x += 1;
+				kinematic.direction.x += 1;
 				pressed[key] = false;
 			}
 			break;
 		case GLFW_KEY_S:
 			if (!pressed[key] && action == GLFW_PRESS) {
-				realmotion.direction.y += 1;
+				kinematic.direction.y += 1;
 				pressed[key] = true;
 			}
 			else if (pressed[key] && action == GLFW_RELEASE) {
-				realmotion.direction.y -= 1;
+				kinematic.direction.y -= 1;
 				pressed[key] = false;
 			}
 			break;
 		case GLFW_KEY_D:
 			if (!pressed[key] && action == GLFW_PRESS) {
-				realmotion.direction.x += 1;
+				kinematic.direction.x += 1;
 				pressed[key] = true;
 			}
 			else if (pressed[key] && action == GLFW_RELEASE) {
-				realmotion.direction.x -= 1;
+				kinematic.direction.x -= 1;
 				pressed[key] = false;
 			}
 			break;

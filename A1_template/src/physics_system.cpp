@@ -15,7 +15,7 @@ vec2 get_bounding_box(const Motion& motion)
 bool collides(const Motion& motion1, const Motion& motion2)
 {
 	vec2 dp = motion1.position - motion2.position;
-	float dist_squared = dot(dp,dp);
+	float dist_squared = dot(dp, dp);
 	const vec2 other_bonding_box = get_bounding_box(motion1) / 2.f;
 	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
 	const vec2 my_bonding_box = get_bounding_box(motion2) / 2.f;
@@ -67,31 +67,31 @@ bool collides_AABB2(const Motion& motion1, const Motion& motion2, const Collidab
 		return true;
 	return false;
 }
-
+#include <iostream>
 void PhysicsSystem::step(float elapsed_ms)
 {
 	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
-	auto& realmotion_registry = registry.realMotions;
-	for (uint i = 0; i < realmotion_registry.size(); i++)
+	auto& kinematic_registry = registry.kinematics;
+	for (uint i = 0; i < kinematic_registry.size(); i++)
 	{
-		RealMotion& realmotion = realmotion_registry.components[i];
-		Entity& entity = realmotion_registry.entities[i];
-		Motion& motion = registry.motions.get(entity); // realMotion will always have motion
+		Kinematic& kinematic = kinematic_registry.components[i];
+		Entity& entity = kinematic_registry.entities[i];
+		Motion& motion = registry.motions.get(entity); // kinematic will always have motion
 		float step_seconds = elapsed_ms / 1000.f;
 
 		// Normalize direction vector if either x or y is not 0 (prevents divide by 0 when normalizing)
-		vec2 direction_normalized = realmotion.direction;
-		if (realmotion.direction.x != 0 || realmotion.direction.y != 0) {
+		vec2 direction_normalized = kinematic.direction;
+		if (kinematic.direction.x != 0 || kinematic.direction.y != 0) {
 			direction_normalized = normalize(direction_normalized);
 		}
 
 		// Linear interpolation of velocity
 		// K factor (0,30] = ~0 (not zero, slippery, ice) -> 10-20 (quick start up/slow down, natural) -> 30 (instant velocity, jittery)
 		float K = 10.f;
-		realmotion.velocity = vec2_lerp(realmotion.velocity, direction_normalized * realmotion.speed_modified, step_seconds * K);
+		kinematic.velocity = vec2_lerp(kinematic.velocity, direction_normalized * kinematic.speed_modified, step_seconds * K);
 		motion.last_position = motion.position;
-		motion.position += realmotion.velocity * step_seconds;
+		motion.position += kinematic.velocity * step_seconds;
 	}
 
 	//// Check for collisions between all moving entities
@@ -139,7 +139,8 @@ void PhysicsSystem::step(float elapsed_ms)
 	//		}
 	//	}
 	//}
-	
+
+
 	ComponentContainer<Wall>& wall_container = registry.walls;
 	ComponentContainer<Motion>& motion_container = registry.motions;
 	for (uint i = 0; i < wall_container.components.size(); i++)
@@ -148,7 +149,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		Entity entity_i = wall_container.entities[i];
 		Collidable& collidable_i = registry.collidables.get(entity_i);
 		Motion& motion_i = motion_container.get(entity_i);
-		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
+
 		for (Entity& entity_j : registry.players.entities) {
 			Collidable& collidable_j = registry.collidables.get(entity_j);
 			Motion& motion_j = registry.motions.get(entity_j);

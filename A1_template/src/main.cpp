@@ -58,31 +58,31 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 		
-		printf("=============\n");
+		//printf("=============\n");
 
 		time_debug.initTime();
 		world.step(elapsed_ms);
-		time_debug.getTime("world");
+		//time_debug.getTime("world");
 
 		time_debug.initTime();
 		physics.step(elapsed_ms);
-		time_debug.getTime("physics");
+		//time_debug.getTime("physics");
 
 		time_debug.initTime();
 		ai.step(elapsed_ms);
-		time_debug.getTime("ai");
+		//time_debug.getTime("ai");
 
 		time_debug.initTime();
 		bullets.step(elapsed_ms);
-		time_debug.getTime("bullets");
+		//time_debug.getTime("bullets");
 
 		time_debug.initTime();
 		world.handle_collisions();
-		time_debug.getTime("handle_collisions");
+		//time_debug.getTime("handle_collisions");
 
 		time_debug.initTime();
 		renderer.draw();
-		time_debug.getTime("renderer");
+		//time_debug.getTime("renderer");
 	}
 
 	return EXIT_SUCCESS;

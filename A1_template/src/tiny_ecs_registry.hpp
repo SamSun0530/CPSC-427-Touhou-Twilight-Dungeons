@@ -31,7 +31,7 @@ public:
 	ComponentContainer<IdleMoveAction> idleMoveActions;
 	ComponentContainer<BulletFireRate> bulletFireRates;
 	ComponentContainer<DeathTimer> realDeathTimers;
-	ComponentContainer<RealMotion> realMotions;
+	ComponentContainer<Kinematic> kinematics;
 	ComponentContainer<Collidable> collidables;
 
 	// constructor that adds all containers for looping over them
@@ -58,7 +58,7 @@ public:
 		registry_list.push_back(&idleMoveActions);
 		registry_list.push_back(&bulletFireRates);
 		registry_list.push_back(&realDeathTimers);
-		registry_list.push_back(&realMotions);
+		registry_list.push_back(&kinematics);
 		registry_list.push_back(&collidables);
 	}
 
