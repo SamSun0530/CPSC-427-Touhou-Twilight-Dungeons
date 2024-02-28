@@ -26,10 +26,10 @@ Entity createCoin(RenderSystem* renderer, vec2 position);
 // the enemy
 Entity createEnemy(RenderSystem* renderer, vec2 position);
 // Non interactable tile
-std::vector<Entity> createDecoTile(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
+std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 
 // Interactable Tile
-std::vector<Entity> createPhysTile(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
+std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);

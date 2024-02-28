@@ -50,25 +50,47 @@ void PhysicsSystem::step(float elapsed_ms)
 {
 	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
-	auto& motion_registry = registry.motions;
-	for(uint i = 0; i< motion_registry.size(); i++)
+	//auto& motion_registry = registry.motions;
+	//for(uint i = 0; i< motion_registry.size(); i++)
+	//{
+	//	Motion& motion = motion_registry.components[i];
+	//	Entity& entity = motion_registry.entities[i];
+	//	float step_seconds = elapsed_ms / 1000.f;
+
+	//	// Normalize direction vector if either x or y is not 0 (prevents divide by 0 when normalizing)
+	//	vec2 direction_normalized = motion.direction;
+	//	if (motion.direction.x != 0 || motion.direction.y != 0) {
+	//		direction_normalized = normalize(direction_normalized);
+	//	}
+
+	//	// Linear interpolation of velocity
+	//	// K factor (0,30] = ~0 (not zero, slippery, ice) -> 10-20 (quick start up/slow down, natural) -> 30 (instant velocity, jittery)
+	//	float K = 10.f;
+	//	motion.velocity = vec2_lerp(motion.velocity, direction_normalized * motion.speed_modified, step_seconds * K);
+	//	motion.last_position = motion.position;
+	//	motion.position += motion.velocity * step_seconds;
+	//}
+
+	auto& realmotion_registry = registry.realMotions;
+	for (uint i = 0; i < realmotion_registry.size(); i++)
 	{
-		Motion& motion = motion_registry.components[i];
-		Entity entity = motion_registry.entities[i];
+		RealMotion& realmotion = realmotion_registry.components[i];
+		Entity& entity = realmotion_registry.entities[i];
+		Motion& motion = registry.motions.get(entity); // realMotion will always have motion
 		float step_seconds = elapsed_ms / 1000.f;
 
 		// Normalize direction vector if either x or y is not 0 (prevents divide by 0 when normalizing)
-		vec2 direction_normalized = motion.direction;
-		if (motion.direction.x != 0 || motion.direction.y != 0) {
+		vec2 direction_normalized = realmotion.direction;
+		if (realmotion.direction.x != 0 || realmotion.direction.y != 0) {
 			direction_normalized = normalize(direction_normalized);
 		}
 
 		// Linear interpolation of velocity
 		// K factor (0,30] = ~0 (not zero, slippery, ice) -> 10-20 (quick start up/slow down, natural) -> 30 (instant velocity, jittery)
 		float K = 10.f;
-		motion.velocity = vec2_lerp(motion.velocity, direction_normalized * motion.speed_modified, step_seconds * K);
+		realmotion.velocity = vec2_lerp(realmotion.velocity, direction_normalized * realmotion.speed_modified, step_seconds * K);
 		motion.last_position = motion.position;
-		motion.position += motion.velocity * step_seconds;
+		motion.position += realmotion.velocity * step_seconds;
 	}
 
 	// Check for collisions between all moving entities

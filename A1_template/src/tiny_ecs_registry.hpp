@@ -31,6 +31,7 @@ public:
 	ComponentContainer<IdleMoveAction> idleMoveActions;
 	ComponentContainer<BulletFireRate> bulletFireRates;
 	ComponentContainer<DeathTimer> realDeathTimers;
+	ComponentContainer<RealMotion> realMotions;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -56,6 +57,7 @@ public:
 		registry_list.push_back(&idleMoveActions);
 		registry_list.push_back(&bulletFireRates);
 		registry_list.push_back(&realDeathTimers);
+		registry_list.push_back(&realMotions);
 	}
 
 	void clear_all_components() {
