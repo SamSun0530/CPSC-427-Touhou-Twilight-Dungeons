@@ -253,8 +253,9 @@ void WorldSystem::restart_game() {
 
 	// Create rooms
 
-	// createPhysTile(renderer, { 0, -200 }); // for testing collision
-	// createPhysTile(renderer, { -124, -324 }); // for testing collision
+	//std::vector<TEXTURE_ASSET_ID> textureIDs{ TEXTURE_ASSET_ID::LEFT_WALL };
+	//createWall(renderer, { 0, -200 }, textureIDs); // for testing collision
+	//createWall(renderer, { -124, -324 }, textureIDs); // for testing collision
 
 	// Creates 1 room the size of the map
 	for (int row = 0; row < world_map.size(); row++) {
@@ -321,8 +322,10 @@ void WorldSystem::restart_game() {
 			{
 			case (int)TILE_TYPE::WALL:
 				createWall(renderer, { xPos,yPos }, textureIDs);
+				//createFloor(renderer, { xPos,yPos }, textureIDs);
 				break;
 			case (int)TILE_TYPE::FLOOR:
+				//createWall(renderer, { xPos,yPos }, textureIDs);
 				createFloor(renderer, { xPos,yPos }, textureIDs);
 				break;
 			default:
@@ -385,6 +388,7 @@ void WorldSystem::handle_collisions() {
 				}
 			}
 			else if (registry.walls.has(entity_other)) {
+				printf("wall - player collision\n");
 				Motion& motion = registry.motions.get(entity);
 				Motion& wall_motion = registry.motions.get(entity_other);
 				RealMotion& realmotion = registry.realMotions.get(entity);
@@ -437,9 +441,11 @@ void WorldSystem::handle_collisions() {
 		}
 		else if (registry.walls.has(entity)) {
 			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
+				printf("wall - bullet collision\n");
 				registry.remove_all_components_of(entity_other);
 			}
 			else if (registry.deadlys.has(entity_other)) {
+				printf("wall - enemy collision\n");
 				Motion& wall_motion = registry.motions.get(entity);
 				Motion& motion = registry.motions.get(entity_other);
 				RealMotion& realmotion = registry.realMotions.get(entity);

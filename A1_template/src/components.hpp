@@ -82,11 +82,18 @@ struct Motion {
 	vec2 scale = { 10, 10 };
 };
 
+// Real motion which modifies velocity
 struct RealMotion {
 	float speed_base = 0.f;
 	float speed_modified = 0.f;
 	vec2 velocity = { 0, 0 };
 	vec2 direction = { 0, 0 };
+};
+
+// Represents collision box with shift transform and size of box
+struct Collidable {
+	vec2 shift = { 0, 0 };
+	vec2 size = { 1, 1 };
 };
 
 // Stucture to store collision information

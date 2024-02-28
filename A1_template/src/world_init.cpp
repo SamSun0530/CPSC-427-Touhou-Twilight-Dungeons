@@ -7,7 +7,7 @@
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet)
 {
 	auto entity = Entity();
-	
+
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
@@ -23,6 +23,10 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	realmotion.speed_base = 200.f;
 	realmotion.speed_modified = 1.f * realmotion.speed_base + entity_speed; // bullet speed takes into account of entity's speed
 	realmotion.direction = direction;
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale;
 
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
@@ -65,7 +69,15 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	realmotion.speed_modified = 3.f * realmotion.speed_base;
 	realmotion.direction = { 0, 0 };
 
-	HP& hp = registry.hps.emplace(entity);
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale;
+
+	// Set player collision box at the feet of the player
+	//collidable.size = { motion.scale.x, motion.scale.y / 4.f };
+	//collidable.shift = { 0, motion.scale.y / 4.f };
+
+	HP & hp = registry.hps.emplace(entity);
 	hp.max_hp = 6;
 	hp.curr_hp = hp.max_hp;
 
@@ -159,6 +171,10 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 	realmotion.speed_modified = 1.f * realmotion.speed_base;
 	realmotion.direction = { 0, 0 };
 
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale;
+
 	HP& hp = registry.hps.emplace(entity);
 	hp.max_hp = 6;
 	hp.curr_hp = hp.max_hp;
@@ -174,7 +190,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 	BulletFireRate enemy_bullet_rate;
 	enemy_bullet_rate.fire_rate = 3;
 	enemy_bullet_rate.is_firing = true;
-	registry.bulletFireRates.insert(entity,enemy_bullet_rate);
+	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
 	registry.colors.insert(entity, { 1,1,1 });
 
 	return entity;
@@ -221,6 +237,10 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 		motion.angle = 0.f;
 		motion.position = position;
 		motion.scale = vec2(world_tile_size, world_tile_size);
+
+		// Set the collision box
+		auto& collidable = registry.collidables.emplace(entity);
+		collidable.size = motion.scale;
 
 		// Create and (empty) Tile component to be able to refer to all physical tiles
 		registry.walls.emplace(entity);
