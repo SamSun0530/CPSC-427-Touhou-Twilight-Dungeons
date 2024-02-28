@@ -208,7 +208,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-
 	if (registry.hps.get(player).curr_hp <= 0) {
 		registry.hps.get(player).curr_hp = registry.hps.get(player).max_hp;
 		is_alive = false;
@@ -253,83 +252,83 @@ void WorldSystem::restart_game() {
 
 	// Create rooms
 
-	//std::vector<TEXTURE_ASSET_ID> textureIDs{ TEXTURE_ASSET_ID::LEFT_WALL };
-	//createWall(renderer, { 0, -200 }, textureIDs); // for testing collision
-	//createWall(renderer, { -124, -324 }, textureIDs); // for testing collision
+	std::vector<TEXTURE_ASSET_ID> textureIDs{ TEXTURE_ASSET_ID::LEFT_WALL };
+	createWall(renderer, { 0, -200 }, textureIDs); // for testing collision
+	createWall(renderer, { -124, -324 }, textureIDs); // for testing collision
 
 	// Creates 1 room the size of the map
-	for (int row = 0; row < world_map.size(); row++) {
-		for (int col = 0; col < world_map[row].size(); col++) {
-			if (row == 0 || col == 0 || row == world_height - 1 || col == world_width - 1) {
-				world_map[row][col] = (int)TILE_TYPE::WALL;
-			}
-			else {
-				world_map[row][col] = (int)TILE_TYPE::FLOOR;
-			}
-		}
-	}
-	int centerX = (world_width >> 1);
-	int centerY = (world_height >> 1);
-	//Creates entitiy tiles based on the world map
-	for (int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
-		for (int col = 0; col < world_map[row].size(); col++) {
-			std::vector<TEXTURE_ASSET_ID> textureIDs;
-			if (row == 0 && col == 0) {
-				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
-			}
-			else if (row == world_height - 1 && col == world_width - 1) {
-				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
-			}
-			else if (row == 0 && col == world_width - 1) {
-				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
-			}
-			else if (row == world_height - 1 && col == 0) {
-				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
-			}
-			else if (row == 0) {
-				textureIDs.push_back(TEXTURE_ASSET_ID::TOP_WALL);
-			}
-			else if (row == world_height - 1) {
-				float rand = uniform_dist(rng);
-				if (rand < 0.5f) {
-					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
-				}
-				else {
-					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
-				}
-				textureIDs.push_back(TEXTURE_ASSET_ID::WALL_EDGE);
-			}
-			else if (col == 0) {
-				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
-			}
-			else if (col == world_width - 1) {
-				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
-			}
-			else {
-				float rand = uniform_dist(rng);
-				if (rand < 0.5f) {
-					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
-				}
-				else {
-					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
-				}
-			}
+	//for (int row = 0; row < world_map.size(); row++) {
+	//	for (int col = 0; col < world_map[row].size(); col++) {
+	//		if (row == 0 || col == 0 || row == world_height - 1 || col == world_width - 1) {
+	//			world_map[row][col] = (int)TILE_TYPE::WALL;
+	//		}
+	//		else {
+	//			world_map[row][col] = (int)TILE_TYPE::FLOOR;
+	//		}
+	//	}
+	//}
+	//int centerX = (world_width >> 1);
+	//int centerY = (world_height >> 1);
+	////Creates entitiy tiles based on the world map
+	//for (int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
+	//	for (int col = 0; col < world_map[row].size(); col++) {
+	//		std::vector<TEXTURE_ASSET_ID> textureIDs;
+	//		if (row == 0 && col == 0) {
+	//			textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
+	//		}
+	//		else if (row == world_height - 1 && col == world_width - 1) {
+	//			textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
+	//		}
+	//		else if (row == 0 && col == world_width - 1) {
+	//			textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
+	//		}
+	//		else if (row == world_height - 1 && col == 0) {
+	//			textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
+	//		}
+	//		else if (row == 0) {
+	//			textureIDs.push_back(TEXTURE_ASSET_ID::TOP_WALL);
+	//		}
+	//		else if (row == world_height - 1) {
+	//			float rand = uniform_dist(rng);
+	//			if (rand < 0.5f) {
+	//				textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
+	//			}
+	//			else {
+	//				textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
+	//			}
+	//			textureIDs.push_back(TEXTURE_ASSET_ID::WALL_EDGE);
+	//		}
+	//		else if (col == 0) {
+	//			textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
+	//		}
+	//		else if (col == world_width - 1) {
+	//			textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
+	//		}
+	//		else {
+	//			float rand = uniform_dist(rng);
+	//			if (rand < 0.5f) {
+	//				textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
+	//			}
+	//			else {
+	//				textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
+	//			}
+	//		}
 
-			int xPos = (col - centerX) * world_tile_size;
-			int yPos = (row - centerY) * world_tile_size;
-			switch (world_map[col][row])
-			{
-			case (int)TILE_TYPE::WALL:
-				createWall(renderer, { xPos,yPos }, textureIDs);
-				break;
-			case (int)TILE_TYPE::FLOOR:
-				createFloor(renderer, { xPos,yPos }, textureIDs);
-				break;
-			default:
-				break;
-			}
-		}
-	}
+	//		int xPos = (col - centerX) * world_tile_size;
+	//		int yPos = (row - centerY) * world_tile_size;
+	//		switch (world_map[col][row])
+	//		{
+	//		case (int)TILE_TYPE::WALL:
+	//			createWall(renderer, { xPos,yPos }, textureIDs);
+	//			break;
+	//		case (int)TILE_TYPE::FLOOR:
+	//			createFloor(renderer, { xPos,yPos }, textureIDs);
+	//			break;
+	//		default:
+	//			break;
+	//		}
+	//	}
+	//}
 
 	// Create a new player
 	player = createPlayer(renderer, { 0, 0 });
@@ -403,9 +402,9 @@ void WorldSystem::handle_collisions() {
 			}
 			else if (registry.players.has(entity_other)) {
 				Motion& wall_motion = registry.motions.get(entity);
-				Motion& motion = registry.motions.get(entity_other);
+				Motion& entity_motion = registry.motions.get(entity_other);
 				Kinematic& kinematic = registry.kinematics.get(entity_other);
-				vec2 normal = motion.position - wall_motion.position;
+				vec2 normal = entity_motion.position - wall_motion.position;
 
 				// clamp vector from entity to wall to get wall normal
 				if (abs(normal.x) > abs(normal.y)) {
@@ -418,31 +417,19 @@ void WorldSystem::handle_collisions() {
 				if (normal.x == 0) {
 					kinematic.direction = { kinematic.direction.x, 0 };
 					kinematic.velocity = { kinematic.velocity.x, 0 };
-					if (normal.y > 0) {
-						pressed[GLFW_KEY_W] = false;
-					}
-					else {
-						pressed[GLFW_KEY_S] = false;
-					}
 				}
 				else {
 					kinematic.direction = { 0, kinematic.direction.y };
 					kinematic.velocity = { 0, kinematic.velocity.y };
-					if (normal.x > 0) {
-						pressed[GLFW_KEY_A] = false;
-					}
-					else {
-						pressed[GLFW_KEY_D] = false;
-					}
 				}
 
-				motion.position = motion.last_position;
+				entity_motion.position = entity_motion.last_position;
 			}
 			else if (registry.deadlys.has(entity_other)) {
 				Motion& wall_motion = registry.motions.get(entity);
-				Motion& motion = registry.motions.get(entity_other);
+				Motion& entity_motion = registry.motions.get(entity_other);
 				Kinematic& kinematic = registry.kinematics.get(entity_other);
-				vec2 normal = motion.position - wall_motion.position;
+				vec2 normal = entity_motion.position - wall_motion.position;
 
 				// clamp vector from entity to wall to get wall normal
 				if (abs(normal.x) > abs(normal.y)) {
@@ -461,7 +448,7 @@ void WorldSystem::handle_collisions() {
 					kinematic.velocity = { 0, kinematic.velocity.y };
 				}
 
-				motion.position = motion.last_position;
+				entity_motion.position = entity_motion.last_position;
 			}
 		}
 	}
@@ -479,6 +466,17 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
+// Helper for updating player direction
+void WorldSystem::updatePlayerDirection(Kinematic& player_kinematic) {
+	float direction_x = 0;
+	float direction_y = 0;
+	if (pressed[GLFW_KEY_W]) direction_y -= 1;
+	if (pressed[GLFW_KEY_A]) direction_x -= 1;
+	if (pressed[GLFW_KEY_S]) direction_y += 1;
+	if (pressed[GLFW_KEY_D]) direction_x += 1;
+	player_kinematic.direction = { direction_x, direction_y };
+}
+
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Resetting game
@@ -493,48 +491,43 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		Kinematic& kinematic = registry.kinematics.get(player);
 		switch (key) {
 		case GLFW_KEY_W:
-			if (!pressed[key] && action == GLFW_PRESS) {
-				kinematic.direction.y -= 1;
+			if (action == GLFW_PRESS) {
 				pressed[key] = true;
 			}
-			else if (pressed[key] && action == GLFW_RELEASE) {
-				kinematic.direction.y += 1;
+			else if (action == GLFW_RELEASE) {
 				pressed[key] = false;
 			}
 			break;
 		case GLFW_KEY_A:
-			if (!pressed[key] && action == GLFW_PRESS) {
-				kinematic.direction.x -= 1;
+			if (action == GLFW_PRESS) {
 				pressed[key] = true;
 			}
-			else if (pressed[key] && action == GLFW_RELEASE) {
-				kinematic.direction.x += 1;
+			else if (action == GLFW_RELEASE) {
 				pressed[key] = false;
 			}
 			break;
 		case GLFW_KEY_S:
-			if (!pressed[key] && action == GLFW_PRESS) {
-				kinematic.direction.y += 1;
+			if (action == GLFW_PRESS) {
 				pressed[key] = true;
 			}
-			else if (pressed[key] && action == GLFW_RELEASE) {
-				kinematic.direction.y -= 1;
+			else if (action == GLFW_RELEASE) {
 				pressed[key] = false;
 			}
 			break;
 		case GLFW_KEY_D:
-			if (!pressed[key] && action == GLFW_PRESS) {
-				kinematic.direction.x += 1;
+			if (action == GLFW_PRESS) {
 				pressed[key] = true;
 			}
-			else if (pressed[key] && action == GLFW_RELEASE) {
-				kinematic.direction.x -= 1;
+			else if (action == GLFW_RELEASE) {
 				pressed[key] = false;
 			}
 			break;
 		default:
 			break;
 		}
+
+		// Update player direction
+		updatePlayerDirection(kinematic);
 	}
 
 	// Toggle between camera-cursor offset
