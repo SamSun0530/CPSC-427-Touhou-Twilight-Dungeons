@@ -60,27 +60,27 @@ int main()
 		
 		//printf("=============\n");
 
-		time_debug.initTime();
+		//time_debug.initTime();
 		world.step(elapsed_ms);
 		//time_debug.getTime("world");
 
-		time_debug.initTime();
+		//time_debug.initTime();
 		physics.step(elapsed_ms);
 		//time_debug.getTime("physics");
 
-		time_debug.initTime();
+		//time_debug.initTime();
 		ai.step(elapsed_ms);
 		//time_debug.getTime("ai");
 
-		time_debug.initTime();
+		//time_debug.initTime();
 		bullets.step(elapsed_ms);
 		//time_debug.getTime("bullets");
 
-		time_debug.initTime();
+		//time_debug.initTime();
 		world.handle_collisions();
 		//time_debug.getTime("handle_collisions");
 
-		time_debug.initTime();
+		//time_debug.initTime();
 		renderer.draw();
 		//time_debug.getTime("renderer");
 	}

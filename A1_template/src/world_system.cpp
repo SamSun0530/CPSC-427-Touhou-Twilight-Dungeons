@@ -144,16 +144,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	//// Spawning new enemies
-	//next_enemy_spawn -= elapsed_ms_since_last_update;
-	//if (registry.deadlys.components.size() <= MAX_ENEMIES && next_enemy_spawn < 0.f) {
-	//	// Reset timer
-	//	next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
-	//	Motion& motion = registry.motions.get(player);
-	//	// Create enemy with random initial position
-	//	float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
-	//	float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
-	//	createEnemy(renderer, vec2(spawn_x, spawn_y));
-	//}
+	next_enemy_spawn -= elapsed_ms_since_last_update;
+	if (registry.deadlys.components.size() <= MAX_ENEMIES && next_enemy_spawn < 0.f) {
+		// Reset timer
+		next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
+		Motion& motion = registry.motions.get(player);
+		// Create enemy with random initial position
+		float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
+		float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
+		createEnemy(renderer, vec2(spawn_x, spawn_y));
+	}
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -270,7 +270,6 @@ void WorldSystem::restart_game() {
 	}
 	int centerX = (world_width >> 1);
 	int centerY = (world_height >> 1);
-
 	//Creates entitiy tiles based on the world map
 	for (int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
 		for (int col = 0; col < world_map[row].size(); col++) {
@@ -352,7 +351,6 @@ void WorldSystem::handle_collisions() {
 		Entity entity_other = collisionsRegistry.components[i].other;
 
 		if (registry.players.has(entity)) {
-
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
@@ -387,11 +385,28 @@ void WorldSystem::handle_collisions() {
 
 				}
 			}
-			else if (registry.walls.has(entity_other)) {
-				printf("wall - player collision\n");
-				Motion& motion = registry.motions.get(entity);
-				Motion& wall_motion = registry.motions.get(entity_other);
-				Kinematic& kinematic = registry.kinematics.get(entity);
+		}
+		else if (registry.deadlys.has(entity)) {
+			if (registry.playerBullets.has(entity_other)) {
+				if (!registry.hitTimers.has(entity)) {
+					// enemy turn red and decrease hp, bullet disappear
+					registry.hitTimers.emplace(entity);
+					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
+
+					Mix_PlayChannel(-1, audio->hit_spell, 0);
+					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+					registry.remove_all_components_of(entity_other);
+				}
+			}
+		}
+		else if (registry.walls.has(entity)) {
+			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
+				registry.remove_all_components_of(entity_other);
+			}
+			else if (registry.players.has(entity_other)) {
+				Motion& wall_motion = registry.motions.get(entity);
+				Motion& motion = registry.motions.get(entity_other);
+				Kinematic& kinematic = registry.kinematics.get(entity_other);
 				vec2 normal = motion.position - wall_motion.position;
 
 				// clamp vector from entity to wall to get wall normal
@@ -425,30 +440,10 @@ void WorldSystem::handle_collisions() {
 
 				motion.position = motion.last_position;
 			}
-		}
-		else if (registry.deadlys.has(entity)) {
-			if (registry.playerBullets.has(entity_other)) {
-				if (!registry.hitTimers.has(entity)) {
-					// enemy turn red and decrease hp, bullet disappear
-					registry.hitTimers.emplace(entity);
-					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
-
-					Mix_PlayChannel(-1, audio->hit_spell, 0);
-					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
-					registry.remove_all_components_of(entity_other);
-				}
-			}
-		}
-		else if (registry.walls.has(entity)) {
-			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
-				printf("wall - bullet collision\n");
-				registry.remove_all_components_of(entity_other);
-			}
 			else if (registry.deadlys.has(entity_other)) {
-				printf("wall - enemy collision\n");
 				Motion& wall_motion = registry.motions.get(entity);
 				Motion& motion = registry.motions.get(entity_other);
-				Kinematic& kinematic = registry.kinematics.get(entity);
+				Kinematic& kinematic = registry.kinematics.get(entity_other);
 				vec2 normal = motion.position - wall_motion.position;
 
 				// clamp vector from entity to wall to get wall normal
@@ -472,11 +467,12 @@ void WorldSystem::handle_collisions() {
 			}
 		}
 	}
-	std::cout << "collision size before: " << registry.collisions.size() << std::endl;
+	//std::cout << "collision size before: " << registry.collisions.size() << std::endl;
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
-	std::cout << "collision size after: " << registry.collisions.size() << std::endl;
+
+	//std::cout << "collision size after: " << registry.collisions.size() << std::endl;
 
 }
 
