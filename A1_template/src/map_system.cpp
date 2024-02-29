@@ -20,10 +20,10 @@ void MapSystem::generateMap(int floor) {
     // Resets all values
     registry.roomHitbox.clear();
 
-    int max_rooms = 20;
+    int max_rooms = 100;
     int generation_circle_radius = 10*world_tile_size;
-    vec2 widthRange = {world_tile_size*5, world_tile_size*11};
-    vec2 heightRange = {world_tile_size*5, world_tile_size*11};
+    vec2 widthRange = {world_tile_size*11, world_tile_size*11};
+    vec2 heightRange = {world_tile_size*11, world_tile_size*11};
     // vec2 aspectRatioRange = {0.5, 2.0};
 
     Entity room;
@@ -144,7 +144,7 @@ float roundToTileSize(float input, float tileSize) {
 // Generates the dimention of a rectangle following a uniform distribution. All values are measured in pixels
 vec2 MapSystem::getUniformRectangleDimentions(vec2 widthRange, vec2 heightRange) {
     auto width = roundToTileSize(clamp(normal_dist(rng)*world_tile_size,widthRange[0],widthRange[1]), world_tile_size);
-    auto height = roundToTileSize((normal_dist(rng)*world_tile_size,heightRange[0],heightRange[1]), world_tile_size);
+    auto height = roundToTileSize(clamp(normal_dist(rng)*world_tile_size,heightRange[0],heightRange[1]), world_tile_size);
     return {width, height};
 }
 
@@ -158,6 +158,22 @@ vec2 MapSystem::getRandomPointInCircle(int maxRadius) {
     // Convert to cartisian coordinates, convert to tile size, and return
     vec2 output = {roundToTileSize(radius * cos(theta), world_tile_size), roundToTileSize(radius * sin(theta), world_tile_size)};
     return output;
+}
+
+// The Main Triangulation method
+std::vector<Triangle> triangulate(std::vector<Vertex> verticies) {
+    // Create bounding super triangle
+    Triangle super_triangle = generateSuperTriangle(verticies);
+
+    // Set the super triangle as the only triangle
+    std::vector<Triangle> triangles;
+    triangles.push_back(super_triangle);
+
+    // Triangulate each vertex
+    for(Vertex vertex: verticies) {
+        triangles = addVertex(vertex, triangles);
+    }
+
 }
 
 // Calculates and returns the circumcircle of a triangle represented as 3 verticies
@@ -187,3 +203,42 @@ Circle calcCircumCircle(Vertex v1, Vertex v2, Vertex v3) {
 
     return {vec2(circumcenterX,circumcenterY), radius};
 }
+
+//Triangulation: https://www.gorillasun.de/blog/bowyer-watson-algorithm-for-delaunay-triangulation/
+Triangle generateSuperTriangle(std::vector<Vertex> points) {
+    int min_x, min_y = INT_MAX;
+    int max_x, max_y = -INT_MAX;
+
+    // gets the max/min x,y values of all points
+    for(Vertex point: points) {
+        min_x = min(min_x, point.x);
+        min_y = min(min_y, point.y);
+        max_x = max(max_x, point.x);
+        max_y = max(max_y, point.y);
+    }
+
+    // Calculates the offset from the min/max points so that the super triangle is sure to
+    // be large enough to cover all points
+    int distance_x = (max_x-min_x) * 10;
+    int distance_y = (max_y-min_y) * 10;
+
+    Vertex v0 = {min_x - distance_x, min_y - distance_y  * 3};
+    Vertex v1 = {min_x - distance_x, max_y + distance_y }; 
+    Vertex v2 = {max_x + distance_x * 3, max_y + distance_y }; 
+    return {v0,v1,v2};
+}
+
+//Triangulation: https://www.gorillasun.de/blog/bowyer-watson-algorithm-for-delaunay-triangulation/
+std::vector<Triangle> addVertex(const Vertex& vertex, std::vector<Triangle>& triangles) {
+
+}
+
+bool inCircumCircle(Triangle triangle, Vertex vertex) {
+    vec2 center = triangle.circumcircle.center;
+    vec2 manhatten_distance = center- vec2(vertex.x,vertex.y);
+    float euclidian_distance =  sqrt(dot(manhatten_distance, manhatten_distance));
+    return euclidian_distance < triangle.circumcircle.radius;
+}
+// std::vector<Edge> uniqueEdges() {
+
+// }

@@ -25,21 +25,22 @@ struct Edge{
     Vertex point_end;
 };
 
-struct Triangle{
-    int id;
-    Vertex point_A;
-    Vertex point_B;
-    Vertex point_C;
-};
-
 struct Circle{
     vec2 center;
     float radius;
 };
+
+struct Triangle{
+    Vertex point_A;
+    Vertex point_B;
+    Vertex point_C;
+    Circle circumcircle;
+};
+
 class MapSystem{
 private:
     //bar
-    const float mean = 10.0f;
+    const float mean = 5.0f;
     const float standard_deviation = 3.0f;
 
     vec2 getRandomPointInCircle(int radius);
