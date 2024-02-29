@@ -6,7 +6,7 @@
 #include "../ext/stb_image/stb_image.h"
 
 
-struct Bullet {
+struct PlayerBullet {
 	int damage = 1;
 };
 
@@ -62,12 +62,12 @@ struct EnemyBullet
 };
 
 // A non interactable tile of the map
-struct DecorationTile
+struct Floor
 {
 };
 
 // A interactable tile of the map
-struct PhysicalTile {
+struct Wall {
 };
 
 // All data relevant to the shape and motion of entities
@@ -75,11 +75,21 @@ struct Motion {
 	vec2 position = { 0, 0 };
 	vec2 last_position = { 0, 0 };
 	float angle = 0;
+	vec2 scale = { 10, 10 };
+};
+
+// Real motion which modifies velocity
+struct Kinematic {
 	float speed_base = 0.f;
 	float speed_modified = 0.f;
 	vec2 velocity = { 0, 0 };
 	vec2 direction = { 0, 0 };
-	vec2 scale = { 10, 10 };
+};
+
+// Represents collision box with shift transform and size of box
+struct Collidable {
+	vec2 shift = { 0, 0 };
+	vec2 size = { 1, 1 };
 };
 
 // Stucture to store collision information

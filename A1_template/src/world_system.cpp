@@ -213,7 +213,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.hps.get(player).curr_hp = registry.hps.get(player).max_hp;
 		is_alive = false;
 		pressed = { 0 };
-		registry.motions.get(player).direction = { 0,0 };
+		registry.kinematics.get(player).direction = { 0,0 };
 		Mix_HaltMusic();
 		Mix_PlayChannel(-1, audio->game_ending_sound, 0);
 		registry.realDeathTimers.emplace(player);
@@ -253,8 +253,9 @@ void WorldSystem::restart_game() {
 
 	// Create rooms
 
-	// createPhysTile(renderer, { 0, -200 }); // for testing collision
-	// createPhysTile(renderer, { -124, -324 }); // for testing collision
+	//std::vector<TEXTURE_ASSET_ID> textureIDs{ TEXTURE_ASSET_ID::LEFT_WALL };
+	//createWall(renderer, { 0, -200 }, textureIDs); // for testing collision
+	//createWall(renderer, { -124, -324 }, textureIDs); // for testing collision
 
 	// Creates 1 room the size of the map
 	for (int row = 0; row < world_map.size(); row++) {
@@ -269,7 +270,6 @@ void WorldSystem::restart_game() {
 	}
 	int centerX = (world_width >> 1);
 	int centerY = (world_height >> 1);
-
 	//Creates entitiy tiles based on the world map
 	for (int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
 		for (int col = 0; col < world_map[row].size(); col++) {
@@ -320,10 +320,10 @@ void WorldSystem::restart_game() {
 			switch (world_map[col][row])
 			{
 			case (int)TILE_TYPE::WALL:
-				createPhysTile(renderer, { xPos,yPos }, textureIDs);
+				createWall(renderer, { xPos,yPos }, textureIDs);
 				break;
 			case (int)TILE_TYPE::FLOOR:
-				createDecoTile(renderer, { xPos,yPos }, textureIDs);
+				createFloor(renderer, { xPos,yPos }, textureIDs);
 				break;
 			default:
 				break;
@@ -349,7 +349,6 @@ void WorldSystem::handle_collisions() {
 		Entity entity_other = collisionsRegistry.components[i].other;
 
 		if (registry.players.has(entity)) {
-
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
@@ -384,9 +383,28 @@ void WorldSystem::handle_collisions() {
 
 				}
 			}
-			else if (registry.physTiles.has(entity_other)) {
-				Motion& motion = registry.motions.get(entity);
-				Motion& wall_motion = registry.motions.get(entity_other);
+		}
+		else if (registry.deadlys.has(entity)) {
+			if (registry.playerBullets.has(entity_other)) {
+				if (!registry.hitTimers.has(entity)) {
+					// enemy turn red and decrease hp, bullet disappear
+					registry.hitTimers.emplace(entity);
+					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
+
+					Mix_PlayChannel(-1, audio->hit_spell, 0);
+					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+					registry.remove_all_components_of(entity_other);
+				}
+			}
+		}
+		else if (registry.walls.has(entity)) {
+			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
+				registry.remove_all_components_of(entity_other);
+			}
+			else if (registry.players.has(entity_other)) {
+				Motion& wall_motion = registry.motions.get(entity);
+				Motion& motion = registry.motions.get(entity_other);
+				Kinematic& kinematic = registry.kinematics.get(entity_other);
 				vec2 normal = motion.position - wall_motion.position;
 
 				// clamp vector from entity to wall to get wall normal
@@ -398,8 +416,8 @@ void WorldSystem::handle_collisions() {
 				}
 
 				if (normal.x == 0) {
-					motion.direction = { motion.direction.x, 0 };
-					motion.velocity = { motion.velocity.x, 0 };
+					kinematic.direction = { kinematic.direction.x, 0 };
+					kinematic.velocity = { kinematic.velocity.x, 0 };
 					if (normal.y > 0) {
 						pressed[GLFW_KEY_W] = false;
 					}
@@ -408,8 +426,8 @@ void WorldSystem::handle_collisions() {
 					}
 				}
 				else {
-					motion.direction = { 0, motion.direction.y };
-					motion.velocity = { 0, motion.velocity.y };
+					kinematic.direction = { 0, kinematic.direction.y };
+					kinematic.velocity = { 0, kinematic.velocity.y };
 					if (normal.x > 0) {
 						pressed[GLFW_KEY_A] = false;
 					}
@@ -420,27 +438,10 @@ void WorldSystem::handle_collisions() {
 
 				motion.position = motion.last_position;
 			}
-		}
-		else if (registry.deadlys.has(entity)) {
-			if (registry.bullets.has(entity_other)) {
-				if (!registry.hitTimers.has(entity)) {
-					// enemy turn red and decrease hp, bullet disappear
-					registry.hitTimers.emplace(entity);
-					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
-
-					Mix_PlayChannel(-1, audio->hit_spell, 0);
-					registry.hps.get(entity).curr_hp -= registry.bullets.get(entity_other).damage;
-					registry.remove_all_components_of(entity_other);
-				}
-			}
-		}
-		else if (registry.physTiles.has(entity)) {
-			if (registry.bullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
-				registry.remove_all_components_of(entity_other);
-			}
 			else if (registry.deadlys.has(entity_other)) {
 				Motion& wall_motion = registry.motions.get(entity);
 				Motion& motion = registry.motions.get(entity_other);
+				Kinematic& kinematic = registry.kinematics.get(entity_other);
 				vec2 normal = motion.position - wall_motion.position;
 
 				// clamp vector from entity to wall to get wall normal
@@ -452,21 +453,25 @@ void WorldSystem::handle_collisions() {
 				}
 
 				if (normal.x == 0) {
-					motion.direction = { motion.direction.x, 0 };
-					motion.velocity = { motion.velocity.x, 0 };
+					kinematic.direction = { kinematic.direction.x, 0 };
+					kinematic.velocity = { kinematic.velocity.x, 0 };
 				}
 				else {
-					motion.direction = { 0, motion.direction.y };
-					motion.velocity = { 0, motion.velocity.y };
+					kinematic.direction = { 0, kinematic.direction.y };
+					kinematic.velocity = { 0, kinematic.velocity.y };
 				}
 
 				motion.position = motion.last_position;
 			}
 		}
 	}
+	//std::cout << "collision size before: " << registry.collisions.size() << std::endl;
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
+
+	//std::cout << "collision size after: " << registry.collisions.size() << std::endl;
+
 }
 
 // Should the game be over ?
@@ -485,45 +490,45 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Handle player movement
 	if (is_alive) {
-		Motion& motion = registry.motions.get(player);
+		Kinematic& kinematic = registry.kinematics.get(player);
 		switch (key) {
 		case GLFW_KEY_W:
 			if (!pressed[key] && action == GLFW_PRESS) {
-				motion.direction.y -= 1;
+				kinematic.direction.y -= 1;
 				pressed[key] = true;
 			}
 			else if (pressed[key] && action == GLFW_RELEASE) {
-				motion.direction.y += 1;
+				kinematic.direction.y += 1;
 				pressed[key] = false;
 			}
 			break;
 		case GLFW_KEY_A:
 			if (!pressed[key] && action == GLFW_PRESS) {
-				motion.direction.x -= 1;
+				kinematic.direction.x -= 1;
 				pressed[key] = true;
 			}
 			else if (pressed[key] && action == GLFW_RELEASE) {
-				motion.direction.x += 1;
+				kinematic.direction.x += 1;
 				pressed[key] = false;
 			}
 			break;
 		case GLFW_KEY_S:
 			if (!pressed[key] && action == GLFW_PRESS) {
-				motion.direction.y += 1;
+				kinematic.direction.y += 1;
 				pressed[key] = true;
 			}
 			else if (pressed[key] && action == GLFW_RELEASE) {
-				motion.direction.y -= 1;
+				kinematic.direction.y -= 1;
 				pressed[key] = false;
 			}
 			break;
 		case GLFW_KEY_D:
 			if (!pressed[key] && action == GLFW_PRESS) {
-				motion.direction.x += 1;
+				kinematic.direction.x += 1;
 				pressed[key] = true;
 			}
 			else if (pressed[key] && action == GLFW_RELEASE) {
-				motion.direction.x -= 1;
+				kinematic.direction.x -= 1;
 				pressed[key] = false;
 			}
 			break;
