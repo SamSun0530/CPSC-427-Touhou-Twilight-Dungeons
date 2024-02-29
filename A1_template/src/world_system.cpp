@@ -143,17 +143,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::EMPTY_HEART;
 	}
 
-	//// Spawning new enemies
-	//next_enemy_spawn -= elapsed_ms_since_last_update;
-	//if (registry.deadlys.components.size() <= MAX_ENEMIES && next_enemy_spawn < 0.f) {
-	//	// Reset timer
-	//	next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
-	//	Motion& motion = registry.motions.get(player);
-	//	// Create enemy with random initial position
-	//	float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
-	//	float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
-	//	createEnemy(renderer, vec2(spawn_x, spawn_y));
-	//}
+	// Spawning new enemies
+	next_enemy_spawn -= elapsed_ms_since_last_update;
+	if (registry.deadlys.components.size() <= MAX_ENEMIES && next_enemy_spawn < 0.f) {
+		// Reset timer
+		next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
+		Motion& motion = registry.motions.get(player);
+		// Create enemy with random initial position
+		float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
+		float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
+		createEnemy(renderer, vec2(spawn_x, spawn_y));
+	}
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -252,83 +252,83 @@ void WorldSystem::restart_game() {
 
 	// Create rooms
 
-	std::vector<TEXTURE_ASSET_ID> textureIDs{ TEXTURE_ASSET_ID::LEFT_WALL };
-	createWall(renderer, { 0, -200 }, textureIDs); // for testing collision
-	createWall(renderer, { -124, -324 }, textureIDs); // for testing collision
+	//std::vector<TEXTURE_ASSET_ID> textureIDs{ TEXTURE_ASSET_ID::LEFT_WALL };
+	//createWall(renderer, { 0, -200 }, textureIDs); // for testing collision
+	//createWall(renderer, { -124, -324 }, textureIDs); // for testing collision
 
-	// Creates 1 room the size of the map
-	//for (int row = 0; row < world_map.size(); row++) {
-	//	for (int col = 0; col < world_map[row].size(); col++) {
-	//		if (row == 0 || col == 0 || row == world_height - 1 || col == world_width - 1) {
-	//			world_map[row][col] = (int)TILE_TYPE::WALL;
-	//		}
-	//		else {
-	//			world_map[row][col] = (int)TILE_TYPE::FLOOR;
-	//		}
-	//	}
-	//}
-	//int centerX = (world_width >> 1);
-	//int centerY = (world_height >> 1);
-	////Creates entitiy tiles based on the world map
-	//for (int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
-	//	for (int col = 0; col < world_map[row].size(); col++) {
-	//		std::vector<TEXTURE_ASSET_ID> textureIDs;
-	//		if (row == 0 && col == 0) {
-	//			textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
-	//		}
-	//		else if (row == world_height - 1 && col == world_width - 1) {
-	//			textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
-	//		}
-	//		else if (row == 0 && col == world_width - 1) {
-	//			textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
-	//		}
-	//		else if (row == world_height - 1 && col == 0) {
-	//			textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
-	//		}
-	//		else if (row == 0) {
-	//			textureIDs.push_back(TEXTURE_ASSET_ID::TOP_WALL);
-	//		}
-	//		else if (row == world_height - 1) {
-	//			float rand = uniform_dist(rng);
-	//			if (rand < 0.5f) {
-	//				textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
-	//			}
-	//			else {
-	//				textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
-	//			}
-	//			textureIDs.push_back(TEXTURE_ASSET_ID::WALL_EDGE);
-	//		}
-	//		else if (col == 0) {
-	//			textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
-	//		}
-	//		else if (col == world_width - 1) {
-	//			textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
-	//		}
-	//		else {
-	//			float rand = uniform_dist(rng);
-	//			if (rand < 0.5f) {
-	//				textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
-	//			}
-	//			else {
-	//				textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
-	//			}
-	//		}
+	 //Creates 1 room the size of the map
+	for (int row = 0; row < world_map.size(); row++) {
+		for (int col = 0; col < world_map[row].size(); col++) {
+			if (row == 0 || col == 0 || row == world_height - 1 || col == world_width - 1) {
+				world_map[row][col] = (int)TILE_TYPE::WALL;
+			}
+			else {
+				world_map[row][col] = (int)TILE_TYPE::FLOOR;
+			}
+		}
+	}
+	int centerX = (world_width >> 1);
+	int centerY = (world_height >> 1);
+	//Creates entitiy tiles based on the world map
+	for (int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
+		for (int col = 0; col < world_map[row].size(); col++) {
+			std::vector<TEXTURE_ASSET_ID> textureIDs;
+			if (row == 0 && col == 0) {
+				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
+			}
+			else if (row == world_height - 1 && col == world_width - 1) {
+				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
+			}
+			else if (row == 0 && col == world_width - 1) {
+				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
+			}
+			else if (row == world_height - 1 && col == 0) {
+				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
+			}
+			else if (row == 0) {
+				textureIDs.push_back(TEXTURE_ASSET_ID::TOP_WALL);
+			}
+			else if (row == world_height - 1) {
+				float rand = uniform_dist(rng);
+				if (rand < 0.5f) {
+					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
+				}
+				else {
+					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
+				}
+				textureIDs.push_back(TEXTURE_ASSET_ID::WALL_EDGE);
+			}
+			else if (col == 0) {
+				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
+			}
+			else if (col == world_width - 1) {
+				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
+			}
+			else {
+				float rand = uniform_dist(rng);
+				if (rand < 0.5f) {
+					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
+				}
+				else {
+					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
+				}
+			}
 
-	//		int xPos = (col - centerX) * world_tile_size;
-	//		int yPos = (row - centerY) * world_tile_size;
-	//		switch (world_map[col][row])
-	//		{
-	//		case (int)TILE_TYPE::WALL:
-	//			createWall(renderer, { xPos,yPos }, textureIDs);
-	//			break;
-	//		case (int)TILE_TYPE::FLOOR:
-	//			createFloor(renderer, { xPos,yPos }, textureIDs);
-	//			break;
-	//		default:
-	//			break;
-	//		}
-	//	}
-	//}
+			int xPos = (col - centerX) * world_tile_size;
+			int yPos = (row - centerY) * world_tile_size;
+			switch (world_map[col][row])
+			{
+			case (int)TILE_TYPE::WALL:
+				createWall(renderer, { xPos,yPos }, textureIDs);
+				break;
+			case (int)TILE_TYPE::FLOOR:
+				createFloor(renderer, { xPos,yPos }, textureIDs);
+				break;
+			default:
+				break;
+			}
+		}
+	}
 
 	// Create a new player
 	player = createPlayer(renderer, { 0, 0 });
