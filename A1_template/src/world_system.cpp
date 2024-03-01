@@ -29,6 +29,9 @@ WorldSystem::~WorldSystem() {
 	// Destroy all created components
 	registry.clear_all_components();
 
+	// Destroy all cursors
+	glfwTerminate();
+
 	// Close the window
 	glfwDestroyWindow(window);
 }
@@ -79,6 +82,27 @@ GLFWwindow* WorldSystem::create_window() {
 	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
 	auto mouse_key_redirect = [](GLFWwindow* wnd, int button, int action, int mods) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_key(button, action, mods); };
 	auto scroll_offset_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_scroll({ _0, _1 }); };
+
+	// https://kenney-assets.itch.io/crosshair-pack
+	std::string path = misc_path("crosshair038.png");
+
+	GLFWimage image;
+	image.width = 64;
+	image.height = 64;
+	stbi_uc* data;
+	data = stbi_load(path.c_str(), &image.width, &image.height, NULL, 4);
+
+	if (data == NULL)
+	{
+		const std::string message = "Could not load the file " + path + ".";
+		fprintf(stderr, "%s", message.c_str());
+		assert(false);
+	}
+
+	image.pixels = data;
+	GLFWcursor* cursor = glfwCreateCursor(&image, 0, 0);
+	glfwSetCursor(window, cursor);
+	stbi_image_free(data);
 
 	// Set the cursor origin to start at the center of the screen
 	glfwSetCursorPos(window, window_px_half.x, window_px_half.y);
