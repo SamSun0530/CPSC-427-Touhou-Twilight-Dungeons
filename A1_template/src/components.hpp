@@ -73,22 +73,24 @@ struct Wall {
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };
-	vec2 last_position = { 0, 0 };
 	float angle = 0;
 	vec2 scale = { 10, 10 };
 };
 
-// Real motion which modifies velocity
+// Velocity related data
 struct Kinematic {
 	float speed_base = 0.f;
 	float speed_modified = 0.f;
 	vec2 velocity = { 0, 0 };
+	// x, y are either -1,0,1
 	vec2 direction = { 0, 0 };
 };
 
 // Represents collision box with shift transform and size of box
 struct Collidable {
+	// translate box relative to motion position
 	vec2 shift = { 0, 0 };
+	// width and height of box
 	vec2 size = { 1, 1 };
 };
 
