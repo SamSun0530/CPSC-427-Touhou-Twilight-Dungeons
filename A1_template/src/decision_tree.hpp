@@ -26,6 +26,7 @@ class ConditionalNode : public IDecisionNode {
 	// Conditional function for entity sensing environment
 	bool (*condition)(Entity& entity);
 public:
+	ConditionalNode(bool (*condition)(Entity& entity));
 	ConditionalNode(IDecisionNode* true_node, IDecisionNode* false_node, bool (*condition)(Entity& entity));
 
 	IDecisionNode* process(Entity& entity) override;
@@ -42,6 +43,9 @@ class DecisionTree
 public:
 	DecisionTree();
 	DecisionTree(IDecisionNode* root);
+
+	// TODO: Destructor
+
 	void update(Entity& entity);
 	void setRoot(IDecisionNode* root);
 };

@@ -11,7 +11,7 @@
 #include <iostream>
 
 // Game configuration
-const size_t MAX_ENEMIES = 15;
+const size_t MAX_ENEMIES = 1;
 const size_t MAX_COINS = 5;
 
 const size_t ENEMY_SPAWN_DELAY_MS = 2000 * 3;
@@ -145,7 +145,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Spawning new enemies
 	next_enemy_spawn -= elapsed_ms_since_last_update;
-	if (registry.deadlys.components.size() <= MAX_ENEMIES && next_enemy_spawn < 0.f) {
+	if (registry.deadlys.components.size() < MAX_ENEMIES && next_enemy_spawn < 0.f) {
 		// Reset timer
 		next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
 		Motion& motion = registry.motions.get(player);

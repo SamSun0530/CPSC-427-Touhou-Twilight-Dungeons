@@ -4,7 +4,7 @@
 void AISystem::step(float elapsed_ms)
 {
 	// Randomized enemy position based on their state
-	for (Entity entity : registry.idleMoveActions.entities) {
+	for (Entity& entity : registry.idleMoveActions.entities) {
 		// progress timer
 		IdleMoveAction& action = registry.idleMoveActions.get(entity);
 		action.timer_ms = action.timer_ms < elapsed_ms ? 0.f : action.timer_ms - elapsed_ms;
@@ -25,6 +25,11 @@ void AISystem::step(float elapsed_ms)
 				break;
 			}
 		}
+	}
+
+	// TODO: Maybe limit the number of checks per frame
+	for (Entity& entity : registry.deadlys.entities) {
+		ghost.update(entity);
 	}
 }
 
