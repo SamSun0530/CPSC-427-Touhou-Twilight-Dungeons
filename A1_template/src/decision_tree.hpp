@@ -28,6 +28,7 @@ class ConditionalNode : public IDecisionNode {
 public:
 	ConditionalNode(bool (*condition)(Entity& entity));
 	ConditionalNode(IDecisionNode* true_node, IDecisionNode* false_node, bool (*condition)(Entity& entity));
+	~ConditionalNode();
 
 	IDecisionNode* process(Entity& entity) override;
 	void setCondition(bool (*condition)(Entity& entity));
@@ -43,8 +44,7 @@ class DecisionTree
 public:
 	DecisionTree();
 	DecisionTree(IDecisionNode* root);
-
-	// TODO: Destructor
+	~DecisionTree();
 
 	void update(Entity& entity);
 	void setRoot(IDecisionNode* root);
