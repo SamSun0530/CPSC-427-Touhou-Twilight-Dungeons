@@ -24,9 +24,7 @@ IDecisionNode* ConditionalNode::process(Entity& entity) {
 	assert(this->true_node != nullptr && "No decision node set for true node");
 	assert(this->false_node != nullptr && "No decision node set for false node");
 	assert(this->condition != nullptr && "No function set for an condition node");
-	this->condition(entity);
-	this->true_node;
-	this->false_node;
+
 	return this->condition(entity) ? this->true_node : this->false_node;
 }
 
