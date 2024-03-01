@@ -219,6 +219,8 @@ void RenderSystem::draw()
 	mat3 view_2D = camera.createViewMatrix();
 	mat3 view_2D_ui = ui.createViewMatrix();
 	
+	camera.setCameraAABB();
+
 	// Draw all textured meshes that have a position and size component
 	std::vector<Entity> ui_entities;
 	for (Entity entity : registry.renderRequests.entities)

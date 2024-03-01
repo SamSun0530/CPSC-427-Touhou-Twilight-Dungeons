@@ -2,12 +2,13 @@
 
 ## Temporary Keybinds
 
+- `G` - Debug mode, shows collidable boxes
 - `P` - Toggle camera-cursor offset
 - `WASD` - Player movement (up, left, down, right, respectively)
 - `ESC` - Exit the program
 - `R` - Reset the program
 - Scroll wheel - Zooming in/out
-- Mouse 1 (left click) - Fire bullet towards mouse cursor
+- Mouse 1 (left click) / space - Fire bullet towards mouse cursor
 
 ## Background Story
 

@@ -158,5 +158,16 @@ void PhysicsSystem::step(float elapsed_ms)
 	}
 
 	// Other collisions here
+
+	// Visualize bounding boxes
+	if (debugging.in_debug_mode) {
+		for (Entity& entity : registry.collidables.entities) {
+			Motion& motion = registry.motions.get(entity);
+			Collidable& collidable = registry.collidables.get(entity);
+			const vec2 bounding_box = abs(collidable.size);
+			const vec2 box_center = motion.position + collidable.shift;
+			createLine(box_center, bounding_box);
+		}
+	}
 }
 
