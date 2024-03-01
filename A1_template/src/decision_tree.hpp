@@ -40,6 +40,7 @@ class DecisionTree
 	IDecisionNode* root;
 	IDecisionNode* current_node;
 public:
+	DecisionTree();
 	DecisionTree(IDecisionNode* root);
 	void update(Entity& entity);
 	void setRoot(IDecisionNode* root);

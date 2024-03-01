@@ -46,6 +46,10 @@ void ConditionalNode::setFalse(IDecisionNode* false_node) {
 }
 
 // ========== Decision Tree ==========
+DecisionTree::DecisionTree() {
+	DecisionTree(nullptr);
+}
+
 DecisionTree::DecisionTree(IDecisionNode* root = nullptr) {
 	this->root = root;
 	this->current_node = root;

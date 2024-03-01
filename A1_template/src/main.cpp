@@ -45,6 +45,7 @@ int main()
 	renderer.init(window);
 	world.init(&renderer, &audio);
 	bullets.init(&renderer, window, &audio);
+	ai.init();
 
 	// variable timestep loop
 	auto t = Clock::now();
