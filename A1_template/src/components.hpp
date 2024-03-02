@@ -46,6 +46,7 @@ struct EntityAnimation {
 	vec2 spritesheet_scale = { 0, 0 };
 	vec2 render_pos = { 0, 0 };
 	bool isCursor = false;
+	float offset = 0;
 };
 
 struct Deadly

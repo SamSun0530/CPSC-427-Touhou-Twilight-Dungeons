@@ -5,16 +5,16 @@
 void Animation::step(float elapsed_ms)
 {
 	float animation_frame_rate = 200.f;
-	float offset = 0;
 	for (Entity& animation_entity : registry.animation.entities) {
 		EntityAnimation& animation = registry.animation.get(animation_entity);
 		Kinematic& kin = registry.kinematics.get(animation_entity);
 		if (kin.direction != vec2(0)) {
 			animation.state = State::MOVE;
+			animation.offset = 0;
 		}
 		else {
 			animation.state = State::IDLE;
-			offset = 4;
+			animation.offset = 4;
 		}
 		animation.frame_rate_ms -= elapsed_ms;
 
@@ -42,16 +42,16 @@ void Animation::step(float elapsed_ms)
 		float mouse_angle_degree = (-atan2(x, y) + M_PI) * (180.0 / M_PI);
 		EntityAnimation& player_ani = registry.animation.get(player);
 		if (mouse_angle_degree <= 45 || mouse_angle_degree >= 325) {
-			player_ani.render_pos.y = (4 + offset) * player_ani.spritesheet_scale.y;
+			player_ani.render_pos.y = (4 + player_ani.offset) * player_ani.spritesheet_scale.y;
 		}
 		else if (mouse_angle_degree <= 135) {
-			player_ani.render_pos.y = (3 + offset) * player_ani.spritesheet_scale.y;
+			player_ani.render_pos.y = (3 + player_ani.offset) * player_ani.spritesheet_scale.y;
 		}
 		else if (mouse_angle_degree <= 225) {
-			player_ani.render_pos.y = (1 + offset) * player_ani.spritesheet_scale.y;
+			player_ani.render_pos.y = (1 + player_ani.offset) * player_ani.spritesheet_scale.y;
 		}
 		else {
-			player_ani.render_pos.y = (2 + offset) * player_ani.spritesheet_scale.y;
+			player_ani.render_pos.y = (2 + player_ani.offset) * player_ani.spritesheet_scale.y;
 		}
 		player_motion = motion;
 	}

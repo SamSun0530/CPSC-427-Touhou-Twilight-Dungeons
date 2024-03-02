@@ -252,7 +252,7 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 		collidable.size = motion.scale;
 
 		if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_WALL) {
-			collidable.size = { motion.scale.x, motion.scale.y };
+			collidable.size = { motion.scale.x / 2, motion.scale.y };
 			collidable.shift = { -motion.scale.x / 4, 0 };
 		} 
 		else if (textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_WALL) {
