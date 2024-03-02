@@ -91,6 +91,7 @@ struct Collidable {
 	// translate box relative to motion position
 	vec2 shift = { 0, 0 };
 	// width and height of box
+	// IMPORTANT: size MUST be positive
 	vec2 size = { 1, 1 };
 };
 
