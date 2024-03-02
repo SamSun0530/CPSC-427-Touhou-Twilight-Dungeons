@@ -14,6 +14,7 @@
 
 #include "render_system.hpp"
 #include "audio.hpp"
+#include <map>
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -45,7 +46,7 @@ private:
 	void on_mouse_move(vec2 pos);
 	void on_mouse_key(int button, int action, int mods);
 	void on_scroll(vec2 scroll_offset);
-
+	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 	// State of keyboard
 	// Initial state is all false
 	std::array<bool, 512> pressed = { 0 };
@@ -77,4 +78,27 @@ private:
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+
+	int fps;
+	bool show_fps = false;
+
+	struct Character {
+		unsigned int TextureID;  // ID handle of the glyph texture
+		glm::ivec2   Size;       // Size of glyph
+		glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
+		unsigned int Advance;    // Offset to advance to next glyph
+		char character;
+	};
+
+	GLuint m_shaderProgram;
+	GLuint m_VAO;
+	GLuint m_VBO;
+	GLuint m_dirt_texture;
+	std::vector<GLuint> m_alien_textures;
+
+	// fonts
+	std::map<char, Character> m_ftCharacters;
+	GLuint m_font_shaderProgram;
+	GLuint m_font_VAO;
+	GLuint m_font_VBO;
 };
