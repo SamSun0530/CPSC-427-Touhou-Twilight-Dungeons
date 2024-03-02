@@ -17,6 +17,9 @@ const size_t MAX_COINS = 5;
 const size_t ENEMY_SPAWN_DELAY_MS = 2000 * 3;
 bool is_alive = true;
 
+// TODO: remove this and put into map_system, this is only for testing ai system
+std::vector<std::vector<int>> WorldSystem::world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
+
 // Create the world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -39,6 +42,7 @@ namespace {
 		fprintf(stderr, "%d: %s", error, desc);
 	}
 }
+
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
@@ -94,9 +98,8 @@ GLFWwindow* WorldSystem::create_window() {
 void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
-
 	//Sets the size of the empty world
-	world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
+	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
 
 	// Set all states to default
 	restart_game();
@@ -259,6 +262,13 @@ void WorldSystem::restart_game() {
 	 //Creates 1 room the size of the map
 	for (int row = 0; row < world_map.size(); row++) {
 		for (int col = 0; col < world_map[row].size(); col++) {
+			// TODO: remove this, used for testing ai can see player
+			// Creates a wall 2 tiles up from origin
+			if (row == world_height / 2 - 2 && col == world_width / 2) {
+				world_map[row][col] = (int)TILE_TYPE::WALL;
+				continue;
+			}
+
 			if (row == 0 || col == 0 || row == world_height - 1 || col == world_width - 1) {
 				world_map[row][col] = (int)TILE_TYPE::WALL;
 			}
@@ -304,6 +314,11 @@ void WorldSystem::restart_game() {
 			else if (col == world_width - 1) {
 				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
 			}
+			else 			
+				// TODO: remove this, used for testing ai can see player
+				if (row == world_height / 2 - 2 && col == world_width / 2) {
+					textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
+				}
 			else {
 				float rand = uniform_dist(rng);
 				if (rand < 0.5f) {
@@ -316,7 +331,7 @@ void WorldSystem::restart_game() {
 
 			int xPos = (col - centerX) * world_tile_size;
 			int yPos = (row - centerY) * world_tile_size;
-			switch (world_map[col][row])
+			switch (world_map[row][col])
 			{
 			case (int)TILE_TYPE::WALL:
 				createWall(renderer, { xPos,yPos }, textureIDs);
@@ -329,6 +344,13 @@ void WorldSystem::restart_game() {
 			}
 		}
 	}
+
+	//for (int i = 0; i < world_height; i++) {
+	//	for (int j = 0; j < world_width; j++) {
+	//		printf("%d\t", world_map[i][j]);
+	//	}
+	//	printf("\n");
+	//}
 
 	// Create a new player
 	player = createPlayer(renderer, { 0, 0 });
