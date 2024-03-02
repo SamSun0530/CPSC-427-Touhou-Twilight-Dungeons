@@ -26,7 +26,7 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = motion.scale;
+	collidable.size = abs(motion.scale);
 
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
@@ -71,7 +71,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = motion.scale;
+	collidable.size = abs(motion.scale);
 
 	// Set player collision box at the feet of the player
 	//collidable.size = { motion.scale.x, motion.scale.y / 4.f };
@@ -178,7 +178,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = motion.scale;
+	collidable.size = abs(motion.scale);
 
 	HP& hp = registry.hps.emplace(entity);
 	hp.max_hp = 6;
@@ -249,7 +249,6 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 
 		// Set the collision box
 		auto& collidable = registry.collidables.emplace(entity);
-		collidable.size = motion.scale;
 
 		if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_WALL) {
 			collidable.size = { motion.scale.x / 2, motion.scale.y };

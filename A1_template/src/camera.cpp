@@ -15,17 +15,6 @@ mat3 Camera::createViewMatrix()
 	transform.translate(-position);
 	transform.translate(-offset);
 
-	// Set camera world coordinates to edges to cull entities during draw call
-	// We do this in create view matrix function, as after this call, the draw happens
-	// Extra padding on the edges allow entities to render before entering the screen
-	vec2 camera_center = position + offset;
-	float extra_padding = world_tile_size / 2.f;
-	vec2 offset_from_center = origin_offset * (1.f / zoom) + extra_padding;
-	top = camera_center.y - offset_from_center.y;
-	bottom = camera_center.y + offset_from_center.y;
-	left = camera_center.x - offset_from_center.x;
-	right = camera_center.x + offset_from_center.x;
-
 	return transform.mat;
 }
 
@@ -47,6 +36,19 @@ void Camera::print() {
 	printf("camera offset (x,y)=(%f,%f)\n", offset.x, offset.y);
 	printf("camera top: %f, bottom: %f, left: %f, right: %f\n", top, bottom, left, right);
 	printf("zoom: %f\n", zoom);
+}
+
+// Set camera world coordinates to edges to cull entities during draw call
+// We do this in create view matrix function, as after this call, the draw happens
+// Extra padding on the edges allow entities to render before entering the screen
+void Camera::setCameraAABB() {
+	vec2 camera_center = position + offset;
+	float extra_padding = world_tile_size / 2.f;
+	vec2 offset_from_center = origin_offset * (1.f / zoom) + extra_padding;
+	top = camera_center.y - offset_from_center.y;
+	bottom = camera_center.y + offset_from_center.y;
+	left = camera_center.x - offset_from_center.x;
+	right = camera_center.x + offset_from_center.x;
 }
 
 bool Camera::isInCameraView(vec2 position) {
