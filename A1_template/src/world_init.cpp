@@ -82,6 +82,11 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	hp.curr_hp = hp.max_hp;
 
 	registry.players.emplace(entity);
+	EntityAnimation player_ani;
+	player_ani.isCursor = true;
+	player_ani.spritesheet_scale = { 0.25, 0.125 };
+	player_ani.render_pos = { 0.5, 0.125 };
+	registry.animation.insert(entity, player_ani);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER, // TEXTURE_COUNT indicates that no txture is needed
@@ -180,6 +185,10 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 	hp.curr_hp = hp.max_hp;
 
 	registry.deadlys.emplace(entity);
+	EntityAnimation enemy_ani;
+	enemy_ani.spritesheet_scale = { 0.166, 0.125 };
+	enemy_ani.render_pos = { 0.166, 0.125 };
+	registry.animation.insert(entity, enemy_ani);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMY,
@@ -243,18 +252,18 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 		collidable.size = motion.scale;
 
 		if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_WALL) {
-			collidable.size = { motion.scale.x / 2, motion.scale.y };
+			collidable.size = { motion.scale.x, motion.scale.y };
 			collidable.shift = { -motion.scale.x / 4, 0 };
-		}
+		} 
 		else if (textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_WALL) {
 			collidable.size = { motion.scale.x / 2, motion.scale.y };
 			collidable.shift = { motion.scale.x / 4, 0 };
 		}
-		else if (textureIDs[i] == TEXTURE_ASSET_ID::WALL_EDGE) {
+		else if (textureIDs[i] == TEXTURE_ASSET_ID::BOTTOM_WALL) {
 			collidable.size = { motion.scale.x, motion.scale.y / 2 };
 			collidable.shift = { 0, motion.scale.y / 4 };
 		}
-		else if (textureIDs[i] == TEXTURE_ASSET_ID::TOP_WALL) {
+		else if (textureIDs[i] == TEXTURE_ASSET_ID::WALL_SURFACE) {
 			collidable.size = { motion.scale.x, motion.scale.y / 2 };
 			collidable.shift = { 0, -motion.scale.y / 4 };
 		}

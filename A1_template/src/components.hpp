@@ -40,6 +40,14 @@ struct IdleMoveAction {
 	float moving_ms = 1000;
 };
 
+struct EntityAnimation {
+	State state = State::IDLE;
+	float frame_rate_ms = 200;
+	vec2 spritesheet_scale = { 0, 0 };
+	vec2 render_pos = { 0, 0 };
+	bool isCursor = false;
+};
+
 struct Deadly
 {
 	int damage = 1;
@@ -210,7 +218,8 @@ enum class TEXTURE_ASSET_ID {
 	EMPTY_HEART = HALF_HEART + 1,
 	BOTTOM_WALL = EMPTY_HEART + 1,
 	WALL_EDGE = BOTTOM_WALL + 1,
-	TEXTURE_COUNT = WALL_EDGE + 1
+	WALL_SURFACE = WALL_EDGE + 1,
+	TEXTURE_COUNT = WALL_SURFACE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

@@ -23,3 +23,6 @@ Sam Sun <br />
 Lin Su <br />
 Will Qiu <br />
 Alan Huang <br />
+
+## Used Assets
+https://penzilla.itch.io/hooded-protagonist/download/eyJpZCI6MTc0MjEzMCwiZXhwaXJlcyI6MTcwOTI1MjY4NH0%3d.RK8mzbSh0tpr6dB1nDB4yuiaROo%3d
