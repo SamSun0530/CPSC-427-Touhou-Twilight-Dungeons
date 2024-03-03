@@ -16,7 +16,6 @@ public:
 	AISystem();
 
 	// Initialize decision trees
-	// TODO: temporary world paramter, store this in map_system. needed to get world_map information
 	void init();
 
 	void step(float elapsed_ms);

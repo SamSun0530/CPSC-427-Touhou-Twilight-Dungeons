@@ -345,13 +345,6 @@ void WorldSystem::restart_game() {
 		}
 	}
 
-	//for (int i = 0; i < world_height; i++) {
-	//	for (int j = 0; j < world_width; j++) {
-	//		printf("%d\t", world_map[i][j]);
-	//	}
-	//	printf("\n");
-	//}
-
 	// Create a new player
 	player = createPlayer(renderer, { 0, 0 });
 	is_alive = true;
@@ -467,12 +460,9 @@ void WorldSystem::handle_collisions() {
 			}
 		}
 	}
-	//std::cout << "collision size before: " << registry.collisions.size() << std::endl;
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
-
-	//std::cout << "collision size after: " << registry.collisions.size() << std::endl;
 }
 
 // Should the game be over ?

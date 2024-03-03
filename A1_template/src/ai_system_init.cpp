@@ -5,52 +5,71 @@ bool isValidCell(int row, int col) {
 }
 
 bool canSeePlayer(Entity& entity) {
-	int centerX = world_width >> 1;
-	int centerY = world_height >> 1;
-	printf("=============\n");
+	int center_x = world_width >> 1;
+	int center_y = world_height >> 1;
 	// assume we have a player
 	Entity& player_entity = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player_entity);
 	Motion& entity_motion = registry.motions.get(entity);
-	int e_row = (entity_motion.position.y / world_tile_size) + centerY;
-	int e_col = (entity_motion.position.x / world_tile_size) + centerX;
-	int p_row = (player_motion.position.y / world_tile_size) + centerY;
-	int p_col = (player_motion.position.x / world_tile_size) + centerX;
-	//printf("entity position (x,y)=(%f,%f)\n", entity_motion.position.x, entity_motion.position.y);
-	//printf("player position (x,y)=(%f,%f)\n", player_motion.position.x, player_motion.position.y);	
-	printf("entity pos grid (x,y)=(%d,%d)\n", e_row, e_col);
-	printf("player pos grid (x,y)=(%d,%d)\n", p_row, p_col);
+	int e_y = round((entity_motion.position.y / world_tile_size) + center_y);
+	int e_x = round((entity_motion.position.x / world_tile_size) + center_x);
+	int p_y = round((player_motion.position.y / world_tile_size) + center_y);
+	int p_x = round((player_motion.position.x / world_tile_size) + center_x);
+	// Bresenham's line Credit: https://www.codeproject.com/Articles/15604/Ray-casting-in-a-2D-tile-based-environment
+	// TODO: Optimize with better algorithm: raycast, others (?)
+	// Bug: Enemy sometimes shoot even if player still behind a wall
+	void (*swap)(int&, int&) = [](int& a, int& b) {
+		int temp = a;
+		a = b;
+		b = temp;
+		};
 
-	// https://gamedev.stackexchange.com/a/75179
-	// chebyshev distance
-	float length = max(abs(player_motion.position.y - entity_motion.position.y), abs(player_motion.position.x - entity_motion.position.x)) / world_tile_size;
-	for (float i = 0.f; i <= length; ++i) {
-		float delta = i / length;
-		//printf("i %f\n", i);
-		//printf("delta %f\n", delta);
-		vec2 position_to_check = vec2_lerp(entity_motion.position, player_motion.position, delta);
-		//printf("position_to_check (x,y)=(%f,%f)\n", position_to_check.x, position_to_check.y);
-		int row = (position_to_check.y / world_tile_size) + centerY;
-		int col = (position_to_check.x / world_tile_size) + centerX;
-		printf("(row,col) to check (x,y)=(%d,%d)\n", row, col);
-		createLine(position_to_check, vec2(10, 10));
+	bool steep = abs(p_y - e_y) > abs(p_x - e_x);
+	if (steep) {
+		swap(p_y, p_x);
+		swap(e_y, e_x);
+	}
+	if (e_x > p_x) {
+		swap(e_x, p_x);
+		swap(e_y, p_y);
+	}
 
-		//int p_row = (player_motion.position.y / world_tile_size) + centerY;
-		//int p_col = (player_motion.position.x / world_tile_size) + centerX;
-		//printf("player (row, col): (%d,%d)\n", p_row, p_col);
-
-		//printf("(row, col): (%d,%d)\n", row, col);
-
-		if (!isValidCell(row, col)) break; // can't see outside of room
-		//printf("here0\n");
-
-		if (WorldSystem::world_map[row][col] == (int)TILE_TYPE::WALL) {
-			printf("blocked by wall\n");
+	int deltax = p_x - e_x;
+	int deltay = abs(p_y - e_y);
+	int error = 0;
+	int ystep;
+	int y = e_y;
+	if (e_y < p_y) ystep = 1; else ystep = -1;
+	for (int x = e_x; x <= p_x; x++) {
+		int x_pos;
+		int y_pos;
+		int x_grid;
+		int y_grid;
+		if (steep) {
+			x_pos = (y - center_x) * world_tile_size;
+			y_pos = (x - center_y) * world_tile_size;
+			x_grid = y;
+			y_grid = x;
+		}
+		else {
+			x_pos = (x - center_x) * world_tile_size;
+			y_pos = (y - center_y) * world_tile_size;
+			x_grid = x;
+			y_grid = y;
+		}
+		if (y_grid < 0 || x_grid < 0 || y_grid >= world_height || x_grid >= world_width
+			|| WorldSystem::world_map[y_grid][x_grid] == (int)TILE_TYPE::WALL) {
 			// line of sight blocked by wall
-			return false; 
+			return false;
+		}
+		// debugging
+		//createLine({ x_pos, y_pos }, vec2(world_tile_size / 2, world_tile_size / 2));
+		error += deltay;
+		if (2 * error >= deltax) {
+			y += ystep;
+			error -= deltax;
 		}
 	}
-	printf("not blocked by wall\n");
 	return true;
 }
 
@@ -86,7 +105,7 @@ void AISystem::init() {
 	//can_see_player->setFalse(cant_see_player);
 	//can_see_player->setTrue(is_near_player);
 
-	can_see_player->setTrue(fire_at_player);
+	can_see_player->setTrue(stop_firing);
 	can_see_player->setFalse(stop_firing);
 
 	this->ghost.setRoot(can_see_player);
