@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <glm/gtx/hash.hpp>
+#include <limits>
 
 #include "tiny_ecs_registry.hpp"
 #include "common.hpp"

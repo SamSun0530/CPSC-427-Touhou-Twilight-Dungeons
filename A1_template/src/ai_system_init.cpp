@@ -81,13 +81,13 @@ float astar_heuristic(coord n, coord goal) {
 std::vector<std::pair<float, coord>> astar_actioncosts() {
 	return (std::vector<std::pair<float, coord>>{
 		std::make_pair(10.f, vec2(0, -1)), // UP
-			std::make_pair(10.f, vec2(0, 1)), // DOWN
-			std::make_pair(10.f, vec2(-1, 0)), // LEFT
-			std::make_pair(10.f, vec2(1, 0)), // RIGHT
-			std::make_pair(14.f, vec2(-1, -1)), // UP LEFT
-			std::make_pair(14.f, vec2(1, -1)), // UP RIGHT
-			std::make_pair(14.f, vec2(-1, 1)), // DOWN LEFT
-			std::make_pair(14.f, vec2(1, 1)), // DOWN RIGHT
+			std::make_pair(1.f, vec2(0, 1)), // DOWN
+			std::make_pair(1.f, vec2(-1, 0)), // LEFT
+			std::make_pair(1.f, vec2(1, 0)), // RIGHT
+			std::make_pair(1.4f, vec2(-1, -1)), // UP LEFT
+			std::make_pair(1.4f, vec2(1, -1)), // UP RIGHT
+			std::make_pair(1.4f, vec2(-1, 1)), // DOWN LEFT
+			std::make_pair(1.4f, vec2(1, 1)), // DOWN RIGHT
 	});
 }
 
@@ -95,6 +95,7 @@ std::vector<std::pair<float, coord>> astar_actioncosts() {
 path reconstruct_path(std::unordered_map<coord, coord>& came_from, coord& current, coord& start) {
 	path optimal_path;
 	while (current != start) {
+		printf("(x,y)=(%f,%f)\n", current.x, current.y);
 		optimal_path.push_back(current);
 		current = came_from[current];
 	}
@@ -102,9 +103,18 @@ path reconstruct_path(std::unordered_map<coord, coord>& came_from, coord& curren
 	return optimal_path;
 }
 
+// comparator for sorting min heap
 struct CompareGreater
 {
 	bool operator()(const std::pair<float, coord>& l, const std::pair<float, coord>& r) const { return l.first > r.first; }
+};
+
+// set default value of infinity
+struct GScore 
+{
+	float score = std::numeric_limits<float>::max();
+	operator float() { return score; }
+	void operator=(float x) { score = x; }
 };
 
 // A-star path finding algorithm (does not store paths inside frontier)
@@ -113,7 +123,7 @@ path astar(coord start, coord goal) {
 	std::priority_queue<std::pair<float, coord>, std::vector<std::pair<float, coord>>, CompareGreater> open_list;
 	std::unordered_set<coord> close_list; // visited set
 	std::unordered_map<coord, coord> came_from;
-	std::unordered_map<coord, float> g_score;
+	std::unordered_map<coord, GScore> g_score;
 
 	g_score[start] = 0.f;
 	open_list.push(std::make_pair(astar_heuristic(start, goal), start));
