@@ -100,7 +100,7 @@ GLFWwindow* WorldSystem::create_window() {
 	}
 
 	image.pixels = data;
-	GLFWcursor* cursor = glfwCreateCursor(&image, 0, 0);
+	GLFWcursor* cursor = glfwCreateCursor(&image, image.width / 2, image.height / 2);
 	glfwSetCursor(window, cursor);
 	stbi_image_free(data);
 
