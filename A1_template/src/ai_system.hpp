@@ -2,6 +2,10 @@
 
 #include <vector>
 #include <random>
+#include <queue>
+#include <unordered_set>
+#include <unordered_map>
+#include <glm/gtx/hash.hpp>
 
 #include "tiny_ecs_registry.hpp"
 #include "common.hpp"
@@ -9,6 +13,10 @@
 
 #include "world_system.hpp"
 #include "world_init.hpp"
+
+
+typedef vec2 coord;
+typedef std::vector<coord> path;
 
 class AISystem
 {

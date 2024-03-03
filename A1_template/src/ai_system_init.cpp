@@ -1,5 +1,13 @@
 #include "ai_system.hpp"
 
+// checks if (x,y) on the map is valid, this is not screen coordinates
+bool is_valid_cell(int x, int y) {
+	return !(y < 0 || x < 0 || y >= world_height || x >= world_width
+		|| WorldSystem::world_map[y][x] == (int)TILE_TYPE::WALL
+		|| WorldSystem::world_map[y][x] == (int)TILE_TYPE::EMPTY);
+}
+
+// checks if entity has a line of sight of the player
 bool canSeePlayer(Entity& entity) {
 	int center_x = world_width >> 1;
 	int center_y = world_height >> 1;
@@ -51,11 +59,7 @@ bool canSeePlayer(Entity& entity) {
 			x_grid = x;
 			y_grid = y;
 		}
-		if (y_grid < 0 || x_grid < 0 || y_grid >= world_height || x_grid >= world_width
-			|| WorldSystem::world_map[y_grid][x_grid] == (int)TILE_TYPE::WALL) {
-			// line of sight blocked by wall
-			return false;
-		}
+		if (!is_valid_cell(x_grid, y_grid)) return false;
 		// debugging
 		//createLine({ x_pos, y_pos }, vec2(world_tile_size / 2, world_tile_size / 2));
 		error += deltay;
@@ -65,6 +69,73 @@ bool canSeePlayer(Entity& entity) {
 		}
 	}
 	return true;
+}
+
+// heuristic for astar
+float astar_heuristic(coord n, coord goal) {
+	vec2 dp = goal - n;
+	return sqrt(dot(dp, dp));
+}
+
+// get all possible actions and their costs (10 for direct, 14 for diagonal)
+std::vector<std::pair<float, coord>> astar_actioncosts() {
+	return (std::vector<std::pair<float, coord>>{
+		std::make_pair(10.f, vec2(0, -1)), // UP
+			std::make_pair(10.f, vec2(0, 1)), // DOWN
+			std::make_pair(10.f, vec2(-1, 0)), // LEFT
+			std::make_pair(10.f, vec2(1, 0)), // RIGHT
+			std::make_pair(14.f, vec2(-1, -1)), // UP LEFT
+			std::make_pair(14.f, vec2(1, -1)), // UP RIGHT
+			std::make_pair(14.f, vec2(-1, 1)), // DOWN LEFT
+			std::make_pair(14.f, vec2(1, 1)), // DOWN RIGHT
+	});
+}
+
+// backtrack and reconstruct the path stored in came_from
+path reconstruct_path(std::unordered_map<coord, coord>& came_from, coord& current, coord& start) {
+	path optimal_path;
+	while (current != start) {
+		optimal_path.push_back(current);
+		current = came_from[current];
+	}
+	std::reverse(optimal_path.begin(), optimal_path.end());
+	return optimal_path;
+}
+
+struct CompareGreater
+{
+	bool operator()(const std::pair<float, coord>& l, const std::pair<float, coord>& r) const { return l.first > r.first; }
+};
+
+// A-star path finding algorithm (does not store paths inside frontier)
+// Adapted from: https://en.wikipedia.org/wiki/A*_search_algorithm
+path astar(coord start, coord goal) {
+	std::priority_queue<std::pair<float, coord>, std::vector<std::pair<float, coord>>, CompareGreater> open_list;
+	std::unordered_set<coord> close_list; // visited set
+	std::unordered_map<coord, coord> came_from;
+	std::unordered_map<coord, float> g_score;
+
+	g_score[start] = 0.f;
+	open_list.push(std::make_pair(astar_heuristic(start, goal), start));
+
+	while (!open_list.empty()) {
+		std::pair<float, coord> current = open_list.top();
+		if (current.second == goal) return reconstruct_path(came_from, current.second, start);
+		open_list.pop();
+		close_list.insert(current.second);
+		for (std::pair<float, coord> actioncost : astar_actioncosts()) {
+			vec2 candidate = current.second + actioncost.second;
+			if (close_list.count(candidate) || !is_valid_cell(candidate.x, candidate.y)) continue;
+			// f_value = total_cost + heuristic, therefore total_cost = f_value - heuristic
+			float candidate_g = current.first - astar_heuristic(current.second, goal) + actioncost.first;
+			if (candidate_g < g_score[candidate]) {
+				came_from[candidate] = current.second;
+				g_score[candidate] = candidate_g;
+				open_list.push(std::make_pair(candidate_g + astar_heuristic(candidate, goal), candidate));
+			}
+		}
+	}
+	return path();
 }
 
 void AISystem::init() {
