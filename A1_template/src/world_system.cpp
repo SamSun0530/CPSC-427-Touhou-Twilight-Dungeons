@@ -232,8 +232,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+
+
+
 	if (registry.hps.get(player).curr_hp <= 0) {
 		registry.hps.get(player).curr_hp = registry.hps.get(player).max_hp;
+		registry.bulletFireRates.get(player).is_firing = false;
 		is_alive = false;
 		pressed = { 0 };
 		registry.kinematics.get(player).direction = { 0,0 };
@@ -283,7 +287,7 @@ void WorldSystem::restart_game() {
 	 //Creates 1 room the size of the map
 	for (int row = 0; row < world_map.size(); row++) {
 		for (int col = 0; col < world_map[row].size(); col++) {
-			if (row == 0 || col == 0 || row == world_height - 1 || col == world_width - 1) {
+			if (row == 0 || col == 1 || col == 0 || row == world_height - 1 || col == world_width - 1) {
 				world_map[row][col] = (int)TILE_TYPE::WALL;
 			}
 			else {
@@ -313,20 +317,16 @@ void WorldSystem::restart_game() {
 				textureIDs.push_back(TEXTURE_ASSET_ID::TOP_WALL);
 			}
 			else if (row == world_height - 1) {
-				float rand = uniform_dist(rng);
-				if (rand < 0.5f) {
-					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
-				}
-				else {
-					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
-				}
-				textureIDs.push_back(TEXTURE_ASSET_ID::WALL_EDGE);
+				textureIDs.push_back(TEXTURE_ASSET_ID::BOTTOM_WALL);
 			}
 			else if (col == 0) {
 				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
 			}
 			else if (col == world_width - 1) {
 				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
+			}
+			else if (row == 1) {
+				textureIDs.push_back(TEXTURE_ASSET_ID::WALL_SURFACE);
 			}
 			else {
 				float rand = uniform_dist(rng);
@@ -337,7 +337,6 @@ void WorldSystem::restart_game() {
 					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
 				}
 			}
-
 			int xPos = (col - centerX) * world_tile_size;
 			int yPos = (row - centerY) * world_tile_size;
 			switch (world_map[col][row])
@@ -568,11 +567,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Debugging
-	if (key == GLFW_KEY_D) {
+	if (key == GLFW_KEY_G) {
 		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
+			debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 
 	// Exit the program
