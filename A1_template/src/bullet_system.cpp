@@ -42,6 +42,7 @@ void BulletSystem::step(float elapsed_ms)
 						float y = player_motion.position.y - motion.position.y;
 						float enemy_fire_angle = -atan2(x, y) - glm::radians(90.0f);
 						createBullet(renderer, kinematic.speed_modified, motion.position, enemy_fire_angle, { x, y });
+						fireRate.is_firing = false;
 					}
 					fireRate.last_time = current_time;
 				}

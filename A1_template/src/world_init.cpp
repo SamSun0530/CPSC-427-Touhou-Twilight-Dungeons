@@ -193,6 +193,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
 	registry.colors.insert(entity, { 1,1,1 });
 
+	registry.aitimers.emplace(entity);
+
 	return entity;
 }
 

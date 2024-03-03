@@ -119,6 +119,12 @@ struct DebugComponent
 	// Note, an empty struct has size 1
 };
 
+// Update entity ai behavior tree after update ms
+struct AiTimer {
+	float update_timer_ms = 500;
+	float update_base = 500;
+};
+
 // A timer that will be associated to dying chicken
 struct HitTimer
 {

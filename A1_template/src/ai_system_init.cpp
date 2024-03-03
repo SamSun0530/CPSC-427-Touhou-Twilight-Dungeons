@@ -1,9 +1,5 @@
 #include "ai_system.hpp"
 
-bool isValidCell(int row, int col) {
-	return (row >= 0 && col >= 0 && row < world_height && col < world_width);
-}
-
 bool canSeePlayer(Entity& entity) {
 	int center_x = world_width >> 1;
 	int center_y = world_height >> 1;
@@ -23,7 +19,6 @@ bool canSeePlayer(Entity& entity) {
 		a = b;
 		b = temp;
 		};
-
 	bool steep = abs(p_y - e_y) > abs(p_x - e_x);
 	if (steep) {
 		swap(p_y, p_x);
@@ -33,7 +28,6 @@ bool canSeePlayer(Entity& entity) {
 		swap(e_x, p_x);
 		swap(e_y, p_y);
 	}
-
 	int deltax = p_x - e_x;
 	int deltay = abs(p_y - e_y);
 	int error = 0;
@@ -73,30 +67,51 @@ bool canSeePlayer(Entity& entity) {
 	return true;
 }
 
-
 void AISystem::init() {
 	ConditionalNode* can_see_player = new ConditionalNode(canSeePlayer);
-	ActionNode* cant_see_player = new ActionNode([](Entity& entity) {
-		printf("can't see player! \n");
-		});
-
-	ConditionalNode* is_near_player = new ConditionalNode([](Entity& entity) {
-		float distance_to_attack = 90000.f; // sqrt(90000)=300 pixels
+	ConditionalNode* is_in_range = new ConditionalNode([](Entity& entity) {
+		float minimum_range_to_check = 1000000; // sqrt(1000000)=1000 pixels
 		Motion& motion = registry.motions.get(entity);
 		// asusme there is only one player
 		for (Entity& player_entity : registry.players.entities) {
 			Motion& player_motion = registry.motions.get(player_entity);
 			vec2 dp = player_motion.position - motion.position;
-			if (dot(dp, dp) < distance_to_attack) return true;
+			if (dot(dp, dp) < minimum_range_to_check) return true;
 		}
 		return false;
 		});
-	ActionNode* stop_firing = new ActionNode([](Entity& entity) { registry.bulletFireRates.remove(entity); });
+
+	ActionNode* do_nothing = new ActionNode([](Entity& entity) {});
+	ActionNode* move_random_direction = new ActionNode([](Entity& entity) {
+		if (!registry.idleMoveActions.has(entity)) return;
+		std::random_device ran;
+		std::mt19937 gen(ran());
+		std::uniform_real_distribution<> dis(0.0, 1.0);
+		IdleMoveAction& action = registry.idleMoveActions.get(entity);
+		if (action.timer_ms <= 0) {
+			Kinematic& kinematic = registry.kinematics.get(entity);
+			switch (action.state) {
+			case State::IDLE:
+				action.state = State::MOVE;
+				action.timer_ms = action.moving_ms;
+				kinematic.direction = { dis(gen), dis(gen) };
+				break;
+			case State::MOVE:
+				action.state = State::IDLE;
+				action.timer_ms = action.idle_ms;
+				kinematic.direction = { 0, 0 };
+				break;
+			default:
+				break;
+			}
+		}
+		});
+	ActionNode* stop_firing = new ActionNode([](Entity& entity) { registry.bulletFireRates.get(entity).is_firing = false; });
 	ActionNode* fire_at_player = new ActionNode([](Entity& entity) {
-		if (!registry.bulletFireRates.has(entity)) {
-			auto& fire_rate = registry.bulletFireRates.emplace(entity);
-			fire_rate.is_firing = true;
-			fire_rate.fire_rate = 3;
+		float current_time = glfwGetTime();
+		BulletFireRate& fireRate = registry.bulletFireRates.get(entity);
+		if (current_time - fireRate.last_time >= fireRate.fire_rate) {
+			fireRate.is_firing = true;
 		}
 		});
 	//is_near_player->setTrue(fire_at_player);
@@ -105,8 +120,8 @@ void AISystem::init() {
 	//can_see_player->setFalse(cant_see_player);
 	//can_see_player->setTrue(is_near_player);
 
-	can_see_player->setTrue(stop_firing);
-	can_see_player->setFalse(stop_firing);
+	can_see_player->setTrue(fire_at_player);
+	can_see_player->setFalse(move_random_direction);
 
 	this->ghost.setRoot(can_see_player);
 }

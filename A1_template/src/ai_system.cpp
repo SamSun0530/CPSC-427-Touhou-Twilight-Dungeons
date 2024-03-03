@@ -9,27 +9,29 @@ void AISystem::step(float elapsed_ms)
 		IdleMoveAction& action = registry.idleMoveActions.get(entity);
 		action.timer_ms = action.timer_ms < elapsed_ms ? 0.f : action.timer_ms - elapsed_ms;
 		if (action.timer_ms <= 0) {
-			Kinematic& kinematic = registry.kinematics.get(entity);
-			switch (action.state) {
-			case State::IDLE:
-				action.state = State::MOVE;
-				action.timer_ms = action.moving_ms;
-				kinematic.direction = { uniform_dist(rng), uniform_dist(rng) };
-				break;
-			case State::MOVE:
+			// Prevent entity to continue moving
+			if (action.state == State::MOVE) {
+				Kinematic& kinematic = registry.kinematics.get(entity);
 				action.state = State::IDLE;
 				action.timer_ms = action.idle_ms;
 				kinematic.direction = { 0, 0 };
-				break;
-			default:
-				break;
 			}
 		}
 	}
 
-	// TODO: Maybe limit the number of checks per frame
-	for (Entity& entity : registry.deadlys.entities) {
-		ghost.update(entity);
+	// Limit number of checks based on update timer
+	ComponentContainer<AiTimer>& aitimer_components = registry.aitimers;
+	for (uint i = 0; i < aitimer_components.components.size(); i++) {
+		AiTimer& aitimer = aitimer_components.components[i];
+		Entity& entity = aitimer_components.entities[i];
+		
+		aitimer.update_timer_ms = aitimer.update_timer_ms < elapsed_ms ? 0.f : aitimer.update_timer_ms - elapsed_ms;
+		if (aitimer.update_timer_ms <= 0) {
+			if (registry.deadlys.has(entity)) {
+				ghost.update(entity);
+			}
+			aitimer.update_timer_ms = aitimer.update_base;
+		}
 	}
 }
 
