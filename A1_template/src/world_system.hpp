@@ -46,7 +46,8 @@ private:
 	void on_mouse_move(vec2 pos);
 	void on_mouse_key(int button, int action, int mods);
 	void on_scroll(vec2 scroll_offset);
-	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
+	//void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
+
 	// State of keyboard
 	// Initial state is all false
 	std::array<bool, 512> pressed = { 0 };
@@ -96,8 +97,10 @@ private:
 	GLuint m_VBO;
 	GLuint m_dirt_texture;
 	std::vector<GLuint> m_alien_textures;
+
+	// fonts
 	std::map<char, Character> m_ftCharacters;
-	//GLuint m_font_shaderProgram;
-	//GLuint m_font_VAO;
-	//GLuint m_font_VBO;
+	GLuint m_font_shaderProgram;
+	GLuint m_font_VAO;
+	GLuint m_font_VBO;
 };

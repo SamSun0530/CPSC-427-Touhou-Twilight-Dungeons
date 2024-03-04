@@ -285,8 +285,9 @@ bool RenderSystem::initScreenTexture()
 	return true;
 }
 
+// Font initiation
 // This is adapted from lecture material (Wednesday Feb 28th 2024)
-bool RenderSystem::initFont(GLFWwindow& window, const std::string& font_filename, unsigned int font_default_size) {
+bool RenderSystem::initFont(GLFWwindow* window, const std::string& font_filename, unsigned int font_default_size) {
 	std::string vs_path = shader_path("font.vs.glsl");
 	std::string fs_path = shader_path("font.fs.glsl");
 	glGenVertexArrays(1, &m_font_VAO);

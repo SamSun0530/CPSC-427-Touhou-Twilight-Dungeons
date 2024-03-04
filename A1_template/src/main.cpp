@@ -40,9 +40,12 @@ int main()
 		getchar();
 		return EXIT_FAILURE;
 	}
-
+	
+	std::string font_filename = "..//..//..//data//fonts//Kenney_Mini_Square.ttf";
+	unsigned int font_default_size = 30;
 	// initialize the main systems
 	renderer.init(window);
+	renderer.initFont(window, font_filename, font_default_size);
 	world.init(&renderer, &audio);
 	bullets.init(&renderer, window, &audio);
 

@@ -105,10 +105,13 @@ public:
 	UI ui;
 
 	// font initialization
-	bool initFont(GLFWwindow& window, const std::string& font_filename, unsigned int font_default_size);
+	bool initFont(GLFWwindow* window, const std::string& font_filename, unsigned int font_default_size);
+	
 	GLuint getDummyVAO() const {
         return dummyVAO;
     }
+
+	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);
