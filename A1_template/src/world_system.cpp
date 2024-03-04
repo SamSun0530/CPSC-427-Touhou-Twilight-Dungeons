@@ -133,12 +133,15 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio) {
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Calculate FPS
+	glm::mat4 trans = glm::mat4(1.0f);
+
 	fps = static_cast<int>(1000.0f / elapsed_ms_since_last_update);
 	if (show_fps) {
-		//trans = glm::mat4(1.0f);
-		//trans = glm::rotate(trans, glm::radians(glWindow.rotation), glm::vec3(0.0, 0.0, 1.0));
-		//trans = glm::scale(trans, glm::vec3(0.5, 0.5, 1.0));
-		//render.render(glWindow, trans, glm::vec4(0.0, 0.0, 0.0, 1.0));
+		glm::mat4 trans = glm::mat4(1.0f);
+		std::stringstream fpsText;
+		fpsText << "FPS: " << fps;
+		renderText(fpsText.str(), 0, 0, 10, {0,0,0}, trans);
+		std::cout << "show_fps"  << std::endl;
 	}
 
 	// Updating window title with points
