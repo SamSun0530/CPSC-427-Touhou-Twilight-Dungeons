@@ -221,7 +221,8 @@ enum class EFFECT_ASSET_ID {
 	TEXTURED = PLAYER + 1,
 	WIND = TEXTURED + 1,
 	UI = WIND + 1,
-	EFFECT_COUNT = UI + 1
+	FONT = UI + 1,
+	EFFECT_COUNT = FONT + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -240,4 +241,14 @@ struct RenderRequest {
 	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+};
+
+// Struct for Font
+// Adapted from lecture material
+struct Character {
+	unsigned int TextureID;  // ID handle of the glyph texture
+	glm::ivec2   Size;       // Size of glyph
+	glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
+	unsigned int Advance;    // Offset to advance to next glyph
+	char character;
 };
