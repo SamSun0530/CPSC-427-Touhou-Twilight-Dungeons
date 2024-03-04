@@ -158,6 +158,7 @@ elseif (IS_OS_WINDOWS)
 endif()
 
 #Newly added for Font rendering
+#This is adapted from lecture material (Wednesday Feb 28th 2024)
 # Add FreeType - Windows-specific; not tested on Linux or macOS
 set (FREETYPE_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/include")
 set (FREETYPE_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/release static/vs2015-2022/win64/freetype.lib")

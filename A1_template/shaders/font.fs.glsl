@@ -1,7 +1,7 @@
 #version 330
-#Adapted from lecture material
+// This is adapted from lecture material (Wednesday Feb 28th 2024)
 
-in vec2 TexCoord;
+in vec2 TextCoords;
 out vec4 color;
 
 uniform sampler2D text;
@@ -9,6 +9,6 @@ uniform vec3 textColor;
 
 void main()
 {
-	vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, TexCoords).r);
-	color = vec4(textColor, 1.0) * sampled;
+    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, TextCoords).r);
+    color = vec4(textColor, 1.0) * sampled;
 }
