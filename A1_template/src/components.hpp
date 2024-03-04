@@ -100,6 +100,13 @@ struct Collision
 	Collision(Entity& other) { this->other = other; };
 };
 
+// Entity follows given path
+struct FollowPath
+{
+	path path;
+	int next_path_index = 0;
+};
+
 // Data structure for toggling debug mode
 struct Debug {
 	bool in_debug_mode = 0;

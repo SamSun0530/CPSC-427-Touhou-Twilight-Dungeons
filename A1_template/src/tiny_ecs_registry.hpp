@@ -34,6 +34,7 @@ public:
 	ComponentContainer<Kinematic> kinematics;
 	ComponentContainer<Collidable> collidables;
 	ComponentContainer<AiTimer> aitimers;
+	ComponentContainer<FollowPath> followpaths;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -62,6 +63,7 @@ public:
 		registry_list.push_back(&kinematics);
 		registry_list.push_back(&collidables);
 		registry_list.push_back(&aitimers);
+		registry_list.push_back(&followpaths);
 	}
 
 	void clear_all_components() {

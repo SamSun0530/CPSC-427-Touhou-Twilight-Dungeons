@@ -77,17 +77,20 @@ float astar_heuristic(coord n, coord goal) {
 	return sqrt(dot(dp, dp));
 }
 
-// get all possible actions and their costs (10 for direct, 14 for diagonal)
+// get all possible actions and their costs (1 for direct, 1.4 for diagonal since sqrt(2)=1.4)
+// Bug (potential): entities should not search diagonal when there are walls there
+// Consider the scenario where a wall is to the left and below the entity, the entity should not check through the cracks
+// This can be fixed if we seal the cracks
 std::vector<std::pair<float, coord>> astar_actioncosts() {
 	return (std::vector<std::pair<float, coord>>{
-		std::make_pair(10.f, vec2(0, -1)), // UP
-			std::make_pair(1.f, vec2(0, 1)), // DOWN
-			std::make_pair(1.f, vec2(-1, 0)), // LEFT
-			std::make_pair(1.f, vec2(1, 0)), // RIGHT
-			std::make_pair(1.4f, vec2(-1, -1)), // UP LEFT
-			std::make_pair(1.4f, vec2(1, -1)), // UP RIGHT
-			std::make_pair(1.4f, vec2(-1, 1)), // DOWN LEFT
-			std::make_pair(1.4f, vec2(1, 1)), // DOWN RIGHT
+		std::make_pair(1.f, vec2(0, -1)), // UP
+		std::make_pair(1.f, vec2(0, 1)), // DOWN
+		std::make_pair(1.f, vec2(-1, 0)), // LEFT
+		std::make_pair(1.f, vec2(1, 0)), // RIGHT
+		std::make_pair(1.4f, vec2(-1, -1)), // UP LEFT
+		std::make_pair(1.4f, vec2(1, -1)), // UP RIGHT
+		std::make_pair(1.4f, vec2(-1, 1)), // DOWN LEFT
+		std::make_pair(1.4f, vec2(1, 1)), // DOWN RIGHT
 	});
 }
 
@@ -95,7 +98,6 @@ std::vector<std::pair<float, coord>> astar_actioncosts() {
 path reconstruct_path(std::unordered_map<coord, coord>& came_from, coord& current, coord& start) {
 	path optimal_path;
 	while (current != start) {
-		printf("(x,y)=(%f,%f)\n", current.x, current.y);
 		optimal_path.push_back(current);
 		current = came_from[current];
 	}
@@ -110,7 +112,7 @@ struct CompareGreater
 };
 
 // set default value of infinity
-struct GScore 
+struct GScore
 {
 	float score = std::numeric_limits<float>::max();
 	operator float() { return score; }
@@ -119,7 +121,10 @@ struct GScore
 
 // A-star path finding algorithm (does not store paths inside frontier)
 // Adapted from: https://en.wikipedia.org/wiki/A*_search_algorithm
+// Note: parameter coords are in grid coordinates NOT screen coordinates
+// e.g. input (x,y) should be (1,1) on the grid instead of (550.53, -102.33)
 path astar(coord start, coord goal) {
+	//if (!is_valid_cell(start.x, start.y) || !is_valid_cell(goal.x, goal.y)) return path();
 	std::priority_queue<std::pair<float, coord>, std::vector<std::pair<float, coord>>, CompareGreater> open_list;
 	std::unordered_set<coord> close_list; // visited set
 	std::unordered_map<coord, coord> came_from;
@@ -135,7 +140,8 @@ path astar(coord start, coord goal) {
 		close_list.insert(current.second);
 		for (std::pair<float, coord> actioncost : astar_actioncosts()) {
 			vec2 candidate = current.second + actioncost.second;
-			if (close_list.count(candidate) || !is_valid_cell(candidate.x, candidate.y)) continue;
+			// we will check 
+			if (close_list.count(candidate) || (candidate != goal && !is_valid_cell(candidate.x, candidate.y))) continue;
 			// f_value = total_cost + heuristic, therefore total_cost = f_value - heuristic
 			float candidate_g = current.first - astar_heuristic(current.second, goal) + actioncost.first;
 			if (candidate_g < g_score[candidate]) {
@@ -146,6 +152,24 @@ path astar(coord start, coord goal) {
 		}
 	}
 	return path();
+}
+
+void set_follow_path(Entity& entity, Motion& from, Motion& to) {
+	// convert to grid coords
+	int center_x = world_width >> 1;
+	int center_y = world_height >> 1;
+	vec2 grid_from = { round((from.position.x / world_tile_size) + center_x),
+					round((from.position.y / world_tile_size) + center_y) };
+	vec2 grid_to = { round((to.position.x / world_tile_size) + center_x),
+					round((to.position.y / world_tile_size) + center_y) };
+	path path_to_player = astar(grid_from, grid_to);
+	if (path_to_player.size() == 0) return;
+	if (!registry.followpaths.has(entity)) {
+		registry.followpaths.emplace(entity);
+	}
+	FollowPath& fp = registry.followpaths.get(entity);
+	fp.path = path_to_player;
+	fp.next_path_index = 0;
 }
 
 void AISystem::init() {
@@ -164,6 +188,7 @@ void AISystem::init() {
 
 	ActionNode* do_nothing = new ActionNode([](Entity& entity) {});
 	ActionNode* move_random_direction = new ActionNode([](Entity& entity) {
+		registry.bulletFireRates.get(entity).is_firing = false; // stop firing
 		if (!registry.idleMoveActions.has(entity)) return;
 		std::random_device ran;
 		std::mt19937 gen(ran());
@@ -195,14 +220,32 @@ void AISystem::init() {
 			fireRate.is_firing = true;
 		}
 		});
+	ActionNode* find_player = new ActionNode([](Entity& entity) {
+		Entity& player = registry.players.entities[0];
+		Motion& player_motion = registry.motions.get(player);
+		Motion& entity_motion = registry.motions.get(entity);
+		set_follow_path(entity, entity_motion, player_motion);
+		});
+	ActionNode* find_player_threshold = new ActionNode([](Entity& entity) {
+		// does not find player if within a threshold
+		Entity& player = registry.players.entities[0];
+		Motion& player_motion = registry.motions.get(player);
+		Motion& entity_motion = registry.motions.get(entity);
+		float minimum_range_to_check = 160000; // sqrt(160000)=400 pixels
+		vec2 dp = player_motion.position - entity_motion.position;
+		if (dot(dp, dp) > minimum_range_to_check) {
+			set_follow_path(entity, entity_motion, player_motion);
+		}
+		});
+
 	//is_near_player->setTrue(fire_at_player);
 	//is_near_player->setFalse(stop_firing);
 
 	//can_see_player->setFalse(cant_see_player);
 	//can_see_player->setTrue(is_near_player);
 
-	can_see_player->setTrue(fire_at_player);
-	can_see_player->setFalse(move_random_direction);
+	can_see_player->setTrue(find_player);
+	can_see_player->setFalse(find_player);
 
 	this->ghost.setRoot(can_see_player);
 }

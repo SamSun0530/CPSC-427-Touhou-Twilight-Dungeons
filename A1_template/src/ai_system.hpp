@@ -16,9 +16,6 @@
 #include "world_init.hpp"
 
 
-typedef vec2 coord;
-typedef std::vector<coord> path;
-
 class AISystem
 {
 public:

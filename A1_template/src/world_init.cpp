@@ -173,7 +173,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = motion.scale;
+	collidable.size = abs(motion.scale);
 
 	HP& hp = registry.hps.emplace(entity);
 	hp.max_hp = 6;
