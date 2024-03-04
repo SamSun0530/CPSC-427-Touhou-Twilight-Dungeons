@@ -106,7 +106,9 @@ public:
 
 	// font initialization
 	bool initFont(GLFWwindow& window, const std::string& font_filename, unsigned int font_default_size);
-
+	GLuint getDummyVAO() const {
+        return dummyVAO;
+    }
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);
@@ -125,7 +127,7 @@ private:
 	GLuint m_font_shaderProgram;
 	GLuint m_font_VAO;
 	GLuint m_font_VBO;
-
+	GLuint dummyVAO;
 
 	Entity screen_state_entity;
 };
