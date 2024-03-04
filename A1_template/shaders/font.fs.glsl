@@ -1,4 +1,5 @@
 #version 330
+#Adapted from lecture material
 
 in vec2 TexCoord;
 out vec4 color;

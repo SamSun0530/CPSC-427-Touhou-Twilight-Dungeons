@@ -1,4 +1,5 @@
 #version 330
+#Adapted from lecture material
 
 layout(location = 0) in vec4 vertex; // <vec2 pos, vec2 text>
 out vec2 TextCoords;
