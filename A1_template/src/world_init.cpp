@@ -151,7 +151,57 @@ Entity createCoin(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
-Entity createEnemy(RenderSystem* renderer, vec2 position)
+Entity createBasicEnemy(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 100.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 0 };
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale;
+	
+	// HP
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 6;
+	hp.curr_hp = hp.max_hp;
+
+	// Collision damage
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.damage = 1;
+	
+	registry.basicEnemies.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMY,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	registry.idleMoveActions.emplace(entity);
+	BulletFireRate enemy_bullet_rate;
+	enemy_bullet_rate.fire_rate = 3;
+	enemy_bullet_rate.is_firing = true;
+	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
+	registry.colors.insert(entity, { 1,1,1 });
+
+	return entity;
+}
+
+Entity createSuicideEnemy(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 
@@ -175,11 +225,66 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = motion.scale;
 
+	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 6;
+	hp.max_hp = 2;
 	hp.curr_hp = hp.max_hp;
 
-	registry.deadlys.emplace(entity);
+	// Collision damage
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.damage = 2;
+
+	registry.suicideEnemies.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMY,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	registry.idleMoveActions.emplace(entity);
+	//BulletFireRate enemy_bullet_rate;
+	//enemy_bullet_rate.fire_rate = 3;
+	//enemy_bullet_rate.is_firing = true;
+	//registry.bulletFireRates.insert(entity, enemy_bullet_rate);
+	registry.colors.insert(entity, { 1,1,1 });
+
+	return entity;
+}
+
+Entity createShotgunEnemy(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 100.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 0 };
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale;
+
+	// HP
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 10;
+	hp.curr_hp = hp.max_hp;
+
+	// Collision damage
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.damage = 1;
+
+	registry.shotgunEnemies.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMY,
@@ -188,7 +293,57 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 
 	registry.idleMoveActions.emplace(entity);
 	BulletFireRate enemy_bullet_rate;
-	enemy_bullet_rate.fire_rate = 3;
+	enemy_bullet_rate.fire_rate = 6;
+	enemy_bullet_rate.is_firing = true;
+	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
+	registry.colors.insert(entity, { 1,1,1 });
+
+	return entity;
+}
+
+Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 100.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 0 };
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale;
+
+	// HP
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 6;
+	hp.curr_hp = hp.max_hp;
+
+	// Collision damage
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.damage = 1;
+
+	registry.submachineGunEnemies.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMY,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	registry.idleMoveActions.emplace(entity);
+	BulletFireRate enemy_bullet_rate;
+	enemy_bullet_rate.fire_rate = 5;
 	enemy_bullet_rate.is_firing = true;
 	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
 	registry.colors.insert(entity, { 1,1,1 });

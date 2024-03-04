@@ -24,7 +24,13 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the coin
 Entity createCoin(RenderSystem* renderer, vec2 position);
 // the enemy
-Entity createEnemy(RenderSystem* renderer, vec2 position);
+Entity createBasicEnemy(RenderSystem* renderer, vec2 position);
+// the suicide enemy
+Entity createSuicideEnemy(RenderSystem* renderer, vec2 position);
+// the shotgun enemy
+Entity createShotgunEnemy(RenderSystem* renderer, vec2 position);
+// the grenade launcher enemy
+Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
 // Non interactable tile
 std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 

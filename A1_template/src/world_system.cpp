@@ -145,14 +145,25 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Spawning new enemies
 	next_enemy_spawn -= elapsed_ms_since_last_update;
-	if (registry.deadlys.components.size() <= MAX_ENEMIES && next_enemy_spawn < 0.f) {
+	if (registry.deadlys.components.size() + registry.suicideEnemies.components.size() <= MAX_ENEMIES && next_enemy_spawn < 0.f) {
 		// Reset timer
 		next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
 		Motion& motion = registry.motions.get(player);
 		// Create enemy with random initial position
 		float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
 		float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
-		createEnemy(renderer, vec2(spawn_x, spawn_y));
+		//createEnemy(renderer, vec2(spawn_x, spawn_y));
+		int spawnRandomNumber = rand() % 100;
+		
+		if (spawnRandomNumber >= 0 && spawnRandomNumber <= 69) {
+			createBasicEnemy(renderer, vec2(spawn_x, spawn_y));
+		}
+		else if (spawnRandomNumber >= 70 && spawnRandomNumber <= 89) {
+			createShotgunEnemy(renderer, vec2(spawn_x, spawn_y));
+		}
+		else if (spawnRandomNumber >= 90 && spawnRandomNumber <= 99) {
+			createSuicideEnemy(renderer, vec2(spawn_x, spawn_y));
+		}
 	}
 
 	// Processing the player state
@@ -359,7 +370,15 @@ void WorldSystem::handle_collisions() {
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
 						// should decrease HP but not yet implemented
-						registry.hps.get(player).curr_hp -= registry.deadlys.get(entity_other).damage;
+						if (registry.deadlys.has(entity_other)) {
+							registry.hps.get(player).curr_hp -= registry.deadlys.get(entity_other).damage;
+
+							if (registry.suicideEnemies.has(entity_other)) {
+								registry.hps.get(entity_other).curr_hp = 0;
+							}
+						}
+						
+						
 						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
@@ -392,7 +411,7 @@ void WorldSystem::handle_collisions() {
 
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
 					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
-					registry.remove_all_components_of(entity_other);
+					registry.remove_all_components_of(entity_other);					
 				}
 			}
 		}

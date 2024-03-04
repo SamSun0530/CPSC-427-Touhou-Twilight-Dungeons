@@ -40,9 +40,36 @@ struct IdleMoveAction {
 	float moving_ms = 1000;
 };
 
+enum EnemyType
+{
+	normal,
+	shotgun,
+	suicide,
+};
+
+
 struct Deadly
 {
 	int damage = 1;
+};
+
+struct BasicEnemy {
+	
+};
+
+struct SuicideEnemy
+{
+	
+};
+
+struct ShotgunEnemy
+{
+	
+};
+
+struct SubmachineGunEnemy
+{
+
 };
 
 struct HP {
