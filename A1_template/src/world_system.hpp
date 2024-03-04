@@ -81,6 +81,7 @@ private:
 
 	int fps;
 	bool show_fps = false;
+	bool display_instruction = false;
 
 	struct Character {
 		unsigned int TextureID;  // ID handle of the glyph texture

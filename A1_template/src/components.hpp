@@ -244,7 +244,7 @@ struct RenderRequest {
 };
 
 // Struct for Font
-// Adapted from lecture material
+// This adapted from lecture material (Wednesday Feb 28th 2024)
 struct Character {
 	unsigned int TextureID;  // ID handle of the glyph texture
 	glm::ivec2   Size;       // Size of glyph
