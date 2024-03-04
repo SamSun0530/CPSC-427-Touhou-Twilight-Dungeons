@@ -12,6 +12,7 @@
 #include "ai_system.hpp"
 #include "bullet_system.hpp"
 #include "audio.hpp"
+#include "animation.hpp"
 
 // debug
 #include "time_debug.hpp"
@@ -27,6 +28,7 @@ int main()
 	PhysicsSystem physics;
 	AISystem ai;
 	BulletSystem bullets;
+	Animation animation;
 	
 	// Global classes
 	Audio audio;
@@ -45,6 +47,7 @@ int main()
 	renderer.init(window);
 	world.init(&renderer, &audio);
 	bullets.init(&renderer, window, &audio);
+	animation.init(window);
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -63,6 +66,10 @@ int main()
 		//time_debug.initTime();
 		world.step(elapsed_ms);
 		//time_debug.getTime("world");
+
+		//time_debug.initTime();
+		animation.step(elapsed_ms);
+		//time_debug.getTime("animation");
 
 		//time_debug.initTime();
 		physics.step(elapsed_ms);

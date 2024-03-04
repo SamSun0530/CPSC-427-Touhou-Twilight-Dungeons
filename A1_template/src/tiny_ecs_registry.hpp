@@ -33,12 +33,12 @@ public:
 	ComponentContainer<DeathTimer> realDeathTimers;
 	ComponentContainer<Kinematic> kinematics;
 	ComponentContainer<Collidable> collidables;
+	ComponentContainer<EntityAnimation> animation;
 	ComponentContainer<BasicEnemy> basicEnemies;
 	ComponentContainer<SuicideEnemy> suicideEnemies;
 	ComponentContainer<ShotgunEnemy> shotgunEnemies;
 	ComponentContainer<SubmachineGunEnemy> submachineGunEnemies;
 	
-
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()
@@ -65,6 +65,7 @@ public:
 		registry_list.push_back(&realDeathTimers);
 		registry_list.push_back(&kinematics);
 		registry_list.push_back(&collidables);
+		registry_list.push_back(&animation);
 		registry_list.push_back(&basicEnemies);
 		registry_list.push_back(&suicideEnemies);
 		registry_list.push_back(&shotgunEnemies);

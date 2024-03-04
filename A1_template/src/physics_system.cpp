@@ -25,28 +25,9 @@
 //		return true;
 //	return false;
 //}
-//
-//bool collides_AABB(const Motion& motion1, const Motion& motion2)
-//{
-//	const vec2 bounding_box1 = get_bounding_box(motion1) / 2.f;
-//	const vec2 bounding_box2 = get_bounding_box(motion2) / 2.f;
-//
-//	const float top1 = motion1.position.y - bounding_box1.y;
-//	const float bottom1 = motion1.position.y + bounding_box1.y;
-//	const float left1 = motion1.position.x - bounding_box1.x;
-//	const float right1 = motion1.position.x + bounding_box1.x;
-//
-//	const float top2 = motion2.position.y - bounding_box2.y;
-//	const float bottom2 = motion2.position.y + bounding_box2.y;
-//	const float left2 = motion2.position.x - bounding_box2.x;
-//	const float right2 = motion2.position.x + bounding_box2.x;
-//
-//	if (left2 <= right1 && left1 <= right2 && top2 <= bottom1 && top1 <= bottom2)
-//		return true;
-//	return false;
-//}
 
-bool collides_AABB2(const Motion& motion1, const Motion& motion2, const Collidable& collidable1, const Collidable& collidable2)
+// Collision test between AABB and AABB
+bool collides_AABB_AABB(const Motion& motion1, const Motion& motion2, const Collidable& collidable1, const Collidable& collidable2)
 {
 	const vec2 bounding_box1 = abs(collidable1.size) / 2.f;
 	const vec2 bounding_box2 = abs(collidable2.size) / 2.f;
@@ -90,7 +71,6 @@ void PhysicsSystem::step(float elapsed_ms)
 		// K factor (0,30] = ~0 (not zero, slippery, ice) -> 10-20 (quick start up/slow down, natural) -> 30 (instant velocity, jittery)
 		float K = 10.f;
 		kinematic.velocity = vec2_lerp(kinematic.velocity, direction_normalized * kinematic.speed_modified, step_seconds * K);
-		motion.last_position = motion.position;
 		motion.position += kinematic.velocity * step_seconds;
 	}
 
@@ -113,7 +93,7 @@ void PhysicsSystem::step(float elapsed_ms)
 			Collidable& collidable_j = collidable_container.components[j];
 			Motion& motion_j = motion_container.get(entity_j);
 
-			if (collides_AABB2(motion_i, motion_j, collidable_i, collidable_j))
+			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
 			{
 				// Create a collisions event
 				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
@@ -136,7 +116,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity& entity_j : registry.players.entities) {
 			Collidable& collidable_j = registry.collidables.get(entity_j);
 			Motion& motion_j = registry.motions.get(entity_j);
-			if (collides_AABB2(motion_i, motion_j, collidable_i, collidable_j))
+			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
 			{
 				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
 				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
@@ -147,7 +127,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity& entity_j : registry.deadlys.entities) {
 			Collidable& collidable_j = registry.collidables.get(entity_j);
 			Motion& motion_j = registry.motions.get(entity_j);
-			if (collides_AABB2(motion_i, motion_j, collidable_i, collidable_j))
+			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
 			{
 				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
 				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
@@ -158,7 +138,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity& entity_j : registry.playerBullets.entities) {
 			Collidable& collidable_j = registry.collidables.get(entity_j);
 			Motion& motion_j = registry.motions.get(entity_j);
-			if (collides_AABB2(motion_i, motion_j, collidable_i, collidable_j))
+			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
 			{
 				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
 				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
@@ -169,7 +149,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity& entity_j : registry.enemyBullets.entities) {
 			Collidable& collidable_j = registry.collidables.get(entity_j);
 			Motion& motion_j = registry.motions.get(entity_j);
-			if (collides_AABB2(motion_i, motion_j, collidable_i, collidable_j))
+			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
 			{
 				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
 				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
@@ -178,5 +158,16 @@ void PhysicsSystem::step(float elapsed_ms)
 	}
 
 	// Other collisions here
+
+	// Visualize bounding boxes
+	if (debugging.in_debug_mode) {
+		for (Entity& entity : registry.collidables.entities) {
+			Motion& motion = registry.motions.get(entity);
+			Collidable& collidable = registry.collidables.get(entity);
+			const vec2 bounding_box = abs(collidable.size);
+			const vec2 box_center = motion.position + collidable.shift;
+			createLine(box_center, bounding_box);
+		}
+	}
 }
 
