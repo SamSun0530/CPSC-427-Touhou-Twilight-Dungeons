@@ -17,6 +17,7 @@ public:
 	ComponentContainer<Player> players;
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
+	ComponentContainer<RenderRequest> renderRequestsForeground;
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<Pickupable> pickupables;
 	ComponentContainer<Deadly> deadlys;
@@ -47,6 +48,7 @@ public:
 		registry_list.push_back(&players);
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
+		registry_list.push_back(&renderRequestsForeground);
 		registry_list.push_back(&screenStates);
 		registry_list.push_back(&pickupables);
 		registry_list.push_back(&deadlys);

@@ -28,7 +28,7 @@ void AISystem::step(float elapsed_ms)
 		aitimer.update_timer_ms = aitimer.update_timer_ms < elapsed_ms ? 0.f : aitimer.update_timer_ms - elapsed_ms;
 		if (aitimer.update_timer_ms <= 0) {
 			if (registry.deadlys.has(entity)) {
-				ghost.update(entity);
+				bee_tree.update(entity);
 			}
 			aitimer.update_timer_ms = aitimer.update_base;
 		}

@@ -269,7 +269,7 @@ void AISystem::init() {
 	*			F -> move closer and stop at distance
 	*			T -> stop and shoot
 	*/
-	this->ghost.setRoot(is_in_range);
+	this->bee_tree.setRoot(is_in_range);
 
 	// TODO: create decision trees/condition/action functions here for different enemies
 }

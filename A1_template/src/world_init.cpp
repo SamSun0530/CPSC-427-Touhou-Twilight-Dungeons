@@ -222,6 +222,18 @@ std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vect
 		motion.position = position;
 		motion.scale = vec2(world_tile_size, world_tile_size);
 
+		// TODO: remove this, used for testing ai can see player
+		if (textureIDs[i] == TEXTURE_ASSET_ID::PILLAR_TOP) {
+			registry.floors.emplace(entity);
+			registry.renderRequestsForeground.insert(
+				entity,
+				{ textureIDs[i],
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+			entities.push_back(entity);
+			continue;
+		}
+
 		// Create and (empty) Tile component to be able to refer to all decoration tiles
 		registry.floors.emplace(entity);
 		registry.renderRequests.insert( // TODO Change to ground texture
@@ -255,7 +267,7 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 		if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_WALL) {
 			collidable.size = { motion.scale.x / 2, motion.scale.y };
 			collidable.shift = { -motion.scale.x / 4, 0 };
-		} 
+		}
 		else if (textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_WALL) {
 			collidable.size = { motion.scale.x / 2, motion.scale.y };
 			collidable.shift = { motion.scale.x / 4, 0 };
@@ -268,19 +280,25 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 			collidable.size = { motion.scale.x, motion.scale.y / 2 };
 			collidable.shift = { 0, -motion.scale.y / 4 };
 		}
-		else {
-			// Temporary
-			// TODO: Maybe change/refactor this since it's adding floors when its in createWall
-			registry.collidables.remove(entity);
-			registry.floors.emplace(entity);
-			registry.renderRequests.insert(
-				entity,
-				{ textureIDs[i],
-				 EFFECT_ASSET_ID::TEXTURED,
-				 GEOMETRY_BUFFER_ID::SPRITE });
-			entities.push_back(entity);
-			continue;
-		}
+		else
+			// TODO: remove this, used for testing ai can see player
+			if (textureIDs[i] == TEXTURE_ASSET_ID::PILLAR_BOTTOM) {
+				collidable.size = { motion.scale.x, motion.scale.y / 2 };
+				collidable.shift = { 0, -motion.scale.y / 4 };
+			}
+			else {
+				// Temporary
+				// TODO: Maybe change/refactor this since it's adding floors when its in createWall
+				registry.collidables.remove(entity);
+				registry.floors.emplace(entity);
+				registry.renderRequests.insert(
+					entity,
+					{ textureIDs[i],
+					 EFFECT_ASSET_ID::TEXTURED,
+					 GEOMETRY_BUFFER_ID::SPRITE });
+				entities.push_back(entity);
+				continue;
+			}
 
 		// Create and (empty) Tile component to be able to refer to all physical tiles
 		registry.walls.emplace(entity);
