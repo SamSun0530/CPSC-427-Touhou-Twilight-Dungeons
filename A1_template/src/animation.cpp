@@ -56,6 +56,7 @@ void Animation::step(float elapsed_ms)
 		player_motion = motion;
 	}
 	for (Entity& enemy : registry.deadlys.entities) {
+		if (!registry.animation.has(enemy)) continue; // TODO: Since not every deadly will have an animation yetnotep
 		EntityAnimation& enemy_ani = registry.animation.get(enemy);
 		Motion& enemy_motion = registry.motions.get(enemy);
 		float x = player_motion.position.x - enemy_motion.position.x;
