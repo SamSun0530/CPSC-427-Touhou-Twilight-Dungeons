@@ -1,26 +1,27 @@
 #version 330
 
-// From Vertex Shader
-in vec3 vcolor;
-in vec2 vpos; // Distance from local origin
+// From vertex shader
+in vec2 texcoord;
 
 // Application data
 uniform sampler2D sampler0;
 uniform vec3 fcolor;
-uniform int light_up;
+uniform vec2 end_pos;
+uniform vec2 scale;
 
 // Output color
-layout(location = 0) out vec4 color;
+layout(location = 0) out  vec4 color;
 
 void main()
 {
-	color = vec4(fcolor * vcolor, 1.0);
 
-	// Chicken mesh is contained in a 1x1 square
-	float radius = distance(vec2(0.0), vpos);
-	if (light_up == 1 && radius < 0.3)
-	{
-		// 0.8 is just to make it not too strong
-		color.xyz += (0.3 - radius) * 0.8 * vec3(1.0, 1.0, 0.0);
-	}
+    // Calculate offset based on the desired range
+    float offsetX = end_pos.x-scale.x;
+    float offsetY = end_pos.y-scale.y;
+
+    // Apply scale and offset to texture coordinates
+    vec2 constrainedTexcoord = vec2(texcoord.x * scale.x + offsetX, texcoord.y * scale.y + offsetY);
+
+    // Sample the texture with constrained coordinates
+    color = vec4(fcolor, 1.0) * texture(sampler0, constrainedTexcoord);
 }

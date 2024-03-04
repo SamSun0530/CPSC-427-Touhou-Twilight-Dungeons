@@ -47,6 +47,8 @@ public:
 	// Checks whether the position is inside the camera screen view
 	// Used for optimizing rendering by rendering only entities inside of the screen
 	bool isInCameraView(vec2 position);
+	// Set camera's AABB used to cull entities with render request outside of screen
+	void setCameraAABB();
 
 	mat3 createViewMatrix();
 	void print(); // for debugging
