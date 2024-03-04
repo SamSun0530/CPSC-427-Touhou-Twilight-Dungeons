@@ -37,7 +37,7 @@ struct IdleMoveAction {
 	State state = State::IDLE;
 	float timer_ms = 5000;
 	float idle_ms = 5000;
-	float moving_ms = 1000;
+	float moving_ms = 1500;
 };
 
 struct Deadly

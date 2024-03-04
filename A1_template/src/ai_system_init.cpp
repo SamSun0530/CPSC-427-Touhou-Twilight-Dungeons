@@ -84,13 +84,13 @@ float astar_heuristic(coord n, coord goal) {
 std::vector<std::pair<float, coord>> astar_actioncosts() {
 	return (std::vector<std::pair<float, coord>>{
 		std::make_pair(1.f, vec2(0, -1)), // UP
-		std::make_pair(1.f, vec2(0, 1)), // DOWN
-		std::make_pair(1.f, vec2(-1, 0)), // LEFT
-		std::make_pair(1.f, vec2(1, 0)), // RIGHT
-		std::make_pair(1.4f, vec2(-1, -1)), // UP LEFT
-		std::make_pair(1.4f, vec2(1, -1)), // UP RIGHT
-		std::make_pair(1.4f, vec2(-1, 1)), // DOWN LEFT
-		std::make_pair(1.4f, vec2(1, 1)), // DOWN RIGHT
+			std::make_pair(1.f, vec2(0, 1)), // DOWN
+			std::make_pair(1.f, vec2(-1, 0)), // LEFT
+			std::make_pair(1.f, vec2(1, 0)), // RIGHT
+			std::make_pair(1.4f, vec2(-1, -1)), // UP LEFT
+			std::make_pair(1.4f, vec2(1, -1)), // UP RIGHT
+			std::make_pair(1.4f, vec2(-1, 1)), // DOWN LEFT
+			std::make_pair(1.4f, vec2(1, 1)), // DOWN RIGHT
 	});
 }
 
@@ -124,7 +124,6 @@ struct GScore
 // Note: parameter coords are in grid coordinates NOT screen coordinates
 // e.g. input (x,y) should be (1,1) on the grid instead of (550.53, -102.33)
 path astar(coord start, coord goal) {
-	//if (!is_valid_cell(start.x, start.y) || !is_valid_cell(goal.x, goal.y)) return path();
 	std::priority_queue<std::pair<float, coord>, std::vector<std::pair<float, coord>>, CompareGreater> open_list;
 	std::unordered_set<coord> close_list; // visited set
 	std::unordered_map<coord, coord> came_from;
@@ -140,8 +139,8 @@ path astar(coord start, coord goal) {
 		close_list.insert(current.second);
 		for (std::pair<float, coord> actioncost : astar_actioncosts()) {
 			vec2 candidate = current.second + actioncost.second;
-			// we will check 
-			if (close_list.count(candidate) || (candidate != goal && !is_valid_cell(candidate.x, candidate.y))) continue;
+			// bug: we check if goal/player is in a wall as we support wall collision boxes -> results in enemy being stuck when in wall
+			if (close_list.count(candidate) || (WorldSystem::world_map[goal.y][goal.x] != (int)TILE_TYPE::WALL && !is_valid_cell(candidate.x, candidate.y))) continue;
 			// f_value = total_cost + heuristic, therefore total_cost = f_value - heuristic
 			float candidate_g = current.first - astar_heuristic(current.second, goal) + actioncost.first;
 			if (candidate_g < g_score[candidate]) {
@@ -175,7 +174,7 @@ void set_follow_path(Entity& entity, Motion& from, Motion& to) {
 void AISystem::init() {
 	ConditionalNode* can_see_player = new ConditionalNode(canSeePlayer);
 	ConditionalNode* is_in_range = new ConditionalNode([](Entity& entity) {
-		float minimum_range_to_check = 1000000; // sqrt(1000000)=1000 pixels
+		float minimum_range_to_check = 490000; // sqrt(490000)=700 pixels
 		Motion& motion = registry.motions.get(entity);
 		// asusme there is only one player
 		for (Entity& player_entity : registry.players.entities) {
@@ -183,7 +182,14 @@ void AISystem::init() {
 			vec2 dp = player_motion.position - motion.position;
 			if (dot(dp, dp) < minimum_range_to_check) return true;
 		}
+		registry.followpaths.remove(entity);
 		return false;
+		});
+	ConditionalNode* can_shoot = new ConditionalNode([](Entity& entity) {
+		BulletFireRate& firerate = registry.bulletFireRates.get(entity);
+		float current_time = glfwGetTime();
+		BulletFireRate& fireRate = registry.bulletFireRates.get(entity);
+		return current_time - fireRate.last_time >= fireRate.fire_rate;
 		});
 
 	ActionNode* do_nothing = new ActionNode([](Entity& entity) {});
@@ -212,15 +218,16 @@ void AISystem::init() {
 			}
 		}
 		});
-	ActionNode* stop_firing = new ActionNode([](Entity& entity) { registry.bulletFireRates.get(entity).is_firing = false; });
+	ActionNode* stop_firing = new ActionNode([](Entity& entity) {
+		registry.bulletFireRates.get(entity).is_firing = false;
+		});
 	ActionNode* fire_at_player = new ActionNode([](Entity& entity) {
-		float current_time = glfwGetTime();
-		BulletFireRate& fireRate = registry.bulletFireRates.get(entity);
-		if (current_time - fireRate.last_time >= fireRate.fire_rate) {
-			fireRate.is_firing = true;
-		}
+		registry.bulletFireRates.get(entity).is_firing = true;
+		registry.kinematics.get(entity).direction = { 0, 0 };
+		registry.followpaths.remove(entity);
 		});
 	ActionNode* find_player = new ActionNode([](Entity& entity) {
+		registry.bulletFireRates.get(entity).is_firing = false;
 		Entity& player = registry.players.entities[0];
 		Motion& player_motion = registry.motions.get(player);
 		Motion& entity_motion = registry.motions.get(entity);
@@ -231,21 +238,38 @@ void AISystem::init() {
 		Entity& player = registry.players.entities[0];
 		Motion& player_motion = registry.motions.get(player);
 		Motion& entity_motion = registry.motions.get(entity);
-		float minimum_range_to_check = 160000; // sqrt(160000)=400 pixels
+		float minimum_range_to_check = 90000; // sqrt(160000)=300 pixels
 		vec2 dp = player_motion.position - entity_motion.position;
 		if (dot(dp, dp) > minimum_range_to_check) {
 			set_follow_path(entity, entity_motion, player_motion);
 		}
+		else {
+			registry.kinematics.get(entity).direction = { 0, 0 };
+			registry.followpaths.remove(entity);
+		}
 		});
 
-	//is_near_player->setTrue(fire_at_player);
-	//is_near_player->setFalse(stop_firing);
+	can_shoot->setTrue(fire_at_player);
+	can_shoot->setFalse(find_player_threshold);
 
-	//can_see_player->setFalse(cant_see_player);
-	//can_see_player->setTrue(is_near_player);
-
-	can_see_player->setTrue(find_player);
+	can_see_player->setTrue(can_shoot);
 	can_see_player->setFalse(find_player);
 
-	this->ghost.setRoot(can_see_player);
+	is_in_range->setTrue(can_see_player);
+	is_in_range->setFalse(move_random_direction);
+
+	/*
+	* Sample enemy decision tree
+	*	COND in range global?F -> move random idle
+	*	T -> can see player?
+	*	COND can see player?
+	*		F -> find player with a star
+	*		T -> can shoot?
+	*		COND can shoot?
+	*			F -> move closer and stop at distance
+	*			T -> stop and shoot
+	*/
+	this->ghost.setRoot(is_in_range);
+
+	// TODO: create decision trees/condition/action functions here for different enemies
 }
