@@ -5,8 +5,8 @@
 #include "render_system.hpp"
 
 // These are ahrd coded to the dimensions of the entity texture
-const float BULLET_BB_WIDTH = 1.0f * 30.f;
-const float BULLET_BB_HEIGHT = 1.0f * 30.f;
+const float BULLET_BB_WIDTH = 1.0f * 27.f;
+const float BULLET_BB_HEIGHT = 1.0f * 27.f;
 const float PLAYER_BB_WIDTH = 0.5f * 128.f;
 const float PLAYER_BB_HEIGHT = 0.5f * 128.f;
 const float ENEMY_BB_WIDTH = 1.f * 80.f;

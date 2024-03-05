@@ -17,7 +17,7 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	motion.angle = rotation_angle;
 	motion.position = entity_position; // bullet spawns from entity's center position
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 200.f;
