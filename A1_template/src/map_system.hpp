@@ -8,6 +8,13 @@
 #include "common.hpp"
 #include "physics_system.hpp"
 
+struct Room{
+    int id;
+    int x;
+    int y;
+    std::vector<std::vector<int>> grid;
+};
+
 struct roomNode{
     Entity room;
     std::vector<roomNode*> neighbors;
@@ -37,6 +44,8 @@ struct Triangle{
     Circle circumcircle;
 };
 
+static int room_id = 0;
+
 class MapSystem{
 private:
     //bar
@@ -64,7 +73,9 @@ private:
     std::normal_distribution<float>  normal_dist{mean,standard_deviation};
 public:
     MapSystem();
+	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
     void generateMap(int floor);
+    void generateBasicMap();
     void debug();
     //foo
 };

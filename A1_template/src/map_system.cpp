@@ -4,16 +4,47 @@
 #include "map_system.hpp"
 #include "map_system.hpp"
 #include "world_init.hpp"
+#include "common.hpp"
 #include <iostream>
 
 const vec2 small_world_map_size = {500,500};
 const vec2 med_world_map_size = {1000,1000};
 const vec2 large_world_map_size = {2000,2000};
+int room_size = 11;
 
 
 MapSystem::MapSystem() {
     // Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
+}
+
+Room generateBasicRoom(int x, int y);
+void addRoomToMap(const Room& room, std::vector<std::vector<int>>& map);
+void addHallwayBetweenRoom(const Room& room1, const Room& room2, std::vector<std::vector<int>>& map);
+void MapSystem::generateBasicMap() {
+    
+     std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
+     std::vector<Room> rooms;
+     rooms.push_back(generateBasicRoom(0,0));
+     rooms.push_back(generateBasicRoom(room_size+5,0));
+     rooms.push_back(generateBasicRoom(2*(room_size+5),0));
+     rooms.push_back(generateBasicRoom(0,room_size+5));
+     rooms.push_back(generateBasicRoom(room_size+5,room_size+5));
+     rooms.push_back(generateBasicRoom(2*(room_size+5),room_size+5));
+
+     for(Room room : rooms) {
+        addRoomToMap(room, map);
+     }
+
+         // Print the initialized array
+        for (int i = 0; i < map.size(); ++i) {
+            for (int j = 0; j < map[i].size(); ++j) {
+                std::cout << map[i][j] << " ";
+            }
+            std::cout << std::endl;
+        }
+    
+    world_map = map;
 }
 
 void MapSystem::generateMap(int floor) {
@@ -121,7 +152,6 @@ void MapSystem::generateMap(int floor) {
     // creates entities and textures from the map
 
     //Triangulation: https://www.gorillasun.de/blog/bowyer-watson-algorithm-for-delaunay-triangulation/
-    int i = 0;
 }
 
 void MapSystem::debug() {
@@ -242,6 +272,54 @@ Circle calcCircumCircle(Vertex v1, Vertex v2, Vertex v3) {
 
     return {vec2(circumcenterX,circumcenterY), radius};
 }
-// std::vector<Edge> uniqueEdges() {
 
-// }
+Room generateBasicRoom(int x, int y) {
+    Room room;
+    room.id = room_id++; // Increments room id after assignment
+    room.x = x;
+    room.y = y;
+    
+    std::vector<std::vector<int>> grid = {
+        {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+        {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+        {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+        {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+        {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+        {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+        {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+        {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+        {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+        {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+        {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+    };
+    room.grid = grid;
+    return room;
+}
+
+void addRoomToMap(const Room& room, std::vector<std::vector<int>>& map) {
+    int room_height = room.grid.size();
+    for(int row = room.y; row < room_height+ room.y; row++) {
+        int room_width = room.grid[row-room.y].size();
+        for(int col = room.x; col < room_width + room.x; col++) {
+            // int max = room.grid[row-room.y].size() + room.x;
+            // int shiftedY = row-room.y;
+            // int shiftedX = col-room.x;
+            // int roomVal = room.grid[row-room.y][col-room.x];
+
+            map[row][col] = room.grid[row-room.y][col-room.x];
+        }
+    }
+}
+
+void addHallwayBetweenRoom(const Room& room1, const Room& room2, std::vector<std::vector<int>>& map) {
+    int room1_half_height = room1.grid.size() >> 1;
+    int room1_half_width =  room1.grid[0].size() >> 1;
+
+    int room2_half_height = room2.grid.size() >> 1;
+    int room2_half_width =  room2.grid[0].size() >> 1;
+
+    vec2 midpoint1 = vec2(room2_half_height + room1.x, room1_half_height + room1.y);
+    vec2 midpoint2 = vec2(room2.grid.size() >> 1 + room2.x, room2.grid[0].size() >> 1 + room2.y);
+
+
+}

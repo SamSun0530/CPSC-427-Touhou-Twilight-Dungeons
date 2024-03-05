@@ -311,6 +311,7 @@ void WorldSystem::restart_game() {
 				}
 				else {
 					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
+					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
 				}
 			}
 

@@ -44,7 +44,7 @@ int main()
 	renderer.init(window);
 	world.init(&renderer, &audio, &map);
 	bullets.init(&renderer, window, &audio);
-	map.generateMap(1);
+	map.generateBasicMap();
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -63,7 +63,7 @@ int main()
 		ai.step(elapsed_ms);
 		bullets.step(elapsed_ms);
 		world.handle_collisions();
-		map.debug(); // Just to visualize the map
+		// map.debug(); // Just to visualize the map
 		renderer.draw();
 	}
 
