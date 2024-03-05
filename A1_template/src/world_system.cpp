@@ -123,6 +123,7 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
 
+	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
 	world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
 
@@ -134,15 +135,16 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio) {
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Calculate FPS
 	glm::mat4 trans = glm::mat4(1.0f);
+	renderer->renderText("Test", 0.0f, 0.0f, 1.0f, glm::vec3(1.0, 1.0, 1.0), trans);
 
-	fps = static_cast<int>(1000.0f / elapsed_ms_since_last_update);
+	/*fps = static_cast<int>(1000.0f / elapsed_ms_since_last_update);
 	if (show_fps) {
 		glm::mat4 trans = glm::mat4(1.0f);
 		std::stringstream fpsText;
 		fpsText << "FPS: " << fps;
 		renderer->renderText(fpsText.str(), 0, 0, 10, {0,0,0}, trans);
 		std::cout << "show_fps"  << std::endl;
-	}
+	}*/
 
 	// Updating window title with points
 	std::stringstream title_ss;

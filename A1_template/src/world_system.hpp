@@ -68,6 +68,13 @@ private:
 	RenderSystem* renderer;
 	float next_enemy_spawn;
 	Audio* audio;
+	int fps;
+	bool show_fps = false;
+	bool display_instruction = false;
+
+	// fonts seting
+	std::string font_filename = "..//..//..//data//fonts//Kenney_Mini_Square.ttf";
+	unsigned int font_default_size = 30;
 
 	// Player state
 	Entity player;
@@ -80,9 +87,6 @@ private:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
-	int fps;
-	bool show_fps = false;
-	bool display_instruction = false;
 
 	//struct Character {
 	//	unsigned int TextureID;  // ID handle of the glyph texture
