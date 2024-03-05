@@ -12,10 +12,17 @@ const vec2 med_world_map_size = {1000,1000};
 const vec2 large_world_map_size = {2000,2000};
 int room_size = 11;
 
+// Static map var
+std::vector<std::vector<int>> MapSystem::world_map;
+
 
 MapSystem::MapSystem() {
     // Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
+}
+
+void MapSystem::init(RenderSystem* renderer_arg) {
+	this->renderer = renderer_arg;
 }
 
 Room generateBasicRoom(int x, int y);
@@ -51,7 +58,8 @@ void MapSystem::generateBasicMap() {
     //     std::cout << std::endl;
     // }
 
-    
+    MapSystem::generateAllEntityTiles(map);
+
     world_map = map;
 }
 
@@ -347,6 +355,38 @@ void addHallwayBetweenRoom(const Room& room1, const Room& room2, std::vector<std
             map[room1.y+room1_half_height][x] = 1; // Set floor tile
             map[room1.y+room1_half_height+1][x] = 2; // Set hallway right wall tile
             map[room1.y+room1_half_height-1][x] = 2; // Set hallway left wall tile
+        }
+    }
+}
+
+void MapSystem::addTile(int x, int y, std::vector<TEXTURE_ASSET_ID>& textureIDs, std::vector<std::vector<int>>& map) {
+
+    // Sets the center of the map to 0,0
+    // Comment out to center on top left
+    // int xPos = (x - (map[0].size() >> 1)) * world_tile_size;
+    // int yPos = (y - (map.size() >> 1)) * world_tile_size;
+    int xPos = x;
+    int yPos = y;
+    switch (map[y][x])
+    {
+    case (int)TILE_TYPE::WALL:
+        // textureIDs.push_back(TEXTURE_ASSET_ID::WALL_EDGE);
+        // createPhysTile(renderer, { xPos,yPos }, textureIDs);
+        break;
+    case (int)TILE_TYPE::FLOOR:
+        // textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
+        // createDecoTile(renderer, { xPos,yPos }, textureIDs);
+        break;
+    default:
+        break;
+    }
+}
+
+void MapSystem::generateAllEntityTiles(std::vector<std::vector<int>>& map) {
+    for(int row = 0; row < map.size(); row++) {
+        for( int col = 0; col < map[row].size(); col++) {
+			std::vector<TEXTURE_ASSET_ID> textureIDs;
+            MapSystem::addTile(row, col, textureIDs, map);
         }
     }
 }

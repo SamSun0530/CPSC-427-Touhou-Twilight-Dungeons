@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "tiny_ecs_registry.hpp"
+#include "render_system.hpp"
 #include "common.hpp"
 #include "physics_system.hpp"
 
@@ -52,13 +53,16 @@ private:
     const float mean = 5.0f;
     const float standard_deviation = 3.0f;
 
+    // game systems
+	RenderSystem* renderer;
+
     vec2 getRandomPointInCircle(int radius);
     vec2 getUniformRectangleDimentions(vec2 widthRange, vec2 heightRange);
     vec2 roundToTileSizeVec2(vec2 input, float tileSize);
+    void addTile(int x, int y, std::vector<TEXTURE_ASSET_ID>& textureIDs, std::vector<std::vector<int>>& map);
+    void generateAllEntityTiles(std::vector<std::vector<int>>& map);
 
     static std::vector<Entity> rooms;
-
-
 
     std::vector<Vertex*> verticies;
     std::vector<Edge*> edges;
@@ -73,7 +77,8 @@ private:
     std::normal_distribution<float>  normal_dist{mean,standard_deviation};
 public:
     MapSystem();
-	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
+    void init(RenderSystem* renderer);
+	static std::vector<std::vector<int>> world_map; // world_map[Row][Col]
     void generateMap(int floor);
     void generateBasicMap();
     void debug();

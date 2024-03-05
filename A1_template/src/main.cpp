@@ -44,6 +44,7 @@ int main()
 	renderer.init(window);
 	world.init(&renderer, &audio, &map);
 	bullets.init(&renderer, window, &audio);
+	map.init(&renderer);
 	map.generateBasicMap();
 
 	// variable timestep loop
