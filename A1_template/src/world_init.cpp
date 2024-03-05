@@ -178,7 +178,7 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = abs(motion.scale);
+	collidable.size = abs(motion.scale / 2.f);
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
@@ -231,7 +231,7 @@ Entity createBomberEnemy(RenderSystem* renderer, vec2 position)
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = motion.scale;
+	collidable.size = motion.scale / 2.f;
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
@@ -285,7 +285,7 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = motion.scale;
+	collidable.size = motion.scale / 2.f;
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
