@@ -36,13 +36,21 @@ void MapSystem::generateBasicMap() {
         addRoomToMap(room, map);
      }
 
-         // Print the initialized array
-        for (int i = 0; i < map.size(); ++i) {
-            for (int j = 0; j < map[i].size(); ++j) {
-                std::cout << map[i][j] << " ";
-            }
-            std::cout << std::endl;
-        }
+    addHallwayBetweenRoom(rooms[0], rooms[3], map);
+    addHallwayBetweenRoom(rooms[0], rooms[1], map);
+    addHallwayBetweenRoom(rooms[1], rooms[2], map);
+    addHallwayBetweenRoom(rooms[2], rooms[3], map);
+    addHallwayBetweenRoom(rooms[2],rooms[5], map);
+    addHallwayBetweenRoom(rooms[4],rooms[5], map);
+
+    // // Print the initialized array
+    // for (int i = 0; i < map.size(); ++i) {
+    //     for (int j = 0; j < map[i].size(); ++j) {
+    //         std::cout << map[i][j] << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+
     
     world_map = map;
 }
@@ -318,8 +326,27 @@ void addHallwayBetweenRoom(const Room& room1, const Room& room2, std::vector<std
     int room2_half_height = room2.grid.size() >> 1;
     int room2_half_width =  room2.grid[0].size() >> 1;
 
-    vec2 midpoint1 = vec2(room2_half_height + room1.x, room1_half_height + room1.y);
-    vec2 midpoint2 = vec2(room2.grid.size() >> 1 + room2.x, room2.grid[0].size() >> 1 + room2.y);
+    vec2 midpoint1 = vec2(room2_half_width + room1.x, room1_half_height + room1.y);
+    vec2 midpoint2 = vec2(room2_half_width + room2.x, room2_half_height + room2.y);
 
+    if(room1.x == room2.x) { // 2 Rooms on top of each other
+        int minY = (min(room1.y, room2.y) == room1.y) ? midpoint1.y+room1_half_height : midpoint2.y+room2_half_height;
+        int maxY = (max(room1.y, room2.y) == room1.y) ? midpoint1.y-room1_half_height : midpoint2.y-room2_half_height;
 
+        for(int y = minY; y <= maxY; ++y) {
+            map[y][room1.x+room1_half_width] = 1; // Set floor tile
+            map[y][room1.x+room1_half_width+1] = 2; // Set hallway right wall tile
+            map[y][room1.x+room1_half_width-1] = 2; // Set hallway left wall tile
+        }
+    }
+    else if(room1.y == room2.y) { // 2 Rooms on horizontal of each other
+        int minX = (min(room1.x, room2.x) == room1.x) ? midpoint1.x+room1_half_width : midpoint2.x+room2_half_width;
+        int maxX = (max(room1.x, room2.x) == room1.x) ? midpoint1.x-room1_half_width : midpoint2.x-room2_half_width;
+
+        for(int x = minX; x <= maxX; ++x) {
+            map[room1.y+room1_half_height][x] = 1; // Set floor tile
+            map[room1.y+room1_half_height+1][x] = 2; // Set hallway right wall tile
+            map[room1.y+room1_half_height-1][x] = 2; // Set hallway left wall tile
+        }
+    }
 }
