@@ -37,6 +37,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
 
 	// Setting vertex and index buffers
+	glBindVertexArray(getDummyVAO());
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	gl_has_errors();
@@ -158,6 +159,7 @@ void RenderSystem::drawToScreen()
 	glDisable(GL_DEPTH_TEST);
 
 	// Draw the screen texture on the quad geometry
+	glBindVertexArray(getDummyVAO());
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
 	glBindBuffer(
 		GL_ELEMENT_ARRAY_BUFFER,
@@ -196,11 +198,13 @@ void RenderSystem::drawToScreen()
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
 void RenderSystem::draw()
 {
+	gl_has_errors();
 	// Getting size of window
 	int w, h;
 	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
 
 	// First render to the custom framebuffer
+	gl_has_errors();
 	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 	gl_has_errors();
 	// Clearing backbuffer
@@ -244,6 +248,8 @@ void RenderSystem::draw()
 	}
 
 
+	// Render one line of text on screen
+	renderText("Test", 0.0f, 0.0f, 1.0f, glm::vec3(1.0, 1.0, 1.0), trans);
 	// Truely render to the screen
 	drawToScreen();
 

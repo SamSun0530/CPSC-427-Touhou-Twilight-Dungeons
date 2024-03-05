@@ -288,11 +288,34 @@ bool RenderSystem::initScreenTexture()
 // Font initiation
 // This is adapted from lecture material (Wednesday Feb 28th 2024)
 bool RenderSystem::initFont(GLFWwindow* window, const std::string& font_filename, unsigned int font_default_size) {
-	std::string vs_path = shader_path("font.vs.glsl");
-	std::string fs_path = shader_path("font.fs.glsl");
+	// font buffer setup
 	glGenVertexArrays(1, &m_font_VAO);
 	glGenBuffers(1, &m_font_VBO);
-	loadEffectFromFile(vs_path, fs_path, m_font_shaderProgram);
+
+	// font vertex shader
+	unsigned int font_vertexShader;
+	font_vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(font_vertexShader, 1, &fontVertexShaderSource, NULL);
+	glCompileShader(font_vertexShader);
+
+	// font fragement shader
+	unsigned int font_fragmentShader;
+	font_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(font_fragmentShader, 1, &fontFragmentShaderSource, NULL);
+	glCompileShader(font_fragmentShader);
+
+	// font shader program
+	m_font_shaderProgram = glCreateProgram();
+	glAttachShader(m_font_shaderProgram, font_vertexShader);
+	glAttachShader(m_font_shaderProgram, font_fragmentShader);
+	glLinkProgram(m_font_shaderProgram);
+
+	// clean up shaders
+	glDeleteShader(font_vertexShader);
+	glDeleteShader(font_fragmentShader);
+
+	// use our new shader
+	glUseProgram(m_font_shaderProgram);
 
 	// apply projection matrix for font
 	glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(window_width_px), 0.0f, static_cast<float>(window_height_px));
@@ -383,6 +406,7 @@ bool RenderSystem::initFont(GLFWwindow* window, const std::string& font_filename
 	// release buffers
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
 	return true;
 }
 
@@ -435,6 +459,7 @@ bool loadEffectFromFile(
 
 	GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertex, 1, &vs_src, &vs_len);
+	gl_has_errors();
 	GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragment, 1, &fs_src, &fs_len);
 	gl_has_errors();
@@ -455,18 +480,23 @@ bool loadEffectFromFile(
 
 	// Linking
 	out_program = glCreateProgram();
+	gl_has_errors();
 	glAttachShader(out_program, vertex);
+	gl_has_errors();
 	glAttachShader(out_program, fragment);
+	gl_has_errors();
 	glLinkProgram(out_program);
 	gl_has_errors();
 
 	{
 		GLint is_linked = GL_FALSE;
 		glGetProgramiv(out_program, GL_LINK_STATUS, &is_linked);
+		gl_has_errors();
 		if (is_linked == GL_FALSE)
 		{
 			GLint log_len;
 			glGetProgramiv(out_program, GL_INFO_LOG_LENGTH, &log_len);
+			gl_has_errors();
 			std::vector<char> log(log_len);
 			glGetProgramInfoLog(out_program, log_len, &log_len, log.data());
 			gl_has_errors();
@@ -480,8 +510,11 @@ bool loadEffectFromFile(
 	// No need to carry this around. Keeping these objects is only useful if we recycle
 	// the same shaders over and over, which we don't, so no need and this is simpler.
 	glDetachShader(out_program, vertex);
+	gl_has_errors();
 	glDetachShader(out_program, fragment);
+	gl_has_errors();
 	glDeleteShader(vertex);
+	gl_has_errors();
 	glDeleteShader(fragment);
 	gl_has_errors();
 
