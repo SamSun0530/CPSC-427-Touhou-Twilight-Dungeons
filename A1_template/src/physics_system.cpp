@@ -214,7 +214,6 @@ void PhysicsSystem::step(float elapsed_ms)
 			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
 			{
 				if (collides_mesh_AABB(entity_j, motion_j, motion_i, collidable_i)) {
-					std::cout << "colliding" << std::endl;
 					registry.collisions.emplace_with_duplicates(entity_i, entity_j);
 					registry.collisions.emplace_with_duplicates(entity_j, entity_i);
 				}
