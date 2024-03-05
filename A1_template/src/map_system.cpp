@@ -160,48 +160,16 @@ vec2 MapSystem::getRandomPointInCircle(int maxRadius) {
     return output;
 }
 
-// The Main Triangulation method
-std::vector<Triangle> triangulate(std::vector<Vertex> verticies) {
-    // Create bounding super triangle
-    Triangle super_triangle = generateSuperTriangle(verticies);
-
-    // Set the super triangle as the only triangle
-    std::vector<Triangle> triangles;
-    triangles.push_back(super_triangle);
-
-    // Triangulate each vertex
-    for(Vertex vertex: verticies) {
-        triangles = addVertex(vertex, triangles);
-    }
-
+//Triangulation: https://www.gorillasun.de/blog/bowyer-watson-algorithm-for-delaunay-triangulation/
+std::vector<Triangle> addVertex(const Vertex& vertex, std::vector<Triangle>& triangles) {
+    return triangles; // TODO
 }
 
-// Calculates and returns the circumcircle of a triangle represented as 3 verticies
-Circle calcCircumCircle(Vertex v1, Vertex v2, Vertex v3) {
-    // Calculates the midpoints of 2 sides
-    vec2 midPoint1 = {(v1.x + v2.x)/2 , (v1.y + v2.y)/2};
-    vec2 midPoint2 = {(v1.x + v3.x)/2 , (v1.y + v3.y)/2};
-
-    // Calculates the slope of the sides
-    float slope1 = (v2.y - v1.y) / (v2.x - v1.x);
-    float slope2 = (v3.y - v1.y) / (v3.x - v1.x);
-
-    // Calculates the negative reciprical of the slope, the slope of the perpendicular bisector
-    float perpendicular_slope1 = -1.0f / slope1;
-    float perpendicular_slope2 = -1.0f / slope2;
-
-    //Calculates the y-intecept for each bisector
-    float y_intercept1 = midPoint1.y - (perpendicular_slope1 * midPoint1.x);
-    float y_intercept2 = midPoint2.y - (perpendicular_slope2 * midPoint2.x);
-
-    // Calculates the circumcenter coordinates by solving the intersection point of 2 lines
-    float circumcenterX = (y_intercept2 - y_intercept1) / (perpendicular_slope1 - perpendicular_slope2);
-    float circumcenterY = (perpendicular_slope1 * circumcenterX) + y_intercept1;
-
-    // Calculates radius of circumcircle
-    float radius = sqrt(pow(v1.x-circumcenterX,2)+pow(v1.y-circumcenterY,2));
-
-    return {vec2(circumcenterX,circumcenterY), radius};
+bool inCircumCircle(Triangle triangle, Vertex vertex) {
+    vec2 center = triangle.circumcircle.center;
+    vec2 manhatten_distance = center- vec2(vertex.x,vertex.y);
+    float euclidian_distance =  sqrt(dot(manhatten_distance, manhatten_distance));
+    return euclidian_distance < triangle.circumcircle.radius;
 }
 
 //Triangulation: https://www.gorillasun.de/blog/bowyer-watson-algorithm-for-delaunay-triangulation/
@@ -228,16 +196,50 @@ Triangle generateSuperTriangle(std::vector<Vertex> points) {
     return {v0,v1,v2};
 }
 
-//Triangulation: https://www.gorillasun.de/blog/bowyer-watson-algorithm-for-delaunay-triangulation/
-std::vector<Triangle> addVertex(const Vertex& vertex, std::vector<Triangle>& triangles) {
+// The Main Triangulation method
+std::vector<Triangle> triangulate(std::vector<Vertex> verticies) {
+    // Create bounding super triangle
+    Triangle super_triangle = generateSuperTriangle(verticies);
 
+    // Set the super triangle as the only triangle
+    std::vector<Triangle> triangles;
+    triangles.push_back(super_triangle);
+
+    // Triangulate each vertex
+    for(Vertex vertex: verticies) {
+        triangles = addVertex(vertex, triangles);
+    }
+
+    return {};
 }
 
-bool inCircumCircle(Triangle triangle, Vertex vertex) {
-    vec2 center = triangle.circumcircle.center;
-    vec2 manhatten_distance = center- vec2(vertex.x,vertex.y);
-    float euclidian_distance =  sqrt(dot(manhatten_distance, manhatten_distance));
-    return euclidian_distance < triangle.circumcircle.radius;
+// Calculates and returns the circumcircle of a triangle represented as 3 verticies
+Circle calcCircumCircle(Vertex v1, Vertex v2, Vertex v3) {
+
+    // Calculates the midpoints of 2 sides
+    vec2 midPoint1 = {(v1.x + v2.x)/2 , (v1.y + v2.y)/2};
+    vec2 midPoint2 = {(v1.x + v3.x)/2 , (v1.y + v3.y)/2};
+
+    // Calculates the slope of the sides
+    float slope1 = (v2.y - v1.y) / (v2.x - v1.x);
+    float slope2 = (v3.y - v1.y) / (v3.x - v1.x);
+
+    // Calculates the negative reciprical of the slope, the slope of the perpendicular bisector
+    float perpendicular_slope1 = -1.0f / slope1;
+    float perpendicular_slope2 = -1.0f / slope2;
+
+    //Calculates the y-intecept for each bisector
+    float y_intercept1 = midPoint1.y - (perpendicular_slope1 * midPoint1.x);
+    float y_intercept2 = midPoint2.y - (perpendicular_slope2 * midPoint2.x);
+
+    // Calculates the circumcenter coordinates by solving the intersection point of 2 lines
+    float circumcenterX = (y_intercept2 - y_intercept1) / (perpendicular_slope1 - perpendicular_slope2);
+    float circumcenterY = (perpendicular_slope1 * circumcenterX) + y_intercept1;
+
+    // Calculates radius of circumcircle    
+    float radius = sqrt(pow(v1.x-circumcenterX,2)+pow(v1.y-circumcenterY,2));
+
+    return {vec2(circumcenterX,circumcenterY), radius};
 }
 // std::vector<Edge> uniqueEdges() {
 
