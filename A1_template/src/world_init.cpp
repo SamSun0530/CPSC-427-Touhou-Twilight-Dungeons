@@ -252,11 +252,11 @@ Entity createBomberEnemy(RenderSystem* renderer, vec2 position)
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	registry.idleMoveActions.emplace(entity);
-	//BulletFireRate enemy_bullet_rate;
-	//enemy_bullet_rate.fire_rate = 3;
-	//enemy_bullet_rate.is_firing = true;
-	//registry.bulletFireRates.insert(entity, enemy_bullet_rate);
 	registry.colors.insert(entity, { 1,1,1 });
+
+	AiTimer& aitimer = registry.aitimers.emplace(entity);
+	aitimer.update_base = 1000; // updates decision tree every second
+	aitimer.update_timer_ms = 1000;
 
 	return entity;
 }

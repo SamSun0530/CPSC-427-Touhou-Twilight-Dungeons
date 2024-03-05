@@ -172,9 +172,10 @@ void set_follow_path(Entity& entity, Motion& from, Motion& to) {
 }
 
 void AISystem::init() {
-	ConditionalNode* can_see_player = new ConditionalNode(canSeePlayer);
-	ConditionalNode* is_in_range = new ConditionalNode([](Entity& entity) {
-		float minimum_range_to_check = 490000; // sqrt(490000)=700 pixels
+	// A list of function pointers for conditionals and actions
+	// checks if entity is within range of player
+	bool (*isInRange)(Entity & entity) = [](Entity& entity) {
+		float minimum_range_to_check = 360000; // sqrt(360000)=600 pixels
 		Motion& motion = registry.motions.get(entity);
 		// asusme there is only one player
 		for (Entity& player_entity : registry.players.entities) {
@@ -184,16 +185,17 @@ void AISystem::init() {
 		}
 		registry.followpaths.remove(entity);
 		return false;
-		});
-	ConditionalNode* can_shoot = new ConditionalNode([](Entity& entity) {
-		BulletFireRate& firerate = registry.bulletFireRates.get(entity);
+		};
+	// checks if entity can shoot, throws error if entity does not have bulletfirerate component
+	bool (*canShoot)(Entity & entity) = [](Entity& entity) {
 		float current_time = glfwGetTime();
 		BulletFireRate& fireRate = registry.bulletFireRates.get(entity);
 		return current_time - fireRate.last_time >= fireRate.fire_rate;
-		});
-
-	ActionNode* do_nothing = new ActionNode([](Entity& entity) {});
-	ActionNode* move_random_direction = new ActionNode([](Entity& entity) {
+		};
+	// do nothing
+	void (*doNothing)(Entity & entity) = [](Entity& entity) {};
+	// handles random idle movement, if entity do not have idlemoveactions -> do nothing
+	void (*moveRandomDirection)(Entity & entity) = [](Entity& entity) {
 		registry.bulletFireRates.get(entity).is_firing = false; // stop firing
 		if (!registry.idleMoveActions.has(entity)) return;
 		std::random_device ran;
@@ -217,23 +219,27 @@ void AISystem::init() {
 				break;
 			}
 		}
-		});
-	ActionNode* stop_firing = new ActionNode([](Entity& entity) {
+		};
+	// stops entity from firing, throws error if entity does not have bulletfirerate component
+	void (*stopFiring)(Entity & entity) = [](Entity& entity) {
 		registry.bulletFireRates.get(entity).is_firing = false;
-		});
-	ActionNode* fire_at_player = new ActionNode([](Entity& entity) {
+		};
+	// make entity fire at player and stop motion
+	void (*fireAtPlayer)(Entity & entity) = [](Entity& entity) {
 		registry.bulletFireRates.get(entity).is_firing = true;
 		registry.kinematics.get(entity).direction = { 0, 0 };
 		registry.followpaths.remove(entity);
-		});
-	ActionNode* find_player = new ActionNode([](Entity& entity) {
-		registry.bulletFireRates.get(entity).is_firing = false;
+		};
+	// find player with a star and sets followpath component
+	void (*findPlayer)(Entity & entity) = [](Entity& entity) {
+		if (registry.bulletFireRates.has(entity)) registry.bulletFireRates.get(entity).is_firing = false;
 		Entity& player = registry.players.entities[0];
 		Motion& player_motion = registry.motions.get(player);
 		Motion& entity_motion = registry.motions.get(entity);
 		set_follow_path(entity, entity_motion, player_motion);
-		});
-	ActionNode* find_player_threshold = new ActionNode([](Entity& entity) {
+		};
+	// find player with a star only if outside of range, otherwise stop motion
+	void (*findPlayerThreshold)(Entity & entity) = [](Entity& entity) {
 		// does not find player if within a threshold
 		Entity& player = registry.players.entities[0];
 		Motion& player_motion = registry.motions.get(player);
@@ -247,29 +253,51 @@ void AISystem::init() {
 			registry.kinematics.get(entity).direction = { 0, 0 };
 			registry.followpaths.remove(entity);
 		}
-		});
+		};
 
-	can_shoot->setTrue(fire_at_player);
-	can_shoot->setFalse(find_player_threshold);
+	ConditionalNode* can_see_player_bee = new ConditionalNode(canSeePlayer);
+	ConditionalNode* is_in_range_bee = new ConditionalNode(isInRange);
+	ConditionalNode* can_shoot_bee = new ConditionalNode(canShoot);
 
-	can_see_player->setTrue(can_shoot);
-	can_see_player->setFalse(find_player);
+	ActionNode* move_random_direction_bee = new ActionNode(moveRandomDirection);
+	ActionNode* stop_firing_bee = new ActionNode(stopFiring);
+	ActionNode* fire_at_player_bee = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_bee = new ActionNode(findPlayer);
+	ActionNode* find_player_threshold_bee = new ActionNode(findPlayerThreshold);
 
-	is_in_range->setTrue(can_see_player);
-	is_in_range->setFalse(move_random_direction);
+	can_shoot_bee->setTrue(fire_at_player_bee);
+	can_shoot_bee->setFalse(find_player_threshold_bee);
+
+	can_see_player_bee->setTrue(can_shoot_bee);
+	can_see_player_bee->setFalse(find_player_bee);
+
+	is_in_range_bee->setTrue(can_see_player_bee);
+	is_in_range_bee->setFalse(move_random_direction_bee);
 
 	/*
-	* Sample enemy decision tree
-	*	COND in range global?F -> move random idle
-	*	T -> can see player?
-	*	COND can see player?
-	*		F -> find player with a star
-	*		T -> can shoot?
-	*		COND can shoot?
-	*			F -> move closer and stop at distance
-	*			T -> stop and shoot
+	Bee enemy decision tree
+	COND in range global?
+		F -> move random idle
+		T -> can see player?
+		COND can see player?
+			F -> find player with a star
+			T -> can shoot?
+			COND can shoot?
+				F -> move closer and stop at distance
+				T -> stop and shoot
 	*/
-	this->bee_tree.setRoot(is_in_range);
+	this->bee_tree.setRoot(is_in_range_bee);
+
+	/*
+	Bomber enemy decision tree
+	COND in range global?
+		F -> move random idle
+		T -> find player with a star
+	*/
+	ActionNode* move_random_direction_bomber = new ActionNode(moveRandomDirection);
+	ActionNode* find_player_bomber = new ActionNode(findPlayer);
+	ConditionalNode* is_in_range_bomber = new ConditionalNode(find_player_bomber, move_random_direction_bomber, isInRange);
+	this->bomber_tree.setRoot(is_in_range_bomber);
 
 	// TODO: create decision trees/condition/action functions here for different enemies
 }
