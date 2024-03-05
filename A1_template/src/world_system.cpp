@@ -17,6 +17,9 @@ const size_t MAX_COINS = 5;
 const size_t ENEMY_SPAWN_DELAY_MS = 2000 * 3;
 bool is_alive = true;
 
+// TODO: remove this and put into map_system, this is only for testing ai system
+std::vector<std::vector<int>> WorldSystem::world_map = std::vector<std::vector<int>>(world_height, std::vector<int>(world_width, (int)TILE_TYPE::EMPTY));
+
 // Create the world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -42,6 +45,7 @@ namespace {
 		fprintf(stderr, "%d: %s", error, desc);
 	}
 }
+
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
@@ -100,7 +104,7 @@ GLFWwindow* WorldSystem::create_window() {
 	}
 
 	image.pixels = data;
-	GLFWcursor* cursor = glfwCreateCursor(&image, 0, 0);
+	GLFWcursor* cursor = glfwCreateCursor(&image, image.width / 2, image.height / 2);
 	glfwSetCursor(window, cursor);
 	stbi_image_free(data);
 
@@ -118,9 +122,8 @@ GLFWwindow* WorldSystem::create_window() {
 void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
-
 	//Sets the size of the empty world
-	world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
+	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
 
 	// Set all states to default
 	restart_game();
@@ -169,7 +172,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Spawning new enemies
 	next_enemy_spawn -= elapsed_ms_since_last_update;
-	if (registry.deadlys.components.size() <= MAX_ENEMIES && next_enemy_spawn < 0.f) {
+	if (registry.deadlys.components.size() < MAX_ENEMIES && next_enemy_spawn < 0.f) {
 		// Reset timer
 		next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
 		Motion& motion = registry.motions.get(player);
@@ -302,7 +305,14 @@ void WorldSystem::restart_game() {
 	 //Creates 1 room the size of the map
 	for (int row = 0; row < world_map.size(); row++) {
 		for (int col = 0; col < world_map[row].size(); col++) {
-			if (row == 0 || col == 1 || col == 0 || row == world_height - 1 || col == world_width - 1) {
+			// TODO: remove this, used for testing ai can see player
+			// Creates a wall 2 tiles up from origin
+			if (row == world_height / 2 - 2 && col == world_width / 2) {
+				world_map[row][col] = (int)TILE_TYPE::WALL;
+				continue;
+			}
+
+			if (row == 0 || row == 1 || col == 0 || row == world_height - 1 || col == world_width - 1) {
 				world_map[row][col] = (int)TILE_TYPE::WALL;
 			}
 			else {
@@ -340,6 +350,11 @@ void WorldSystem::restart_game() {
 			else if (col == world_width - 1) {
 				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
 			}
+			else 			
+				// TODO: remove this, used for testing ai can see player
+				if (row == world_height / 2 - 2 && col == world_width / 2) {
+					textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
+				}
 			else if (row == 1) {
 				textureIDs.push_back(TEXTURE_ASSET_ID::WALL_SURFACE);
 			}
@@ -354,7 +369,7 @@ void WorldSystem::restart_game() {
 			}
 			int xPos = (col - centerX) * world_tile_size;
 			int yPos = (row - centerY) * world_tile_size;
-			switch (world_map[col][row])
+			switch (world_map[row][col])
 			{
 			case (int)TILE_TYPE::WALL:
 				createWall(renderer, { xPos,yPos }, textureIDs);
@@ -491,12 +506,9 @@ void WorldSystem::handle_collisions() {
 			}
 		}
 	}
-	//std::cout << "collision size before: " << registry.collisions.size() << std::endl;
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
-
-	//std::cout << "collision size after: " << registry.collisions.size() << std::endl;
 }
 
 // Should the game be over ?

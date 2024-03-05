@@ -1,8 +1,4 @@
 #include "world_init.hpp"
-#include "tiny_ecs_registry.hpp"
-#include <glm/trigonometric.hpp>
-#include <iostream>
-
 
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet)
 {
@@ -205,6 +201,8 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 	enemy_bullet_rate.is_firing = true;
 	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
 	registry.colors.insert(entity, { 1,1,1 });
+	
+	registry.aitimers.emplace(entity);
 
 	return entity;
 }

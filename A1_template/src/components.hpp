@@ -37,7 +37,7 @@ struct IdleMoveAction {
 	State state = State::IDLE;
 	float timer_ms = 5000;
 	float idle_ms = 5000;
-	float moving_ms = 1000;
+	float moving_ms = 1500;
 };
 
 enum EnemyType
@@ -139,6 +139,13 @@ struct Collision
 	Collision(Entity& other) { this->other = other; };
 };
 
+// Entity follows given path
+struct FollowPath
+{
+	path path;
+	int next_path_index = 0;
+};
+
 // Data structure for toggling debug mode
 struct Debug {
 	bool in_debug_mode = 0;
@@ -156,6 +163,12 @@ struct ScreenState
 struct DebugComponent
 {
 	// Note, an empty struct has size 1
+};
+
+// Update entity ai behavior tree after update ms
+struct AiTimer {
+	float update_timer_ms = 500;
+	float update_base = 500;
 };
 
 // A timer that will be associated to dying chicken

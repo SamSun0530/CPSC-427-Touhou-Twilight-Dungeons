@@ -39,6 +39,9 @@ public:
 
 	// Should the game be over ?
 	bool is_over()const;
+
+	// World Map
+	static std::vector<std::vector<int>> world_map; // world_map[Row][Col]
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -70,9 +73,6 @@ private:
 	// Player state
 	Entity player;
 	std::vector<Entity> ui;
-
-	// World Map
-	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
 
 	// C++ random number generator
 	std::default_random_engine rng;

@@ -3,6 +3,8 @@
 #include "common.hpp"
 #include "tiny_ecs.hpp"
 #include "render_system.hpp"
+#include "tiny_ecs_registry.hpp"
+#include <glm/trigonometric.hpp>
 
 // These are ahrd coded to the dimensions of the entity texture
 const float BULLET_BB_WIDTH = 1.0f * 27.f;

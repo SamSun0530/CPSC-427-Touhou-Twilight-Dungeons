@@ -33,6 +33,8 @@ public:
 	ComponentContainer<DeathTimer> realDeathTimers;
 	ComponentContainer<Kinematic> kinematics;
 	ComponentContainer<Collidable> collidables;
+	ComponentContainer<AiTimer> aitimers;
+	ComponentContainer<FollowPath> followpaths;
 	ComponentContainer<EntityAnimation> animation;
 	ComponentContainer<BeeEnemy> beeEnemies;
 	ComponentContainer<BomberEnemy> bomberEnemies;
@@ -65,6 +67,8 @@ public:
 		registry_list.push_back(&realDeathTimers);
 		registry_list.push_back(&kinematics);
 		registry_list.push_back(&collidables);
+		registry_list.push_back(&aitimers);
+		registry_list.push_back(&followpaths);
 		registry_list.push_back(&animation);
 		registry_list.push_back(&beeEnemies);
 		registry_list.push_back(&bomberEnemies);
