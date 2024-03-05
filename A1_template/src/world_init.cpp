@@ -54,15 +54,14 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::REIMU_FRONT);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
-	motion.scale = vec2({ -PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
-	motion.scale.x = -motion.scale.x;
+	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 100.f;

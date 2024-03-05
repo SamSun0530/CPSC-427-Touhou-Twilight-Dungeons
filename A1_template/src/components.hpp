@@ -167,7 +167,9 @@ struct Mesh
 	vec2 original_size = {1,1};
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
+	std::vector<vec3> ordered_vertices;
 };
+
 
 // IDs for each tile type
 enum class TILE_TYPE {
@@ -240,12 +242,14 @@ const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 // We won't use geometry as we are mostly using sprites
 enum class GEOMETRY_BUFFER_ID {
-	CHICKEN = 0,
-	SPRITE = CHICKEN + 1,
+	REIMU_FRONT = 0,
+	SPRITE = REIMU_FRONT + 1,
 	EGG = SPRITE + 1,
 	DEBUG_LINE = EGG + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
-	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
+	REIMU_LEFT = SCREEN_TRIANGLE + 1,
+	REIMU_RIGHT = REIMU_LEFT + 1,
+	GEOMETRY_COUNT = REIMU_RIGHT + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

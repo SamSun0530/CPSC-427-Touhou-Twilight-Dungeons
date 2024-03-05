@@ -27,7 +27,9 @@ class RenderSystem {
 	const std::vector < std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths =
 	{
 		// specify meshes of other assets here
-		// e.g. std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::CHICKEN, mesh_path("chicken.obj"))
+		 std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::REIMU_FRONT, mesh_path("Reimu-Mesh-Front.obj")),
+		 std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::REIMU_LEFT, mesh_path("Reimu-Mesh-Left.obj")),
+		 std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::REIMU_RIGHT, mesh_path("Reimu-Mesh-Right.obj"))
 	};
 
 	// Make sure these paths remain in sync with the associated enumerators.
