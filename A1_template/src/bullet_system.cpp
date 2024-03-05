@@ -38,7 +38,7 @@ void BulletSystem::step(float elapsed_ms)
 					createBullet(renderer, kinematic.speed_modified, motion.position, mouse_rotation_angle, last_mouse_position - motion.position, true);
 				}
 
-				else if (registry.basicEnemies.has(entity)) {
+				else if (registry.beeEnemies.has(entity)) {
 					// Spawn enemy bullets here
 					Motion& player_motion = registry.motions.get(player);
 					float x = player_motion.position.x - motion.position.x;
@@ -47,7 +47,7 @@ void BulletSystem::step(float elapsed_ms)
 					createBullet(renderer, kinematic.speed_modified, motion.position, enemy_fire_angle, { x, y });
 				}
 
-				else if (registry.shotgunEnemies.has(entity)) {
+				else if (registry.wolfEnemies.has(entity)) {
 					Motion& player_motion = registry.motions.get(player);
 					float x = player_motion.position.x - motion.position.x;
 					float y = player_motion.position.y - motion.position.y;

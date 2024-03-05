@@ -11,7 +11,7 @@
 #include <iostream>
 
 // Game configuration
-const size_t MAX_ENEMIES = 15;
+const size_t MAX_ENEMIES = 10;
 const size_t MAX_COINS = 5;
 
 const size_t ENEMY_SPAWN_DELAY_MS = 2000 * 3;
@@ -176,19 +176,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Create enemy with random initial position
 		float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
 		float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
-		//createEnemy(renderer, vec2(spawn_x, spawn_y));
-		int spawnRandomNumber = rand() % 100;
-		
-		//if (spawnRandomNumber >= 0 && spawnRandomNumber <= 69) {
-		//	createBasicEnemy(renderer, vec2(spawn_x, spawn_y));
-		//}
-		//else if (spawnRandomNumber >= 70 && spawnRandomNumber <= 89) {
-		//	createShotgunEnemy(renderer, vec2(spawn_x, spawn_y));
-		//}
-		//else if (spawnRandomNumber >= 90 && spawnRandomNumber <= 99) {
-		//	createSuicideEnemy(renderer, vec2(spawn_x, spawn_y));
-		//}
-			createShotgunEnemy(renderer, vec2(spawn_x, spawn_y));
+		std::random_device ran;
+		std::mt19937 gen(ran());
+		std::uniform_real_distribution<> dis(0.0, 1.0);
+		float random_numer = dis(gen);
+		if (random_numer <= 0.33) {
+			createBeeEnemy(renderer, vec2(spawn_x, spawn_y));
+		}
+		else if (random_numer <= 0.66) {
+			createWolfEnemy(renderer, vec2(spawn_x, spawn_y));
+		}
+		else if (random_numer <= 0.99) {
+			createBomberEnemy(renderer, vec2(spawn_x, spawn_y));
+		}
+		//createWolfEnemy(renderer, vec2(spawn_x, spawn_y));
+		//createBomberEnemy(renderer, vec2(spawn_x, spawn_y));
+		//createBeeEnemy(renderer, vec2(spawn_x, spawn_y));
 	}
 
 	// Processing the player state
@@ -397,7 +400,7 @@ void WorldSystem::handle_collisions() {
 						if (registry.deadlys.has(entity_other)) {
 							registry.hps.get(player).curr_hp -= registry.deadlys.get(entity_other).damage;
 
-							if (registry.suicideEnemies.has(entity_other)) {
+							if (registry.bomberEnemies.has(entity_other)) {
 								registry.hps.get(entity_other).curr_hp = 0;
 							}
 						}

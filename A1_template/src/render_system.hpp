@@ -35,6 +35,8 @@ class RenderSystem {
 			textures_path("Reimu-Bullet.png"),
 			textures_path("Bee-Figure.png"),
 			textures_path("Reimu-Figure.png"),
+			textures_path("Wolf-Figure.png"),
+			textures_path("Bomber-Figure.png"),
 			textures_path("Enemy-Bullet.png"),
 			textures_path("NormalTile1.png"),
 			textures_path("NormalTile2.png"),
@@ -53,7 +55,7 @@ class RenderSystem {
 			textures_path("EmptyHeart.png"),
 			textures_path("BottomWall.png"),
 			textures_path("WallEdge.png"),
-			textures_path("WallSurface.png")
+			textures_path("WallSurface.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

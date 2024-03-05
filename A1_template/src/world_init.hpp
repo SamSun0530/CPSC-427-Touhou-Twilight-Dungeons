@@ -24,11 +24,11 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the coin
 Entity createCoin(RenderSystem* renderer, vec2 position);
 // the enemy
-Entity createBasicEnemy(RenderSystem* renderer, vec2 position);
+Entity createBeeEnemy(RenderSystem* renderer, vec2 position);
 // the suicide enemy
-Entity createSuicideEnemy(RenderSystem* renderer, vec2 position);
+Entity createBomberEnemy(RenderSystem* renderer, vec2 position);
 // the shotgun enemy
-Entity createShotgunEnemy(RenderSystem* renderer, vec2 position);
+Entity createWolfEnemy(RenderSystem* renderer, vec2 position);
 // the grenade launcher enemy
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
 // Non interactable tile

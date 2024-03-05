@@ -139,7 +139,7 @@ Entity createCoin(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.position = position;
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 50.f;
@@ -156,7 +156,7 @@ Entity createCoin(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
-Entity createBasicEnemy(RenderSystem* renderer, vec2 position)
+Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 
@@ -169,7 +169,7 @@ Entity createBasicEnemy(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.position = position;
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 100.f;
@@ -188,15 +188,14 @@ Entity createBasicEnemy(RenderSystem* renderer, vec2 position)
 	// Collision damage
 	Deadly& deadly = registry.deadlys.emplace(entity);
 	deadly.damage = 1;
-	
-	registry.basicEnemies.emplace(entity);
+	registry.beeEnemies.emplace(entity);
 	EntityAnimation enemy_ani;
 	enemy_ani.spritesheet_scale = { 0.166, 0.125 };
 	enemy_ani.render_pos = { 0.166, 0.125 };
 	registry.animation.insert(entity, enemy_ani);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::ENEMY,
+		{ TEXTURE_ASSET_ID::ENEMY_BEE,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -210,7 +209,7 @@ Entity createBasicEnemy(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
-Entity createSuicideEnemy(RenderSystem* renderer, vec2 position)
+Entity createBomberEnemy(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 
@@ -223,7 +222,7 @@ Entity createSuicideEnemy(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.position = position;
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 100.f;
@@ -243,10 +242,14 @@ Entity createSuicideEnemy(RenderSystem* renderer, vec2 position)
 	Deadly& deadly = registry.deadlys.emplace(entity);
 	deadly.damage = 2;
 
-	registry.suicideEnemies.emplace(entity);
+	registry.bomberEnemies.emplace(entity);
+	EntityAnimation enemy_ani;
+	enemy_ani.spritesheet_scale = { 1.f / 6.f, 1.f / 11.f };
+	enemy_ani.render_pos = { 1.f / 6.f, 1.f / 11.f };
+	registry.animation.insert(entity, enemy_ani);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::ENEMY,
+		{ TEXTURE_ASSET_ID::ENEMY_BOMBER,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -260,7 +263,7 @@ Entity createSuicideEnemy(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
-Entity createShotgunEnemy(RenderSystem* renderer, vec2 position)
+Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 
@@ -273,7 +276,7 @@ Entity createShotgunEnemy(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.position = position;
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 100.f;
@@ -293,10 +296,14 @@ Entity createShotgunEnemy(RenderSystem* renderer, vec2 position)
 	Deadly& deadly = registry.deadlys.emplace(entity);
 	deadly.damage = 1;
 
-	registry.shotgunEnemies.emplace(entity);
+	registry.wolfEnemies.emplace(entity);
+	EntityAnimation enemy_ani;
+	enemy_ani.spritesheet_scale = { 1.f / 6.f, 1.f / 12.f };
+	enemy_ani.render_pos = { 1.f / 6.f, 5.f / 12.f };
+	registry.animation.insert(entity, enemy_ani);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::ENEMY,
+		{ TEXTURE_ASSET_ID::ENEMY_WOLF,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -323,7 +330,7 @@ Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.position = position;
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 100.f;
@@ -346,7 +353,7 @@ Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position)
 	registry.submachineGunEnemies.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::ENEMY,
+		{ TEXTURE_ASSET_ID::ENEMY_BEE,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -408,7 +415,7 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 		if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_WALL) {
 			collidable.size = { motion.scale.x / 2, motion.scale.y };
 			collidable.shift = { -motion.scale.x / 4, 0 };
-		} 
+		}
 		else if (textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_WALL) {
 			collidable.size = { motion.scale.x / 2, motion.scale.y };
 			collidable.shift = { motion.scale.x / 4, 0 };

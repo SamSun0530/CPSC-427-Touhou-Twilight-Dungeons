@@ -34,9 +34,9 @@ public:
 	ComponentContainer<Kinematic> kinematics;
 	ComponentContainer<Collidable> collidables;
 	ComponentContainer<EntityAnimation> animation;
-	ComponentContainer<BasicEnemy> basicEnemies;
-	ComponentContainer<SuicideEnemy> suicideEnemies;
-	ComponentContainer<ShotgunEnemy> shotgunEnemies;
+	ComponentContainer<BeeEnemy> beeEnemies;
+	ComponentContainer<BomberEnemy> bomberEnemies;
+	ComponentContainer<WolfEnemy> wolfEnemies;
 	ComponentContainer<SubmachineGunEnemy> submachineGunEnemies;
 	
 	// constructor that adds all containers for looping over them
@@ -66,9 +66,9 @@ public:
 		registry_list.push_back(&kinematics);
 		registry_list.push_back(&collidables);
 		registry_list.push_back(&animation);
-		registry_list.push_back(&basicEnemies);
-		registry_list.push_back(&suicideEnemies);
-		registry_list.push_back(&shotgunEnemies);
+		registry_list.push_back(&beeEnemies);
+		registry_list.push_back(&bomberEnemies);
+		registry_list.push_back(&wolfEnemies);
 		registry_list.push_back(&submachineGunEnemies);
 	}
 

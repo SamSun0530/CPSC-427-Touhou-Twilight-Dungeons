@@ -49,6 +49,7 @@ enum EnemyType
 
 struct EntityAnimation {
 	State state = State::IDLE;
+	vec2 idle_direction = { 0, 0 }; // used to figure out direction for idle animation
 	float frame_rate_ms = 200;
 	vec2 spritesheet_scale = { 0, 0 };
 	vec2 render_pos = { 0, 0 };
@@ -61,16 +62,16 @@ struct Deadly
 	int damage = 1;
 };
 
-struct BasicEnemy {
+struct BeeEnemy {
 	
 };
 
-struct SuicideEnemy
+struct BomberEnemy
 {
 	
 };
 
-struct ShotgunEnemy
+struct WolfEnemy
 {
 	
 };
@@ -228,9 +229,11 @@ enum class TILE_TYPE {
 
 enum class TEXTURE_ASSET_ID {
 	BULLET = 0,
-	ENEMY = BULLET + 1,
-	PLAYER = ENEMY + 1,
-	ENEMY_BULLET = PLAYER + 1,
+	ENEMY_BEE = BULLET + 1,
+	PLAYER = ENEMY_BEE + 1,
+	ENEMY_WOLF = PLAYER + 1,
+	ENEMY_BOMBER = ENEMY_WOLF + 1,
+	ENEMY_BULLET = ENEMY_BOMBER + 1,
 	TILE_1 = ENEMY_BULLET + 1,
 	TILE_2 = TILE_1 + 1,
 	INNER_WALL = TILE_2 + 1,
