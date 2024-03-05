@@ -121,6 +121,7 @@ void MapSystem::generateMap(int floor) {
     // creates entities and textures from the map
 
     //Triangulation: https://www.gorillasun.de/blog/bowyer-watson-algorithm-for-delaunay-triangulation/
+    int i = 0;
 }
 
 void MapSystem::debug() {
