@@ -134,15 +134,14 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio) {
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
+	tutorial_counter--;
+
 	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
 	if (elapsedSinceLastFPSUpdate >= 1000.0) {
 		// Calculate FPS
 		getInstance().fps = static_cast<int>(1000.0f / elapsed_ms_since_last_update);
 		elapsedSinceLastFPSUpdate = 0.0f;
 	}
-
-	glm::mat4 trans = glm::mat4(1.0f);
-	renderer->renderText("Test", 0.0f, 0.0f, 1.0f, glm::vec3(1.0, 1.0, 1.0), trans);
 
 
 	// Updating window title with points
@@ -513,6 +512,10 @@ std::string WorldSystem::get_fps_in_string()
 	return std::to_string(fps);
 }
 
+int WorldSystem::get_tutorial_counter() {
+	return tutorial_counter;
+}
+
 // Helper for updating player direction
 void WorldSystem::updatePlayerDirection(Kinematic& player_kinematic) {
 	float direction_x = 0;
@@ -617,10 +620,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Toggle tutorial display
-	if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
+	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
 		getInstance().toggle_display_instruction();
 
-		// std::cout << " " << get_display_instruction() << std::endl;
 	}
 }
 
