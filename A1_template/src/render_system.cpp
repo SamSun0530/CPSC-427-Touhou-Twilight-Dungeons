@@ -254,10 +254,14 @@ void RenderSystem::draw()
 	// Render user guide on screen
 	if (WorldSystem::getInstance().get_display_instruction()== true) {
 		renderText("instruction", 5.0f, 5.0f, 2.0f, glm::vec3(1.0, 3.0, 2.0), trans);
-		std::cout << "should give instruction " << WorldSystem::getInstance().get_display_instruction() << std::endl;
+		// std::cout << "should give instruction " << WorldSystem::getInstance().get_display_instruction() << std::endl;
 	}
-	renderText("Test", 0.0f, 0.0f, 1.0f, glm::vec3(1.0, 1.0, 1.0), trans);
+	// renderText("Test", 0.0f, 0.0f, 1.0f, glm::vec3(1.0, 1.0, 1.0), trans);
 
+	if (WorldSystem::getInstance().get_show_fps() == true) {
+		renderText("FPS:", window_width_px - 250, window_height_px - 50, 2.0f, glm::vec3(1, 1, 1), trans);
+		renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px - 100, window_height_px - 50, 2.0f, glm::vec3(1, 1, 1), trans);
+	}
 	// Truely render to the screen
 	drawToScreen();
 

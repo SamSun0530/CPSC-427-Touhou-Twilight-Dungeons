@@ -49,7 +49,10 @@ public:
 	bool is_over()const;
 
 	bool get_display_instruction();
+	bool get_show_fps();
+	std::string get_fps_in_string();
 	void toggle_display_instruction() { display_instruction = !display_instruction; }
+	void toggle_show_fps() { show_fps = !show_fps; }
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -81,6 +84,7 @@ private:
 	int fps;
 	bool show_fps = false;
 	bool display_instruction = false;
+	float elapsedSinceLastFPSUpdate = 0.0f;
 
 	// fonts seting
 	std::string font_filename = "..//..//..//data//fonts//Kenney_Mini_Square.ttf";
