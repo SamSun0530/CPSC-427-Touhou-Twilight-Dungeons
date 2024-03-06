@@ -37,7 +37,7 @@ const int window_height_px = 720;
 const vec2 window_px_half = { window_width_px / 2, window_height_px / 2 };
 
 // World Map Data
-const int world_width = 50;
+const int world_width = 60;
 const int world_height = 50;
 const int world_tile_size = 128; // In pixels
 

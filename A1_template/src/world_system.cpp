@@ -289,11 +289,6 @@ void WorldSystem::restart_game() {
 	map->generateBasicMap();
 	world_map = MapSystem::world_map;
 
-		// Create a new player
-	player = createPlayer(renderer, { 0, 0 });
-	is_alive = true;
-	ui = createUI(renderer, registry.hps.get(player).max_hp);
-
 	//     // // Print the initialized array
     // for (int i = 0; i < world_map.size(); ++i) {
     //     for (int j = 0; j < world_map[i].size(); ++j) {

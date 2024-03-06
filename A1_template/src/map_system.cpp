@@ -32,12 +32,13 @@ void MapSystem::generateBasicMap() {
     
      std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
      std::vector<Room> rooms;
-     rooms.push_back(generateBasicRoom(1,1));
-     rooms.push_back(generateBasicRoom(room_size+5,1));
-     rooms.push_back(generateBasicRoom(2*(room_size+5),1));
-     rooms.push_back(generateBasicRoom(1,room_size+5));
-     rooms.push_back(generateBasicRoom(room_size+5,room_size+5));
-     rooms.push_back(generateBasicRoom(2*(room_size+5),room_size+5));
+     int room_radius = room_size >> 1;
+     rooms.push_back(generateBasicRoom(room_radius,room_radius));
+     rooms.push_back(generateBasicRoom(room_size+2*room_radius,room_radius));
+     rooms.push_back(generateBasicRoom(3*(room_size+room_radius),room_radius));
+     rooms.push_back(generateBasicRoom(room_radius,room_size+2*room_radius));
+     rooms.push_back(generateBasicRoom(room_size+2*room_radius,room_size+2*room_radius));
+     rooms.push_back(generateBasicRoom(3*(room_size+room_radius),room_size+2*room_radius));
 
      for(Room room : rooms) {
         addRoomToMap(room, map);
@@ -435,8 +436,8 @@ void MapSystem::addTile(int row, int col, std::vector<TEXTURE_ASSET_ID>& texture
     // Comment out to center on top left
     // int xPos = (x - (map[0].size() >> 1)) * world_tile_size;
     // int yPos = (y - (map.size() >> 1)) * world_tile_size;
-    int centerX = (world_width >> 1);
-	int centerY = (world_height >> 1);
+    int centerX = (room_size);
+	int centerY = (room_size);
     int xPos = (col-centerX) * world_tile_size;
     int yPos = (row-centerY) * world_tile_size;
 
