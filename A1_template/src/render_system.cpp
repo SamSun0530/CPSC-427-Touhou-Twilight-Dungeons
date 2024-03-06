@@ -242,7 +242,7 @@ void RenderSystem::draw()
 	// Clearing backbuffer
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
-	glClearColor(0, 0, 0 , 1.0);
+	glClearColor(0.674, 0.847, 1.0, 1.0);
 	//glClearColor(0, 0, 0 , 1.0);
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -288,13 +288,34 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
 
-	// std::cout << " " << WorldSystem::getInstance().get_display_instruction() << std::endl;
+	
 	// Render user guide on screen
-	if (WorldSystem::getInstance().get_display_instruction()== true) {
-		renderText("instruction", 5.0f, 5.0f, 2.0f, glm::vec3(1.0, 3.0, 2.0), trans);
-		// std::cout << "should give instruction " << WorldSystem::getInstance().get_display_instruction() << std::endl;
+	if (WorldSystem::getInstance().get_tutorial_counter() > 0) {
+		//renderText("Press T to show user guide", window_width_px / 2 - 200, window_height_px - 100, 1.0f, glm::vec3(1.0, 1.0, 1.0), trans);
 	}
-	// renderText("Test", 0.0f, 0.0f, 1.0f, glm::vec3(1.0, 1.0, 1.0), trans);
+	if (WorldSystem::getInstance().get_display_instruction()== true) {
+		
+		renderText("User Guide:", window_width_px / 30 - 25, window_height_px / 2 + 200, 0.8f, glm::vec3(0,0,0), trans);
+
+		renderText("R -", window_width_px / 30 - 25, window_height_px / 2 + 160, 0.6f, glm::vec3(0, 0, 0), trans);
+		renderText("Reset Game", window_width_px / 30 - 25, window_height_px / 2 + 140, 0.6f, glm::vec3(0, 0, 0), trans);
+
+		renderText("ESC -", window_width_px / 30 - 25, window_height_px / 2 + 100, 0.6f, glm::vec3(0, 0, 0), trans);
+		renderText("Quit Game", window_width_px / 30 - 25, window_height_px / 2 + 80, 0.6f, glm::vec3(0, 0, 0), trans);
+
+		renderText("G -", window_width_px / 30 - 25, window_height_px / 2 + 40, 0.6f, glm::vec3(0, 0, 0), trans);
+		renderText("Toggle debug mode -", window_width_px / 30 - 25, window_height_px / 2 + 20, 0.6f, glm::vec3(0, 0, 0), trans);
+
+		renderText("WASD -", window_width_px / 30 - 25, window_height_px / 2 -20, 0.6f, glm::vec3(0, 0, 0), trans);
+		renderText("Player movement", window_width_px / 30 - 25, window_height_px / 2 - 40, 0.6f, glm::vec3(0, 0, 0), trans);
+
+		renderText("Mouse(left)/space -", window_width_px / 30 - 25, window_height_px / 2 - 80, 0.6f, glm::vec3(0, 0, 0), trans);
+		renderText("Firing bullets", window_width_px / 30 - 25, window_height_px / 2 - 100, 0.6f, glm::vec3(0, 0, 0), trans);
+
+		renderText("Scroll wheel -", window_width_px / 30 - 25, window_height_px / 2 - 140, 0.6f, glm::vec3(0, 0, 0), trans);
+		renderText("Zooming in/out", window_width_px / 30 - 25, window_height_px / 2 - 160, 0.6f, glm::vec3(0, 0, 0), trans);
+	}
+
 
 	if (WorldSystem::getInstance().get_show_fps() == true) {
 		renderText("FPS:", window_width_px - 250, window_height_px - 50, 2.0f, glm::vec3(1, 1, 1), trans);

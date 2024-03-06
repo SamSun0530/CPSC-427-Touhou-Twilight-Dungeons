@@ -54,6 +54,7 @@ public:
 
 	// font and instructions
 	bool get_display_instruction();
+	int get_tutorial_counter();
 	bool get_show_fps();
 	std::string get_fps_in_string();
 	void toggle_display_instruction() { display_instruction = !display_instruction; }
@@ -86,14 +87,15 @@ private:
 	RenderSystem* renderer;
 	float next_enemy_spawn;
 	Audio* audio;
+	int tutorial_counter = 10;
 	int fps;
 	bool show_fps = false;
 	bool display_instruction = false;
 	float elapsedSinceLastFPSUpdate = 0.0f;
 
 	// fonts seting
-	std::string font_filename = "..//..//..//data//fonts//Kenney_Mini_Square.ttf";
-	unsigned int font_default_size = 30;
+	std::string font_filename = "..//..//..//data//fonts//Kenney_Future_Narrow.ttf";
+	unsigned int font_default_size = 25;
 
 	// Player state
 	Entity player;
