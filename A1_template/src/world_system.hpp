@@ -21,6 +21,13 @@
 class WorldSystem
 {
 public:
+	static WorldSystem& getInstance() {
+		static WorldSystem instance; // Guaranteed to be destroyed and instantiated on first use.
+		return instance;
+	}
+	WorldSystem(WorldSystem const&) = delete;
+	void operator=(WorldSystem const&) = delete;
+
 	WorldSystem();
 
 	// Creates a window
@@ -40,6 +47,9 @@ public:
 
 	// Should the game be over ?
 	bool is_over()const;
+
+	bool get_display_instruction();
+	void toggle_display_instruction() { display_instruction = !display_instruction; }
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);

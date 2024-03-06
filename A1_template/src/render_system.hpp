@@ -8,6 +8,8 @@
 #include "tiny_ecs.hpp"
 #include "camera.hpp"
 #include "ui.hpp"
+//#include "world_system.hpp"
+#
 #include <map>
 
 // System responsible for setting up OpenGL and for rendering all the

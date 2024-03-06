@@ -137,14 +137,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	glm::mat4 trans = glm::mat4(1.0f);
 	renderer->renderText("Test", 0.0f, 0.0f, 1.0f, glm::vec3(1.0, 1.0, 1.0), trans);
 
-	/*fps = static_cast<int>(1000.0f / elapsed_ms_since_last_update);
-	if (show_fps) {
-		glm::mat4 trans = glm::mat4(1.0f);
-		std::stringstream fpsText;
-		fpsText << "FPS: " << fps;
-		renderer->renderText(fpsText.str(), 0, 0, 10, {0,0,0}, trans);
-		std::cout << "show_fps"  << std::endl;
-	}*/
 
 	// Updating window title with points
 	std::stringstream title_ss;
@@ -500,6 +492,11 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
+bool WorldSystem::get_display_instruction()
+{
+	return display_instruction;
+}
+
 // Helper for updating player direction
 void WorldSystem::updatePlayerDirection(Kinematic& player_kinematic) {
 	float direction_x = 0;
@@ -604,8 +601,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Toggle tutorial display
-	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
-		display_instruction = !display_instruction;
+	if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
+		getInstance().toggle_display_instruction();
+
+		std::cout << " " << get_display_instruction() << std::endl;
 	}
 }
 

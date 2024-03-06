@@ -5,6 +5,9 @@
 #include "tiny_ecs_registry.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
+ #include "world_system.hpp"
+#include <iostream>
+
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection,
 									const mat3 &view,
@@ -247,9 +250,14 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
 
-
-	// Render one line of text on screen
+	// std::cout << " " << WorldSystem::getInstance().get_display_instruction() << std::endl;
+	// Render user guide on screen
+	if (WorldSystem::getInstance().get_display_instruction()== true) {
+		renderText("instruction", 5.0f, 5.0f, 2.0f, glm::vec3(1.0, 3.0, 2.0), trans);
+		std::cout << "should give instruction " << WorldSystem::getInstance().get_display_instruction() << std::endl;
+	}
 	renderText("Test", 0.0f, 0.0f, 1.0f, glm::vec3(1.0, 1.0, 1.0), trans);
+
 	// Truely render to the screen
 	drawToScreen();
 
