@@ -34,7 +34,7 @@ public:
 		offset = { 0.f, 0.f };
 		offset_target = { 0.f, 0.f };
 		zoom = 1.0f;
-		zoom_min = 0.5f;
+		zoom_min = 0.9f;
 		zoom_max = 2.0f;
 		zoom_increment = 0.1f;
 	}
