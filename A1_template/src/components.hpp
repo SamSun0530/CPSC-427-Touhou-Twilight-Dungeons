@@ -61,7 +61,7 @@ struct HP {
 
 struct Pickupable
 {
-	int damage = 1;
+	int health_change = 1;
 };
 
 
@@ -82,6 +82,7 @@ struct Wall {
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };
+	//vec2 prev_pos = { 0, 0 };
 	float angle = 0;
 	vec2 scale = { 10, 10 };
 };
@@ -118,6 +119,7 @@ struct Debug {
 	bool in_freeze_mode = 0;
 };
 extern Debug debugging;
+
 
 // Sets the brightness of the screen
 struct ScreenState
@@ -225,7 +227,10 @@ enum class TEXTURE_ASSET_ID {
 	BOTTOM_WALL = EMPTY_HEART + 1,
 	WALL_EDGE = BOTTOM_WALL + 1,
 	WALL_SURFACE = WALL_EDGE + 1,
-	TEXTURE_COUNT = WALL_SURFACE + 1
+	HEALTH_1 = WALL_SURFACE + 1,
+	HEALTH_2 = HEALTH_1 + 1,
+	REGENERATE_HEALTH = HEALTH_2 + 1,
+	TEXTURE_COUNT = REGENERATE_HEALTH + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

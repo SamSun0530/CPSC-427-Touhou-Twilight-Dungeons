@@ -27,6 +27,13 @@
 //	return false;
 //}
 
+struct CollisionInfo {
+	bool hasCollision = false;
+	vec3 collisionPoint;
+	vec3 collisionNormal;
+	float penetrationDepth = 0.0f;
+};
+
 // Collision test between AABB and AABB
 bool collides_AABB_AABB(const Motion& motion1, const Motion& motion2, const Collidable& collidable1, const Collidable& collidable2)
 {
@@ -59,17 +66,27 @@ bool on_segment(vec3 p, vec3 q, vec3 r) {
 	return false;
 }
 
-int orientation(vec3 p, vec3 q, vec3 r) {
+int detect_turn(vec3 p, vec3 q, vec3 r) {
 	int val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
 	if (val == 0) return 0;  // Collinear
-	return (val > 0) ? 1 : 2; // Clock or counterclockwise
+	return (val > 0) ? 1 : 2; // LeftTurn or RightTurn
+}
+
+// Below point in triangle collision reference "Kornel Kisielewicz" and "xaedes": https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
+bool in_triangle(vec3 pt, vec3 v1, vec3 v2, vec3 v3) {
+	int o1 = detect_turn(v1, v2, pt);
+	int o2 = detect_turn(v2, v3, pt);
+	int o3 = detect_turn(v3, v1, pt);
+	bool is_same_dir = (o1 == o2) && (o2 == o3);
+	bool is_not_all_colinear = (o1 != 0) || (o2 != 0) || (o3 != 0);
+	return is_same_dir && is_not_all_colinear;
 }
 
 bool do_intersect(vec3 p1, vec3 q1, vec3 p2, vec3 q2) {
-	int o1 = orientation(p1, q1, p2);
-	int o2 = orientation(p1, q1, q2);
-	int o3 = orientation(p2, q2, p1);
-	int o4 = orientation(p2, q2, q1);
+	int o1 = detect_turn(p1, q1, p2);
+	int o2 = detect_turn(p1, q1, q2);
+	int o3 = detect_turn(p2, q2, p1);
+	int o4 = detect_turn(p2, q2, q1);
 	if (o1 != o2 && o3 != o4)
 		return true;
 	if (o1 == 0 && on_segment(p1, p2, q1)) return true;
@@ -79,18 +96,6 @@ bool do_intersect(vec3 p1, vec3 q1, vec3 p2, vec3 q2) {
 	return false;
 }
 
-std::set<std::pair<uint16_t, uint16_t>> get_edges(const std::vector<uint16_t>& vertex_indices) {
-	std::set<std::pair<uint16_t, uint16_t>> edge_set;
-	for (size_t i = 0; i < vertex_indices.size(); i += 3) {
-		uint16_t v1 = vertex_indices[i];
-		uint16_t v2 = vertex_indices[i + 1];
-		uint16_t v3 = vertex_indices[i + 2];
-		edge_set.insert({ std::min(v1, v2), std::max(v1, v2) });
-		edge_set.insert({ std::min(v2, v3), std::max(v2, v3) });
-		edge_set.insert({ std::min(v3, v1), std::max(v3, v1) });
-	}
-	return edge_set;
-}
 
 bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& motion2, const Collidable& collidable2) {
 	Mesh* e1_mesh = registry.meshPtrs.get(e1);
@@ -103,7 +108,7 @@ bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& m
 	const float bottom2 = box_center2.y + bounding_box2.y;
 	const float left2 = box_center2.x - bounding_box2.x;
 	const float right2 = box_center2.x + bounding_box2.x;
-	// Checking if vertices are colliding with AABB
+	// Checking if vertices of mesh are colliding with AABB
 	for (const auto& vertex : e1_mesh->vertices) {
 		vec3 transformed = transform.mat * vertex.position + vec3(motion1.position.x, motion1.position.y, 0);
 		if (transformed.x >= left2 && transformed.x <= right2 && transformed.y <= bottom2 && transformed.y >= top2) {
@@ -116,14 +121,43 @@ bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& m
 	   {{right2, top2, 0}, {left2, top2, 0}}, // Top edge
 	   {{left2, top2, 0}, {left2, bottom2, 0}}  // Left edge
 	};
-	std::set<std::pair<uint16_t, uint16_t>> mesh_edges = get_edges(e1_mesh->vertex_indices);
-	// Checking if edges are colliding with AABB
+	std::vector<vec3> box_vertices = {
+		{left2, bottom2, 0}, {right2, bottom2, 0}, {right2, top2, 0}, {left2, top2, 0}
+	};
+	// Checking if vertices of AABB are colliding with mesh
+	std::set<std::pair<uint16_t, uint16_t>> mesh_edges;
+	vec3 v1;
+	vec3 v2;
+	vec3 v3;
+	vec3 transformed_v1;
+	vec3 transformed_v2;
+	vec3 transformed_v3;
+	for (size_t i = 0; i < e1_mesh->vertex_indices.size(); i += 3) {
+		uint16_t vid_1 = e1_mesh->vertex_indices[i];
+		uint16_t vid_2 = e1_mesh->vertex_indices[i + 1];
+		uint16_t vid_3 = e1_mesh->vertex_indices[i + 2];
+		v1 = e1_mesh->vertices[vid_1].position;
+		v2 = e1_mesh->vertices[vid_2].position;
+		v3 = e1_mesh->vertices[vid_3].position;
+		transformed_v1 = transform.mat * v1 + vec3(motion1.position.x, motion1.position.y, 0);
+		transformed_v2 = transform.mat * v2 + vec3(motion1.position.x, motion1.position.y, 0);
+		transformed_v3 = transform.mat * v3 + vec3(motion1.position.x, motion1.position.y, 0);
+		for (vec3 box_vertex : box_vertices) {
+			if (in_triangle(box_vertex, transformed_v1, transformed_v2, transformed_v3)) return true;
+		}
+		mesh_edges.insert({ std::min(vid_1, vid_2), std::max(vid_1, vid_2) });
+		mesh_edges.insert({ std::min(vid_2, vid_3), std::max(vid_2, vid_3) });
+		mesh_edges.insert({ std::min(vid_3, vid_1), std::max(vid_3, vid_1) });
+	}
+
+	
+	// Checking if edges of AABB and mesh are colliding
 	for (const auto& meshEdge : mesh_edges) {
 		for (const auto& boxEdge : box_edges) {
-			vec3 v1 = e1_mesh->vertices[meshEdge.first].position;
-			vec3 v2 = e1_mesh->vertices[meshEdge.second].position;
-			vec3 transformed_v1 = transform.mat * v1 + vec3(motion1.position.x, motion1.position.y, 0);
-			vec3 transformed_v2 = transform.mat * v2 + vec3(motion1.position.x, motion1.position.y, 0);
+			v1 = e1_mesh->vertices[meshEdge.first].position;
+			v2 = e1_mesh->vertices[meshEdge.second].position;
+			transformed_v1 = transform.mat * v1 + vec3(motion1.position.x, motion1.position.y, 0);
+			transformed_v2 = transform.mat * v2 + vec3(motion1.position.x, motion1.position.y, 0);
 			if (do_intersect(transformed_v1, transformed_v2, boxEdge.first, boxEdge.second)) {
 				return true;
 			}
@@ -142,6 +176,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		Kinematic& kinematic = kinematic_registry.components[i];
 		Entity& entity = kinematic_registry.entities[i];
 		Motion& motion = registry.motions.get(entity); // kinematic will always have motion
+		//motion.prev_pos = motion.position;
 		float step_seconds = elapsed_ms / 1000.f;
 
 		// Normalize direction vector if either x or y is not 0 (prevents divide by 0 when normalizing)
@@ -155,6 +190,8 @@ void PhysicsSystem::step(float elapsed_ms)
 		float K = 10.f;
 		kinematic.velocity = vec2_lerp(kinematic.velocity, direction_normalized * kinematic.speed_modified, step_seconds * K);
 		motion.position += kinematic.velocity * step_seconds;
+
+		//motion.position += direction_normalized * kinematic.speed_modified * step_seconds;
 	}
 
 	// Check for collisions between all collidable entities
@@ -213,10 +250,11 @@ void PhysicsSystem::step(float elapsed_ms)
 			Motion& motion_j = registry.motions.get(entity_j);
 			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
 			{
-				if (collides_mesh_AABB(entity_j, motion_j, motion_i, collidable_i)) {
-					registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-					registry.collisions.emplace_with_duplicates(entity_j, entity_i);
-				}
+				//if (collides_mesh_AABB(entity_j, motion_j, motion_i, collidable_i)) {
+				//	std::cout << "colliding" << std::endl;
+				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+				//}
 			}
 		}
 

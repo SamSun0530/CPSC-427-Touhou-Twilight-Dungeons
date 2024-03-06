@@ -55,7 +55,10 @@ class RenderSystem {
 			textures_path("EmptyHeart.png"),
 			textures_path("BottomWall.png"),
 			textures_path("WallEdge.png"),
-			textures_path("WallSurface.png")
+			textures_path("WallSurface.png"),
+			textures_path("Health+1.png"),
+			textures_path("Health+2.png"),
+			textures_path("RegenerateHealth.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
