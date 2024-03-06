@@ -32,10 +32,10 @@ void MapSystem::generateBasicMap() {
     
      std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
      std::vector<Room> rooms;
-     rooms.push_back(generateBasicRoom(0,0));
-     rooms.push_back(generateBasicRoom(room_size+5,0));
-     rooms.push_back(generateBasicRoom(2*(room_size+5),0));
-     rooms.push_back(generateBasicRoom(0,room_size+5));
+     rooms.push_back(generateBasicRoom(1,1));
+     rooms.push_back(generateBasicRoom(room_size+5,1));
+     rooms.push_back(generateBasicRoom(2*(room_size+5),1));
+     rooms.push_back(generateBasicRoom(1,room_size+5));
      rooms.push_back(generateBasicRoom(room_size+5,room_size+5));
      rooms.push_back(generateBasicRoom(2*(room_size+5),room_size+5));
 
@@ -115,14 +115,14 @@ void MapSystem::generateMap(int floor) {
                 Entity entity_j = registry.roomHitbox.entities[j];
                 Motion motion_j = registry.motions.get(entity_j);
 
-                if(PhysicsSystem::collides_AABB(motion_i,motion_j)) {
-                    // Create collision event
-                    // Only 1 collsion is taken into consideration
-                    registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-                    registry.collisions.emplace_with_duplicates(entity_j, entity_i);
-                    // Exit loop since entity_i has collided at least 1 time
-                    break;
-                }
+                //if(PhysicsSystem::collides_AABB(motion_i,motion_j)) {
+                //    // Create collision event
+                //    // Only 1 collsion is taken into consideration
+                //    registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+                //    registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+                //    // Exit loop since entity_i has collided at least 1 time
+                //    break;
+                //}
             }
         }
 

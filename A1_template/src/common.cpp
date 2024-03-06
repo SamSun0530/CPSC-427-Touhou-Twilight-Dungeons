@@ -53,7 +53,7 @@ bool gl_has_errors()
 		error = glGetError();
 		assert(false);
 	}
-
+	
 	return true;
 }
 

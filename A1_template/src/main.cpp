@@ -29,13 +29,10 @@ int main()
 	PhysicsSystem physics;
 	AISystem ai;
 	BulletSystem bullets;
-<<<<<<< HEAD
-	MapSystem map;
 
-=======
+	MapSystem map;
 	Animation animation;
->>>>>>> 867f3cdcf2036eab5dd5499d58a2e8aa330748f4
-	
+
 	// Global classes
 	Audio audio;
 	TimeDebug time_debug;
@@ -53,12 +50,10 @@ int main()
 	renderer.init(window);
 	world.init(&renderer, &audio, &map);
 	bullets.init(&renderer, window, &audio);
-<<<<<<< HEAD
+
 	map.init(&renderer);
 	map.generateBasicMap();
-=======
 	animation.init(window);
->>>>>>> 867f3cdcf2036eab5dd5499d58a2e8aa330748f4
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -96,15 +91,16 @@ int main()
 
 		//time_debug.initTime();
 		world.handle_collisions();
-<<<<<<< HEAD
-		// map.debug(); // Just to visualize the map
-=======
+
 		//time_debug.getTime("handle_collisions");
 
+		// map.debug(); // Just to visualize the map
+
 		//time_debug.initTime();
->>>>>>> 867f3cdcf2036eab5dd5499d58a2e8aa330748f4
 		renderer.draw();
 		//time_debug.getTime("renderer");
+
+		//printf("FPS: %f \n", 1000.f / elapsed_ms);
 	}
 
 	return EXIT_SUCCESS;

@@ -156,12 +156,6 @@ void PhysicsSystem::step(float elapsed_ms)
 			}
 		}
 	}
-
-	// Other collisions here
-<<<<<<< HEAD
-}
-=======
-
 	// Visualize bounding boxes
 	if (debugging.in_debug_mode) {
 		for (Entity& entity : registry.collidables.entities) {
@@ -172,6 +166,6 @@ void PhysicsSystem::step(float elapsed_ms)
 			createLine(box_center, bounding_box);
 		}
 	}
+	// Other collisions here
 }
 
->>>>>>> 867f3cdcf2036eab5dd5499d58a2e8aa330748f4
