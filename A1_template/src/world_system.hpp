@@ -14,6 +14,7 @@
 
 #include "render_system.hpp"
 #include "audio.hpp"
+#include "map_system.hpp"
 #include <map>
 
 // Container for all our entities and game logic. Individual rendering / update is
@@ -34,7 +35,7 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer, Audio* audio);
+	void init(RenderSystem* renderer, Audio* audio, MapSystem* map);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -65,7 +66,7 @@ private:
 	// Initial state is all false
 	std::array<bool, 512> pressed = { 0 };
 	// Update player direction based on pressed
-	void WorldSystem::updatePlayerDirection(Kinematic& player_kinematic);
+	void updatePlayerDirection(Kinematic& player_kinematic);
 
 	// restart level
 	void restart_game();
@@ -96,6 +97,7 @@ private:
 
 	// World Map
 	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
+	MapSystem* map;
 
 	// C++ random number generator
 	std::default_random_engine rng;

@@ -9,6 +9,7 @@
 #include "physics_system.hpp"
 #include "render_system.hpp"
 #include "world_system.hpp"
+#include "map_system.hpp"
 #include "ai_system.hpp"
 #include "bullet_system.hpp"
 #include "audio.hpp"
@@ -29,8 +30,10 @@ int main()
 	PhysicsSystem physics;
 	AISystem ai;
 	BulletSystem bullets;
+
+	MapSystem map;
 	Animation animation;
-	
+
 	// Global classes
 	Audio audio;
 	TimeDebug time_debug;
@@ -47,8 +50,10 @@ int main()
 
 	// initialize the main systems
 	renderer.init(window);
-	world.init(&renderer, &audio);
+	world.init(&renderer, &audio, &map);
 	bullets.init(&renderer, window, &audio);
+
+	map.init(&renderer);
 	animation.init(&renderer, window);
 
 	// variable timestep loop
@@ -87,11 +92,16 @@ int main()
 
 		//time_debug.initTime();
 		world.handle_collisions();
+
 		//time_debug.getTime("handle_collisions");
+
+		// map.debug(); // Just to visualize the map
 
 		//time_debug.initTime();
 		renderer.draw();
 		//time_debug.getTime("renderer");
+
+		//printf("FPS: %f \n", 1000.f / elapsed_ms);
 	}
 
 	return EXIT_SUCCESS;
