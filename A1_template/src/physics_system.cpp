@@ -41,7 +41,7 @@ bool collides_AABB_AABB(const Motion& motion1, const Motion& motion2, const Coll
 	const vec2 bounding_box2 = abs(collidable2.size) / 2.f;
 	const vec2 box_center1 = motion1.position + collidable1.shift;
 	const vec2 box_center2 = motion2.position + collidable2.shift;
-
+	
 	const float top1 = box_center1.y - bounding_box1.y;
 	const float bottom1 = box_center1.y + bounding_box1.y;
 	const float left1 = box_center1.x - bounding_box1.x;
@@ -291,9 +291,6 @@ void PhysicsSystem::step(float elapsed_ms)
 			}
 		}
 	}
-
-	// Other collisions here
-
 	// Visualize bounding boxes
 	if (debugging.in_debug_mode) {
 		for (Entity& entity : registry.collidables.entities) {
@@ -304,5 +301,5 @@ void PhysicsSystem::step(float elapsed_ms)
 			createLine(box_center, bounding_box);
 		}
 	}
+	// Other collisions here
 }
-

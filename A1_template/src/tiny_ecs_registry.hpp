@@ -32,6 +32,7 @@ public:
 	ComponentContainer<IdleMoveAction> idleMoveActions;
 	ComponentContainer<BulletFireRate> bulletFireRates;
 	ComponentContainer<DeathTimer> realDeathTimers;
+	ComponentContainer<RoomHitbox> roomHitbox;
 	ComponentContainer<Kinematic> kinematics;
 	ComponentContainer<Collidable> collidables;
 	ComponentContainer<AiTimer> aitimers;

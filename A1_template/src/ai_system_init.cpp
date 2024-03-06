@@ -196,7 +196,7 @@ void AISystem::init() {
 	void (*doNothing)(Entity & entity) = [](Entity& entity) {};
 	// handles random idle movement, if entity do not have idlemoveactions -> do nothing
 	void (*moveRandomDirection)(Entity & entity) = [](Entity& entity) {
-		registry.bulletFireRates.get(entity).is_firing = false; // stop firing
+		if (registry.bulletFireRates.has(entity)) registry.bulletFireRates.get(entity).is_firing = false; // stop firing
 		if (!registry.idleMoveActions.has(entity)) return;
 		std::random_device ran;
 		std::mt19937 gen(ran());

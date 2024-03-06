@@ -70,7 +70,8 @@ Entity createHealth(RenderSystem* renderer, vec2 position)
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
 
-	} else if (number <= 0.9) {
+	}
+	else if (number <= 0.9) {
 		pickupable.health_change = 2;
 		registry.renderRequests.insert(
 			entity,
@@ -113,7 +114,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	collidable.size = abs(motion.scale);
 
 	// Set player collision box at the feet of the player
-	collidable.size = { motion.scale.x/32*24, motion.scale.y / 2.f };
+	collidable.size = { motion.scale.x / 32 * 24, motion.scale.y / 2.f };
 	collidable.shift = { 0, motion.scale.y / 4.f };
 
 	HP& hp = registry.hps.emplace(entity);
@@ -472,7 +473,7 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 		if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_WALL) {
 			collidable.size = { motion.scale.x, motion.scale.y };
 			collidable.shift = { 0, 0 };
-		} 
+		}
 		else if (textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_WALL) {
 			collidable.size = { motion.scale.x, motion.scale.y };
 			collidable.shift = { 0, 0 };
@@ -482,6 +483,13 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 			collidable.shift = { 0, 0 };
 		}
 		else if (textureIDs[i] == TEXTURE_ASSET_ID::WALL_SURFACE) {
+			collidable.size = { motion.scale.x, motion.scale.y };
+			collidable.shift = { 0, 0 };
+		}
+		else if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL ||
+			textureIDs[i] == TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL ||
+			textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL ||
+			textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL) {
 			collidable.size = { motion.scale.x, motion.scale.y };
 			collidable.shift = { 0, 0 };
 		}
