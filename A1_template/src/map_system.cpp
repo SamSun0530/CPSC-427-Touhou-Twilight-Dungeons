@@ -425,8 +425,31 @@ std::vector<TEXTURE_ASSET_ID> MapSystem::getTileAssetID(int row, int col, std::v
         return textures;
     }
 
-    // Temp corner tile
-    textures.push_back((uniform_dist(rng) > 0.5) ? TEXTURE_ASSET_ID::TILE_1 : TEXTURE_ASSET_ID::TILE_2);
+    // Inner top left
+    if(map[row-1][col] == (int)TILE_TYPE::WALL && map[row][col-1] == (int)TILE_TYPE::WALL) {
+        textures.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
+        return textures;
+    }
+
+    // Inner top right
+    if(map[row-1][col] == (int)TILE_TYPE::WALL && map[row][col+1] == (int)TILE_TYPE::WALL) {
+        textures.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
+        return textures;
+    }
+
+    // Inner bot left
+    if(map[row+1][col] == (int)TILE_TYPE::WALL && map[row][col-1] == (int)TILE_TYPE::WALL) {
+        textures.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
+        return textures;
+    }
+
+    // Inner bot right
+    if(map[row+1][col] == (int)TILE_TYPE::WALL && map[row][col+1] == (int)TILE_TYPE::WALL) {
+        textures.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
+        return textures;
+    }
+
+    // Should never return here, undefined wall behavior
     return textures;
 }
 
