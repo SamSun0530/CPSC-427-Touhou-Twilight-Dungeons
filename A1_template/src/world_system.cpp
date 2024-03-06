@@ -15,11 +15,14 @@
 #include <glm/gtc/type_ptr.hpp>
 
 // Game configuration
-const size_t MAX_ENEMIES = 15;
+const size_t MAX_ENEMIES = 10;
 const size_t MAX_COINS = 5;
 
 const size_t ENEMY_SPAWN_DELAY_MS = 2000 * 3;
 bool is_alive = true;
+
+// TODO: remove this and put into map_system, this is only for testing ai system
+std::vector<std::vector<int>> WorldSystem::world_map = std::vector<std::vector<int>>(world_height, std::vector<int>(world_width, (int)TILE_TYPE::EMPTY));
 
 // Create the world
 WorldSystem::WorldSystem()
@@ -46,6 +49,7 @@ namespace {
 		fprintf(stderr, "%d: %s", error, desc);
 	}
 }
+
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
@@ -123,10 +127,9 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map)
 	this->renderer = renderer_arg;
 	this->audio = audio;
 	this->map = map;
-
 	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
-	world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
+	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
 
 	// Set all states to default
 	restart_game();
@@ -188,17 +191,32 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::EMPTY_HEART;
 	}
 
-	// Spawning new enemies
-	next_enemy_spawn -= elapsed_ms_since_last_update;
-	if (registry.deadlys.components.size() <= MAX_ENEMIES && next_enemy_spawn < 0.f) {
-		// Reset timer
-		next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
-		Motion& motion = registry.motions.get(player);
-		// Create enemy with random initial position
-		float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
-		float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
-		// createEnemy(renderer, vec2(spawn_x, spawn_y));
-	}
+	//// Spawning new enemies
+	//next_enemy_spawn -= elapsed_ms_since_last_update;
+	//if (registry.deadlys.components.size() < MAX_ENEMIES && next_enemy_spawn < 0.f) {
+	//	// Reset timer
+	//	next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
+	//	Motion& motion = registry.motions.get(player);
+	//	// Create enemy with random initial position
+	//	float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
+	//	float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
+	//	std::random_device ran;
+	//	std::mt19937 gen(ran());
+	//	std::uniform_real_distribution<> dis(0.0, 1.0);
+	//	float random_numer = dis(gen);
+	//	if (random_numer <= 0.33) {
+	//		createBeeEnemy(renderer, vec2(spawn_x, spawn_y));
+	//	}
+	//	else if (random_numer <= 0.66) {
+	//		createWolfEnemy(renderer, vec2(spawn_x, spawn_y));
+	//	}
+	//	else if (random_numer <= 0.99) {
+	//		createBomberEnemy(renderer, vec2(spawn_x, spawn_y));
+	//	}
+	//	//createWolfEnemy(renderer, vec2(spawn_x, spawn_y));
+	//	//createBomberEnemy(renderer, vec2(spawn_x, spawn_y));
+	//	//createBeeEnemy(renderer, vec2(spawn_x, spawn_y));
+	//}
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -252,9 +270,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			return true;
 		}
 	}
-
-
-
 
 	if (is_alive && registry.hps.get(player).curr_hp <= 0) {
 		registry.bulletFireRates.get(player).is_firing = false;
@@ -407,6 +422,8 @@ void WorldSystem::restart_game() {
 		}
 	}
 
+	createPillar(renderer, { centerX, centerY - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
+
 	// Create a new player
 	player = createPlayer(renderer, { 0, 0 });
 	is_alive = true;
@@ -436,8 +453,16 @@ void WorldSystem::handle_collisions() {
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
 						// should decrease HP but not yet implemented
-						registry.hps.get(player).curr_hp -= registry.deadlys.get(entity_other).damage;
-						if (registry.hps.get(player).curr_hp < 0) registry.hps.get(player).curr_hp = 0;
+						if (registry.deadlys.has(entity_other)) {
+							HP& player_hp = registry.hps.get(player);
+							player_hp.curr_hp -= registry.deadlys.get(entity_other).damage;
+							if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
+
+							if (registry.bomberEnemies.has(entity_other)) {
+								registry.hps.get(entity_other).curr_hp = 0;
+							}
+						}
+
 						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
@@ -535,12 +560,9 @@ void WorldSystem::handle_collisions() {
 			//}
 		}
 	}
-	//std::cout << "collision size before: " << registry.collisions.size() << std::endl;
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
-
-	//std::cout << "collision size after: " << registry.collisions.size() << std::endl;
 }
 
 // Should the game be over ?

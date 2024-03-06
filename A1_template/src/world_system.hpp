@@ -49,6 +49,10 @@ public:
 	// Should the game be over ?
 	bool is_over()const;
 
+	// World Map
+	static std::vector<std::vector<int>> world_map; // world_map[Row][Col]
+
+	// font and instructions
 	bool get_display_instruction();
 	bool get_show_fps();
 	std::string get_fps_in_string();
@@ -95,10 +99,13 @@ private:
 	Entity player;
 	std::vector<Entity> ui;
 
-	// World Map
-	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
+//<<<<<<< HEAD
+//=======
+//	// World Map
+//	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
 	MapSystem* map;
-
+//
+//>>>>>>> 7beb032a52b18633948e9710cb4eba8a2f025739
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1

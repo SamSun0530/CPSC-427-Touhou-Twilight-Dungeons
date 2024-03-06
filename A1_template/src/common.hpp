@@ -20,6 +20,9 @@ using namespace glm;
 
 #include "tiny_ecs.hpp"
 
+typedef vec2 coord;
+typedef std::vector<coord> path;
+
 // Simple utility functions to avoid mistyping directory name
 // audio_path("audio.ogg") -> data/audio/audio.ogg
 // Get defintion of PROJECT_SOURCE_DIR from:
@@ -40,7 +43,7 @@ const vec2 window_px_half = { window_width_px / 2, window_height_px / 2 };
 // World Map Data
 const int world_width = 60;
 const int world_height = 50;
-const int world_tile_size = 128; // In pixels
+const int world_tile_size = 64; // In pixels
 
 
 #ifndef M_PI
@@ -60,3 +63,6 @@ struct Transform {
 bool gl_has_errors();
 
 vec2 vec2_lerp(vec2 start, vec2 end, float t);
+
+// checks if (x,y) on the map is valid, this is not screen coordinates
+bool is_valid_cell(int x, int y);

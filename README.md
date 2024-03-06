@@ -26,4 +26,7 @@ Will Qiu <br />
 Alan Huang <br />
 
 ## Used Assets
-https://penzilla.itch.io/hooded-protagonist/download/eyJpZCI6MTc0MjEzMCwiZXhwaXJlcyI6MTcwOTI1MjY4NH0%3d.RK8mzbSh0tpr6dB1nDB4yuiaROo%3d
+- https://craftpix.net/product/medieval-interior-top-down-pixel-art-tileset/?num=2&count=70&sq=pixel&pos=12
+- https://craftpix.net/freebies/free-field-enemies-pixel-art-for-tower-defense/?num=1&count=335&sq=fields%20enemy&pos=11
+- https://toffeehazel.itch.io/japanese-food-sprites-32x32
+- https://penzilla.itch.io/basic-gui-bundle

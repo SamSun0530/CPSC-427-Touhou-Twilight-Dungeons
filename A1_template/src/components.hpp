@@ -37,11 +37,19 @@ struct IdleMoveAction {
 	State state = State::IDLE;
 	float timer_ms = 5000;
 	float idle_ms = 5000;
-	float moving_ms = 1000;
+	float moving_ms = 1500;
+};
+
+enum EnemyType
+{
+	normal,
+	shotgun,
+	suicide,
 };
 
 struct EntityAnimation {
 	State state = State::IDLE;
+	vec2 idle_direction = { 0, 0 }; // used to figure out direction for idle animation
 	float frame_rate_ms = 200;
 	vec2 spritesheet_scale = { 0, 0 };
 	vec2 render_pos = { 0, 0 };
@@ -52,6 +60,25 @@ struct EntityAnimation {
 struct Deadly
 {
 	int damage = 1;
+};
+
+struct BeeEnemy {
+	
+};
+
+struct BomberEnemy
+{
+	
+};
+
+struct WolfEnemy
+{
+	
+};
+
+struct SubmachineGunEnemy
+{
+
 };
 
 struct HP {
@@ -116,6 +143,13 @@ struct Collision
 	Collision(Entity& other) { this->other = other; };
 };
 
+// Entity follows given path
+struct FollowPath
+{
+	path path;
+	int next_path_index = 0;
+};
+
 // Data structure for toggling debug mode
 struct Debug {
 	bool in_debug_mode = 0;
@@ -134,6 +168,12 @@ struct ScreenState
 struct DebugComponent
 {
 	// Note, an empty struct has size 1
+};
+
+// Update entity ai behavior tree after update ms
+struct AiTimer {
+	float update_timer_ms = 500;
+	float update_base = 500;
 };
 
 // A timer that will be associated to dying chicken
@@ -209,9 +249,11 @@ enum class TILE_TYPE {
 
 enum class TEXTURE_ASSET_ID {
 	BULLET = 0,
-	ENEMY = BULLET + 1,
-	PLAYER = ENEMY + 1,
-	ENEMY_BULLET = PLAYER + 1,
+	ENEMY_BEE = BULLET + 1,
+	PLAYER = ENEMY_BEE + 1,
+	ENEMY_WOLF = PLAYER + 1,
+	ENEMY_BOMBER = ENEMY_WOLF + 1,
+	ENEMY_BULLET = ENEMY_BOMBER + 1,
 	TILE_1 = ENEMY_BULLET + 1,
 	TILE_2 = TILE_1 + 1,
 	INNER_WALL = TILE_2 + 1,
@@ -230,7 +272,9 @@ enum class TEXTURE_ASSET_ID {
 	BOTTOM_WALL = EMPTY_HEART + 1,
 	WALL_EDGE = BOTTOM_WALL + 1,
 	WALL_SURFACE = WALL_EDGE + 1,
-	HEALTH_1 = WALL_SURFACE + 1,
+	PILLAR_TOP = WALL_SURFACE + 1,
+	PILLAR_BOTTOM = PILLAR_TOP + 1,
+	HEALTH_1 = PILLAR_BOTTOM + 1,
 	HEALTH_2 = HEALTH_1 + 1,
 	REGENERATE_HEALTH = HEALTH_2 + 1,
 	TEXTURE_COUNT = REGENERATE_HEALTH + 1

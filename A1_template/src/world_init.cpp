@@ -1,8 +1,4 @@
 #include "world_init.hpp"
-#include "tiny_ecs_registry.hpp"
-#include <glm/trigonometric.hpp>
-#include <iostream>
-
 
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet)
 {
@@ -17,7 +13,7 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	motion.angle = rotation_angle;
 	motion.position = entity_position; // bullet spawns from entity's center position
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 200.f;
@@ -74,7 +70,8 @@ Entity createHealth(RenderSystem* renderer, vec2 position)
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
 
-	} else if (number <= 0.9) {
+	}
+	else if (number <= 0.9) {
 		pickupable.health_change = 2;
 		registry.renderRequests.insert(
 			entity,
@@ -117,7 +114,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	collidable.size = abs(motion.scale);
 
 	// Set player collision box at the feet of the player
-	collidable.size = { motion.scale.x/32*24, motion.scale.y / 2.f };
+	collidable.size = { motion.scale.x / 32 * 24, motion.scale.y / 2.f };
 	collidable.shift = { 0, motion.scale.y / 4.f };
 
 	HP& hp = registry.hps.emplace(entity);
@@ -182,7 +179,7 @@ Entity createCoin(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.position = position;
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 50.f;
@@ -199,7 +196,7 @@ Entity createCoin(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
-Entity createEnemy(RenderSystem* renderer, vec2 position)
+Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 
@@ -212,7 +209,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.position = position;
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 100.f;
@@ -221,26 +218,194 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = abs(motion.scale);
+	collidable.size = abs(motion.scale / 2.f);
 
+	// HP
 	HP& hp = registry.hps.emplace(entity);
 	hp.max_hp = 6;
 	hp.curr_hp = hp.max_hp;
 
-	registry.deadlys.emplace(entity);
+	// Collision damage
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.damage = 1;
+	registry.beeEnemies.emplace(entity);
 	EntityAnimation enemy_ani;
 	enemy_ani.spritesheet_scale = { 0.166, 0.125 };
 	enemy_ani.render_pos = { 0.166, 0.125 };
 	registry.animation.insert(entity, enemy_ani);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::ENEMY,
+		{ TEXTURE_ASSET_ID::ENEMY_BEE,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	registry.idleMoveActions.emplace(entity);
 	BulletFireRate enemy_bullet_rate;
 	enemy_bullet_rate.fire_rate = 3;
+	enemy_bullet_rate.is_firing = true;
+	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
+	registry.colors.insert(entity, { 1,1,1 });
+
+	registry.aitimers.emplace(entity);
+
+	return entity;
+}
+
+Entity createBomberEnemy(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 100.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 0 };
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale / 2.f;
+
+	// HP
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 2;
+	hp.curr_hp = hp.max_hp;
+
+	// Collision damage
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.damage = 2;
+
+	registry.bomberEnemies.emplace(entity);
+	EntityAnimation enemy_ani;
+	enemy_ani.spritesheet_scale = { 1.f / 6.f, 1.f / 11.f };
+	enemy_ani.render_pos = { 1.f / 6.f, 1.f / 11.f };
+	registry.animation.insert(entity, enemy_ani);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMY_BOMBER,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	registry.idleMoveActions.emplace(entity);
+	registry.colors.insert(entity, { 1,1,1 });
+
+	AiTimer& aitimer = registry.aitimers.emplace(entity);
+	aitimer.update_base = 1000; // updates decision tree every second
+	aitimer.update_timer_ms = 1000;
+
+	return entity;
+}
+
+Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 100.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 0 };
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale / 2.f;
+
+	// HP
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 3;
+	hp.curr_hp = hp.max_hp;
+
+	// Collision damage
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.damage = 1;
+
+	registry.wolfEnemies.emplace(entity);
+	EntityAnimation enemy_ani;
+	enemy_ani.spritesheet_scale = { 1.f / 6.f, 1.f / 12.f };
+	enemy_ani.render_pos = { 1.f / 6.f, 5.f / 12.f };
+	registry.animation.insert(entity, enemy_ani);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMY_WOLF,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	registry.idleMoveActions.emplace(entity);
+	BulletFireRate enemy_bullet_rate;
+	enemy_bullet_rate.fire_rate = 6;
+	enemy_bullet_rate.is_firing = true;
+	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
+	registry.colors.insert(entity, { 1,1,1 });
+
+	AiTimer& aitimer = registry.aitimers.emplace(entity);
+	aitimer.update_base = 500; // updates decision tree every second
+	aitimer.update_timer_ms = 500;
+
+	return entity;
+}
+
+Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 100.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 0 };
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale;
+
+	// HP
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 6;
+	hp.curr_hp = hp.max_hp;
+
+	// Collision damage
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.damage = 1;
+
+	registry.submachineGunEnemies.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMY_BEE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	registry.idleMoveActions.emplace(entity);
+	BulletFireRate enemy_bullet_rate;
+	enemy_bullet_rate.fire_rate = 5;
 	enemy_bullet_rate.is_firing = true;
 	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
 	registry.colors.insert(entity, { 1,1,1 });
@@ -262,6 +427,18 @@ std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vect
 		motion.angle = 0.f;
 		motion.position = position;
 		motion.scale = vec2(world_tile_size, world_tile_size);
+
+		// TODO: remove this, used for testing ai can see player
+		if (textureIDs[i] == TEXTURE_ASSET_ID::PILLAR_TOP) {
+			registry.floors.emplace(entity);
+			registry.renderRequestsForeground.insert(
+				entity,
+				{ textureIDs[i],
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+			entities.push_back(entity);
+			continue;
+		}
 
 		// Create and (empty) Tile component to be able to refer to all decoration tiles
 		registry.floors.emplace(entity);
@@ -296,7 +473,7 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 		if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_WALL) {
 			collidable.size = { motion.scale.x, motion.scale.y };
 			collidable.shift = { 0, 0 };
-		} 
+		}
 		else if (textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_WALL) {
 			collidable.size = { motion.scale.x, motion.scale.y };
 			collidable.shift = { 0, 0 };
@@ -309,19 +486,32 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 			collidable.size = { motion.scale.x, motion.scale.y };
 			collidable.shift = { 0, 0 };
 		}
-		else {
-			// Temporary
-			// TODO: Maybe change/refactor this since it's adding floors when its in createWall
-			registry.collidables.remove(entity);
-			registry.floors.emplace(entity);
-			registry.renderRequests.insert(
-				entity,
-				{ textureIDs[i],
-				 EFFECT_ASSET_ID::TEXTURED,
-				 GEOMETRY_BUFFER_ID::SPRITE });
-			entities.push_back(entity);
-			continue;
+		else if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL ||
+			textureIDs[i] == TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL ||
+			textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL ||
+			textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL) {
+			collidable.size = { motion.scale.x, motion.scale.y };
+			collidable.shift = { 0, 0 };
 		}
+		else
+			// TODO: remove this, used for testing ai can see player
+			if (textureIDs[i] == TEXTURE_ASSET_ID::PILLAR_BOTTOM) {
+				collidable.size = { motion.scale.x, motion.scale.y / 2 };
+				collidable.shift = { 0, -motion.scale.y / 4 };
+			}
+			else {
+				// Temporary
+				// TODO: Maybe change/refactor this since it's adding floors when its in createWall
+				registry.collidables.remove(entity);
+				registry.floors.emplace(entity);
+				registry.renderRequests.insert(
+					entity,
+					{ textureIDs[i],
+					 EFFECT_ASSET_ID::TEXTURED,
+					 GEOMETRY_BUFFER_ID::SPRITE });
+				entities.push_back(entity);
+				continue;
+			}
 
 		// Create and (empty) Tile component to be able to refer to all physical tiles
 		registry.walls.emplace(entity);
@@ -333,6 +523,65 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 
 		entities.push_back(entity);
 	}
+	return entities;
+}
+
+// IMPORTANT: creates pillar on grid position, not screen position
+// textureIDs[0] == bottom, textureIDs[1] == top
+std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std::vector<TEXTURE_ASSET_ID> textureIDs) {
+	assert(textureIDs.size() == 2 && "textureIDs do not have size 2");
+	assert((!is_valid_cell(grid_position.x, grid_position.y) ||
+		!(grid_position.y < 0 ||
+			grid_position.x < 0 ||
+			grid_position.y >= world_height ||
+			grid_position.x >= world_width)) && "Pillar position not valid");
+
+	std::vector<Entity> entities;
+	auto bottom_entity = Entity();
+	auto top_entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& bottom_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(bottom_entity, &bottom_mesh);
+	Mesh& top_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(top_entity, &top_mesh);
+
+	// Initialize the motion
+	int center_x = world_width >> 1;
+	int center_y = world_height >> 1;
+	vec2 bottom_screen_position = { (grid_position.x - center_x) * world_tile_size,
+		(grid_position.y - center_y) * world_tile_size };
+
+	auto& bottom_motion = registry.motions.emplace(bottom_entity);
+	bottom_motion.position = bottom_screen_position;
+	bottom_motion.scale = vec2(world_tile_size, world_tile_size);
+	auto& top_motion = registry.motions.emplace(top_entity);
+	top_motion.position = bottom_screen_position + vec2{ 0, -world_tile_size };
+	top_motion.scale = vec2(world_tile_size, world_tile_size);
+
+	// Set the collision box
+	auto& bottom_collidable = registry.collidables.emplace(bottom_entity);
+	bottom_collidable.size = { bottom_motion.scale.x, bottom_motion.scale.y };
+	bottom_collidable.shift = { 0, 0 };
+
+	WorldSystem::world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+	registry.walls.emplace(bottom_entity);
+	registry.floors.emplace(top_entity); // TODO: maybe foreground.emplace
+
+	registry.renderRequests.insert(
+		bottom_entity,
+		{ textureIDs[0],
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.renderRequestsForeground.insert(
+		top_entity,
+		{ textureIDs[1],
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	entities.push_back(top_entity);
+	entities.push_back(bottom_entity);
+
 	return entities;
 }
 

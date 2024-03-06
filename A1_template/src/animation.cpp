@@ -11,6 +11,7 @@ void Animation::step(float elapsed_ms)
 		if (kin.direction != vec2(0)) {
 			animation.state = State::MOVE;
 			animation.offset = 0;
+			animation.idle_direction = kin.direction;
 		}
 		else {
 			animation.state = State::IDLE;
@@ -63,7 +64,7 @@ void Animation::step(float elapsed_ms)
 		}
 		player_motion = motion;
 	}
-	for (Entity& enemy : registry.deadlys.entities) {
+	for (Entity& enemy : registry.beeEnemies.entities) {
 		EntityAnimation& enemy_ani = registry.animation.get(enemy);
 		Motion& enemy_motion = registry.motions.get(enemy);
 		float x = player_motion.position.x - enemy_motion.position.x;
@@ -73,16 +74,48 @@ void Animation::step(float elapsed_ms)
 			enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y;
 		}
 		else if (facing_degree <= 135) {
-			enemy_ani.render_pos.y = 2 * enemy_ani.spritesheet_scale.y;
+			enemy_ani.render_pos.y = 3 * enemy_ani.spritesheet_scale.y;
 		}
 		else if (facing_degree <= 225) {
 			enemy_ani.render_pos.y = 1 * enemy_ani.spritesheet_scale.y;
 		}
 		else {
-			enemy_ani.render_pos.y = 3 * enemy_ani.spritesheet_scale.y;
+			enemy_ani.render_pos.y = 2 * enemy_ani.spritesheet_scale.y;
 		}
 	}
-	
+	for (Entity& enemy : registry.bomberEnemies.entities) {
+		EntityAnimation& enemy_ani = registry.animation.get(enemy);
+		Kinematic& enemy_kinematic = registry.kinematics.get(enemy);
+		if (enemy_kinematic.direction.x < 0) {
+			enemy_ani.render_pos.y = 2 * enemy_ani.spritesheet_scale.y;
+		}
+		else if (enemy_kinematic.direction.x > 0) {
+			enemy_ani.render_pos.y = 3 * enemy_ani.spritesheet_scale.y;
+		}
+		else if (enemy_kinematic.direction.y < 0) {
+			enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y;
+		}
+		else if (enemy_kinematic.direction.y > 0) {
+			enemy_ani.render_pos.y = 1 * enemy_ani.spritesheet_scale.y;
+		}
+	}
+	for (Entity& enemy : registry.wolfEnemies.entities) {
+		EntityAnimation& enemy_ani = registry.animation.get(enemy);
+		Kinematic& enemy_kinematic = registry.kinematics.get(enemy);
+		if (enemy_kinematic.direction.x < 0 || enemy_ani.idle_direction.x < 0) {
+			enemy_ani.render_pos.y = (2 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+		}
+		else if (enemy_kinematic.direction.x > 0 || enemy_ani.idle_direction.x > 0) {
+			enemy_ani.render_pos.y = (3 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+		}
+		else if (enemy_kinematic.direction.y < 0 || enemy_ani.idle_direction.y < 0) {
+			enemy_ani.render_pos.y = (4 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+		}
+		else if (enemy_kinematic.direction.y > 0 || enemy_ani.idle_direction.y > 0) {
+			enemy_ani.render_pos.y = (1 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+		}
+	}
+
 }
 
 void Animation::init(RenderSystem* renderer, GLFWwindow* window) {

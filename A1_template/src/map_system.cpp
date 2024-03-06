@@ -43,7 +43,21 @@ void MapSystem::spawnEnemies() {
             xPos = (point.x-centerX) * world_tile_size;
             yPos = (point.y-centerY) * world_tile_size;
 
-            createEnemy(renderer, vec2(xPos, yPos));
+            std::random_device ran;
+            std::mt19937 gen(ran());
+            std::uniform_real_distribution<> dis(0.0, 1.0);
+            float random_numer = dis(gen);
+            if (random_numer <= 0.33) {
+                createBeeEnemy(renderer, vec2(xPos, yPos));
+            }
+            else if (random_numer <= 0.66) {
+                createWolfEnemy(renderer, vec2(xPos, yPos));
+            }
+            else if (random_numer <= 0.99) {
+                createBomberEnemy(renderer, vec2(xPos, yPos));
+            }
+
+            //createEnemy(renderer, vec2(xPos, yPos));
         }
     }
 }

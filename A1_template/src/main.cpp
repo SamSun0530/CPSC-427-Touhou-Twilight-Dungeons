@@ -30,7 +30,6 @@ int main()
 	PhysicsSystem physics;
 	AISystem ai;
 	BulletSystem bullets;
-
 	MapSystem map;
 	Animation animation;
 
@@ -52,7 +51,7 @@ int main()
 	renderer.init(window);
 	world.init(&renderer, &audio, &map);
 	bullets.init(&renderer, window, &audio);
-
+	ai.init();
 	map.init(&renderer);
 	animation.init(&renderer, window);
 
