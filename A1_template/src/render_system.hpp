@@ -56,6 +56,8 @@ class RenderSystem {
 			textures_path("BottomWall.png"),
 			textures_path("WallEdge.png"),
 			textures_path("WallSurface.png"),
+			textures_path("Pillar-Top.png"),
+			textures_path("Pillar-Bottom.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

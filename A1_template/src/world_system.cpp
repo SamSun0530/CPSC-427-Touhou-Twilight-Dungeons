@@ -250,9 +250,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-
-
-
 	if (registry.hps.get(player).curr_hp <= 0) {
 		registry.hps.get(player).curr_hp = registry.hps.get(player).max_hp;
 		registry.bulletFireRates.get(player).is_firing = false;
@@ -307,7 +304,10 @@ void WorldSystem::restart_game() {
 		for (int col = 0; col < world_map[row].size(); col++) {
 			// TODO: remove this, used for testing ai can see player
 			// Creates a wall 2 tiles up from origin
-			if (row == world_height / 2 - 2 && col == world_width / 2) {
+			if (row == world_height / 2 - 2 && col == world_width / 2 ||
+				row == world_height / 2 + 2 && col == world_width / 2 ||
+				row == world_height / 2 && col == world_width / 2 - 2 ||
+				row == world_height / 2 && col == world_width / 2 + 2) {
 				world_map[row][col] = (int)TILE_TYPE::WALL;
 				continue;
 			}
@@ -350,11 +350,6 @@ void WorldSystem::restart_game() {
 			else if (col == world_width - 1) {
 				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
 			}
-			else 			
-				// TODO: remove this, used for testing ai can see player
-				if (row == world_height / 2 - 2 && col == world_width / 2) {
-					textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
-				}
 			else if (row == 1) {
 				textureIDs.push_back(TEXTURE_ASSET_ID::WALL_SURFACE);
 			}
@@ -365,6 +360,20 @@ void WorldSystem::restart_game() {
 				}
 				else {
 					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
+				}
+
+				// TODO: remove this, used for testing ai can see player
+				if (row == world_height / 2 - 2 && col == world_width / 2 ||
+					row == world_height / 2 + 2 && col == world_width / 2 ||
+					row == world_height / 2 && col == world_width / 2 - 2 ||
+					row == world_height / 2 && col == world_width / 2 + 2) {
+					textureIDs.push_back(TEXTURE_ASSET_ID::PILLAR_BOTTOM);
+				}
+				else if (row == world_height / 2 - 3 && col == world_width / 2 ||
+					row == world_height / 2 + 1 && col == world_width / 2 ||
+					row == world_height / 2 - 1 && col == world_width / 2 - 2 ||
+					row == world_height / 2 - 1 && col == world_width / 2 + 2) {
+					textureIDs.push_back(TEXTURE_ASSET_ID::PILLAR_TOP);
 				}
 			}
 			int xPos = (col - centerX) * world_tile_size;

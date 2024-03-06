@@ -18,10 +18,20 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	transform.rotate(motion.angle);
 	transform.scale(motion.scale);
 
-	assert(registry.renderRequests.has(entity));
-	const RenderRequest &render_request = registry.renderRequests.get(entity);
+	//assert(registry.renderRequests.has(entity));
+	//const RenderRequest &render_request = registry.renderRequests.get(entity);
+	RenderRequest* render_request;
+	if (registry.renderRequests.has(entity)) {
+		render_request = &registry.renderRequests.get(entity);
+	}
+	else if (registry.renderRequestsForeground.has(entity)) {
+		render_request = &registry.renderRequestsForeground.get(entity);
+	}
+	else {
+		assert(false && "Entity not contained in ECS registry");
+	}
 
-	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
+	const GLuint used_effect_enum = (GLuint)(*render_request).used_effect;
 	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
 	const GLuint program = (GLuint)effects[used_effect_enum];
 
@@ -29,9 +39,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	glUseProgram(program);
 	gl_has_errors();
 
-	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
-	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
-	const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
+	assert((*render_request).used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
+	const GLuint vbo = vertex_buffers[(GLuint)(*render_request).used_geometry];
+	const GLuint ibo = index_buffers[(GLuint)(*render_request).used_geometry];
 
 	// Setting vertex and index buffers
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -39,7 +49,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 
 	// Input data location as in the vertex buffer
-	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED || render_request.used_effect == EFFECT_ASSET_ID::UI)
+	if ((*render_request).used_effect == EFFECT_ASSET_ID::TEXTURED || (*render_request).used_effect == EFFECT_ASSET_ID::UI)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -61,14 +71,25 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glActiveTexture(GL_TEXTURE0);
 		gl_has_errors();
 
-		assert(registry.renderRequests.has(entity));
-		GLuint texture_id =
-			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+		//assert(registry.renderRequests.has(entity));
+		//GLuint texture_id =
+		//	texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+		GLuint texture_id;
+		if (registry.renderRequests.has(entity)) {
+			texture_id = texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+		}
+		else if (registry.renderRequestsForeground.has(entity)) {
+			texture_id = texture_gl_handles[(GLuint)registry.renderRequestsForeground.get(entity).used_texture];
+		}
+		else {
+			assert(false && "Entity not contained in ECS registry");
+		}
+
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
 	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::PLAYER || render_request.used_effect == EFFECT_ASSET_ID::EGG)
+	else if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER || (*render_request).used_effect == EFFECT_ASSET_ID::EGG)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_color_loc = glGetAttribLocation(program, "in_color");
@@ -84,7 +105,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 							  sizeof(ColoredVertex), (void *)sizeof(vec3));
 		gl_has_errors();
 
-		if (render_request.used_effect == EFFECT_ASSET_ID::PLAYER)
+		if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER)
 		{
 			// Light up?
 			GLint light_up_uloc = glGetUniformLocation(program, "light_up");
@@ -245,6 +266,13 @@ void RenderSystem::draw()
 		}
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
+		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+	}
+
+	for (Entity entity : registry.renderRequestsForeground.entities) {
+		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
+			continue;
+		}
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
 
