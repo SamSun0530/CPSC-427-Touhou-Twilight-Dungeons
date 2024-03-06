@@ -186,9 +186,9 @@ void RenderSystem::initializeGlMeshes()
 			stack.push_back(ordered_vertices[i].position);
 		}
 		meshes[(int)geom_index].ordered_vertices = stack;
-		for (vec3& v : stack) {
-			std::cout << v.x << "   " << v.y << std::endl;
-		}
+		//for (vec3& v : stack) {
+		//	std::cout << v.x << "   " << v.y << std::endl;
+		//}
 	}
 }
 
