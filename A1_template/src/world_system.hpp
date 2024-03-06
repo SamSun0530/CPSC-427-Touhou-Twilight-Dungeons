@@ -51,7 +51,7 @@ private:
 	// Initial state is all false
 	std::array<bool, 512> pressed = { 0 };
 	// Update player direction based on pressed
-	void WorldSystem::updatePlayerDirection(Kinematic& player_kinematic);
+	void updatePlayerDirection(Kinematic& player_kinematic);
 
 	// restart level
 	void restart_game();

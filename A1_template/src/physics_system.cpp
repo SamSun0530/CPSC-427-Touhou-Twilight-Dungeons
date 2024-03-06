@@ -170,4 +170,3 @@ void PhysicsSystem::step(float elapsed_ms)
 
 	// Other collisions here
 }
-

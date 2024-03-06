@@ -50,7 +50,6 @@ int main()
 	world.init(&renderer, &audio, &map);
 	bullets.init(&renderer, window, &audio);
 	map.init(&renderer);
-	map.generateBasicMap();
 	animation.init(window);
 
 	// variable timestep loop
