@@ -201,7 +201,7 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 	enemy_bullet_rate.is_firing = true;
 	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
 	registry.colors.insert(entity, { 1,1,1 });
-	
+
 	registry.aitimers.emplace(entity);
 
 	return entity;
@@ -468,6 +468,65 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 
 		entities.push_back(entity);
 	}
+	return entities;
+}
+
+// IMPORTANT: creates pillar on grid position, not screen position
+// textureIDs[0] == bottom, textureIDs[1] == top
+std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std::vector<TEXTURE_ASSET_ID> textureIDs) {
+	assert(textureIDs.size() == 2 && "textureIDs do not have size 2");
+	assert((!is_valid_cell(grid_position.x, grid_position.y) ||
+		!(grid_position.y < 0 ||
+			grid_position.x < 0 ||
+			grid_position.y >= world_height ||
+			grid_position.x >= world_width)) && "Pillar position not valid");
+
+	std::vector<Entity> entities;
+	auto bottom_entity = Entity();
+	auto top_entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& bottom_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(bottom_entity, &bottom_mesh);
+	Mesh& top_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(top_entity, &top_mesh);
+
+	// Initialize the motion
+	int center_x = world_width >> 1;
+	int center_y = world_height >> 1;
+	vec2 bottom_screen_position = { (grid_position.x - center_x) * world_tile_size,
+		(grid_position.y - center_y) * world_tile_size };
+
+	auto& bottom_motion = registry.motions.emplace(bottom_entity);
+	bottom_motion.position = bottom_screen_position;
+	bottom_motion.scale = vec2(world_tile_size, world_tile_size);
+	auto& top_motion = registry.motions.emplace(top_entity);
+	top_motion.position = bottom_screen_position + vec2{ 0, -world_tile_size };
+	top_motion.scale = vec2(world_tile_size, world_tile_size);
+
+	// Set the collision box
+	auto& bottom_collidable = registry.collidables.emplace(bottom_entity);
+	bottom_collidable.size = { bottom_motion.scale.x, bottom_motion.scale.y / 2 };
+	bottom_collidable.shift = { 0, -bottom_motion.scale.y / 4 };
+
+	WorldSystem::world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+	registry.walls.emplace(bottom_entity);
+	registry.floors.emplace(top_entity); // TODO: maybe foreground.emplace
+
+	registry.renderRequests.insert(
+		bottom_entity,
+		{ textureIDs[0],
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.renderRequestsForeground.insert(
+		top_entity,
+		{ textureIDs[1],
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	entities.push_back(top_entity);
+	entities.push_back(bottom_entity);
+
 	return entities;
 }
 

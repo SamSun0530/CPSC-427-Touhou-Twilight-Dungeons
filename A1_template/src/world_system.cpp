@@ -302,16 +302,6 @@ void WorldSystem::restart_game() {
 	 //Creates 1 room the size of the map
 	for (int row = 0; row < world_map.size(); row++) {
 		for (int col = 0; col < world_map[row].size(); col++) {
-			// TODO: remove this, used for testing ai can see player
-			// Creates a wall 2 tiles up from origin
-			if (row == world_height / 2 - 2 && col == world_width / 2 ||
-				row == world_height / 2 + 2 && col == world_width / 2 ||
-				row == world_height / 2 && col == world_width / 2 - 2 ||
-				row == world_height / 2 && col == world_width / 2 + 2) {
-				world_map[row][col] = (int)TILE_TYPE::WALL;
-				continue;
-			}
-
 			if (row == 0 || row == 1 || col == 0 || row == world_height - 1 || col == world_width - 1) {
 				world_map[row][col] = (int)TILE_TYPE::WALL;
 			}
@@ -361,20 +351,6 @@ void WorldSystem::restart_game() {
 				else {
 					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
 				}
-
-				// TODO: remove this, used for testing ai can see player
-				if (row == world_height / 2 - 2 && col == world_width / 2 ||
-					row == world_height / 2 + 2 && col == world_width / 2 ||
-					row == world_height / 2 && col == world_width / 2 - 2 ||
-					row == world_height / 2 && col == world_width / 2 + 2) {
-					textureIDs.push_back(TEXTURE_ASSET_ID::PILLAR_BOTTOM);
-				}
-				else if (row == world_height / 2 - 3 && col == world_width / 2 ||
-					row == world_height / 2 + 1 && col == world_width / 2 ||
-					row == world_height / 2 - 1 && col == world_width / 2 - 2 ||
-					row == world_height / 2 - 1 && col == world_width / 2 + 2) {
-					textureIDs.push_back(TEXTURE_ASSET_ID::PILLAR_TOP);
-				}
 			}
 			int xPos = (col - centerX) * world_tile_size;
 			int yPos = (row - centerY) * world_tile_size;
@@ -391,6 +367,8 @@ void WorldSystem::restart_game() {
 			}
 		}
 	}
+
+	createPillar(renderer, { centerX, centerY - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
 	// Create a new player
 	player = createPlayer(renderer, { 0, 0 });
@@ -428,8 +406,8 @@ void WorldSystem::handle_collisions() {
 								registry.hps.get(entity_other).curr_hp = 0;
 							}
 						}
-						
-						
+
+
 						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
@@ -462,7 +440,7 @@ void WorldSystem::handle_collisions() {
 
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
 					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
-					registry.remove_all_components_of(entity_other);					
+					registry.remove_all_components_of(entity_other);
 				}
 			}
 		}
