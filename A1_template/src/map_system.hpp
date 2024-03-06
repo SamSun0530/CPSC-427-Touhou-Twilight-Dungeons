@@ -63,7 +63,7 @@ private:
     void generateAllEntityTiles(std::vector<std::vector<int>>& map);
     std::vector<TEXTURE_ASSET_ID> getTileAssetID(int row, int col, std::vector<std::vector<int>>& map);
 
-    static std::vector<Entity> rooms;
+    std::vector<Room> rooms;
 
     std::vector<Vertex*> verticies;
     std::vector<Edge*> edges;
@@ -82,6 +82,7 @@ public:
 	static std::vector<std::vector<int>> world_map; // world_map[Row][Col]
     void generateMap(int floor);
     void generateBasicMap();
+    void spawnEnemies();
     void debug();
     //foo
 };

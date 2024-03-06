@@ -197,7 +197,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Create enemy with random initial position
 		float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
 		float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
-		createEnemy(renderer, vec2(spawn_x, spawn_y));
+		// createEnemy(renderer, vec2(spawn_x, spawn_y));
 	}
 
 	// Processing the player state
@@ -316,6 +316,7 @@ void WorldSystem::restart_game() {
 	// map->generateMap(1);
 	map->generateBasicMap();
 	world_map = MapSystem::world_map;
+	map->spawnEnemies();
 
 	//     // // Print the initialized array
     // for (int i = 0; i < world_map.size(); ++i) {
