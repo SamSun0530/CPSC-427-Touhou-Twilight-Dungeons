@@ -12,8 +12,9 @@ const vec2 med_world_map_size = {1000,1000};
 const vec2 large_world_map_size = {2000,2000};
 int room_size = 11;
 
-// Static map var
+// Static var
 std::vector<std::vector<int>> MapSystem::world_map;
+// std::vector<Room> rooms;
 
 
 MapSystem::MapSystem() {
@@ -25,13 +26,36 @@ void MapSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 }
 
+void MapSystem::spawnEnemies() {
+    for(Room room: rooms) {
+        std::vector<vec2> spawn_points;
+        spawn_points.push_back(vec2(room.x + 2, room.y + 2));
+        spawn_points.push_back(vec2(room.x + room_size - 2, room.y + 2));
+        spawn_points.push_back(vec2(room.x + 2, room.y + room_size - 2));
+        spawn_points.push_back(vec2(room.x + room_size - 2, room.y + room_size - 2));
+
+        int centerX = (room_size);
+	    int centerY = (room_size);
+        int xPos;
+        int yPos;
+
+        for(vec2 point: spawn_points) {
+            xPos = (point.x-centerX) * world_tile_size;
+            yPos = (point.y-centerY) * world_tile_size;
+
+            createEnemy(renderer, vec2(xPos, yPos));
+        }
+    }
+}
+
 Room generateBasicRoom(int x, int y);
 void addRoomToMap(const Room& room, std::vector<std::vector<int>>& map);
 void addHallwayBetweenRoom(const Room& room1, const Room& room2, std::vector<std::vector<int>>& map);
 void MapSystem::generateBasicMap() {
     
      std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
-     std::vector<Room> rooms;
+     rooms.clear();
+    //  std::vector<Room> rooms;
      int room_radius = room_size >> 1;
      rooms.push_back(generateBasicRoom(room_radius,room_radius));
      rooms.push_back(generateBasicRoom(room_size+2*room_radius,room_radius));
@@ -425,31 +449,8 @@ std::vector<TEXTURE_ASSET_ID> MapSystem::getTileAssetID(int row, int col, std::v
         return textures;
     }
 
-    // Inner top left
-    if(map[row-1][col] == (int)TILE_TYPE::WALL && map[row][col-1] == (int)TILE_TYPE::WALL) {
-        textures.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
-        return textures;
-    }
-
-    // Inner top right
-    if(map[row-1][col] == (int)TILE_TYPE::WALL && map[row][col+1] == (int)TILE_TYPE::WALL) {
-        textures.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
-        return textures;
-    }
-
-    // Inner bot left
-    if(map[row+1][col] == (int)TILE_TYPE::WALL && map[row][col-1] == (int)TILE_TYPE::WALL) {
-        textures.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
-        return textures;
-    }
-
-    // Inner bot right
-    if(map[row+1][col] == (int)TILE_TYPE::WALL && map[row][col+1] == (int)TILE_TYPE::WALL) {
-        textures.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
-        return textures;
-    }
-
-    // Should never return here, undefined wall behavior
+    // Temp corner tile
+    textures.push_back((uniform_dist(rng) > 0.5) ? TEXTURE_ASSET_ID::TILE_1 : TEXTURE_ASSET_ID::TILE_2);
     return textures;
 }
 

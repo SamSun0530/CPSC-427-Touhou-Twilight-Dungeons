@@ -232,7 +232,7 @@ std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vect
 	return entities;
 }
 
-std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs, float angle) {
+std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs) {
 	std::vector<Entity> entities;
 	for (int i = 0; i < textureIDs.size(); i++) {
 		auto entity = Entity();
@@ -243,7 +243,7 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 
 		// Initialize the motion
 		auto& motion = registry.motions.emplace(entity);
-		motion.angle = angle;
+		motion.angle = 0.f;
 		motion.position = position;
 		motion.scale = vec2(world_tile_size, world_tile_size);
 
