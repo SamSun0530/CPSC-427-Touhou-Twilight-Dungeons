@@ -275,6 +275,7 @@ void AISystem::init() {
 	is_in_range_bee->setFalse(move_random_direction_bee);
 
 	/*
+	Wolf has same tree (temporary)
 	Bee enemy decision tree
 	COND in range global?
 		F -> move random idle
@@ -287,6 +288,7 @@ void AISystem::init() {
 				T -> stop and shoot
 	*/
 	this->bee_tree.setRoot(is_in_range_bee);
+	this->wolf_tree.setRoot(is_in_range_bee);
 
 	/*
 	Bomber enemy decision tree

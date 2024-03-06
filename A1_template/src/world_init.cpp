@@ -312,6 +312,10 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
 	registry.colors.insert(entity, { 1,1,1 });
 
+	AiTimer& aitimer = registry.aitimers.emplace(entity);
+	aitimer.update_base = 500; // updates decision tree every second
+	aitimer.update_timer_ms = 500;
+
 	return entity;
 }
 

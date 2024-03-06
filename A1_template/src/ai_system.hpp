@@ -30,6 +30,7 @@ private:
 	// Decision trees for different ai entities
 	DecisionTree bee_tree;
 	DecisionTree bomber_tree;
+	DecisionTree wolf_tree;
 
 	// C++ random number generator
 	std::default_random_engine rng;

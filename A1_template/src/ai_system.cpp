@@ -33,6 +33,9 @@ void AISystem::step(float elapsed_ms)
 			else if (registry.bomberEnemies.has(entity)) {
 				bomber_tree.update(entity);
 			}
+			else if (registry.wolfEnemies.has(entity)) {
+				wolf_tree.update(entity);
+			}
 			aitimer.update_timer_ms = aitimer.update_base;
 		}
 	}
