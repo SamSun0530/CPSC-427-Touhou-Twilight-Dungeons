@@ -289,13 +289,99 @@ void WorldSystem::restart_game() {
 	map->generateBasicMap();
 	world_map = MapSystem::world_map;
 
-	    // // Print the initialized array
-    for (int i = 0; i < world_map.size(); ++i) {
-        for (int j = 0; j < world_map[i].size(); ++j) {
-            std::cout << world_map[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
+		// Create a new player
+	player = createPlayer(renderer, { 0, 0 });
+	is_alive = true;
+	ui = createUI(renderer, registry.hps.get(player).max_hp);
+
+	//     // // Print the initialized array
+    // for (int i = 0; i < world_map.size(); ++i) {
+    //     for (int j = 0; j < world_map[i].size(); ++j) {
+    //         std::cout << world_map[i][j] << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+	
+	// // Creates 1 room the size of the map
+	// for (int row = 0; row < world_map.size(); row++) {
+	// 	for (int col = 0; col < world_map[row].size(); col++) {
+	// 		if (row == 0 || col == 0 || row == world_height - 1 || col == world_width - 1) {
+	// 			world_map[row][col] = (int)TILE_TYPE::WALL;
+	// 		}
+	// 		else {
+	// 			world_map[row][col] = (int)TILE_TYPE::FLOOR;
+	// 		}
+	// 	}
+	// }
+
+	int centerX = (world_width >> 1);
+	int centerY = (world_height >> 1);
+	//Creates entitiy tiles based on the world map
+	for (int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
+		for (int col = 0; col < world_map[row].size(); col++) {
+			std::vector<TEXTURE_ASSET_ID> textureIDs;
+			// if (row == 0 && col == 0) {
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
+			// }
+			// else if (row == world_height - 1 && col == world_width - 1) {
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
+			// }
+			// else if (row == 0 && col == world_width - 1) {
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
+			// }
+			// else if (row == world_height - 1 && col == 0) {
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
+			// }
+			// else if (row == 0) {
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::TOP_WALL);
+			// }
+			// else if (row == world_height - 1) {
+			// 	float rand = uniform_dist(rng);
+			// 	if (rand < 0.5f) {
+			// 		textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
+			// 	}
+			// 	else {
+			// 		textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
+			// 	}
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::WALL_EDGE);
+			// }
+			// else if (col == 0) {
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
+			// }
+			// else if (col == world_width - 1) {
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
+			// }
+			// else {
+			// 	float rand = uniform_dist(rng);
+			// 	if (rand < 0.5f) {
+			// 		textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
+			// 	}
+			// 	else {
+			// 		textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
+			// 		textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
+			// 	}
+			// }
+
+			// int xPos = (col - centerX) * world_tile_size;
+			// int yPos = (row - centerY) * world_tile_size;
+			
+			// int xPos = (col-centerX) * world_tile_size;
+			// int yPos = (row-centerY) * world_tile_size;
+			// switch (world_map[row][col])
+			// {
+			// case (int)TILE_TYPE::WALL:
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::WALL_SURFACE);
+			// 	createWall(renderer, { xPos,yPos }, textureIDs);
+			// 	break;
+			// case (int)TILE_TYPE::FLOOR:
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
+			// 	createFloor(renderer, { xPos,yPos }, textureIDs);
+			// 	break;
+			// default:
+			// 	break;
+			// }
+		}
+	}
 
 	// Create a new player
 	player = createPlayer(renderer, { 0, 0 });

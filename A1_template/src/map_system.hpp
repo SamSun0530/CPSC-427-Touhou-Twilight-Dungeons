@@ -61,6 +61,7 @@ private:
     vec2 roundToTileSizeVec2(vec2 input, float tileSize);
     void addTile(int x, int y, std::vector<TEXTURE_ASSET_ID>& textureIDs, std::vector<std::vector<int>>& map);
     void generateAllEntityTiles(std::vector<std::vector<int>>& map);
+    std::vector<TEXTURE_ASSET_ID> getTileAssetID(int row, int col, std::vector<std::vector<int>>& map);
 
     static std::vector<Entity> rooms;
 

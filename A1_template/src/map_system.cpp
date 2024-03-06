@@ -358,23 +358,98 @@ void addHallwayBetweenRoom(const Room& room1, const Room& room2, std::vector<std
     }
 }
 
-void MapSystem::addTile(int x, int y, std::vector<TEXTURE_ASSET_ID>& textureIDs, std::vector<std::vector<int>>& map) {
+std::vector<TEXTURE_ASSET_ID> MapSystem::getTileAssetID(int row, int col, std::vector<std::vector<int>>& map) {
+    std::vector<TEXTURE_ASSET_ID> textures;
+
+    // Floor Tile
+    if(map[row][col] == (int)TILE_TYPE::FLOOR){
+        textures.push_back((uniform_dist(rng) > 0.5) ? TEXTURE_ASSET_ID::TILE_1 : TEXTURE_ASSET_ID::TILE_2);
+        return textures;
+    }
+
+    // map permimeter
+    if(row * col == 0 || row * col == map.size() * map[0].size()) {
+        return textures;
+        // The current tile is on the edge of the map
+    }
+
+    // TODO: Inefficent case by case checks. Optimize with a map if it takes too much time
+    // Top left corner
+    if(map[row-1][col] == (int)TILE_TYPE::EMPTY && map[row][col-1] == (int)TILE_TYPE::EMPTY) {
+        textures.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
+        return textures;
+    }
+
+    // Top Right corner
+    if(map[row-1][col] == (int)TILE_TYPE::EMPTY && map[row][col+1] == (int)TILE_TYPE::EMPTY) {
+        textures.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
+        return textures;
+    }
+
+    // Top Wall
+    if(map[row-1][col] == (int)TILE_TYPE::EMPTY) {
+        textures.push_back(TEXTURE_ASSET_ID::WALL_SURFACE);
+        textures.push_back(TEXTURE_ASSET_ID::TOP_WALL);
+        return textures;
+    }
+
+    // Bot left corner
+    if(map[row+1][col] == (int)TILE_TYPE::EMPTY && map[row][col-1] == (int)TILE_TYPE::EMPTY) {
+        textures.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
+        return textures;
+    }
+
+    // Bot right corner
+    if(map[row+1][col] == (int)TILE_TYPE::EMPTY && map[row][col+1] == (int)TILE_TYPE::EMPTY) {
+    textures.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
+    return textures;
+    }
+
+    // Left wall
+    if(map[row][col-1] == (int)TILE_TYPE::EMPTY) {
+        textures.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
+        return textures;
+    }
+
+    // Right wall
+    if(map[row][col+1] == (int)TILE_TYPE::EMPTY) {
+        textures.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
+        return textures;
+    }
+
+    // Bot wall
+    if(map[row+1][col] == (int)TILE_TYPE::EMPTY) {
+        // textures.push_back((uniform_dist(rng) > 0.5) ? TEXTURE_ASSET_ID::TILE_1 : TEXTURE_ASSET_ID::TILE_2);
+        textures.push_back(TEXTURE_ASSET_ID::BOTTOM_WALL);
+        return textures;
+    }
+
+    // Temp corner tile
+    textures.push_back((uniform_dist(rng) > 0.5) ? TEXTURE_ASSET_ID::TILE_1 : TEXTURE_ASSET_ID::TILE_2);
+    return textures;
+}
+
+void MapSystem::addTile(int row, int col, std::vector<TEXTURE_ASSET_ID>& textureIDs, std::vector<std::vector<int>>& map) {
 
     // Sets the center of the map to 0,0
     // Comment out to center on top left
     // int xPos = (x - (map[0].size() >> 1)) * world_tile_size;
     // int yPos = (y - (map.size() >> 1)) * world_tile_size;
-    int xPos = x;
-    int yPos = y;
-    switch (map[y][x])
+    int centerX = (world_width >> 1);
+	int centerY = (world_height >> 1);
+    int xPos = (col-centerX) * world_tile_size;
+    int yPos = (row-centerY) * world_tile_size;
+
+    // Gets the proper texture id list given the position
+    switch (map[row][col])
     {
     case (int)TILE_TYPE::WALL:
-        // textureIDs.push_back(TEXTURE_ASSET_ID::WALL_EDGE);
-        // createPhysTile(renderer, { xPos,yPos }, textureIDs);
+        textureIDs = getTileAssetID(row, col, map);
+        createWall(renderer, { xPos,yPos }, textureIDs);
         break;
     case (int)TILE_TYPE::FLOOR:
-        // textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
-        // createDecoTile(renderer, { xPos,yPos }, textureIDs);
+        textureIDs = getTileAssetID(row, col, map);
+        createFloor(renderer, { xPos,yPos }, textureIDs);
         break;
     default:
         break;
