@@ -14,6 +14,7 @@
 
 #include "render_system.hpp"
 #include "audio.hpp"
+#include "map_system.hpp"
 #include <map>
 
 // Container for all our entities and game logic. Individual rendering / update is
@@ -34,7 +35,7 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer, Audio* audio);
+	void init(RenderSystem* renderer, Audio* audio, MapSystem* map);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -48,6 +49,10 @@ public:
 	// Should the game be over ?
 	bool is_over()const;
 
+	// World Map
+	static std::vector<std::vector<int>> world_map; // world_map[Row][Col]
+
+	// font and instructions
 	bool get_display_instruction();
 	int get_tutorial_counter();
 	bool get_show_fps();
@@ -66,7 +71,7 @@ private:
 	// Initial state is all false
 	std::array<bool, 512> pressed = { 0 };
 	// Update player direction based on pressed
-	void WorldSystem::updatePlayerDirection(Kinematic& player_kinematic);
+	void updatePlayerDirection(Kinematic& player_kinematic);
 
 	// restart level
 	void restart_game();
@@ -96,9 +101,13 @@ private:
 	Entity player;
 	std::vector<Entity> ui;
 
-	// World Map
-	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
-
+//<<<<<<< HEAD
+//=======
+//	// World Map
+//	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
+	MapSystem* map;
+//
+//>>>>>>> 7beb032a52b18633948e9710cb4eba8a2f025739
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1

@@ -11,6 +11,8 @@ class PhysicsSystem
 public:
 	void step(float elapsed_ms);
 
+	static bool collides_AABB(const Motion& motion1, const Motion& motion2);
+
 	PhysicsSystem()
 	{
 	}

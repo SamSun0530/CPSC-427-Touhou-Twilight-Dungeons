@@ -17,6 +17,9 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include<algorithm>
+#include<iterator>
+
 // World initialization
 bool RenderSystem::init(GLFWwindow* window_arg)
 {
@@ -128,6 +131,30 @@ void RenderSystem::bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices
 	gl_has_errors();
 }
 
+bool is_leftturn(const vec3& p, const vec3& q, const vec3& r) {
+	float val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+	return (val > 0);
+}
+
+float square_dist(const vec3& p1, const vec3& p2) {
+	return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
+}
+
+
+vec3 p0;
+bool compare_angle(const ColoredVertex& v1, const ColoredVertex& v2) {
+	vec3 p1 = v1.position;
+	vec3 p2 = v2.position;
+	bool isLeft = is_leftturn(p0, p1, p2);
+	if (isLeft) {
+		return true;
+	}
+	else if (!isLeft && !is_leftturn(p0, p2, p1)) {
+		return square_dist(p0, p1) < square_dist(p0, p2);
+	}
+	return false;
+}
+
 void RenderSystem::initializeGlMeshes()
 {
 	for (uint i = 0; i < mesh_paths.size(); i++)
@@ -143,6 +170,35 @@ void RenderSystem::initializeGlMeshes()
 		bindVBOandIBO(geom_index,
 			meshes[(int)geom_index].vertices, 
 			meshes[(int)geom_index].vertex_indices);
+
+		std::vector<ColoredVertex> colored_vertices = meshes[(int)geom_index].vertices;
+		std::vector<ColoredVertex> ordered_vertices;
+		std::copy(colored_vertices.begin(), colored_vertices.end(), std::back_inserter(ordered_vertices));
+
+		// Graham's Scan algorithm for finding convex hulls in counter-clockwise order. Reference CPSC 420: Advanced Algorithms
+		int n = ordered_vertices.size(), lowest_y = 0;
+		for (int i = 1; i < n; i++) {
+			if ((ordered_vertices[i].position.y < ordered_vertices[lowest_y].position.y) || (ordered_vertices[i].position.y == ordered_vertices[lowest_y].position.y && ordered_vertices[i].position.x < ordered_vertices[lowest_y].position.x))
+				lowest_y = i;
+		}
+		std::swap(ordered_vertices[0], ordered_vertices[lowest_y]);
+
+		p0 = ordered_vertices[0].position;
+		std::sort(ordered_vertices.begin() + 1, ordered_vertices.end(), compare_angle);
+		std::vector<vec3> stack;
+		stack.push_back(ordered_vertices[0].position);
+		stack.push_back(ordered_vertices[1].position);
+		stack.push_back(ordered_vertices[2].position);
+
+		for (int i = 3; i < n; i++) {
+			while (stack.size() > 1 && !is_leftturn(*(stack.end() - 2), stack.back(), ordered_vertices[i].position))
+				stack.pop_back();
+			stack.push_back(ordered_vertices[i].position);
+		}
+		meshes[(int)geom_index].ordered_vertices = stack;
+		//for (vec3& v : stack) {
+		//	std::cout << v.x << "   " << v.y << std::endl;
+		//}
 	}
 }
 

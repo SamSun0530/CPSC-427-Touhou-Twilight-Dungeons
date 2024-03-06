@@ -37,12 +37,48 @@ struct IdleMoveAction {
 	State state = State::IDLE;
 	float timer_ms = 5000;
 	float idle_ms = 5000;
-	float moving_ms = 1000;
+	float moving_ms = 1500;
+};
+
+enum EnemyType
+{
+	normal,
+	shotgun,
+	suicide,
+};
+
+struct EntityAnimation {
+	State state = State::IDLE;
+	vec2 idle_direction = { 0, 0 }; // used to figure out direction for idle animation
+	float frame_rate_ms = 200;
+	vec2 spritesheet_scale = { 0, 0 };
+	vec2 render_pos = { 0, 0 };
+	bool isCursor = false;
+	float offset = 0;
 };
 
 struct Deadly
 {
 	int damage = 1;
+};
+
+struct BeeEnemy {
+	
+};
+
+struct BomberEnemy
+{
+	
+};
+
+struct WolfEnemy
+{
+	
+};
+
+struct SubmachineGunEnemy
+{
+
 };
 
 struct HP {
@@ -52,13 +88,16 @@ struct HP {
 
 struct Pickupable
 {
-	int damage = 1;
+	int health_change = 1;
 };
 
 
 struct EnemyBullet
 {
 	int damage = 1;
+};
+
+struct RoomHitbox{
 };
 
 // A non interactable tile of the map
@@ -73,22 +112,26 @@ struct Wall {
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };
-	vec2 last_position = { 0, 0 };
+	//vec2 prev_pos = { 0, 0 };
 	float angle = 0;
 	vec2 scale = { 10, 10 };
 };
 
-// Real motion which modifies velocity
+// Velocity related data
 struct Kinematic {
 	float speed_base = 0.f;
 	float speed_modified = 0.f;
 	vec2 velocity = { 0, 0 };
+	// x, y are either -1,0,1
 	vec2 direction = { 0, 0 };
 };
 
 // Represents collision box with shift transform and size of box
 struct Collidable {
+	// translate box relative to motion position
 	vec2 shift = { 0, 0 };
+	// width and height of box
+	// IMPORTANT: size MUST be positive
 	vec2 size = { 1, 1 };
 };
 
@@ -100,12 +143,20 @@ struct Collision
 	Collision(Entity& other) { this->other = other; };
 };
 
+// Entity follows given path
+struct FollowPath
+{
+	path path;
+	int next_path_index = 0;
+};
+
 // Data structure for toggling debug mode
 struct Debug {
 	bool in_debug_mode = 0;
 	bool in_freeze_mode = 0;
 };
 extern Debug debugging;
+
 
 // Sets the brightness of the screen
 struct ScreenState
@@ -117,6 +168,12 @@ struct ScreenState
 struct DebugComponent
 {
 	// Note, an empty struct has size 1
+};
+
+// Update entity ai behavior tree after update ms
+struct AiTimer {
+	float update_timer_ms = 500;
+	float update_base = 500;
 };
 
 // A timer that will be associated to dying chicken
@@ -155,7 +212,9 @@ struct Mesh
 	vec2 original_size = {1,1};
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
+	std::vector<vec3> ordered_vertices;
 };
+
 
 // IDs for each tile type
 enum class TILE_TYPE {
@@ -190,9 +249,11 @@ enum class TILE_TYPE {
 
 enum class TEXTURE_ASSET_ID {
 	BULLET = 0,
-	ENEMY = BULLET + 1,
-	PLAYER = ENEMY + 1,
-	ENEMY_BULLET = PLAYER + 1,
+	ENEMY_BEE = BULLET + 1,
+	PLAYER = ENEMY_BEE + 1,
+	ENEMY_WOLF = PLAYER + 1,
+	ENEMY_BOMBER = ENEMY_WOLF + 1,
+	ENEMY_BULLET = ENEMY_BOMBER + 1,
 	TILE_1 = ENEMY_BULLET + 1,
 	TILE_2 = TILE_1 + 1,
 	INNER_WALL = TILE_2 + 1,
@@ -210,7 +271,13 @@ enum class TEXTURE_ASSET_ID {
 	EMPTY_HEART = HALF_HEART + 1,
 	BOTTOM_WALL = EMPTY_HEART + 1,
 	WALL_EDGE = BOTTOM_WALL + 1,
-	TEXTURE_COUNT = WALL_EDGE + 1
+	WALL_SURFACE = WALL_EDGE + 1,
+	PILLAR_TOP = WALL_SURFACE + 1,
+	PILLAR_BOTTOM = PILLAR_TOP + 1,
+	HEALTH_1 = PILLAR_BOTTOM + 1,
+	HEALTH_2 = HEALTH_1 + 1,
+	REGENERATE_HEALTH = HEALTH_2 + 1,
+	TEXTURE_COUNT = REGENERATE_HEALTH + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -228,12 +295,14 @@ const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 // We won't use geometry as we are mostly using sprites
 enum class GEOMETRY_BUFFER_ID {
-	CHICKEN = 0,
-	SPRITE = CHICKEN + 1,
+	REIMU_FRONT = 0,
+	SPRITE = REIMU_FRONT + 1,
 	EGG = SPRITE + 1,
 	DEBUG_LINE = EGG + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
-	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
+	REIMU_LEFT = SCREEN_TRIANGLE + 1,
+	REIMU_RIGHT = REIMU_LEFT + 1,
+	GEOMETRY_COUNT = REIMU_RIGHT + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

@@ -2,12 +2,13 @@
 
 ## Temporary Keybinds
 
+- `G` - Debug mode, shows collidable boxes
 - `P` - Toggle camera-cursor offset
 - `WASD` - Player movement (up, left, down, right, respectively)
 - `ESC` - Exit the program
 - `R` - Reset the program
 - Scroll wheel - Zooming in/out
-- Mouse 1 (left click) - Fire bullet towards mouse cursor
+- Mouse 1 (left click) / space - Fire bullet towards mouse cursor
 
 ## Background Story
 
@@ -23,3 +24,9 @@ Sam Sun <br />
 Lin Su <br />
 Will Qiu <br />
 Alan Huang <br />
+
+## Used Assets
+- https://craftpix.net/product/medieval-interior-top-down-pixel-art-tileset/?num=2&count=70&sq=pixel&pos=12
+- https://craftpix.net/freebies/free-field-enemies-pixel-art-for-tower-defense/?num=1&count=335&sq=fields%20enemy&pos=11
+- https://toffeehazel.itch.io/japanese-food-sprites-32x32
+- https://penzilla.itch.io/basic-gui-bundle

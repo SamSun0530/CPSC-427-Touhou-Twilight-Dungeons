@@ -34,7 +34,7 @@ public:
 		offset = { 0.f, 0.f };
 		offset_target = { 0.f, 0.f };
 		zoom = 1.0f;
-		zoom_min = 0.5f;
+		zoom_min = 0.9f;
 		zoom_max = 2.0f;
 		zoom_increment = 0.1f;
 	}
@@ -47,6 +47,8 @@ public:
 	// Checks whether the position is inside the camera screen view
 	// Used for optimizing rendering by rendering only entities inside of the screen
 	bool isInCameraView(vec2 position);
+	// Set camera's AABB used to cull entities with render request outside of screen
+	void setCameraAABB();
 
 	mat3 createViewMatrix();
 	void print(); // for debugging

@@ -15,11 +15,14 @@
 #include <glm/gtc/type_ptr.hpp>
 
 // Game configuration
-const size_t MAX_ENEMIES = 15;
+const size_t MAX_ENEMIES = 10;
 const size_t MAX_COINS = 5;
 
 const size_t ENEMY_SPAWN_DELAY_MS = 2000 * 3;
 bool is_alive = true;
+
+// TODO: remove this and put into map_system, this is only for testing ai system
+std::vector<std::vector<int>> WorldSystem::world_map = std::vector<std::vector<int>>(world_height, std::vector<int>(world_width, (int)TILE_TYPE::EMPTY));
 
 // Create the world
 WorldSystem::WorldSystem()
@@ -46,6 +49,7 @@ namespace {
 		fprintf(stderr, "%d: %s", error, desc);
 	}
 }
+
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
@@ -104,7 +108,7 @@ GLFWwindow* WorldSystem::create_window() {
 	}
 
 	image.pixels = data;
-	GLFWcursor* cursor = glfwCreateCursor(&image, 0, 0);
+	GLFWcursor* cursor = glfwCreateCursor(&image, image.width / 2, image.height / 2);
 	glfwSetCursor(window, cursor);
 	stbi_image_free(data);
 
@@ -119,13 +123,13 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio) {
+void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
-
+	this->map = map;
 	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
-	world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
+	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
 
 	// Set all states to default
 	restart_game();
@@ -179,21 +183,39 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		vec2 padding = { i * 60, 0 };
 		motions_registry.get(ui[i]).position = motions_registry.get(player).position - window_px_half + ui_pos + padding;
 	}
+	for (int i = 0; i < registry.hps.get(player).curr_hp; i++) {
+		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::FULL_HEART;
+	}
 	for (int i = registry.hps.get(player).curr_hp; i < ui.size(); i++) {
 		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::EMPTY_HEART;
 	}
 
-	// Spawning new enemies
-	next_enemy_spawn -= elapsed_ms_since_last_update;
-	if (registry.deadlys.components.size() <= MAX_ENEMIES && next_enemy_spawn < 0.f) {
-		// Reset timer
-		next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
-		Motion& motion = registry.motions.get(player);
-		// Create enemy with random initial position
-		float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
-		float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
-		createEnemy(renderer, vec2(spawn_x, spawn_y));
-	}
+	//// Spawning new enemies
+	//next_enemy_spawn -= elapsed_ms_since_last_update;
+	//if (registry.deadlys.components.size() < MAX_ENEMIES && next_enemy_spawn < 0.f) {
+	//	// Reset timer
+	//	next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
+	//	Motion& motion = registry.motions.get(player);
+	//	// Create enemy with random initial position
+	//	float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
+	//	float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
+	//	std::random_device ran;
+	//	std::mt19937 gen(ran());
+	//	std::uniform_real_distribution<> dis(0.0, 1.0);
+	//	float random_numer = dis(gen);
+	//	if (random_numer <= 0.33) {
+	//		createBeeEnemy(renderer, vec2(spawn_x, spawn_y));
+	//	}
+	//	else if (random_numer <= 0.66) {
+	//		createWolfEnemy(renderer, vec2(spawn_x, spawn_y));
+	//	}
+	//	else if (random_numer <= 0.99) {
+	//		createBomberEnemy(renderer, vec2(spawn_x, spawn_y));
+	//	}
+	//	//createWolfEnemy(renderer, vec2(spawn_x, spawn_y));
+	//	//createBomberEnemy(renderer, vec2(spawn_x, spawn_y));
+	//	//createBeeEnemy(renderer, vec2(spawn_x, spawn_y));
+	//}
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -248,8 +270,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	if (registry.hps.get(player).curr_hp <= 0) {
-		registry.hps.get(player).curr_hp = registry.hps.get(player).max_hp;
+	if (is_alive && registry.hps.get(player).curr_hp <= 0) {
+		registry.bulletFireRates.get(player).is_firing = false;
 		is_alive = false;
 		pressed = { 0 };
 		registry.kinematics.get(player).direction = { 0,0 };
@@ -259,8 +281,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	for (Entity entity : registry.hps.entities) {
+		if (registry.players.has(entity)) continue;
 		HP& hp = registry.hps.get(entity);
 		if (hp.curr_hp <= 0.0f) {
+			if (registry.deadlys.has(entity)) {
+				std::random_device rd;
+				std::mt19937 gen(rd());
+				std::uniform_real_distribution<> distrib(0, 1);
+				double number = distrib(gen);
+				if (number <= 0.5)
+				createHealth(renderer, registry.motions.get(entity).position);
+			}
 			registry.remove_all_components_of(entity);
 		}
 	}
@@ -296,79 +327,101 @@ void WorldSystem::restart_game() {
 	//createWall(renderer, { 0, -200 }, textureIDs); // for testing collision
 	//createWall(renderer, { -124, -324 }, textureIDs); // for testing collision
 
-	 //Creates 1 room the size of the map
-	for (int row = 0; row < world_map.size(); row++) {
-		for (int col = 0; col < world_map[row].size(); col++) {
-			if (row == 0 || col == 0 || row == world_height - 1 || col == world_width - 1) {
-				world_map[row][col] = (int)TILE_TYPE::WALL;
-			}
-			else {
-				world_map[row][col] = (int)TILE_TYPE::FLOOR;
-			}
-		}
-	}
+	// map->generateMap(1);
+	map->generateBasicMap();
+	world_map = MapSystem::world_map;
+	map->spawnEnemies();
+
+	//     // // Print the initialized array
+    // for (int i = 0; i < world_map.size(); ++i) {
+    //     for (int j = 0; j < world_map[i].size(); ++j) {
+    //         std::cout << world_map[i][j] << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+	
+	// // Creates 1 room the size of the map
+	// for (int row = 0; row < world_map.size(); row++) {
+	// 	for (int col = 0; col < world_map[row].size(); col++) {
+	// 		if (row == 0 || col == 0 || row == world_height - 1 || col == world_width - 1) {
+	// 			world_map[row][col] = (int)TILE_TYPE::WALL;
+	// 		}
+	// 		else {
+	// 			world_map[row][col] = (int)TILE_TYPE::FLOOR;
+	// 		}
+	// 	}
+	// }
+
 	int centerX = (world_width >> 1);
 	int centerY = (world_height >> 1);
 	//Creates entitiy tiles based on the world map
 	for (int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
 		for (int col = 0; col < world_map[row].size(); col++) {
 			std::vector<TEXTURE_ASSET_ID> textureIDs;
-			if (row == 0 && col == 0) {
-				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
-			}
-			else if (row == world_height - 1 && col == world_width - 1) {
-				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
-			}
-			else if (row == 0 && col == world_width - 1) {
-				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
-			}
-			else if (row == world_height - 1 && col == 0) {
-				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
-			}
-			else if (row == 0) {
-				textureIDs.push_back(TEXTURE_ASSET_ID::TOP_WALL);
-			}
-			else if (row == world_height - 1) {
-				float rand = uniform_dist(rng);
-				if (rand < 0.5f) {
-					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
-				}
-				else {
-					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
-				}
-				textureIDs.push_back(TEXTURE_ASSET_ID::WALL_EDGE);
-			}
-			else if (col == 0) {
-				textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
-			}
-			else if (col == world_width - 1) {
-				textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
-			}
-			else {
-				float rand = uniform_dist(rng);
-				if (rand < 0.5f) {
-					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
-				}
-				else {
-					textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
-				}
-			}
+			// if (row == 0 && col == 0) {
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
+			// }
+			// else if (row == world_height - 1 && col == world_width - 1) {
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
+			// }
+			// else if (row == 0 && col == world_width - 1) {
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
+			// }
+			// else if (row == world_height - 1 && col == 0) {
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
+			// }
+			// else if (row == 0) {
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::TOP_WALL);
+			// }
+			// else if (row == world_height - 1) {
+			// 	float rand = uniform_dist(rng);
+			// 	if (rand < 0.5f) {
+			// 		textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
+			// 	}
+			// 	else {
+			// 		textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
+			// 	}
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::WALL_EDGE);
+			// }
+			// else if (col == 0) {
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
+			// }
+			// else if (col == world_width - 1) {
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
+			// }
+			// else {
+			// 	float rand = uniform_dist(rng);
+			// 	if (rand < 0.5f) {
+			// 		textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
+			// 	}
+			// 	else {
+			// 		textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
+			// 		textureIDs.push_back(TEXTURE_ASSET_ID::TILE_2);
+			// 	}
+			// }
 
-			int xPos = (col - centerX) * world_tile_size;
-			int yPos = (row - centerY) * world_tile_size;
-			switch (world_map[col][row])
-			{
-			case (int)TILE_TYPE::WALL:
-				createWall(renderer, { xPos,yPos }, textureIDs);
-				break;
-			case (int)TILE_TYPE::FLOOR:
-				createFloor(renderer, { xPos,yPos }, textureIDs);
-				break;
-			default:
-				break;
-			}
+			// int xPos = (col - centerX) * world_tile_size;
+			// int yPos = (row - centerY) * world_tile_size;
+			
+			// int xPos = (col-centerX) * world_tile_size;
+			// int yPos = (row-centerY) * world_tile_size;
+			// switch (world_map[row][col])
+			// {
+			// case (int)TILE_TYPE::WALL:
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::WALL_SURFACE);
+			// 	createWall(renderer, { xPos,yPos }, textureIDs);
+			// 	break;
+			// case (int)TILE_TYPE::FLOOR:
+			// 	textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
+			// 	createFloor(renderer, { xPos,yPos }, textureIDs);
+			// 	break;
+			// default:
+			// 	break;
+			// }
 		}
 	}
+
+	createPillar(renderer, { centerX, centerY - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
 	// Create a new player
 	player = createPlayer(renderer, { 0, 0 });
@@ -399,7 +452,16 @@ void WorldSystem::handle_collisions() {
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
 						// should decrease HP but not yet implemented
-						registry.hps.get(player).curr_hp -= registry.deadlys.get(entity_other).damage;
+						if (registry.deadlys.has(entity_other)) {
+							HP& player_hp = registry.hps.get(player);
+							player_hp.curr_hp -= registry.deadlys.get(entity_other).damage;
+							if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
+
+							if (registry.bomberEnemies.has(entity_other)) {
+								registry.hps.get(entity_other).curr_hp = 0;
+							}
+						}
+
 						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
@@ -419,7 +481,15 @@ void WorldSystem::handle_collisions() {
 						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
-
+				}
+			}
+			else if (registry.pickupables.has(entity_other)) {
+				if (!registry.realDeathTimers.has(entity)) {
+					registry.hps.get(entity).curr_hp += registry.pickupables.get(entity_other).health_change;
+					if (registry.hps.get(entity).curr_hp > registry.hps.get(entity).max_hp) {
+						registry.hps.get(entity).curr_hp = registry.hps.get(entity).max_hp;
+					}
+					registry.remove_all_components_of(entity_other);
 				}
 			}
 		}
@@ -457,13 +527,13 @@ void WorldSystem::handle_collisions() {
 				if (wy > hx) {
 					if (wy > -hx) {
 						// top
-						entity_motion.position = { entity_motion.position.x , wall_center.y + wall_collidable.size.y / 2 + entity_collidable.size.y / 2 };
+						entity_motion.position = { entity_motion.position.x , wall_center.y + wall_collidable.size.y / 2 + entity_collidable.size.y / 2 - entity_collidable.shift.y };
 						kinematic.direction = { kinematic.direction.x, 0 };
-						kinematic.velocity = { kinematic.velocity.x, 0 };
+						kinematic.velocity = { kinematic.velocity.x, 0};
 					}
 					else {
 						// left
-						entity_motion.position = { wall_center.x - wall_collidable.size.x / 2 - entity_collidable.size.x / 2, entity_motion.position.y };
+						entity_motion.position = { wall_center.x - wall_collidable.size.x / 2 - entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
 						kinematic.direction = { 0, kinematic.direction.y };
 						kinematic.velocity = { 0, kinematic.velocity.y };
 					}
@@ -471,26 +541,27 @@ void WorldSystem::handle_collisions() {
 				else {
 					if (wy > -hx) {
 						// right
-						entity_motion.position = { wall_center.x + wall_collidable.size.x / 2 + entity_collidable.size.x / 2, entity_motion.position.y };
+						entity_motion.position = { wall_center.x + wall_collidable.size.x / 2 + entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
 						kinematic.direction = { 0, kinematic.direction.y };
 						kinematic.velocity = { 0, kinematic.velocity.y };
 					}
 					else {
 						// bottom
-						entity_motion.position = { entity_motion.position.x , wall_center.y - wall_collidable.size.y / 2 - entity_collidable.size.y / 2 };
+						entity_motion.position = { entity_motion.position.x , wall_center.y - wall_collidable.size.y / 2 - entity_collidable.size.y / 2 - entity_collidable.shift.y };
 						kinematic.direction = { kinematic.direction.x, 0 };
 						kinematic.velocity = { kinematic.velocity.x, 0 };
 					}
 				}
 			}
+			//else if (registry.players.has(entity_other)) {
+			//	Motion& entity_motion = registry.motions.get(entity_other);
+			//	entity_motion.position = entity_motion.prev_pos;
+			//}
 		}
 	}
-	//std::cout << "collision size before: " << registry.collisions.size() << std::endl;
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
-
-	//std::cout << "collision size after: " << registry.collisions.size() << std::endl;
 }
 
 // Should the game be over ?
@@ -602,11 +673,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Debugging
-	if (key == GLFW_KEY_D) {
+	if (key == GLFW_KEY_G) {
 		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
+			debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 
 	// Exit the program
@@ -657,56 +726,3 @@ void WorldSystem::on_scroll(vec2 scroll_offset) {
 
 	(vec2)scroll_offset;
 }
-
-//void WorldSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans) {
-//	// Activate the font shader
-//	glUseProgram(m_font_shaderProgram);
-//
-//	// Set text color
-//	glUniform3f(glGetUniformLocation(m_font_shaderProgram, "textColor"), color.x, color.y, color.z);
-//
-//	// Set transformation matrix
-//	glUniformMatrix4fv(glGetUniformLocation(m_font_shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(trans));
-//
-//	glBindVertexArray(m_font_VAO);
-//
-//	// Iterate through all characters in the text
-//	std::string::const_iterator c;
-//	for (c = text.begin(); c != text.end(); c++) {
-//		Character ch = m_ftCharacters[*c];
-//
-//		float xpos = x + ch.Bearing.x * scale;
-//		float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
-//
-//		float w = ch.Size.x * scale;
-//		float h = ch.Size.y * scale;
-//
-//		// Update VBO for each character
-//		float vertices[6][4] = {
-//			{ xpos, ypos + h, 0.0f, 0.0f },
-//			{ xpos, ypos, 0.0f, 1.0f },
-//			{ xpos + w, ypos, 1.0f, 1.0f },
-//
-//			{ xpos, ypos + h, 0.0f, 0.0f },
-//			{ xpos + w, ypos, 1.0f, 1.0f },
-//			{ xpos + w, ypos + h, 1.0f, 0.0f }
-//		};
-//
-//		// Render glyph texture over quad
-//		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
-//
-//		// Update content of VBO memory
-//		glBindBuffer(GL_ARRAY_BUFFER, m_font_VBO);
-//		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-//		glBindBuffer(GL_ARRAY_BUFFER, 0);
-//
-//		// Render quad
-//		glDrawArrays(GL_TRIANGLES, 0, 6);
-//
-//		// Advance cursors for the next glyph
-//		x += (ch.Advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64)
-//	}
-//
-//	glBindVertexArray(0);
-//	glBindTexture(GL_TEXTURE_2D, 0);
-//}
