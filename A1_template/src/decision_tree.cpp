@@ -44,7 +44,7 @@ void ConditionalNode::setFalse(IDecisionNode* false_node) {
 // ========== Decision Tree ==========
 DecisionTree::DecisionTree() : DecisionTree(nullptr) {}
 DecisionTree::DecisionTree(IDecisionNode* root = nullptr) : root(root), current_node(root) {}
-DecisionTree::~DecisionTree() { delete root; };
+DecisionTree::~DecisionTree() { delete root; }; // TODO: memory leak
 
 void DecisionTree::update(Entity& entity) {
 	// reset current node to root for next entity

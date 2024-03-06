@@ -43,15 +43,23 @@ void Animation::step(float elapsed_ms)
 		float mouse_angle_degree = (-atan2(x, y) + M_PI) * (180.0 / M_PI);
 		EntityAnimation& player_ani = registry.animation.get(player);
 		if (mouse_angle_degree <= 45 || mouse_angle_degree >= 325) {
+			Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::REIMU_FRONT);
+			registry.meshPtrs.get(player) = &mesh;
 			player_ani.render_pos.y = (4 + player_ani.offset) * player_ani.spritesheet_scale.y;
 		}
 		else if (mouse_angle_degree <= 135) {
+			Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::REIMU_RIGHT);
+			registry.meshPtrs.get(player) = &mesh;
 			player_ani.render_pos.y = (3 + player_ani.offset) * player_ani.spritesheet_scale.y;
 		}
 		else if (mouse_angle_degree <= 225) {
+			Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::REIMU_FRONT);
+			registry.meshPtrs.get(player) = &mesh;
 			player_ani.render_pos.y = (1 + player_ani.offset) * player_ani.spritesheet_scale.y;
 		}
 		else {
+			Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::REIMU_LEFT);
+			registry.meshPtrs.get(player) = &mesh;
 			player_ani.render_pos.y = (2 + player_ani.offset) * player_ani.spritesheet_scale.y;
 		}
 		player_motion = motion;
@@ -110,6 +118,7 @@ void Animation::step(float elapsed_ms)
 
 }
 
-void Animation::init(GLFWwindow* window) {
+void Animation::init(RenderSystem* renderer, GLFWwindow* window) {
 	this->window = window;
+	this->renderer = renderer;
 }

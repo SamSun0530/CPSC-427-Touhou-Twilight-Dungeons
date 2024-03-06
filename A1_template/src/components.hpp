@@ -88,7 +88,7 @@ struct HP {
 
 struct Pickupable
 {
-	int damage = 1;
+	int health_change = 1;
 };
 
 
@@ -109,6 +109,7 @@ struct Wall {
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };
+	//vec2 prev_pos = { 0, 0 };
 	float angle = 0;
 	vec2 scale = { 10, 10 };
 };
@@ -152,6 +153,7 @@ struct Debug {
 	bool in_freeze_mode = 0;
 };
 extern Debug debugging;
+
 
 // Sets the brightness of the screen
 struct ScreenState
@@ -207,7 +209,9 @@ struct Mesh
 	vec2 original_size = {1,1};
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
+	std::vector<vec3> ordered_vertices;
 };
+
 
 // IDs for each tile type
 enum class TILE_TYPE {
@@ -267,7 +271,10 @@ enum class TEXTURE_ASSET_ID {
 	WALL_SURFACE = WALL_EDGE + 1,
 	PILLAR_TOP = WALL_SURFACE + 1,
 	PILLAR_BOTTOM = PILLAR_TOP + 1,
-	TEXTURE_COUNT = PILLAR_BOTTOM + 1
+	HEALTH_1 = PILLAR_BOTTOM + 1,
+	HEALTH_2 = HEALTH_1 + 1,
+	REGENERATE_HEALTH = HEALTH_2 + 1,
+	TEXTURE_COUNT = REGENERATE_HEALTH + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -278,18 +285,21 @@ enum class EFFECT_ASSET_ID {
 	TEXTURED = PLAYER + 1,
 	WIND = TEXTURED + 1,
 	UI = WIND + 1,
-	EFFECT_COUNT = UI + 1
+	FONT = UI + 1,
+	EFFECT_COUNT = FONT + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 // We won't use geometry as we are mostly using sprites
 enum class GEOMETRY_BUFFER_ID {
-	CHICKEN = 0,
-	SPRITE = CHICKEN + 1,
+	REIMU_FRONT = 0,
+	SPRITE = REIMU_FRONT + 1,
 	EGG = SPRITE + 1,
 	DEBUG_LINE = EGG + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
-	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
+	REIMU_LEFT = SCREEN_TRIANGLE + 1,
+	REIMU_RIGHT = REIMU_LEFT + 1,
+	GEOMETRY_COUNT = REIMU_RIGHT + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
@@ -297,4 +307,14 @@ struct RenderRequest {
 	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+};
+
+// Struct for Font
+// This adapted from lecture material (Wednesday Feb 28th 2024)
+struct Character {
+	unsigned int TextureID;  // ID handle of the glyph texture
+	glm::ivec2   Size;       // Size of glyph
+	glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
+	unsigned int Advance;    // Offset to advance to next glyph
+	char character;
 };

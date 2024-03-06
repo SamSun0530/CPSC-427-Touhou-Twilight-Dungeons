@@ -33,6 +33,7 @@ inline std::string textures_path(const std::string& name) {return data_path() + 
 inline std::string audio_path(const std::string& name) {return data_path() + "/audio/" + std::string(name);};
 inline std::string mesh_path(const std::string& name) {return data_path() + "/meshes/" + std::string(name);};
 inline std::string misc_path(const std::string& name) {return data_path() + "/misc/" + std::string(name);};
+inline std::string font_paht(const std::string& name) { return data_path() + "/fonts" + std::string(name); };
 
 // Window Data
 const int window_width_px = 1280;

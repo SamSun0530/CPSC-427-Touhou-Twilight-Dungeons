@@ -16,6 +16,7 @@
 
 // debug
 #include "time_debug.hpp"
+#include <iostream>
 
 using Clock = std::chrono::high_resolution_clock;
 
@@ -42,13 +43,14 @@ int main()
 		getchar();
 		return EXIT_FAILURE;
 	}
+	
 
 	// initialize the main systems
 	renderer.init(window);
 	world.init(&renderer, &audio);
 	bullets.init(&renderer, window, &audio);
 	ai.init();
-	animation.init(window);
+	animation.init(&renderer, window);
 
 	// variable timestep loop
 	auto t = Clock::now();

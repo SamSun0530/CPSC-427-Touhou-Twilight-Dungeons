@@ -14,12 +14,20 @@
 
 #include "render_system.hpp"
 #include "audio.hpp"
+#include <map>
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
 class WorldSystem
 {
 public:
+	static WorldSystem& getInstance() {
+		static WorldSystem instance; // Guaranteed to be destroyed and instantiated on first use.
+		return instance;
+	}
+	WorldSystem(WorldSystem const&) = delete;
+	void operator=(WorldSystem const&) = delete;
+
 	WorldSystem();
 
 	// Creates a window
@@ -42,12 +50,20 @@ public:
 
 	// World Map
 	static std::vector<std::vector<int>> world_map; // world_map[Row][Col]
+
+	// font and instructions
+	bool get_display_instruction();
+	bool get_show_fps();
+	std::string get_fps_in_string();
+	void toggle_display_instruction() { display_instruction = !display_instruction; }
+	void toggle_show_fps() { show_fps = !show_fps; }
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_key(int button, int action, int mods);
 	void on_scroll(vec2 scroll_offset);
+	//void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 
 	// State of keyboard
 	// Initial state is all false
@@ -69,6 +85,14 @@ private:
 	RenderSystem* renderer;
 	float next_enemy_spawn;
 	Audio* audio;
+	int fps;
+	bool show_fps = false;
+	bool display_instruction = false;
+	float elapsedSinceLastFPSUpdate = 0.0f;
+
+	// fonts seting
+	std::string font_filename = "..//..//..//data//fonts//Kenney_Mini_Square.ttf";
+	unsigned int font_default_size = 30;
 
 	// Player state
 	Entity player;
@@ -77,4 +101,25 @@ private:
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+
+
+	//struct Character {
+	//	unsigned int TextureID;  // ID handle of the glyph texture
+	//	glm::ivec2   Size;       // Size of glyph
+	//	glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
+	//	unsigned int Advance;    // Offset to advance to next glyph
+	//	char character;
+	//};
+
+	GLuint m_shaderProgram;
+	GLuint m_VAO;
+	GLuint m_VBO;
+	GLuint m_dirt_texture;
+	std::vector<GLuint> m_alien_textures;
+
+	// fonts
+	std::map<char, Character> m_ftCharacters;
+	GLuint m_font_shaderProgram;
+	GLuint m_font_VAO;
+	GLuint m_font_VBO;
 };
