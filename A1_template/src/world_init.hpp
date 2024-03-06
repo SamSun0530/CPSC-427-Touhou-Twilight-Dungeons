@@ -7,8 +7,8 @@
 // These are ahrd coded to the dimensions of the entity texture
 const float BULLET_BB_WIDTH = 1.0f * 30.f;
 const float BULLET_BB_HEIGHT = 1.0f * 30.f;
-const float PLAYER_BB_WIDTH = 1.3f * 64.f;
-const float PLAYER_BB_HEIGHT = 1.3f * 80.f;
+const float PLAYER_BB_WIDTH = 0.5f * 128.f;
+const float PLAYER_BB_HEIGHT = 0.5f * 128.f;
 const float ENEMY_BB_WIDTH = 1.f * 80.f;
 const float ENEMY_BB_HEIGHT = 1.f * 90.f;
 const float HP_BB_WIDTH = 1.0f * 55.f;
@@ -26,10 +26,10 @@ Entity createCoin(RenderSystem* renderer, vec2 position);
 // the enemy
 Entity createEnemy(RenderSystem* renderer, vec2 position);
 // Non interactable tile
-std::vector<Entity> createDecoTile(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
+std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 
 // Interactable Tile
-std::vector<Entity> createPhysTile(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
+std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);

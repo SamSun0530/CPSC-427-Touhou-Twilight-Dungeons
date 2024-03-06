@@ -82,9 +82,8 @@ void MapSystem::generateMap(int floor) {
         registry.roomHitbox.emplace(room);
 
         // Initialize the motion
-		auto& motion = registry.motions.emplace(room);
+		auto& motion = registry.motions.emplace(room);        
 		motion.angle = 0.f;
-		motion.direction = { 0, 0 };
 		motion.position = getRandomPointInCircle(generation_circle_radius);
 		motion.scale = getUniformRectangleDimentions(widthRange, heightRange);
         //std::cout << " Start: Position of Room: " << i << " is (" << motion.position.x <<" , " << motion.position.y << ")" << std::endl;

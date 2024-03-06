@@ -1,7 +1,7 @@
 // internal
 #include "render_system.hpp"
 #include <SDL.h>
-
+#include <iostream>
 #include "tiny_ecs_registry.hpp"
 
 void RenderSystem::drawTexturedMesh(Entity entity,
@@ -106,6 +106,16 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
 	const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
 	glUniform3fv(color_uloc, 1, (float *)&color);
+	gl_has_errors();
+
+	GLint end_pos_uloc = glGetUniformLocation(program, "end_pos");
+	const vec2 end_pos = registry.animation.has(entity) ? registry.animation.get(entity).render_pos : vec2(1);
+	glUniform2fv(end_pos_uloc, 1, (float*)&end_pos);
+	gl_has_errors();
+
+	GLint scale_uloc = glGetUniformLocation(program, "scale");
+	const vec2 ani_scale = registry.animation.has(entity) ? registry.animation.get(entity).spritesheet_scale : vec2(1);
+	glUniform2fv(scale_uloc, 1, (float*)&ani_scale);
 	gl_has_errors();
 
 	// Get number of indices from index buffer, which has elements uint16_t
@@ -218,13 +228,17 @@ void RenderSystem::draw()
 	mat3 projection_2D = createProjectionMatrix();
 	mat3 view_2D = camera.createViewMatrix();
 	mat3 view_2D_ui = ui.createViewMatrix();
+	
+	camera.setCameraAABB();
+
 	// Draw all textured meshes that have a position and size component
 	std::vector<Entity> ui_entities;
 	for (Entity entity : registry.renderRequests.entities)
 	{
-		if (!registry.motions.has(entity)) {
+		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 			continue;
-		}
+		}		
+
 		TEXTURE_ASSET_ID texture_id = registry.renderRequests.get(entity).used_texture;
 		if (texture_id == TEXTURE_ASSET_ID::EMPTY_HEART || texture_id == TEXTURE_ASSET_ID::FULL_HEART) 
 		{

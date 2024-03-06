@@ -29,6 +29,9 @@ WorldSystem::~WorldSystem() {
 	// Destroy all created components
 	registry.clear_all_components();
 
+	// Destroy all cursors
+	glfwTerminate();
+
 	// Close the window
 	glfwDestroyWindow(window);
 }
@@ -79,6 +82,27 @@ GLFWwindow* WorldSystem::create_window() {
 	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
 	auto mouse_key_redirect = [](GLFWwindow* wnd, int button, int action, int mods) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_key(button, action, mods); };
 	auto scroll_offset_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_scroll({ _0, _1 }); };
+
+	// https://kenney-assets.itch.io/crosshair-pack
+	std::string path = misc_path("crosshair038.png");
+
+	GLFWimage image;
+	image.width = 64;
+	image.height = 64;
+	stbi_uc* data;
+	data = stbi_load(path.c_str(), &image.width, &image.height, NULL, 4);
+
+	if (data == NULL)
+	{
+		const std::string message = "Could not load the file " + path + ".";
+		fprintf(stderr, "%s", message.c_str());
+		assert(false);
+	}
+
+	image.pixels = data;
+	GLFWcursor* cursor = glfwCreateCursor(&image, image.width / 2, image.height / 2);
+	glfwSetCursor(window, cursor);
+	stbi_image_free(data);
 
 	// Set the cursor origin to start at the center of the screen
 	glfwSetCursorPos(window, window_px_half.x, window_px_half.y);
@@ -210,11 +234,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 
+
+
 	if (registry.hps.get(player).curr_hp <= 0) {
 		registry.hps.get(player).curr_hp = registry.hps.get(player).max_hp;
+		registry.bulletFireRates.get(player).is_firing = false;
 		is_alive = false;
 		pressed = { 0 };
-		registry.motions.get(player).direction = { 0,0 };
+		registry.kinematics.get(player).direction = { 0,0 };
 		Mix_HaltMusic();
 		Mix_PlayChannel(-1, audio->game_ending_sound, 0);
 		registry.realDeathTimers.emplace(player);
@@ -278,7 +305,6 @@ void WorldSystem::restart_game() {
 	// }
 	int centerX = (world_width >> 1);
 	int centerY = (world_height >> 1);
-
 	//Creates entitiy tiles based on the world map
 	for (int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
 		for (int col = 0; col < world_map[row].size(); col++) {
@@ -334,11 +360,11 @@ void WorldSystem::restart_game() {
 			{
 			case (int)TILE_TYPE::WALL:
 				textureIDs.push_back(TEXTURE_ASSET_ID::WALL_EDGE);
-				createPhysTile(renderer, { xPos,yPos }, textureIDs);
+				createWall(renderer, { xPos,yPos }, textureIDs);
 				break;
 			case (int)TILE_TYPE::FLOOR:
 				textureIDs.push_back(TEXTURE_ASSET_ID::TILE_1);
-				createDecoTile(renderer, { xPos,yPos }, textureIDs);
+				createFloor(renderer, { xPos,yPos }, textureIDs);
 				break;
 			default:
 				break;
@@ -364,7 +390,6 @@ void WorldSystem::handle_collisions() {
 		Entity entity_other = collisionsRegistry.components[i].other;
 
 		if (registry.players.has(entity)) {
-
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
@@ -399,94 +424,91 @@ void WorldSystem::handle_collisions() {
 
 				}
 			}
-			else if (registry.physTiles.has(entity_other)) {
-				Motion& motion = registry.motions.get(entity);
-				Motion& wall_motion = registry.motions.get(entity_other);
-				vec2 normal = motion.position - wall_motion.position;
-
-				// clamp vector from entity to wall to get wall normal
-				if (abs(normal.x) > abs(normal.y)) {
-					normal = normal.x > 0 ? vec2(1, 0) : vec2(-1, 0);
-				}
-				else {
-					normal = normal.y > 0 ? vec2(0, 1) : vec2(0, -1);
-				}
-
-				if (normal.x == 0) {
-					motion.direction = { motion.direction.x, 0 };
-					motion.velocity = { motion.velocity.x, 0 };
-					if (normal.y > 0) {
-						pressed[GLFW_KEY_W] = false;
-					}
-					else {
-						pressed[GLFW_KEY_S] = false;
-					}
-				}
-				else {
-					motion.direction = { 0, motion.direction.y };
-					motion.velocity = { 0, motion.velocity.y };
-					if (normal.x > 0) {
-						pressed[GLFW_KEY_A] = false;
-					}
-					else {
-						pressed[GLFW_KEY_D] = false;
-					}
-				}
-
-				motion.position = motion.last_position;
-			}
 		}
 		else if (registry.deadlys.has(entity)) {
-			if (registry.bullets.has(entity_other)) {
+			if (registry.playerBullets.has(entity_other)) {
 				if (!registry.hitTimers.has(entity)) {
 					// enemy turn red and decrease hp, bullet disappear
 					registry.hitTimers.emplace(entity);
 					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
-					registry.hps.get(entity).curr_hp -= registry.bullets.get(entity_other).damage;
+					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
 					registry.remove_all_components_of(entity_other);
 				}
 			}
 		}
-		else if (registry.physTiles.has(entity)) {
-			if (registry.bullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
+		else if (registry.walls.has(entity)) {
+			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
 				registry.remove_all_components_of(entity_other);
 			}
-			else if (registry.deadlys.has(entity_other)) {
+			else if (registry.players.has(entity_other) || registry.deadlys.has(entity_other)) {
 				Motion& wall_motion = registry.motions.get(entity);
-				Motion& motion = registry.motions.get(entity_other);
-				vec2 normal = motion.position - wall_motion.position;
+				Motion& entity_motion = registry.motions.get(entity_other);
+				Kinematic& kinematic = registry.kinematics.get(entity_other);
+				Collidable& wall_collidable = registry.collidables.get(entity);
+				Collidable& entity_collidable = registry.collidables.get(entity_other);
+				vec2 wall_center = wall_motion.position + wall_collidable.shift;
+				vec2 entity_center = entity_motion.position + entity_collidable.shift;
 
-				// clamp vector from entity to wall to get wall normal
-				if (abs(normal.x) > abs(normal.y)) {
-					normal = normal.x > 0 ? vec2(1, 0) : vec2(-1, 0);
+				// Minkowski Sum adapted from "sam hocevar": https://gamedev.stackexchange.com/a/24091
+				// Find the normal of object B, or the wall given two rectangles
+				float wy = (wall_collidable.size.x + entity_collidable.size.x) * (entity_center.y - wall_center.y);
+				float hx = (wall_collidable.size.y + entity_collidable.size.y) * (entity_center.x - wall_center.x);
+
+				if (wy > hx) {
+					if (wy > -hx) {
+						// top
+						entity_motion.position = { entity_motion.position.x , wall_center.y + wall_collidable.size.y / 2 + entity_collidable.size.y / 2 };
+						kinematic.direction = { kinematic.direction.x, 0 };
+						kinematic.velocity = { kinematic.velocity.x, 0 };
+					}
+					else {
+						// left
+						entity_motion.position = { wall_center.x - wall_collidable.size.x / 2 - entity_collidable.size.x / 2, entity_motion.position.y };
+						kinematic.direction = { 0, kinematic.direction.y };
+						kinematic.velocity = { 0, kinematic.velocity.y };
+					}
 				}
 				else {
-					normal = normal.y > 0 ? vec2(0, 1) : vec2(0, -1);
+					if (wy > -hx) {
+						// right
+						entity_motion.position = { wall_center.x + wall_collidable.size.x / 2 + entity_collidable.size.x / 2, entity_motion.position.y };
+						kinematic.direction = { 0, kinematic.direction.y };
+						kinematic.velocity = { 0, kinematic.velocity.y };
+					}
+					else {
+						// bottom
+						entity_motion.position = { entity_motion.position.x , wall_center.y - wall_collidable.size.y / 2 - entity_collidable.size.y / 2 };
+						kinematic.direction = { kinematic.direction.x, 0 };
+						kinematic.velocity = { kinematic.velocity.x, 0 };
+					}
 				}
-
-				if (normal.x == 0) {
-					motion.direction = { motion.direction.x, 0 };
-					motion.velocity = { motion.velocity.x, 0 };
-				}
-				else {
-					motion.direction = { 0, motion.direction.y };
-					motion.velocity = { 0, motion.velocity.y };
-				}
-
-				motion.position = motion.last_position;
 			}
 		}
 	}
+	//std::cout << "collision size before: " << registry.collisions.size() << std::endl;
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
+
+	//std::cout << "collision size after: " << registry.collisions.size() << std::endl;
 }
 
 // Should the game be over ?
 bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
+}
+
+// Helper for updating player direction
+void WorldSystem::updatePlayerDirection(Kinematic& player_kinematic) {
+	float direction_x = 0;
+	float direction_y = 0;
+	if (pressed[GLFW_KEY_W]) direction_y -= 1;
+	if (pressed[GLFW_KEY_A]) direction_x -= 1;
+	if (pressed[GLFW_KEY_S]) direction_y += 1;
+	if (pressed[GLFW_KEY_D]) direction_x += 1;
+	player_kinematic.direction = { direction_x, direction_y };
 }
 
 // On key callback
@@ -500,51 +522,46 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Handle player movement
 	if (is_alive) {
-		Motion& motion = registry.motions.get(player);
+		Kinematic& kinematic = registry.kinematics.get(player);
 		switch (key) {
 		case GLFW_KEY_W:
-			if (!pressed[key] && action == GLFW_PRESS) {
-				motion.direction.y -= 1;
+			if (action == GLFW_PRESS) {
 				pressed[key] = true;
 			}
-			else if (pressed[key] && action == GLFW_RELEASE) {
-				motion.direction.y += 1;
+			else if (action == GLFW_RELEASE) {
 				pressed[key] = false;
 			}
 			break;
 		case GLFW_KEY_A:
-			if (!pressed[key] && action == GLFW_PRESS) {
-				motion.direction.x -= 1;
+			if (action == GLFW_PRESS) {
 				pressed[key] = true;
 			}
-			else if (pressed[key] && action == GLFW_RELEASE) {
-				motion.direction.x += 1;
+			else if (action == GLFW_RELEASE) {
 				pressed[key] = false;
 			}
 			break;
 		case GLFW_KEY_S:
-			if (!pressed[key] && action == GLFW_PRESS) {
-				motion.direction.y += 1;
+			if (action == GLFW_PRESS) {
 				pressed[key] = true;
 			}
-			else if (pressed[key] && action == GLFW_RELEASE) {
-				motion.direction.y -= 1;
+			else if (action == GLFW_RELEASE) {
 				pressed[key] = false;
 			}
 			break;
 		case GLFW_KEY_D:
-			if (!pressed[key] && action == GLFW_PRESS) {
-				motion.direction.x += 1;
+			if (action == GLFW_PRESS) {
 				pressed[key] = true;
 			}
-			else if (pressed[key] && action == GLFW_RELEASE) {
-				motion.direction.x -= 1;
+			else if (action == GLFW_RELEASE) {
 				pressed[key] = false;
 			}
 			break;
 		default:
 			break;
 		}
+
+		// Update player direction
+		updatePlayerDirection(kinematic);
 	}
 
 	// Toggle between camera-cursor offset
@@ -569,11 +586,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Debugging
-	if (key == GLFW_KEY_D) {
+	if (key == GLFW_KEY_G) {
 		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
+			debugging.in_debug_mode = !debugging.in_debug_mode;
 	}
 
 	// Exit the program
