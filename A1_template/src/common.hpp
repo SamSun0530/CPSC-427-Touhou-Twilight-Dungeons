@@ -29,6 +29,7 @@ inline std::string shader_path(const std::string& name) {return std::string(PROJ
 inline std::string textures_path(const std::string& name) {return data_path() + "/textures/" + std::string(name);};
 inline std::string audio_path(const std::string& name) {return data_path() + "/audio/" + std::string(name);};
 inline std::string mesh_path(const std::string& name) {return data_path() + "/meshes/" + std::string(name);};
+inline std::string misc_path(const std::string& name) {return data_path() + "/misc/" + std::string(name);};
 
 // Window Data
 const int window_width_px = 1280;
@@ -39,6 +40,7 @@ const vec2 window_px_half = { window_width_px / 2, window_height_px / 2 };
 const int world_width = 50;
 const int world_height = 50;
 const int world_tile_size = 128; // In pixels
+
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f

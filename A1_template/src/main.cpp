@@ -13,6 +13,10 @@
 #include "ai_system.hpp"
 #include "bullet_system.hpp"
 #include "audio.hpp"
+#include "animation.hpp"
+
+// debug
+#include "time_debug.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
 
@@ -26,10 +30,11 @@ int main()
 	AISystem ai;
 	BulletSystem bullets;
 	MapSystem map;
-
+	Animation animation;
 	
 	// Global classes
 	Audio audio;
+	TimeDebug time_debug;
 
 	// Initializing window
 	GLFWwindow* window = world.create_window();
@@ -46,6 +51,7 @@ int main()
 	bullets.init(&renderer, window, &audio);
 	map.init(&renderer);
 	map.generateBasicMap();
+	animation.init(window);
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -58,14 +64,40 @@ int main()
 		float elapsed_ms =
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
+		
+		//printf("=============\n");
 
+		//time_debug.initTime();
 		world.step(elapsed_ms);
+		//time_debug.getTime("world");
+
+		//time_debug.initTime();
+		animation.step(elapsed_ms);
+		//time_debug.getTime("animation");
+
+		//time_debug.initTime();
 		physics.step(elapsed_ms);
+		//time_debug.getTime("physics");
+
+		//time_debug.initTime();
 		ai.step(elapsed_ms);
+		//time_debug.getTime("ai");
+
+		//time_debug.initTime();
 		bullets.step(elapsed_ms);
+		//time_debug.getTime("bullets");
+
+		//time_debug.initTime();
 		world.handle_collisions();
+		//time_debug.getTime("handle_collisions");
+
 		// map.debug(); // Just to visualize the map
+
+		//time_debug.initTime();
 		renderer.draw();
+		//time_debug.getTime("renderer");
+
+		//printf("FPS: %f \n", 1000.f / elapsed_ms);
 	}
 
 	return EXIT_SUCCESS;

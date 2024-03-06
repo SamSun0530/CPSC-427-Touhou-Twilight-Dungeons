@@ -2,12 +2,13 @@
 
 ## Temporary Keybinds
 
+- `G` - Debug mode, shows collidable boxes
 - `P` - Toggle camera-cursor offset
 - `WASD` - Player movement (up, left, down, right, respectively)
 - `ESC` - Exit the program
 - `R` - Reset the program
 - Scroll wheel - Zooming in/out
-- Mouse 1 (left click) - Fire bullet towards mouse cursor
+- Mouse 1 (left click) / space - Fire bullet towards mouse cursor
 
 ## Background Story
 
@@ -23,3 +24,6 @@ Sam Sun <br />
 Lin Su <br />
 Will Qiu <br />
 Alan Huang <br />
+
+## Used Assets
+https://penzilla.itch.io/hooded-protagonist/download/eyJpZCI6MTc0MjEzMCwiZXhwaXJlcyI6MTcwOTI1MjY4NH0%3d.RK8mzbSh0tpr6dB1nDB4yuiaROo%3d

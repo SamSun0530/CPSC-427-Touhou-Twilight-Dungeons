@@ -6,7 +6,7 @@
 #include "../ext/stb_image/stb_image.h"
 
 
-struct Bullet {
+struct PlayerBullet {
 	int damage = 1;
 };
 
@@ -40,6 +40,15 @@ struct IdleMoveAction {
 	float moving_ms = 1000;
 };
 
+struct EntityAnimation {
+	State state = State::IDLE;
+	float frame_rate_ms = 200;
+	vec2 spritesheet_scale = { 0, 0 };
+	vec2 render_pos = { 0, 0 };
+	bool isCursor = false;
+	float offset = 0;
+};
+
 struct Deadly
 {
 	int damage = 1;
@@ -65,24 +74,37 @@ struct RoomHitbox{
 };
 
 // A non interactable tile of the map
-struct DecorationTile
+struct Floor
 {
 };
 
 // A interactable tile of the map
-struct PhysicalTile {
+struct Wall {
 };
 
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };
-	vec2 last_position = { 0, 0 };
 	float angle = 0;
+	vec2 scale = { 10, 10 };
+};
+
+// Velocity related data
+struct Kinematic {
 	float speed_base = 0.f;
 	float speed_modified = 0.f;
 	vec2 velocity = { 0, 0 };
+	// x, y are either -1,0,1
 	vec2 direction = { 0, 0 };
-	vec2 scale = { 10, 10 };
+};
+
+// Represents collision box with shift transform and size of box
+struct Collidable {
+	// translate box relative to motion position
+	vec2 shift = { 0, 0 };
+	// width and height of box
+	// IMPORTANT: size MUST be positive
+	vec2 size = { 1, 1 };
 };
 
 // Stucture to store collision information
@@ -203,7 +225,8 @@ enum class TEXTURE_ASSET_ID {
 	EMPTY_HEART = HALF_HEART + 1,
 	BOTTOM_WALL = EMPTY_HEART + 1,
 	WALL_EDGE = BOTTOM_WALL + 1,
-	TEXTURE_COUNT = WALL_EDGE + 1
+	WALL_SURFACE = WALL_EDGE + 1,
+	TEXTURE_COUNT = WALL_SURFACE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

@@ -84,7 +84,6 @@ void MapSystem::generateMap(int floor) {
         // Initialize the motion
 		auto& motion = registry.motions.emplace(room);
 		motion.angle = 0.f;
-		motion.direction = { 0, 0 };
 		motion.position = getRandomPointInCircle(generation_circle_radius);
 		motion.scale = getUniformRectangleDimentions(widthRange, heightRange);
         //std::cout << " Start: Position of Room: " << i << " is (" << motion.position.x <<" , " << motion.position.y << ")" << std::endl;
@@ -116,14 +115,14 @@ void MapSystem::generateMap(int floor) {
                 Entity entity_j = registry.roomHitbox.entities[j];
                 Motion motion_j = registry.motions.get(entity_j);
 
-                if(PhysicsSystem::collides_AABB(motion_i,motion_j)) {
-                    // Create collision event
-                    // Only 1 collsion is taken into consideration
-                    registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-                    registry.collisions.emplace_with_duplicates(entity_j, entity_i);
-                    // Exit loop since entity_i has collided at least 1 time
-                    break;
-                }
+                //if(PhysicsSystem::collides_AABB(motion_i,motion_j)) {
+                //    // Create collision event
+                //    // Only 1 collsion is taken into consideration
+                //    registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+                //    registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+                //    // Exit loop since entity_i has collided at least 1 time
+                //    break;
+                //}
             }
         }
 
