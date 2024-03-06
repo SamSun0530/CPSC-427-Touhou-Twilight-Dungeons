@@ -334,3 +334,4 @@ Entity createEgg(vec2 pos, vec2 size)
 
 	return entity;
 }
+

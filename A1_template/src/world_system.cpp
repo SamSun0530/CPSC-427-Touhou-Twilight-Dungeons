@@ -5,10 +5,14 @@
 // stlib
 #include <cassert>
 #include <sstream>
-
 #include "physics_system.hpp"
 #include <glm/trigonometric.hpp>
 #include <iostream>
+#include <GLFW/glfw3.h>
+#include <map>
+#include <string>
+#include <SDL_opengl.h>
+#include <glm/gtc/type_ptr.hpp>
 
 // Game configuration
 const size_t MAX_ENEMIES = 15;
@@ -119,6 +123,7 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
 
+	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
 	world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
 
@@ -128,6 +133,18 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio) {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+
+	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
+	if (elapsedSinceLastFPSUpdate >= 1000.0) {
+		// Calculate FPS
+		getInstance().fps = static_cast<int>(1000.0f / elapsed_ms_since_last_update);
+		elapsedSinceLastFPSUpdate = 0.0f;
+	}
+
+	glm::mat4 trans = glm::mat4(1.0f);
+	renderer->renderText("Test", 0.0f, 0.0f, 1.0f, glm::vec3(1.0, 1.0, 1.0), trans);
+
+
 	// Updating window title with points
 	std::stringstream title_ss;
 	title_ss << "Points: " << points;
@@ -481,6 +498,20 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
+bool WorldSystem::get_display_instruction()
+{
+	return display_instruction;
+}
+bool WorldSystem::get_show_fps()
+{
+	return show_fps;
+}
+
+std::string WorldSystem::get_fps_in_string()
+{
+	return std::to_string(fps);
+}
+
 // Helper for updating player direction
 void WorldSystem::updatePlayerDirection(Kinematic& player_kinematic) {
 	float direction_x = 0;
@@ -575,6 +606,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Exit the program
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
 		glfwSetWindowShouldClose(window, true);
+	}
+
+	// Toggle FPS display
+	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
+		getInstance().toggle_show_fps();
+	}
+
+	// Toggle tutorial display
+	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
+		getInstance().toggle_display_instruction();
+
+		// std::cout << " " << get_display_instruction() << std::endl;
 	}
 }
 

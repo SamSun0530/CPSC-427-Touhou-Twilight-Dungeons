@@ -8,6 +8,9 @@
 #include "tiny_ecs.hpp"
 #include "camera.hpp"
 #include "ui.hpp"
+//#include "world_system.hpp"
+#
+#include <map>
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -64,7 +67,8 @@ class RenderSystem {
 		shader_path("player"),
 		shader_path("textured"),
 		shader_path("wind"),
-		shader_path("ui")
+		shader_path("ui"),
+		shader_path("font")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -103,6 +107,14 @@ public:
 	Camera camera;
 	UI ui;
 
+	// font initialization
+	bool initFont(GLFWwindow* window, const std::string& font_filename, unsigned int font_default_size);
+	
+	GLuint getDummyVAO() const {
+        return dummyVAO;
+    }
+
+	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);
@@ -115,6 +127,43 @@ private:
 	GLuint frame_buffer;
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
+
+	// Fonts
+	std::map<char, Character> m_ftCharacters;
+	GLuint m_font_shaderProgram;
+	GLuint m_font_VAO;
+	GLuint m_font_VBO;
+	GLuint dummyVAO;
+
+	glm::mat4 trans = glm::mat4(1.0f);
+
+	const char* fontVertexShaderSource =
+		"#version 330 core\n"
+		"layout(location = 0) in vec4 vertex; // <vec2 pos, vec2 tex>\n"
+		"out vec2 TexCoords; \n"
+		"\n"
+		"uniform mat4 projection; \n"
+		"uniform mat4 transform;\n"
+		"\n"
+		"void main()\n"
+		"{\n"
+		"    gl_Position = projection * transform * vec4(vertex.xy, 0.0, 1.0); \n"
+		"    TexCoords = vertex.zw; \n"
+		"}\0";
+
+	const char* fontFragmentShaderSource =
+		"#version 330 core\n"
+		"in vec2 TexCoords; \n"
+		"out vec4 color; \n"
+		"\n"
+		"uniform sampler2D text; \n"
+		"uniform vec3 textColor; \n"
+		"\n"
+		"void main()\n"
+		"{\n"
+		"    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, TexCoords).r);\n"
+		"    color = vec4(textColor, 1.0) * sampled;\n"
+		"}\0";
 
 	Entity screen_state_entity;
 };

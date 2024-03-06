@@ -12,6 +12,10 @@
 // stlib
 #include <iostream>
 #include <sstream>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 // World initialization
 bool RenderSystem::init(GLFWwindow* window_arg)
@@ -53,6 +57,10 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
+
+	glGenVertexArrays(1, &dummyVAO);
+	glBindVertexArray(dummyVAO);
+
 	gl_has_errors();
 
 	initScreenTexture();
@@ -102,6 +110,8 @@ void RenderSystem::initializeGlEffects()
 		assert(is_valid && (GLuint)effects[i] != 0);
 	}
 }
+
+
 
 // One could merge the following two functions as a template function...
 template <class T>
@@ -275,6 +285,131 @@ bool RenderSystem::initScreenTexture()
 	return true;
 }
 
+// Font initiation
+// This is adapted from lecture material (Wednesday Feb 28th 2024)
+bool RenderSystem::initFont(GLFWwindow* window, const std::string& font_filename, unsigned int font_default_size) {
+	// font buffer setup
+	glGenVertexArrays(1, &m_font_VAO);
+	glGenBuffers(1, &m_font_VBO);
+
+	// font vertex shader
+	unsigned int font_vertexShader;
+	font_vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(font_vertexShader, 1, &fontVertexShaderSource, NULL);
+	glCompileShader(font_vertexShader);
+
+	// font fragement shader
+	unsigned int font_fragmentShader;
+	font_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(font_fragmentShader, 1, &fontFragmentShaderSource, NULL);
+	glCompileShader(font_fragmentShader);
+
+	// font shader program
+	m_font_shaderProgram = glCreateProgram();
+	glAttachShader(m_font_shaderProgram, font_vertexShader);
+	glAttachShader(m_font_shaderProgram, font_fragmentShader);
+	glLinkProgram(m_font_shaderProgram);
+
+	// clean up shaders
+	glDeleteShader(font_vertexShader);
+	glDeleteShader(font_fragmentShader);
+
+	// use our new shader
+	glUseProgram(m_font_shaderProgram);
+
+	// apply projection matrix for font
+	glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(window_width_px), 0.0f, static_cast<float>(window_height_px));
+	GLint project_location = glGetUniformLocation(m_font_shaderProgram, "projection");
+	assert(project_location > -1);
+	std::cout << "project_location: " << project_location << std::endl;
+	glUniformMatrix4fv(project_location, 1, GL_FALSE, glm::value_ptr(projection));
+
+	// init FreeType fonts
+	FT_Library ft;
+	if (FT_Init_FreeType(&ft))
+	{
+		std::cerr << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+		return false;
+	}
+
+	FT_Face face;
+	if (FT_New_Face(ft, font_filename.c_str(), 0, &face))
+	{
+		std::cerr << "ERROR::FREETYPE: Failed to load font: " << font_filename << std::endl;
+		return false;
+	}
+
+	// extract a default size
+	FT_Set_Pixel_Sizes(face, 0, font_default_size);
+
+	// disable byte-alignment restriction in OpenGL
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	// load each of the chars - note only first 128 ASCII chars
+	for (unsigned char c = 0; c < 128; c++)
+	{
+		// load character glyph 
+		if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+		{
+			std::cerr << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+			continue;
+		}
+
+		// generate texture
+		unsigned int texture;
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		// std::cout << "texture: " << c << " = " << texture << std::endl;
+
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			GL_RED,
+			face->glyph->bitmap.width,
+			face->glyph->bitmap.rows,
+			0,
+			GL_RED,
+			GL_UNSIGNED_BYTE,
+			face->glyph->bitmap.buffer
+		);
+
+		// set texture options
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		// now store character for later use
+		Character character = {
+			texture,
+			glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+			glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+			static_cast<unsigned int>(face->glyph->advance.x),
+			c
+		};
+		m_ftCharacters.insert(std::pair<char, Character>(c, character));
+	}
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// clean up
+	FT_Done_Face(face);
+	FT_Done_FreeType(ft);
+
+	// bind buffers
+	glBindVertexArray(m_font_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_font_VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+
+	// release buffers
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	return true;
+}
+
 bool gl_compile_shader(GLuint shader)
 {
 	glCompileShader(shader);
@@ -324,6 +459,7 @@ bool loadEffectFromFile(
 
 	GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertex, 1, &vs_src, &vs_len);
+	gl_has_errors();
 	GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragment, 1, &fs_src, &fs_len);
 	gl_has_errors();
@@ -344,18 +480,23 @@ bool loadEffectFromFile(
 
 	// Linking
 	out_program = glCreateProgram();
+	gl_has_errors();
 	glAttachShader(out_program, vertex);
+	gl_has_errors();
 	glAttachShader(out_program, fragment);
+	gl_has_errors();
 	glLinkProgram(out_program);
 	gl_has_errors();
 
 	{
 		GLint is_linked = GL_FALSE;
 		glGetProgramiv(out_program, GL_LINK_STATUS, &is_linked);
+		gl_has_errors();
 		if (is_linked == GL_FALSE)
 		{
 			GLint log_len;
 			glGetProgramiv(out_program, GL_INFO_LOG_LENGTH, &log_len);
+			gl_has_errors();
 			std::vector<char> log(log_len);
 			glGetProgramInfoLog(out_program, log_len, &log_len, log.data());
 			gl_has_errors();
@@ -369,11 +510,15 @@ bool loadEffectFromFile(
 	// No need to carry this around. Keeping these objects is only useful if we recycle
 	// the same shaders over and over, which we don't, so no need and this is simpler.
 	glDetachShader(out_program, vertex);
+	gl_has_errors();
 	glDetachShader(out_program, fragment);
+	gl_has_errors();
 	glDeleteShader(vertex);
+	gl_has_errors();
 	glDeleteShader(fragment);
 	gl_has_errors();
 
 	return true;
 }
+
 
