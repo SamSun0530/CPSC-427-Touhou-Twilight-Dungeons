@@ -49,20 +49,63 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	return entity;
 }
 
+Entity createHealth(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.angle = 0.f;
+	motion.scale = vec2({ HEALTH_WIDTH, HEALTH_HEIGHT });
+
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = abs(motion.scale);
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> distrib(0, 1);
+	double number = distrib(gen);
+	auto& pickupable = registry.pickupables.emplace(entity);
+	registry.colors.insert(entity, { 1,1,1 });
+	if (number <= 0.6) {
+		pickupable.health_change = 1;
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::HEALTH_1, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+
+	} else if (number <= 0.9) {
+		pickupable.health_change = 2;
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::HEALTH_2, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		pickupable.health_change = 100;
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::REGENERATE_HEALTH, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	return entity;
+}
+
 Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::REIMU_FRONT);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
-	motion.scale = vec2({ -PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
-	motion.scale.x = -motion.scale.x;
+	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 100.f;
@@ -74,8 +117,8 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	collidable.size = abs(motion.scale);
 
 	// Set player collision box at the feet of the player
-	//collidable.size = { motion.scale.x, motion.scale.y / 4.f };
-	//collidable.shift = { 0, motion.scale.y / 4.f };
+	collidable.size = { motion.scale.x/32*24, motion.scale.y / 2.f };
+	collidable.shift = { 0, motion.scale.y / 4.f };
 
 	HP& hp = registry.hps.emplace(entity);
 	hp.max_hp = 6;
@@ -251,20 +294,20 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 		auto& collidable = registry.collidables.emplace(entity);
 
 		if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_WALL) {
-			collidable.size = { motion.scale.x / 2, motion.scale.y };
-			collidable.shift = { -motion.scale.x / 4, 0 };
+			collidable.size = { motion.scale.x, motion.scale.y };
+			collidable.shift = { 0, 0 };
 		} 
 		else if (textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_WALL) {
-			collidable.size = { motion.scale.x / 2, motion.scale.y };
-			collidable.shift = { motion.scale.x / 4, 0 };
+			collidable.size = { motion.scale.x, motion.scale.y };
+			collidable.shift = { 0, 0 };
 		}
 		else if (textureIDs[i] == TEXTURE_ASSET_ID::BOTTOM_WALL) {
-			collidable.size = { motion.scale.x, motion.scale.y / 2 };
-			collidable.shift = { 0, motion.scale.y / 4 };
+			collidable.size = { motion.scale.x, motion.scale.y };
+			collidable.shift = { 0, 0 };
 		}
 		else if (textureIDs[i] == TEXTURE_ASSET_ID::WALL_SURFACE) {
-			collidable.size = { motion.scale.x, motion.scale.y / 2 };
-			collidable.shift = { 0, -motion.scale.y / 4 };
+			collidable.size = { motion.scale.x, motion.scale.y };
+			collidable.shift = { 0, 0 };
 		}
 		else {
 			// Temporary

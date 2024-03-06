@@ -30,7 +30,9 @@ class RenderSystem {
 	const std::vector < std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths =
 	{
 		// specify meshes of other assets here
-		// e.g. std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::CHICKEN, mesh_path("chicken.obj"))
+		 std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::REIMU_FRONT, mesh_path("Reimu-Mesh-Front.obj")),
+		 std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::REIMU_LEFT, mesh_path("Reimu-Mesh-Left.obj")),
+		 std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::REIMU_RIGHT, mesh_path("Reimu-Mesh-Right.obj"))
 	};
 
 	// Make sure these paths remain in sync with the associated enumerators.
@@ -56,7 +58,10 @@ class RenderSystem {
 			textures_path("EmptyHeart.png"),
 			textures_path("BottomWall.png"),
 			textures_path("WallEdge.png"),
-			textures_path("WallSurface.png")
+			textures_path("WallSurface.png"),
+			textures_path("Health+1.png"),
+			textures_path("Health+2.png"),
+			textures_path("RegenerateHealth.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

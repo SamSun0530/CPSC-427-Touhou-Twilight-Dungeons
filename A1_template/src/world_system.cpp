@@ -180,6 +180,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		vec2 padding = { i * 60, 0 };
 		motions_registry.get(ui[i]).position = motions_registry.get(player).position - window_px_half + ui_pos + padding;
 	}
+	for (int i = 0; i < registry.hps.get(player).curr_hp; i++) {
+		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::FULL_HEART;
+	}
 	for (int i = registry.hps.get(player).curr_hp; i < ui.size(); i++) {
 		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::EMPTY_HEART;
 	}
@@ -252,8 +255,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 
 
-	if (registry.hps.get(player).curr_hp <= 0) {
-		registry.hps.get(player).curr_hp = registry.hps.get(player).max_hp;
+	if (is_alive && registry.hps.get(player).curr_hp <= 0) {
 		registry.bulletFireRates.get(player).is_firing = false;
 		is_alive = false;
 		pressed = { 0 };
@@ -264,8 +266,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	for (Entity entity : registry.hps.entities) {
+		if (registry.players.has(entity)) continue;
 		HP& hp = registry.hps.get(entity);
 		if (hp.curr_hp <= 0.0f) {
+			if (registry.deadlys.has(entity)) {
+				std::random_device rd;
+				std::mt19937 gen(rd());
+				std::uniform_real_distribution<> distrib(0, 1);
+				double number = distrib(gen);
+				if (number <= 0.5)
+				createHealth(renderer, registry.motions.get(entity).position);
+			}
 			registry.remove_all_components_of(entity);
 		}
 	}
@@ -400,6 +411,7 @@ void WorldSystem::handle_collisions() {
 						registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
 						// should decrease HP but not yet implemented
 						registry.hps.get(player).curr_hp -= registry.deadlys.get(entity_other).damage;
+						if (registry.hps.get(player).curr_hp < 0) registry.hps.get(player).curr_hp = 0;
 						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
@@ -419,7 +431,15 @@ void WorldSystem::handle_collisions() {
 						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
-
+				}
+			}
+			else if (registry.pickupables.has(entity_other)) {
+				if (!registry.realDeathTimers.has(entity)) {
+					registry.hps.get(entity).curr_hp += registry.pickupables.get(entity_other).health_change;
+					if (registry.hps.get(entity).curr_hp > registry.hps.get(entity).max_hp) {
+						registry.hps.get(entity).curr_hp = registry.hps.get(entity).max_hp;
+					}
+					registry.remove_all_components_of(entity_other);
 				}
 			}
 		}
@@ -457,13 +477,13 @@ void WorldSystem::handle_collisions() {
 				if (wy > hx) {
 					if (wy > -hx) {
 						// top
-						entity_motion.position = { entity_motion.position.x , wall_center.y + wall_collidable.size.y / 2 + entity_collidable.size.y / 2 };
+						entity_motion.position = { entity_motion.position.x , wall_center.y + wall_collidable.size.y / 2 + entity_collidable.size.y / 2 - entity_collidable.shift.y };
 						kinematic.direction = { kinematic.direction.x, 0 };
 						kinematic.velocity = { kinematic.velocity.x, 0 };
 					}
 					else {
 						// left
-						entity_motion.position = { wall_center.x - wall_collidable.size.x / 2 - entity_collidable.size.x / 2, entity_motion.position.y };
+						entity_motion.position = { wall_center.x - wall_collidable.size.x / 2 - entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
 						kinematic.direction = { 0, kinematic.direction.y };
 						kinematic.velocity = { 0, kinematic.velocity.y };
 					}
@@ -471,18 +491,22 @@ void WorldSystem::handle_collisions() {
 				else {
 					if (wy > -hx) {
 						// right
-						entity_motion.position = { wall_center.x + wall_collidable.size.x / 2 + entity_collidable.size.x / 2, entity_motion.position.y };
+						entity_motion.position = { wall_center.x + wall_collidable.size.x / 2 + entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
 						kinematic.direction = { 0, kinematic.direction.y };
 						kinematic.velocity = { 0, kinematic.velocity.y };
 					}
 					else {
 						// bottom
-						entity_motion.position = { entity_motion.position.x , wall_center.y - wall_collidable.size.y / 2 - entity_collidable.size.y / 2 };
+						entity_motion.position = { entity_motion.position.x , wall_center.y - wall_collidable.size.y / 2 - entity_collidable.size.y / 2 - entity_collidable.shift.y };
 						kinematic.direction = { kinematic.direction.x, 0 };
 						kinematic.velocity = { kinematic.velocity.x, 0 };
 					}
 				}
 			}
+			//else if (registry.players.has(entity_other)) {
+			//	Motion& entity_motion = registry.motions.get(entity_other);
+			//	entity_motion.position = entity_motion.prev_pos;
+			//}
 		}
 	}
 	//std::cout << "collision size before: " << registry.collisions.size() << std::endl;

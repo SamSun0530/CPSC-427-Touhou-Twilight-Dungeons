@@ -49,7 +49,7 @@ int main()
 	renderer.init(window);
 	world.init(&renderer, &audio);
 	bullets.init(&renderer, window, &audio);
-	animation.init(window);
+	animation.init(&renderer, window);
 
 	// variable timestep loop
 	auto t = Clock::now();

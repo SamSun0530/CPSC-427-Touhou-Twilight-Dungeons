@@ -61,7 +61,7 @@ struct HP {
 
 struct Pickupable
 {
-	int damage = 1;
+	int health_change = 1;
 };
 
 
@@ -82,6 +82,7 @@ struct Wall {
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };
+	//vec2 prev_pos = { 0, 0 };
 	float angle = 0;
 	vec2 scale = { 10, 10 };
 };
@@ -118,6 +119,7 @@ struct Debug {
 	bool in_freeze_mode = 0;
 };
 extern Debug debugging;
+
 
 // Sets the brightness of the screen
 struct ScreenState
@@ -167,7 +169,9 @@ struct Mesh
 	vec2 original_size = {1,1};
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
+	std::vector<vec3> ordered_vertices;
 };
+
 
 // IDs for each tile type
 enum class TILE_TYPE {
@@ -223,7 +227,10 @@ enum class TEXTURE_ASSET_ID {
 	BOTTOM_WALL = EMPTY_HEART + 1,
 	WALL_EDGE = BOTTOM_WALL + 1,
 	WALL_SURFACE = WALL_EDGE + 1,
-	TEXTURE_COUNT = WALL_SURFACE + 1
+	HEALTH_1 = WALL_SURFACE + 1,
+	HEALTH_2 = HEALTH_1 + 1,
+	REGENERATE_HEALTH = HEALTH_2 + 1,
+	TEXTURE_COUNT = REGENERATE_HEALTH + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -241,12 +248,14 @@ const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 // We won't use geometry as we are mostly using sprites
 enum class GEOMETRY_BUFFER_ID {
-	CHICKEN = 0,
-	SPRITE = CHICKEN + 1,
+	REIMU_FRONT = 0,
+	SPRITE = REIMU_FRONT + 1,
 	EGG = SPRITE + 1,
 	DEBUG_LINE = EGG + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
-	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
+	REIMU_LEFT = SCREEN_TRIANGLE + 1,
+	REIMU_RIGHT = REIMU_LEFT + 1,
+	GEOMETRY_COUNT = REIMU_RIGHT + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
