@@ -617,7 +617,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Toggle tutorial display
-	if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
+	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
 		getInstance().toggle_display_instruction();
 
 		// std::cout << " " << get_display_instruction() << std::endl;
@@ -655,56 +655,3 @@ void WorldSystem::on_scroll(vec2 scroll_offset) {
 
 	(vec2)scroll_offset;
 }
-
-//void WorldSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans) {
-//	// Activate the font shader
-//	glUseProgram(m_font_shaderProgram);
-//
-//	// Set text color
-//	glUniform3f(glGetUniformLocation(m_font_shaderProgram, "textColor"), color.x, color.y, color.z);
-//
-//	// Set transformation matrix
-//	glUniformMatrix4fv(glGetUniformLocation(m_font_shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(trans));
-//
-//	glBindVertexArray(m_font_VAO);
-//
-//	// Iterate through all characters in the text
-//	std::string::const_iterator c;
-//	for (c = text.begin(); c != text.end(); c++) {
-//		Character ch = m_ftCharacters[*c];
-//
-//		float xpos = x + ch.Bearing.x * scale;
-//		float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
-//
-//		float w = ch.Size.x * scale;
-//		float h = ch.Size.y * scale;
-//
-//		// Update VBO for each character
-//		float vertices[6][4] = {
-//			{ xpos, ypos + h, 0.0f, 0.0f },
-//			{ xpos, ypos, 0.0f, 1.0f },
-//			{ xpos + w, ypos, 1.0f, 1.0f },
-//
-//			{ xpos, ypos + h, 0.0f, 0.0f },
-//			{ xpos + w, ypos, 1.0f, 1.0f },
-//			{ xpos + w, ypos + h, 1.0f, 0.0f }
-//		};
-//
-//		// Render glyph texture over quad
-//		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
-//
-//		// Update content of VBO memory
-//		glBindBuffer(GL_ARRAY_BUFFER, m_font_VBO);
-//		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-//		glBindBuffer(GL_ARRAY_BUFFER, 0);
-//
-//		// Render quad
-//		glDrawArrays(GL_TRIANGLES, 0, 6);
-//
-//		// Advance cursors for the next glyph
-//		x += (ch.Advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64)
-//	}
-//
-//	glBindVertexArray(0);
-//	glBindTexture(GL_TEXTURE_2D, 0);
-//}
