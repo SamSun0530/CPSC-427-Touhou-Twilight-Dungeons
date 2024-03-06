@@ -5,10 +5,14 @@
 // stlib
 #include <cassert>
 #include <sstream>
-
 #include "physics_system.hpp"
 #include <glm/trigonometric.hpp>
 #include <iostream>
+#include <GLFW/glfw3.h>
+#include <map>
+#include <string>
+#include <SDL_opengl.h>
+#include <glm/gtc/type_ptr.hpp>
 
 // Game configuration
 const size_t MAX_ENEMIES = 15;
@@ -120,6 +124,7 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map)
 	this->audio = audio;
 	this->map = map;
 
+	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
 	world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
 
@@ -129,6 +134,18 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map)
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+
+	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
+	if (elapsedSinceLastFPSUpdate >= 1000.0) {
+		// Calculate FPS
+		getInstance().fps = static_cast<int>(1000.0f / elapsed_ms_since_last_update);
+		elapsedSinceLastFPSUpdate = 0.0f;
+	}
+
+	glm::mat4 trans = glm::mat4(1.0f);
+	renderer->renderText("Test", 0.0f, 0.0f, 1.0f, glm::vec3(1.0, 1.0, 1.0), trans);
+
+
 	// Updating window title with points
 	std::stringstream title_ss;
 	title_ss << "Points: " << points;
@@ -163,6 +180,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	for (int i = 0; i < ui.size(); i++) {
 		vec2 padding = { i * 60, 0 };
 		motions_registry.get(ui[i]).position = motions_registry.get(player).position - window_px_half + ui_pos + padding;
+	}
+	for (int i = 0; i < registry.hps.get(player).curr_hp; i++) {
+		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::FULL_HEART;
 	}
 	for (int i = registry.hps.get(player).curr_hp; i < ui.size(); i++) {
 		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::EMPTY_HEART;
@@ -236,8 +256,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 
 
-	if (registry.hps.get(player).curr_hp <= 0) {
-		registry.hps.get(player).curr_hp = registry.hps.get(player).max_hp;
+	if (is_alive && registry.hps.get(player).curr_hp <= 0) {
 		registry.bulletFireRates.get(player).is_firing = false;
 		is_alive = false;
 		pressed = { 0 };
@@ -248,8 +267,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	for (Entity entity : registry.hps.entities) {
+		if (registry.players.has(entity)) continue;
 		HP& hp = registry.hps.get(entity);
 		if (hp.curr_hp <= 0.0f) {
+			if (registry.deadlys.has(entity)) {
+				std::random_device rd;
+				std::mt19937 gen(rd());
+				std::uniform_real_distribution<> distrib(0, 1);
+				double number = distrib(gen);
+				if (number <= 0.5)
+				createHealth(renderer, registry.motions.get(entity).position);
+			}
 			registry.remove_all_components_of(entity);
 		}
 	}
@@ -408,6 +436,7 @@ void WorldSystem::handle_collisions() {
 						registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
 						// should decrease HP but not yet implemented
 						registry.hps.get(player).curr_hp -= registry.deadlys.get(entity_other).damage;
+						if (registry.hps.get(player).curr_hp < 0) registry.hps.get(player).curr_hp = 0;
 						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
@@ -427,7 +456,15 @@ void WorldSystem::handle_collisions() {
 						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
-
+				}
+			}
+			else if (registry.pickupables.has(entity_other)) {
+				if (!registry.realDeathTimers.has(entity)) {
+					registry.hps.get(entity).curr_hp += registry.pickupables.get(entity_other).health_change;
+					if (registry.hps.get(entity).curr_hp > registry.hps.get(entity).max_hp) {
+						registry.hps.get(entity).curr_hp = registry.hps.get(entity).max_hp;
+					}
+					registry.remove_all_components_of(entity_other);
 				}
 			}
 		}
@@ -465,13 +502,13 @@ void WorldSystem::handle_collisions() {
 				if (wy > hx) {
 					if (wy > -hx) {
 						// top
-						entity_motion.position = { entity_motion.position.x , wall_center.y + wall_collidable.size.y / 2 + entity_collidable.size.y / 2 };
+						entity_motion.position = { entity_motion.position.x , wall_center.y + wall_collidable.size.y / 2 + entity_collidable.size.y / 2 - entity_collidable.shift.y };
 						kinematic.direction = { kinematic.direction.x, 0 };
 						kinematic.velocity = { kinematic.velocity.x, 0};
 					}
 					else {
 						// left
-						entity_motion.position = { wall_center.x - wall_collidable.size.x / 2 - entity_collidable.size.x / 2, entity_motion.position.y };
+						entity_motion.position = { wall_center.x - wall_collidable.size.x / 2 - entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
 						kinematic.direction = { 0, kinematic.direction.y };
 						kinematic.velocity = { 0, kinematic.velocity.y };
 					}
@@ -479,18 +516,22 @@ void WorldSystem::handle_collisions() {
 				else {
 					if (wy > -hx) {
 						// right
-						entity_motion.position = { wall_center.x + wall_collidable.size.x / 2 + entity_collidable.size.x / 2, entity_motion.position.y };
+						entity_motion.position = { wall_center.x + wall_collidable.size.x / 2 + entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
 						kinematic.direction = { 0, kinematic.direction.y };
 						kinematic.velocity = { 0, kinematic.velocity.y };
 					}
 					else {
 						// bottom
-						entity_motion.position = { entity_motion.position.x , wall_center.y - wall_collidable.size.y / 2 - entity_collidable.size.y / 2 };
+						entity_motion.position = { entity_motion.position.x , wall_center.y - wall_collidable.size.y / 2 - entity_collidable.size.y / 2 - entity_collidable.shift.y };
 						kinematic.direction = { kinematic.direction.x, 0 };
 						kinematic.velocity = { kinematic.velocity.x, 0 };
 					}
 				}
 			}
+			//else if (registry.players.has(entity_other)) {
+			//	Motion& entity_motion = registry.motions.get(entity_other);
+			//	entity_motion.position = entity_motion.prev_pos;
+			//}
 		}
 	}
 	//std::cout << "collision size before: " << registry.collisions.size() << std::endl;
@@ -504,6 +545,20 @@ void WorldSystem::handle_collisions() {
 // Should the game be over ?
 bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
+}
+
+bool WorldSystem::get_display_instruction()
+{
+	return display_instruction;
+}
+bool WorldSystem::get_show_fps()
+{
+	return show_fps;
+}
+
+std::string WorldSystem::get_fps_in_string()
+{
+	return std::to_string(fps);
 }
 
 // Helper for updating player direction
@@ -600,6 +655,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Exit the program
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
 		glfwSetWindowShouldClose(window, true);
+	}
+
+	// Toggle FPS display
+	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
+		getInstance().toggle_show_fps();
+	}
+
+	// Toggle tutorial display
+	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
+		getInstance().toggle_display_instruction();
+
+		// std::cout << " " << get_display_instruction() << std::endl;
 	}
 }
 
