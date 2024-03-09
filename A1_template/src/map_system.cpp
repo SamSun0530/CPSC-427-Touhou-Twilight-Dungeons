@@ -33,23 +33,21 @@ void MapSystem::spawnEnemies() {
         spawn_points.push_back(vec2(room.x + room_size - 2, room.y + 2));
         spawn_points.push_back(vec2(room.x + 2, room.y + room_size - 2));
         spawn_points.push_back(vec2(room.x + room_size - 2, room.y + room_size - 2));
-        int xPos;
-        int yPos;
+        vec2 world_coord;
         for(vec2 point: spawn_points) {
-            xPos = (point.x-world_center.x) * world_tile_size;
-            yPos = (point.y-world_center.y) * world_tile_size;
+            world_coord = convert_grid_to_world(point);
             std::random_device ran;
             std::mt19937 gen(ran());
             std::uniform_real_distribution<> dis(0.0, 1.0);
             float random_numer = dis(gen);
             if (random_numer <= 0.33) {
-                createBeeEnemy(renderer, vec2(xPos, yPos));
+                createBeeEnemy(renderer, world_coord);
             }
             else if (random_numer <= 0.66) {
-                createWolfEnemy(renderer, vec2(xPos, yPos));
+                createWolfEnemy(renderer, world_coord);
             }
             else if (random_numer <= 0.99) {
-                createBomberEnemy(renderer, vec2(xPos, yPos));
+                createBomberEnemy(renderer, world_coord);
             }
         }
     }
@@ -547,19 +545,18 @@ void MapSystem::addTile(int row, int col, std::vector<TEXTURE_ASSET_ID>& texture
     // Comment out to center on top left
     // int xPos = (x - (map[0].size() >> 1)) * world_tile_size;
     // int yPos = (y - (map.size() >> 1)) * world_tile_size;
-    int xPos = (col-world_center.x) * world_tile_size;
-    int yPos = (row-world_center.y) * world_tile_size;
+    coord world_coord = convert_grid_to_world({ col, row });
 
     // Gets the proper texture id list given the position
     switch (map[row][col])
     {
     case (int)TILE_TYPE::WALL:
         textureIDs = getTileAssetID(row, col, map);
-        createWall(renderer, { xPos,yPos }, textureIDs);
+        createWall(renderer, world_coord, textureIDs);
         break;
     case (int)TILE_TYPE::FLOOR:
         textureIDs = getTileAssetID(row, col, map);
-        createFloor(renderer, { xPos,yPos }, textureIDs);
+        createFloor(renderer, world_coord, textureIDs);
         break;
     default:
         break;

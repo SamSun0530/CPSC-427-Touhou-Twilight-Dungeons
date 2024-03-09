@@ -1,6 +1,6 @@
 #include "ai_system.hpp"
 
-// checks if (x,y) on the map is valid, this is not screen coordinates
+// checks if (x,y) on the map grid is valid, this is not world coordinates
 bool is_valid_cell(int x, int y) {
 	return !(y < 0 || x < 0 || y >= world_height || x >= world_width
 		|| WorldSystem::world_map[y][x] == (int)TILE_TYPE::WALL
@@ -13,10 +13,8 @@ bool canSeePlayer(Entity& entity) {
 	Entity& player_entity = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player_entity);
 	Motion& entity_motion = registry.motions.get(entity);
-	int e_y = round((entity_motion.position.y / world_tile_size) + world_center.y);
-	int e_x = round((entity_motion.position.x / world_tile_size) + world_center.x);
-	int p_y = round((player_motion.position.y / world_tile_size) + world_center.y);
-	int p_x = round((player_motion.position.x / world_tile_size) + world_center.x);
+	ivec2 e = convert_world_to_grid(entity_motion.position);
+	ivec2 p = convert_world_to_grid(player_motion.position);
 	// Bresenham's line Credit: https://www.codeproject.com/Articles/15604/Ray-casting-in-a-2D-tile-based-environment
 	// TODO: Optimize with better algorithm: raycast, others (?)
 	// Bug: Enemy sometimes shoot even if player still behind a wall
@@ -25,41 +23,41 @@ bool canSeePlayer(Entity& entity) {
 		a = b;
 		b = temp;
 		};
-	bool steep = abs(p_y - e_y) > abs(p_x - e_x);
+	bool steep = abs(p.y - e.y) > abs(p.x - e.x);
 	if (steep) {
-		swap(p_y, p_x);
-		swap(e_y, e_x);
+		swap(p.y, p.x);
+		swap(e.y, e.x);
 	}
-	if (e_x > p_x) {
-		swap(e_x, p_x);
-		swap(e_y, p_y);
+	if (e.x > p.x) {
+		swap(e.x, p.x);
+		swap(e.y, p.y);
 	}
-	int deltax = p_x - e_x;
-	int deltay = abs(p_y - e_y);
+	int deltax = p.x - e.x;
+	int deltay = abs(p.y - e.y);
 	int error = 0;
 	int ystep;
-	int y = e_y;
-	if (e_y < p_y) ystep = 1; else ystep = -1;
-	for (int x = e_x; x <= p_x; x++) {
-		int x_pos;
-		int y_pos;
+	int y = e.y;
+	if (e.y < p.y) ystep = 1; else ystep = -1;
+	for (int x = e.x; x <= p.x; x++) {
+		//int x_pos;
+		//int y_pos;
 		int x_grid;
 		int y_grid;
 		if (steep) {
-			x_pos = (y - world_center.x) * world_tile_size;
-			y_pos = (x - world_center.y) * world_tile_size;
+			//x_pos = (y - world_center.x) * world_tile_size;
+			//y_pos = (x - world_center.y) * world_tile_size;
 			x_grid = y;
 			y_grid = x;
 		}
 		else {
-			x_pos = (x - world_center.x) * world_tile_size;
-			y_pos = (y - world_center.y) * world_tile_size;
+			//x_pos = (x - world_center.x) * world_tile_size;
+			//y_pos = (y - world_center.y) * world_tile_size;
 			x_grid = x;
 			y_grid = y;
 		}
 		if (!is_valid_cell(x_grid, y_grid)) return false;
 		// Debug line to visualize line of sight path
-		//createLine({ x_pos, y_pos }, vec2(world_tile_size / 2, world_tile_size / 2));
+		//createLine({ x_pos, y_pos }, vec2(world_tile_size / 2));
 		error += deltay;
 		if (2 * error >= deltax) {
 			y += ystep;
@@ -109,9 +107,7 @@ path reconstruct_path(std::unordered_map<coord, coord>& came_from, coord& curren
 
 	// Debug line by visualizing the path
 	for (int i = 0; i < optimal_path.size(); i++) {
-		float x_pos = (optimal_path[i].x - world_center.x) * world_tile_size;
-		float y_pos = (optimal_path[i].y - world_center.y) * world_tile_size;
-		createLine({ x_pos, y_pos }, vec2(world_tile_size / 2, world_tile_size / 2));
+		createLine(convert_grid_to_world(optimal_path[i]), vec2(world_tile_size / 2));
 	}
 
 	std::reverse(optimal_path.begin(), optimal_path.end());
@@ -134,7 +130,7 @@ struct GScore
 
 // A-star path finding algorithm (does not store paths inside frontier)
 // Adapted from: https://en.wikipedia.org/wiki/A*_search_algorithm
-// Note: parameter coords are in grid coordinates NOT screen coordinates
+// Note: parameter coords are in grid coordinates NOT world coordinates
 // e.g. input (x,y) should be (1,1) on the grid instead of (550.53, -102.33)
 path astar(coord start, coord goal) {
 	std::priority_queue<std::pair<float, coord>, std::vector<std::pair<float, coord>>, CompareGreater> open_list;
@@ -165,13 +161,9 @@ path astar(coord start, coord goal) {
 	return path();
 }
 
+// Takes in from & to in world coordinates
 void set_follow_path(Entity& entity, coord from, coord to) {
-	// convert to grid coords
-	vec2 grid_from = { round((from.x / world_tile_size) + world_center.x),
-					round((from.y / world_tile_size) + world_center.y) };
-	vec2 grid_to = { round((to.x / world_tile_size) + world_center.x),
-					round((to.y / world_tile_size) + world_center.y) };
-	path path_to_player = astar(grid_from, grid_to);
+	path path_to_player = astar(convert_world_to_grid(from), convert_world_to_grid(to));
 	if (path_to_player.size() == 0) return;
 	if (!registry.followpaths.has(entity)) {
 		registry.followpaths.emplace(entity);

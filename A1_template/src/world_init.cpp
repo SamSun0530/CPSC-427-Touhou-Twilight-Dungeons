@@ -526,7 +526,7 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 	return entities;
 }
 
-// IMPORTANT: creates pillar on grid position, not screen position
+// IMPORTANT: creates pillar using grid coordinates, NOT world coorindates
 // textureIDs[0] == bottom, textureIDs[1] == top
 std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std::vector<TEXTURE_ASSET_ID> textureIDs) {
 	assert(textureIDs.size() == 2 && "textureIDs do not have size 2");
@@ -547,14 +547,13 @@ std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std
 	registry.meshPtrs.emplace(top_entity, &top_mesh);
 
 	// Initialize the motion
-	vec2 bottom_screen_position = { (grid_position.x - world_center.x) * world_tile_size,
-		(grid_position.y - world_center.y) * world_tile_size };
+	vec2 bottom_world_position = convert_grid_to_world(grid_position);
 
 	auto& bottom_motion = registry.motions.emplace(bottom_entity);
-	bottom_motion.position = bottom_screen_position;
+	bottom_motion.position = bottom_world_position;
 	bottom_motion.scale = vec2(world_tile_size, world_tile_size);
 	auto& top_motion = registry.motions.emplace(top_entity);
-	top_motion.position = bottom_screen_position + vec2{ 0, -world_tile_size };
+	top_motion.position = bottom_world_position + vec2{ 0, -world_tile_size };
 	top_motion.scale = vec2(world_tile_size, world_tile_size);
 
 	// Set the collision box
