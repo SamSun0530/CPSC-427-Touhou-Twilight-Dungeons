@@ -12,10 +12,6 @@ const vec2 med_world_map_size = {1000,1000};
 const vec2 large_world_map_size = {2000,2000};
 int room_size = 11;
 
-// Static var
-std::vector<std::vector<int>> MapSystem::world_map;
-// std::vector<Room> rooms;
-
 
 MapSystem::MapSystem() {
     // Seeding rng with random device
@@ -27,22 +23,21 @@ void MapSystem::init(RenderSystem* renderer_arg) {
 }
 
 void MapSystem::spawnEnemies() {
+
+    // testing
+    //createBomberEnemy(renderer, vec2(200, 200));
+
     for(Room room: rooms) {
         std::vector<vec2> spawn_points;
         spawn_points.push_back(vec2(room.x + 2, room.y + 2));
         spawn_points.push_back(vec2(room.x + room_size - 2, room.y + 2));
         spawn_points.push_back(vec2(room.x + 2, room.y + room_size - 2));
         spawn_points.push_back(vec2(room.x + room_size - 2, room.y + room_size - 2));
-
-        int centerX = (room_size);
-	    int centerY = (room_size);
         int xPos;
         int yPos;
-
         for(vec2 point: spawn_points) {
-            xPos = (point.x-centerX) * world_tile_size;
-            yPos = (point.y-centerY) * world_tile_size;
-
+            xPos = (point.x-world_center.x) * world_tile_size;
+            yPos = (point.y-world_center.y) * world_tile_size;
             std::random_device ran;
             std::mt19937 gen(ran());
             std::uniform_real_distribution<> dis(0.0, 1.0);
@@ -56,8 +51,6 @@ void MapSystem::spawnEnemies() {
             else if (random_numer <= 0.99) {
                 createBomberEnemy(renderer, vec2(xPos, yPos));
             }
-
-            //createEnemy(renderer, vec2(xPos, yPos));
         }
     }
 }
@@ -78,7 +71,7 @@ void MapSystem::generateBasicMap() {
      rooms.push_back(generateBasicRoom(room_size+2*room_radius,room_size+2*room_radius));
      rooms.push_back(generateBasicRoom(3*(room_size+room_radius),room_size+2*room_radius));
 
-     for(Room room : rooms) {
+     for(Room& room : rooms) {
         addRoomToMap(room, map);
      }
 
@@ -554,10 +547,8 @@ void MapSystem::addTile(int row, int col, std::vector<TEXTURE_ASSET_ID>& texture
     // Comment out to center on top left
     // int xPos = (x - (map[0].size() >> 1)) * world_tile_size;
     // int yPos = (y - (map.size() >> 1)) * world_tile_size;
-    int centerX = (room_size);
-	int centerY = (room_size);
-    int xPos = (col-centerX) * world_tile_size;
-    int yPos = (row-centerY) * world_tile_size;
+    int xPos = (col-world_center.x) * world_tile_size;
+    int yPos = (row-world_center.y) * world_tile_size;
 
     // Gets the proper texture id list given the position
     switch (map[row][col])

@@ -86,16 +86,17 @@ void Animation::step(float elapsed_ms)
 	for (Entity& enemy : registry.bomberEnemies.entities) {
 		EntityAnimation& enemy_ani = registry.animation.get(enemy);
 		Kinematic& enemy_kinematic = registry.kinematics.get(enemy);
-		if (enemy_kinematic.direction.x < 0) {
+		//printf("direction (%f,%f)\n", enemy_kinematic.direction.x, enemy_kinematic.direction.y);
+		if (enemy_kinematic.direction.x < -0.02) {
 			enemy_ani.render_pos.y = 2 * enemy_ani.spritesheet_scale.y;
 		}
-		else if (enemy_kinematic.direction.x > 0) {
+		else if (enemy_kinematic.direction.x > 0.02) {
 			enemy_ani.render_pos.y = 3 * enemy_ani.spritesheet_scale.y;
 		}
-		else if (enemy_kinematic.direction.y < 0) {
+		else if (enemy_kinematic.direction.y < -0.02) {
 			enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y;
 		}
-		else if (enemy_kinematic.direction.y > 0) {
+		else if (enemy_kinematic.direction.y > 0.02) {
 			enemy_ani.render_pos.y = 1 * enemy_ani.spritesheet_scale.y;
 		}
 	}

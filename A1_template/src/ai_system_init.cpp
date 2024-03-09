@@ -9,16 +9,14 @@ bool is_valid_cell(int x, int y) {
 
 // checks if entity has a line of sight of the player
 bool canSeePlayer(Entity& entity) {
-	int center_x = world_width >> 1;
-	int center_y = world_height >> 1;
 	// assume we have a player
 	Entity& player_entity = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player_entity);
 	Motion& entity_motion = registry.motions.get(entity);
-	int e_y = round((entity_motion.position.y / world_tile_size) + center_y);
-	int e_x = round((entity_motion.position.x / world_tile_size) + center_x);
-	int p_y = round((player_motion.position.y / world_tile_size) + center_y);
-	int p_x = round((player_motion.position.x / world_tile_size) + center_x);
+	int e_y = round((entity_motion.position.y / world_tile_size) + world_center.y);
+	int e_x = round((entity_motion.position.x / world_tile_size) + world_center.x);
+	int p_y = round((player_motion.position.y / world_tile_size) + world_center.y);
+	int p_x = round((player_motion.position.x / world_tile_size) + world_center.x);
 	// Bresenham's line Credit: https://www.codeproject.com/Articles/15604/Ray-casting-in-a-2D-tile-based-environment
 	// TODO: Optimize with better algorithm: raycast, others (?)
 	// Bug: Enemy sometimes shoot even if player still behind a wall
@@ -48,19 +46,19 @@ bool canSeePlayer(Entity& entity) {
 		int x_grid;
 		int y_grid;
 		if (steep) {
-			x_pos = (y - center_x) * world_tile_size;
-			y_pos = (x - center_y) * world_tile_size;
+			x_pos = (y - world_center.x) * world_tile_size;
+			y_pos = (x - world_center.y) * world_tile_size;
 			x_grid = y;
 			y_grid = x;
 		}
 		else {
-			x_pos = (x - center_x) * world_tile_size;
-			y_pos = (y - center_y) * world_tile_size;
+			x_pos = (x - world_center.x) * world_tile_size;
+			y_pos = (y - world_center.y) * world_tile_size;
 			x_grid = x;
 			y_grid = y;
 		}
 		if (!is_valid_cell(x_grid, y_grid)) return false;
-		// debugging
+		// Debug line to visualize line of sight path
 		//createLine({ x_pos, y_pos }, vec2(world_tile_size / 2, world_tile_size / 2));
 		error += deltay;
 		if (2 * error >= deltax) {
@@ -73,8 +71,15 @@ bool canSeePlayer(Entity& entity) {
 
 // heuristic for astar
 float astar_heuristic(coord n, coord goal) {
-	vec2 dp = goal - n;
-	return sqrt(dot(dp, dp));
+	// Euclidean - 8 direction, diagonal different cost
+	//vec2 dp = goal - n;
+	//return sqrt(dot(dp, dp));
+
+	// Manhattan - 4 direction
+	return abs(goal.x - n.x) + abs(goal.y - n.y);
+	 
+	// Chebyshev - 8 direction, same costs
+	//return max(abs(goal.y - n.y), abs(goal.x - n.x));
 }
 
 // get all possible actions and their costs (1 for direct, 1.4 for diagonal since sqrt(2)=1.4)
@@ -87,10 +92,10 @@ std::vector<std::pair<float, coord>> astar_actioncosts() {
 			std::make_pair(1.f, vec2(0, 1)), // DOWN
 			std::make_pair(1.f, vec2(-1, 0)), // LEFT
 			std::make_pair(1.f, vec2(1, 0)), // RIGHT
-			std::make_pair(1.4f, vec2(-1, -1)), // UP LEFT
-			std::make_pair(1.4f, vec2(1, -1)), // UP RIGHT
-			std::make_pair(1.4f, vec2(-1, 1)), // DOWN LEFT
-			std::make_pair(1.4f, vec2(1, 1)), // DOWN RIGHT
+			//std::make_pair(1.4f, vec2(-1, -1)), // UP LEFT
+			//std::make_pair(1.4f, vec2(1, -1)), // UP RIGHT
+			//std::make_pair(1.4f, vec2(-1, 1)), // DOWN LEFT
+			//std::make_pair(1.4f, vec2(1, 1)), // DOWN RIGHT
 	});
 }
 
@@ -101,6 +106,14 @@ path reconstruct_path(std::unordered_map<coord, coord>& came_from, coord& curren
 		optimal_path.push_back(current);
 		current = came_from[current];
 	}
+
+	// Debug line by visualizing the path
+	for (int i = 0; i < optimal_path.size(); i++) {
+		float x_pos = (optimal_path[i].x - world_center.x) * world_tile_size;
+		float y_pos = (optimal_path[i].y - world_center.y) * world_tile_size;
+		createLine({ x_pos, y_pos }, vec2(world_tile_size / 2, world_tile_size / 2));
+	}
+
 	std::reverse(optimal_path.begin(), optimal_path.end());
 	return optimal_path;
 }
@@ -139,8 +152,7 @@ path astar(coord start, coord goal) {
 		close_list.insert(current.second);
 		for (std::pair<float, coord> actioncost : astar_actioncosts()) {
 			vec2 candidate = current.second + actioncost.second;
-			// bug: we check if goal/player is in a wall as we support wall collision boxes -> results in enemy being stuck when in wall
-			if (close_list.count(candidate) || (is_valid_cell(goal.x, goal.y) && !is_valid_cell(candidate.x, candidate.y))) continue;
+			if (close_list.count(candidate) || (!is_valid_cell(candidate.x, candidate.y))) continue;
 			// f_value = total_cost + heuristic, therefore total_cost = f_value - heuristic
 			float candidate_g = current.first - astar_heuristic(current.second, goal) + actioncost.first;
 			if (candidate_g < g_score[candidate]) {
@@ -153,14 +165,12 @@ path astar(coord start, coord goal) {
 	return path();
 }
 
-void set_follow_path(Entity& entity, Motion& from, Motion& to) {
+void set_follow_path(Entity& entity, coord from, coord to) {
 	// convert to grid coords
-	int center_x = world_width >> 1;
-	int center_y = world_height >> 1;
-	vec2 grid_from = { round((from.position.x / world_tile_size) + center_x),
-					round((from.position.y / world_tile_size) + center_y) };
-	vec2 grid_to = { round((to.position.x / world_tile_size) + center_x),
-					round((to.position.y / world_tile_size) + center_y) };
+	vec2 grid_from = { round((from.x / world_tile_size) + world_center.x),
+					round((from.y / world_tile_size) + world_center.y) };
+	vec2 grid_to = { round((to.x / world_tile_size) + world_center.x),
+					round((to.y / world_tile_size) + world_center.y) };
 	path path_to_player = astar(grid_from, grid_to);
 	if (path_to_player.size() == 0) return;
 	if (!registry.followpaths.has(entity)) {
@@ -236,7 +246,9 @@ void AISystem::init() {
 		Entity& player = registry.players.entities[0];
 		Motion& player_motion = registry.motions.get(player);
 		Motion& entity_motion = registry.motions.get(entity);
-		set_follow_path(entity, entity_motion, player_motion);
+		Collidable& player_collidable = registry.collidables.get(player);
+		Collidable& entity_collidable = registry.collidables.get(entity);
+		set_follow_path(entity, entity_motion.position + entity_collidable.shift, player_motion.position + player_collidable.shift);
 		};
 	// find player with a star only if outside of range, otherwise stop motion
 	void (*findPlayerThreshold)(Entity & entity) = [](Entity& entity) {
@@ -247,7 +259,9 @@ void AISystem::init() {
 		float minimum_range_to_check = 90000; // sqrt(160000)=300 pixels
 		vec2 dp = player_motion.position - entity_motion.position;
 		if (dot(dp, dp) > minimum_range_to_check) {
-			set_follow_path(entity, entity_motion, player_motion);
+			Collidable& player_collidable = registry.collidables.get(player);
+			Collidable& entity_collidable = registry.collidables.get(entity);
+			set_follow_path(entity, entity_motion.position + entity_collidable.shift, player_motion.position + player_collidable.shift);
 		}
 		else {
 			registry.kinematics.get(entity).direction = { 0, 0 };

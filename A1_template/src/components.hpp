@@ -40,13 +40,6 @@ struct IdleMoveAction {
 	float moving_ms = 1500;
 };
 
-enum EnemyType
-{
-	normal,
-	shotgun,
-	suicide,
-};
-
 struct EntityAnimation {
 	State state = State::IDLE;
 	vec2 idle_direction = { 0, 0 }; // used to figure out direction for idle animation
@@ -148,6 +141,9 @@ struct FollowPath
 {
 	path path;
 	int next_path_index = 0;
+	// whether to continue chasing or stop at grid
+	// set to true to prevent enemy from stopping early
+	bool is_player_target = true;
 };
 
 // Data structure for toggling debug mode

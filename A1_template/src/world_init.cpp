@@ -547,10 +547,8 @@ std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std
 	registry.meshPtrs.emplace(top_entity, &top_mesh);
 
 	// Initialize the motion
-	int center_x = world_width >> 1;
-	int center_y = world_height >> 1;
-	vec2 bottom_screen_position = { (grid_position.x - center_x) * world_tile_size,
-		(grid_position.y - center_y) * world_tile_size };
+	vec2 bottom_screen_position = { (grid_position.x - world_center.x) * world_tile_size,
+		(grid_position.y - world_center.y) * world_tile_size };
 
 	auto& bottom_motion = registry.motions.emplace(bottom_entity);
 	bottom_motion.position = bottom_screen_position;
@@ -565,6 +563,7 @@ std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std
 	bottom_collidable.shift = { 0, 0 };
 
 	WorldSystem::world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+
 	registry.walls.emplace(bottom_entity);
 	registry.floors.emplace(top_entity); // TODO: maybe foreground.emplace
 

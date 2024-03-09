@@ -53,17 +53,21 @@ void AISystem::step(float elapsed_ms)
 		Motion& motion = registry.motions.get(entity);
 		Kinematic& kinematic = registry.kinematics.get(entity);
 
-		int center_x = world_width >> 1;
-		int center_y = world_height >> 1;
-		vec2 grid_pos = { round((motion.position.x / world_tile_size) + center_x),
-						round((motion.position.y / world_tile_size) + center_y) };
+		vec2 grid_pos = { round((motion.position.x / world_tile_size) + world_center.x),
+						round((motion.position.y / world_tile_size) + world_center.y) };
 		if (fp.next_path_index == fp.path.size() - 1 && grid_pos == fp.path[fp.next_path_index]) {
+			if (fp.is_player_target) {
+				Entity& player = registry.players.entities[0];
+				Motion& player_motion = registry.motions.get(player);
+				Collidable& entity_collidable = registry.collidables.get(entity);
+				Collidable& player_collidable = registry.collidables.get(player);
+				kinematic.direction = normalize((player_motion.position + player_collidable.shift) - (motion.position + entity_collidable.shift));
+			}
 			registry.followpaths.remove(entity);
-			kinematic.direction = { 0, 0 };
 			continue;
 		}
-		vec2 screen_next_pos = { (fp.path[fp.next_path_index].x - center_x) * world_tile_size,
-								(fp.path[fp.next_path_index].y - center_y) * world_tile_size };
+		vec2 screen_next_pos = { (fp.path[fp.next_path_index].x - world_center.x) * world_tile_size,
+								(fp.path[fp.next_path_index].y - world_center.y) * world_tile_size };
 		vec2 dp = screen_next_pos - motion.position;
 		vec2 direction_normalized = normalize(dp);
 		float distance_squared = dot(dp, dp);
@@ -73,8 +77,8 @@ void AISystem::step(float elapsed_ms)
 		// Do not account for lerped velocity as don't want entity to slow down-speed up-slow...
 		if (velocity_magnitude > distance_squared && fp.next_path_index + 1 < fp.path.size()) {
 			fp.next_path_index++;
-			screen_next_pos = { (fp.path[fp.next_path_index].x - center_x) * world_tile_size,
-								(fp.path[fp.next_path_index].y - center_y) * world_tile_size };
+			screen_next_pos = { (fp.path[fp.next_path_index].x - world_center.x) * world_tile_size,
+								(fp.path[fp.next_path_index].y - world_center.y) * world_tile_size };
 			direction_normalized = normalize(screen_next_pos - motion.position);
 		}
 

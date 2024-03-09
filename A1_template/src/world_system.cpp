@@ -290,7 +290,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				std::uniform_real_distribution<> distrib(0, 1);
 				double number = distrib(gen);
 				if (number <= 0.5)
-				createHealth(renderer, registry.motions.get(entity).position);
+					createHealth(renderer, registry.motions.get(entity).position);
 			}
 			registry.remove_all_components_of(entity);
 		}
@@ -329,17 +329,17 @@ void WorldSystem::restart_game() {
 
 	// map->generateMap(1);
 	map->generateBasicMap();
-	world_map = MapSystem::world_map;
+	world_map = map->world_map;
 	map->spawnEnemies();
 
 	//     // // Print the initialized array
-    // for (int i = 0; i < world_map.size(); ++i) {
-    //     for (int j = 0; j < world_map[i].size(); ++j) {
-    //         std::cout << world_map[i][j] << " ";
-    //     }
-    //     std::cout << std::endl;
-    // }
-	
+	// for (int i = 0; i < world_map.size(); ++i) {
+	//     for (int j = 0; j < world_map[i].size(); ++j) {
+	//         std::cout << world_map[i][j] << " ";
+	//     }
+	//     std::cout << std::endl;
+	// }
+
 	// // Creates 1 room the size of the map
 	// for (int row = 0; row < world_map.size(); row++) {
 	// 	for (int col = 0; col < world_map[row].size(); col++) {
@@ -352,12 +352,12 @@ void WorldSystem::restart_game() {
 	// 	}
 	// }
 
-	int centerX = (world_width >> 1);
-	int centerY = (world_height >> 1);
+	//int world_center.x = (world_width >> 1);
+	//int world_center.y = (world_height >> 1);
 	//Creates entitiy tiles based on the world map
-	for (int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
-		for (int col = 0; col < world_map[row].size(); col++) {
-			std::vector<TEXTURE_ASSET_ID> textureIDs;
+	//for (int row = 0; row < (int)world_map.size(); row++) { //i=row, j=col
+	//	for (int col = 0; col < world_map[row].size(); col++) {
+	//		std::vector<TEXTURE_ASSET_ID> textureIDs;
 			// if (row == 0 && col == 0) {
 			// 	textureIDs.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
 			// }
@@ -400,11 +400,11 @@ void WorldSystem::restart_game() {
 			// 	}
 			// }
 
-			// int xPos = (col - centerX) * world_tile_size;
-			// int yPos = (row - centerY) * world_tile_size;
-			
-			// int xPos = (col-centerX) * world_tile_size;
-			// int yPos = (row-centerY) * world_tile_size;
+			// int xPos = (col - world_center.x) * world_tile_size;
+			// int yPos = (row - world_center.y) * world_tile_size;
+
+			// int xPos = (col-world_center.x) * world_tile_size;
+			// int yPos = (row-world_center.y) * world_tile_size;
 			// switch (world_map[row][col])
 			// {
 			// case (int)TILE_TYPE::WALL:
@@ -418,10 +418,10 @@ void WorldSystem::restart_game() {
 			// default:
 			// 	break;
 			// }
-		}
-	}
+	//	}
+	//}
 
-	createPillar(renderer, { centerX, centerY - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
+	createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
 	// Create a new player
 	player = createPlayer(renderer, { 0, 0 });
@@ -529,7 +529,7 @@ void WorldSystem::handle_collisions() {
 						// top
 						entity_motion.position = { entity_motion.position.x , wall_center.y + wall_collidable.size.y / 2 + entity_collidable.size.y / 2 - entity_collidable.shift.y };
 						kinematic.direction = { kinematic.direction.x, 0 };
-						kinematic.velocity = { kinematic.velocity.x, 0};
+						kinematic.velocity = { kinematic.velocity.x, 0 };
 					}
 					else {
 						// left
@@ -552,11 +552,9 @@ void WorldSystem::handle_collisions() {
 						kinematic.velocity = { kinematic.velocity.x, 0 };
 					}
 				}
+
+
 			}
-			//else if (registry.players.has(entity_other)) {
-			//	Motion& entity_motion = registry.motions.get(entity_other);
-			//	entity_motion.position = entity_motion.prev_pos;
-			//}
 		}
 	}
 
@@ -650,6 +648,32 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// Update player direction
 		updatePlayerDirection(kinematic);
 	}
+
+	// Debug mode: M to print mapsystem/worldsystem world map
+	if (debugging.in_debug_mode && action == GLFW_RELEASE && key == GLFW_KEY_M) {
+		printf("mapsystem map:\n");
+		for (int i = 0; i < map->world_map.size(); i++) {
+			for (int j = 0; j < map->world_map[0].size(); j++) {
+				if (i == 30 && j == 23) {
+					printf("P");
+				}
+				printf("%d ", map->world_map[i][j]);
+			}
+			printf("\n");
+		}
+		printf("\n");
+		printf("worldsystem map:\n");
+		for (int i = 0; i < world_map.size(); i++) {
+			for (int j = 0; j < world_map[0].size(); j++) {
+				if (i == 30 && j == 23) {
+					printf("P");
+				}
+				printf("%d ", world_map[i][j]);
+			}
+			printf("\n");
+		}
+	}
+
 
 	// Toggle between camera-cursor offset
 	if (key == GLFW_KEY_P) {

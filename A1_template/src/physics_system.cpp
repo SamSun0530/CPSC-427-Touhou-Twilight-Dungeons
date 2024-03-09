@@ -3,30 +3,6 @@
 #include "world_init.hpp"
 #include <iostream>
 
-//// Returns the local bounding coordinates scaled by the current size of the entity
-//vec2 get_bounding_box(const Motion& motion)
-//{
-//	// abs is to avoid negative scale due to the facing direction.
-//	return { abs(motion.scale.x), abs(motion.scale.y) };
-//}
-//
-//// This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
-//// if the center point of either object is inside the other's bounding-box-circle. You can
-//// surely implement a more accurate detection
-//bool collides(const Motion& motion1, const Motion& motion2)
-//{
-//	vec2 dp = motion1.position - motion2.position;
-//	float dist_squared = dot(dp, dp);
-//	const vec2 other_bonding_box = get_bounding_box(motion1) / 2.f;
-//	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
-//	const vec2 my_bonding_box = get_bounding_box(motion2) / 2.f;
-//	const float my_r_squared = dot(my_bonding_box, my_bonding_box);
-//	const float r_squared = max(other_r_squared, my_r_squared);
-//	if (dist_squared < r_squared)
-//		return true;
-//	return false;
-//}
-
 struct CollisionInfo {
 	bool hasCollision = false;
 	vec3 collisionPoint;
@@ -41,7 +17,7 @@ bool collides_AABB_AABB(const Motion& motion1, const Motion& motion2, const Coll
 	const vec2 bounding_box2 = abs(collidable2.size) / 2.f;
 	const vec2 box_center1 = motion1.position + collidable1.shift;
 	const vec2 box_center2 = motion2.position + collidable2.shift;
-	
+
 	const float top1 = box_center1.y - bounding_box1.y;
 	const float bottom1 = box_center1.y + bounding_box1.y;
 	const float left1 = box_center1.x - bounding_box1.x;
@@ -52,7 +28,7 @@ bool collides_AABB_AABB(const Motion& motion1, const Motion& motion2, const Coll
 	const float left2 = box_center2.x - bounding_box2.x;
 	const float right2 = box_center2.x + bounding_box2.x;
 
-	if (left2 <= right1 && left1 <= right2 && top2 <= bottom1 && top1 <= bottom2)
+	if (left2 < right1 && left1 < right2 && top2 < bottom1 && top1 < bottom2)
 		return true;
 	return false;
 }
@@ -99,7 +75,7 @@ bool do_intersect(vec3 p1, vec3 q1, vec3 p2, vec3 q2) {
 
 bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& motion2, const Collidable& collidable2) {
 	Mesh* e1_mesh = registry.meshPtrs.get(e1);
-	vec2 mesh_scale = { motion1.scale.x/32*24 , -motion1.scale.y };
+	vec2 mesh_scale = { motion1.scale.x / 32 * 24 , -motion1.scale.y };
 	Transform transform;
 	transform.scale(mesh_scale);
 	const vec2 bounding_box2 = abs(collidable2.size) / 2.f;
@@ -150,7 +126,7 @@ bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& m
 		mesh_edges.insert({ std::min(vid_3, vid_1), std::max(vid_3, vid_1) });
 	}
 
-	
+
 	// Checking if edges of AABB and mesh are colliding
 	for (const auto& meshEdge : mesh_edges) {
 		for (const auto& boxEdge : box_edges) {

@@ -49,7 +49,6 @@ static int room_id = 0;
 
 class MapSystem{
 private:
-    //bar
     const float mean = 5.0f;
     const float standard_deviation = 3.0f;
 
@@ -79,10 +78,9 @@ private:
 public:
     MapSystem();
     void init(RenderSystem* renderer);
-	static std::vector<std::vector<int>> world_map; // world_map[Row][Col]
+	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
     void generateMap(int floor);
     void generateBasicMap();
     void spawnEnemies();
     void debug();
-    //foo
 };

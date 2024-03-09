@@ -28,11 +28,11 @@ typedef std::vector<coord> path;
 // Get defintion of PROJECT_SOURCE_DIR from:
 #include "../ext/project_path.hpp"
 inline std::string data_path() { return std::string(PROJECT_SOURCE_DIR) + "data"; };
-inline std::string shader_path(const std::string& name) {return std::string(PROJECT_SOURCE_DIR) + "/shaders/" + name;};
-inline std::string textures_path(const std::string& name) {return data_path() + "/textures/" + std::string(name);};
-inline std::string audio_path(const std::string& name) {return data_path() + "/audio/" + std::string(name);};
-inline std::string mesh_path(const std::string& name) {return data_path() + "/meshes/" + std::string(name);};
-inline std::string misc_path(const std::string& name) {return data_path() + "/misc/" + std::string(name);};
+inline std::string shader_path(const std::string& name) { return std::string(PROJECT_SOURCE_DIR) + "/shaders/" + name; };
+inline std::string textures_path(const std::string& name) { return data_path() + "/textures/" + std::string(name); };
+inline std::string audio_path(const std::string& name) { return data_path() + "/audio/" + std::string(name); };
+inline std::string mesh_path(const std::string& name) { return data_path() + "/meshes/" + std::string(name); };
+inline std::string misc_path(const std::string& name) { return data_path() + "/misc/" + std::string(name); };
 inline std::string font_paht(const std::string& name) { return data_path() + "/fonts" + std::string(name); };
 
 // Window Data
@@ -44,6 +44,8 @@ const vec2 window_px_half = { window_width_px / 2, window_height_px / 2 };
 const int world_width = 60;
 const int world_height = 50;
 const int world_tile_size = 64; // In pixels
+// Shift POSITIVE x,y grid cells to center the map at (0,0)
+const vec2 world_center = { 11,11 };
 
 
 #ifndef M_PI
