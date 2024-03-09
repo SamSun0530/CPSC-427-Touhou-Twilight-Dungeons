@@ -106,9 +106,9 @@ path reconstruct_path(std::unordered_map<coord, coord>& came_from, coord& curren
 	}
 
 	// Debug line by visualizing the path
-	for (int i = 0; i < optimal_path.size(); i++) {
-		createLine(convert_grid_to_world(optimal_path[i]), vec2(world_tile_size / 2));
-	}
+	//for (int i = 0; i < optimal_path.size(); i++) {
+	//	createLine(convert_grid_to_world(optimal_path[i]), vec2(world_tile_size / 2));
+	//}
 
 	std::reverse(optimal_path.begin(), optimal_path.end());
 	return optimal_path;
@@ -202,7 +202,7 @@ void AISystem::init() {
 		if (!registry.idleMoveActions.has(entity)) return;
 		std::random_device ran;
 		std::mt19937 gen(ran());
-		std::uniform_real_distribution<> dis(0.0, 1.0);
+		std::uniform_real_distribution<> dis(-1.0, 1.0);
 		IdleMoveAction& action = registry.idleMoveActions.get(entity);
 		if (action.timer_ms <= 0) {
 			Kinematic& kinematic = registry.kinematics.get(entity);

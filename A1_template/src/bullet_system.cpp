@@ -34,8 +34,12 @@ void BulletSystem::step(float elapsed_ms)
 					float y = last_mouse_position.y - motion.position.y;
 					mouse_rotation_angle = -atan2(x, y) - glm::radians(90.0f);
 
+					// shift origin of bullet in front and down a bit so player can shoot vertically and horizontally when against a wall
+					vec2 shift_down = vec2(0, 15);
+					vec2 shift_forward = 30.f * normalize(last_mouse_position - motion.position);
+
 					Mix_PlayChannel(-1, audio->firing_sound, 0);
-					createBullet(renderer, kinematic.speed_modified, motion.position, mouse_rotation_angle, last_mouse_position - motion.position, true);
+					createBullet(renderer, kinematic.speed_modified, motion.position + shift_forward + shift_down, mouse_rotation_angle, last_mouse_position - motion.position - shift_down, true);
 				}
 
 				else if (registry.beeEnemies.has(entity)) {
