@@ -38,7 +38,7 @@ public:
 		zoom_max = 2.0f;
 		zoom_increment = 0.1f;
 	}
-	
+
 	void setPosition(vec2 position);
 	void addZoom(float scroll_offset_y);
 

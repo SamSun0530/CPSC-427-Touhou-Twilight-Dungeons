@@ -75,7 +75,7 @@ float astar_heuristic(coord n, coord goal) {
 
 	// Manhattan - 4 direction
 	return abs(goal.x - n.x) + abs(goal.y - n.y);
-	 
+
 	// Chebyshev - 8 direction, same costs
 	//return max(abs(goal.y - n.y), abs(goal.x - n.x));
 }

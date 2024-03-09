@@ -23,7 +23,7 @@ void BulletSystem::step(float elapsed_ms)
 				assert(registry.players.size() == 1 && "Only one player should exist");
 
 				Entity& player = registry.players.entities[0];
-				
+
 				if (entity == player) {
 					// player fires bullet towards mouse position
 					double mouse_pos_x;
@@ -62,7 +62,7 @@ void BulletSystem::step(float elapsed_ms)
 
 					transform.rotate(-M_PI / 3);
 					vec2 third = transform.mat * vec3(x, y, 1.0);
-					
+
 					float enemy_fire_angle = -atan2(x, y) - glm::radians(90.0f);
 					createBullet(renderer, kinematic.speed_modified, motion.position, enemy_fire_angle, { x, y });
 					createBullet(renderer, kinematic.speed_modified, motion.position, enemy_fire_angle, second);
@@ -74,18 +74,18 @@ void BulletSystem::step(float elapsed_ms)
 					float y = player_motion.position.y - motion.position.y;
 					float enemy_fire_angle = -atan2(x, y) - glm::radians(90.0f);
 
-					
+
 					int i = 0;
 					while (i < 5) {
-						float fireTimer = glfwGetTime(); 
+						float fireTimer = glfwGetTime();
 						/*if (glfwGetTime() - fireTimer >= 0.5) {*/
-							createBullet(renderer, kinematic.speed_modified, motion.position, enemy_fire_angle, { x, y });
-							i++;
+						createBullet(renderer, kinematic.speed_modified, motion.position, enemy_fire_angle, { x, y });
+						i++;
 						/*}*/
 					}
 				}
 				fireRate.last_time = current_time;
-				
+
 			}
 		}
 	}

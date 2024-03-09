@@ -36,7 +36,7 @@ void Animation::step(float elapsed_ms)
 	glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
 	Motion player_motion;
 	for (Entity& player : registry.players.entities) {
-		Motion& motion = registry.motions.get(player); 
+		Motion& motion = registry.motions.get(player);
 		vec2 last_mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + motion.position;
 		float x = last_mouse_position.x - motion.position.x;
 		float y = last_mouse_position.y - motion.position.y;

@@ -118,10 +118,10 @@ public:
 
 	// font initialization
 	bool initFont(GLFWwindow* window, const std::string& font_filename, unsigned int font_default_size);
-	
+
 	GLuint getDummyVAO() const {
-        return dummyVAO;
-    }
+		return dummyVAO;
+	}
 
 	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 private:

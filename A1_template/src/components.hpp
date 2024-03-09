@@ -17,7 +17,7 @@ struct BulletFireRate
 	float last_time = -0.2;
 	// fire rate is (fire_rate) second/shot or (fire_rate)^-1 shots/second
 	// e.g. fire_rate = 0.1 s/shot = 10 shots/s
-	float fire_rate = 0.2; 
+	float fire_rate = 0.2;
 	bool is_firing = false;
 };
 
@@ -56,17 +56,17 @@ struct Deadly
 };
 
 struct BeeEnemy {
-	
+
 };
 
 struct BomberEnemy
 {
-	
+
 };
 
 struct WolfEnemy
 {
-	
+
 };
 
 struct SubmachineGunEnemy
@@ -90,7 +90,7 @@ struct EnemyBullet
 	int damage = 1;
 };
 
-struct RoomHitbox{
+struct RoomHitbox {
 };
 
 // A non interactable tile of the map
@@ -205,7 +205,7 @@ struct TexturedVertex
 struct Mesh
 {
 	static bool loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out_vertices, std::vector<uint16_t>& out_vertex_indices, vec2& out_size);
-	vec2 original_size = {1,1};
+	vec2 original_size = { 1,1 };
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
 	std::vector<vec3> ordered_vertices;
@@ -215,8 +215,8 @@ struct Mesh
 // IDs for each tile type
 enum class TILE_TYPE {
 	EMPTY = 0,
-	FLOOR = EMPTY+1,
-	WALL = FLOOR+1
+	FLOOR = EMPTY + 1,
+	WALL = FLOOR + 1
 };
 
 /**
