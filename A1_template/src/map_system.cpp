@@ -26,6 +26,7 @@ void MapSystem::spawnEnemies() {
 
 	// testing
 	//createBomberEnemy(renderer, vec2(200, 200));
+	//createWolfEnemy(renderer, vec2(200, 200));
 	// test enemy corner in room 2
 	//int room_radius = room_size >> 1;
 	//createBomberEnemy(renderer, convert_grid_to_world(vec2(room_size + 2 * room_radius + 2, room_radius + 5)));

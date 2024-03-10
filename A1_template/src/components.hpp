@@ -42,7 +42,6 @@ struct IdleMoveAction {
 
 struct EntityAnimation {
 	State state = State::IDLE;
-	vec2 idle_direction = { 0, 0 }; // used to figure out direction for idle animation
 	float frame_rate_ms = 200;
 	vec2 spritesheet_scale = { 0, 0 };
 	vec2 render_pos = { 0, 0 };
