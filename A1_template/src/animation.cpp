@@ -11,7 +11,6 @@ void Animation::step(float elapsed_ms)
 		if (kin.direction != vec2(0)) {
 			animation.state = State::MOVE;
 			animation.offset = 0;
-			animation.idle_direction = kin.direction;
 		}
 		else {
 			animation.state = State::IDLE;
@@ -36,7 +35,7 @@ void Animation::step(float elapsed_ms)
 	glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
 	Motion player_motion;
 	for (Entity& player : registry.players.entities) {
-		Motion& motion = registry.motions.get(player); 
+		Motion& motion = registry.motions.get(player);
 		vec2 last_mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + motion.position;
 		float x = last_mouse_position.x - motion.position.x;
 		float y = last_mouse_position.y - motion.position.y;
@@ -85,34 +84,36 @@ void Animation::step(float elapsed_ms)
 	}
 	for (Entity& enemy : registry.bomberEnemies.entities) {
 		EntityAnimation& enemy_ani = registry.animation.get(enemy);
-		Kinematic& enemy_kinematic = registry.kinematics.get(enemy);
-		if (enemy_kinematic.direction.x < 0) {
-			enemy_ani.render_pos.y = 2 * enemy_ani.spritesheet_scale.y;
-		}
-		else if (enemy_kinematic.direction.x > 0) {
-			enemy_ani.render_pos.y = 3 * enemy_ani.spritesheet_scale.y;
-		}
-		else if (enemy_kinematic.direction.y < 0) {
+		vec2 enemy_velocity = normalize(registry.kinematics.get(enemy).velocity);
+		float facing_degree = (-atan2(enemy_velocity.x, enemy_velocity.y) + M_PI) * (180.0 / M_PI);
+		if (facing_degree <= 45 || facing_degree >= 325) {
 			enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y;
 		}
-		else if (enemy_kinematic.direction.y > 0) {
+		else if (facing_degree <= 135) {
+			enemy_ani.render_pos.y = 3 * enemy_ani.spritesheet_scale.y;
+		}
+		else if (facing_degree <= 225) {
 			enemy_ani.render_pos.y = 1 * enemy_ani.spritesheet_scale.y;
+		}
+		else {
+			enemy_ani.render_pos.y = 2 * enemy_ani.spritesheet_scale.y;
 		}
 	}
 	for (Entity& enemy : registry.wolfEnemies.entities) {
 		EntityAnimation& enemy_ani = registry.animation.get(enemy);
-		Kinematic& enemy_kinematic = registry.kinematics.get(enemy);
-		if (enemy_kinematic.direction.x < 0 || enemy_ani.idle_direction.x < 0) {
-			enemy_ani.render_pos.y = (2 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
-		}
-		else if (enemy_kinematic.direction.x > 0 || enemy_ani.idle_direction.x > 0) {
-			enemy_ani.render_pos.y = (3 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
-		}
-		else if (enemy_kinematic.direction.y < 0 || enemy_ani.idle_direction.y < 0) {
+		vec2 enemy_velocity = normalize(registry.kinematics.get(enemy).velocity);
+		float facing_degree = (-atan2(enemy_velocity.x, enemy_velocity.y) + M_PI) * (180.0 / M_PI);
+		if (facing_degree <= 45 || facing_degree >= 325) {
 			enemy_ani.render_pos.y = (4 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
 		}
-		else if (enemy_kinematic.direction.y > 0 || enemy_ani.idle_direction.y > 0) {
+		else if (facing_degree <= 135) {
+			enemy_ani.render_pos.y = (3 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+		}
+		else if (facing_degree <= 225) {
 			enemy_ani.render_pos.y = (1 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+		}
+		else {
+			enemy_ani.render_pos.y = (2 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
 		}
 	}
 

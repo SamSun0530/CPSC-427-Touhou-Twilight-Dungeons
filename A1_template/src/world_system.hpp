@@ -100,32 +100,13 @@ private:
 	// Player state
 	Entity player;
 	std::vector<Entity> ui;
-
-//<<<<<<< HEAD
-//=======
-//	// World Map
-//	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
+	
+	// World Map
 	MapSystem* map;
-//
-//>>>>>>> 7beb032a52b18633948e9710cb4eba8a2f025739
+
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
-
-
-	//struct Character {
-	//	unsigned int TextureID;  // ID handle of the glyph texture
-	//	glm::ivec2   Size;       // Size of glyph
-	//	glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
-	//	unsigned int Advance;    // Offset to advance to next glyph
-	//	char character;
-	//};
-
-	GLuint m_shaderProgram;
-	GLuint m_VAO;
-	GLuint m_VBO;
-	GLuint m_dirt_texture;
-	std::vector<GLuint> m_alien_textures;
 
 	// fonts
 	std::map<char, Character> m_ftCharacters;

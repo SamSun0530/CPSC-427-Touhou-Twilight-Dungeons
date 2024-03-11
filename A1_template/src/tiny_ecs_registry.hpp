@@ -42,7 +42,7 @@ public:
 	ComponentContainer<BomberEnemy> bomberEnemies;
 	ComponentContainer<WolfEnemy> wolfEnemies;
 	ComponentContainer<SubmachineGunEnemy> submachineGunEnemies;
-	
+
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()

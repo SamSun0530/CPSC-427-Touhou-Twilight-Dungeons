@@ -45,7 +45,7 @@ int main()
 		getchar();
 		return EXIT_FAILURE;
 	}
-	
+
 
 	// initialize the main systems
 	renderer.init(window);
@@ -66,7 +66,7 @@ int main()
 		float elapsed_ms =
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
-		
+
 		//printf("=============\n");
 
 		//time_debug.initTime();
