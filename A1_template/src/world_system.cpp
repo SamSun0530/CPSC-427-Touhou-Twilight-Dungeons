@@ -409,6 +409,32 @@ void WorldSystem::handle_collisions() {
 					registry.remove_all_components_of(entity_other);
 				}
 			}
+			else if (registry.deadlys.has(entity_other)) {
+				Motion& motion1 = registry.motions.get(entity);
+				Motion& motion2 = registry.motions.get(entity_other);
+				Kinematic& kinematic = registry.kinematics.get(entity_other);
+				Collidable& collidable1 = registry.collidables.get(entity);
+				Collidable& collidable2 = registry.collidables.get(entity_other);
+				vec2 center1 = motion1.position + collidable1.shift;
+				vec2 center2 = motion2.position + collidable2.shift;
+
+				// Adapted from Minkowski Sum below
+				vec2 center_delta = center2 - center1;
+				vec2 center_delta_non_collide = collidable1.size / 2.f + collidable2.size / 2.f;
+				// if center2 is to the right/below of center1, depth is positive, otherwise negative
+				// depth corresponds to the entity_other's velocity change.
+				// e.g. if entity collides on left of entity_other, depth.x is positive -> entity_other's velocity.x will increase
+				vec2 depth = { center_delta.x > 0 ? center_delta_non_collide.x - center_delta.x : -(center_delta_non_collide.x + center_delta.x),
+								center_delta.y > 0 ? center_delta_non_collide.y - center_delta.y : -(center_delta_non_collide.y + center_delta.y) };
+				// check how deep the collision between the two entities are, if passes threshold, apply delta velocity
+				float threshold = 10.f; // in pixels
+				float depth_size = length(depth);
+				if (depth_size > threshold) {
+					float strength = 0.5f;
+					vec2 velocity_delta = depth * strength;
+					kinematic.velocity += velocity_delta;
+				}
+			}
 		}
 		else if (registry.walls.has(entity)) {
 			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
