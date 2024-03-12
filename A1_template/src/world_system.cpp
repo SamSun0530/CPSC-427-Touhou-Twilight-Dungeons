@@ -421,6 +421,7 @@ void WorldSystem::handle_collisions() {
 				// Adapted from Minkowski Sum below
 				vec2 center_delta = center2 - center1;
 				vec2 center_delta_non_collide = collidable1.size / 2.f + collidable2.size / 2.f;
+				// Penetration depth from collision
 				// if center2 is to the right/below of center1, depth is positive, otherwise negative
 				// depth corresponds to the entity_other's velocity change.
 				// e.g. if entity collides on left of entity_other, depth.x is positive -> entity_other's velocity.x will increase
@@ -431,8 +432,7 @@ void WorldSystem::handle_collisions() {
 				float depth_size = length(depth);
 				if (depth_size > threshold) {
 					float strength = 0.5f;
-					vec2 velocity_delta = depth * strength;
-					kinematic.velocity += velocity_delta;
+					kinematic.velocity += depth * strength;
 				}
 			}
 		}
