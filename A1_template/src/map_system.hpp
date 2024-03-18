@@ -81,6 +81,7 @@ public:
 	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
 	void generateMap(int floor);
 	void generateBasicMap();
+	void generateBossRoom();
 	void spawnEnemies();
 	void debug();
 };

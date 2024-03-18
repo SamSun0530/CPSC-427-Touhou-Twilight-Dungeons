@@ -45,8 +45,8 @@ const int window_height_px = 720;
 const vec2 window_px_half = { window_width_px / 2, window_height_px / 2 };
 
 // World Map Data
-const int world_width = 60;
-const int world_height = 50;
+const int world_width = 24;
+const int world_height = 24;
 const int world_tile_size = 64; // In pixels
 // Shift POSITIVE x,y grid cells to center the map at (0,0)
 const vec2 world_center = { 11,11 };

@@ -321,11 +321,12 @@ void WorldSystem::restart_game() {
 
 	// Generate map
 	// map->generateMap(1);
-	map->generateBasicMap();
+	//map->generateBasicMap();
+	map->generateBossRoom();
 	world_map = map->world_map;
 	map->spawnEnemies();
 
-	createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
+	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
 	// Create a new player
 	player = createPlayer(renderer, { 0, 0 });
@@ -584,9 +585,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("mapsystem map:\n");
 		for (int i = 0; i < map->world_map.size(); i++) {
 			for (int j = 0; j < map->world_map[0].size(); j++) {
-				if (i == 30 && j == 23) {
-					printf("P");
-				}
 				printf("%d ", map->world_map[i][j]);
 			}
 			printf("\n");
@@ -595,9 +593,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("worldsystem map:\n");
 		for (int i = 0; i < world_map.size(); i++) {
 			for (int j = 0; j < world_map[0].size(); j++) {
-				if (i == 30 && j == 23) {
-					printf("P");
-				}
 				printf("%d ", world_map[i][j]);
 			}
 			printf("\n");
