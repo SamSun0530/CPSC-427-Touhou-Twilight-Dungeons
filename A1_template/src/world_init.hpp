@@ -39,6 +39,8 @@ Entity createBomberEnemy(RenderSystem* renderer, vec2 position);
 Entity createWolfEnemy(RenderSystem* renderer, vec2 position);
 // the grenade launcher enemy
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
+// boss enemy
+Entity createBoss(RenderSystem* renderer, vec2 position);
 // Non interactable tile
 std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 // Interactable Tile

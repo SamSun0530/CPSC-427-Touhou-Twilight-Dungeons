@@ -116,7 +116,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			GLint light_up_uloc = glGetUniformLocation(program, "light_up");
 			assert(light_up_uloc >= 0);
 
-			// !!! TODO A1: set the light_up shader variable using glUniform1i,
+			// !!! A1: set the light_up shader variable using glUniform1i,
 			// similar to the glUniform1f call below. The 1f or 1i specified the type, here a single int.
 			gl_has_errors();
 		}

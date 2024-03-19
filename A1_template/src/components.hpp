@@ -10,6 +10,45 @@ struct PlayerBullet {
 	int damage = 1;
 };
 
+struct EnemyBullet
+{
+	int damage = 1;
+};
+
+/*
+Bullet actions:
+SPEED - float - change in velocity magnitude
+ACCEL - float - change in acceleration
+ROTATE - float - change in bullet direction
+DELAY - float - wait until executing next command
+LOOP - float - loop back to specified index
+TODO
+*/
+enum class BULLET_ACTION {
+	SPEED,
+	ACCEL,
+	ROTATE,
+	DELAY,
+	LOOP
+};
+
+struct BulletCommand {
+	BULLET_ACTION action;
+	union {
+		vec2 value_vec;
+		float value;
+	};
+
+	BulletCommand(BULLET_ACTION a, float v) : action(a), value(v) {}
+	BulletCommand(BULLET_ACTION a, vec2 v) : action(a), value_vec(v) {}
+};
+
+// Bullet follows pattern based on list of command
+struct BulletPattern {
+	// Adapted from https://redd.it/1490tat
+	std::vector<BulletCommand> commands;
+};
+
 // Manages when entity is able to fire a bullet again
 struct BulletFireRate
 {
@@ -18,7 +57,20 @@ struct BulletFireRate
 	// fire rate is (fire_rate) second/shot or (fire_rate)^-1 shots/second
 	// e.g. fire_rate = 0.1 s/shot = 10 shots/s
 	float fire_rate = 0.2;
+	// determines if bullet can be fired
 	bool is_firing = false;
+	// number of bullets to fire at a time
+	int number_to_fire = 1;
+	// number of current bullets already fired, set cooldown if number_fired == number_to_fire
+	int number_current_fired = 0;
+	// determines next set of bullets to fire, in ms
+	bool is_cooldown = false;
+	float cooldown_time = 2000;
+	float cooldown_current_time = 2000;
+};
+
+struct Boss {
+	std::vector<BulletPattern> bullet_patterns; // patterns to use during phase
 };
 
 // Player component
@@ -81,12 +133,6 @@ struct HP {
 struct Pickupable
 {
 	int health_change = 1;
-};
-
-
-struct EnemyBullet
-{
-	int damage = 1;
 };
 
 struct RoomHitbox {
@@ -272,7 +318,8 @@ enum class TEXTURE_ASSET_ID {
 	HEALTH_1 = PILLAR_BOTTOM + 1,
 	HEALTH_2 = HEALTH_1 + 1,
 	REGENERATE_HEALTH = HEALTH_2 + 1,
-	TEXTURE_COUNT = REGENERATE_HEALTH + 1
+	ENEMY = REGENERATE_HEALTH + 1, // TODO: boss sprite
+	TEXTURE_COUNT = ENEMY + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

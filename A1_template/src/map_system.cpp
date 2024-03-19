@@ -31,30 +31,36 @@ void MapSystem::spawnEnemies() {
 	//int room_radius = room_size >> 1;
 	//createBomberEnemy(renderer, convert_grid_to_world(vec2(room_size + 2 * room_radius + 2, room_radius + 5)));
 
-	for (Room room : rooms) {
-		std::vector<vec2> spawn_points;
-		spawn_points.push_back(vec2(room.x + 2, room.y + 2));
-		spawn_points.push_back(vec2(room.x + room_size - 2, room.y + 2));
-		spawn_points.push_back(vec2(room.x + 2, room.y + room_size - 2));
-		spawn_points.push_back(vec2(room.x + room_size - 2, room.y + room_size - 2));
-		vec2 world_coord;
-		for (vec2 point : spawn_points) {
-			world_coord = convert_grid_to_world(point);
-			std::random_device ran;
-			std::mt19937 gen(ran());
-			std::uniform_real_distribution<> dis(0.0, 1.0);
-			float random_numer = dis(gen);
-			if (random_numer <= 0.33) {
-				createBeeEnemy(renderer, world_coord);
-			}
-			else if (random_numer <= 0.66) {
-				createWolfEnemy(renderer, world_coord);
-			}
-			else if (random_numer <= 0.99) {
-				createBomberEnemy(renderer, world_coord);
-			}
-		}
+	// testing boss enemy
+	for (Room& room : rooms) {
+		coord world_coord = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 5));
+		createBoss(renderer, world_coord);
 	}
+
+	//for (Room room : rooms) {
+	//	std::vector<vec2> spawn_points;
+	//	spawn_points.push_back(vec2(room.x + 2, room.y + 2));
+	//	spawn_points.push_back(vec2(room.x + room_size - 2, room.y + 2));
+	//	spawn_points.push_back(vec2(room.x + 2, room.y + room_size - 2));
+	//	spawn_points.push_back(vec2(room.x + room_size - 2, room.y + room_size - 2));
+	//	vec2 world_coord;
+	//	for (vec2 point : spawn_points) {
+	//		world_coord = convert_grid_to_world(point);
+	//		std::random_device ran;
+	//		std::mt19937 gen(ran());
+	//		std::uniform_real_distribution<> dis(0.0, 1.0);
+	//		float random_numer = dis(gen);
+	//		if (random_numer <= 0.33) {
+	//			createBeeEnemy(renderer, world_coord);
+	//		}
+	//		else if (random_numer <= 0.66) {
+	//			createWolfEnemy(renderer, world_coord);
+	//		}
+	//		else if (random_numer <= 0.99) {
+	//			createBomberEnemy(renderer, world_coord);
+	//		}
+	//	}
+	//}
 }
 
 Room generateBasicRoom(int x, int y);
@@ -64,7 +70,6 @@ void MapSystem::generateBasicMap() {
 
 	std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
 	rooms.clear();
-	//  std::vector<Room> rooms;
 	int room_radius = room_size >> 1;
 	rooms.push_back(generateBasicRoom(room_radius, room_radius));
 	rooms.push_back(generateBasicRoom(room_size + 2 * room_radius, room_radius));
@@ -99,36 +104,39 @@ void MapSystem::generateBasicMap() {
 
 void MapSystem::generateBossRoom() {
 	std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
-
+	rooms.clear();
 	Room room;
 	room.id = 0;
 	room.x = 1;
 	room.y = 1;
 
 	room.grid = {
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}
+		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
+		{2, 1, 1, 1, 2, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 2, 1, 1, 1, 2},
+		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
+		{2, 1, 1, 1, 2, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 2, 1, 1, 1, 2},
+		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}
 	};
+	room.size = { room.grid[0].size(), room.grid.size() };
+	rooms.push_back(room);
 	addRoomToMap(room, map);
 	generateAllEntityTiles(map);
 	world_map = map;

@@ -9,10 +9,12 @@
 #include "common.hpp"
 #include "physics_system.hpp"
 
+// Grid coordinates: x, y, size
 struct Room {
 	int id;
 	int x;
 	int y;
+	vec2 size; // (x,y) = (width,height) of room
 	std::vector<std::vector<int>> grid;
 };
 

@@ -50,7 +50,6 @@ void BulletSystem::step(float elapsed_ms)
 					float enemy_fire_angle = -atan2(x, y) - glm::radians(90.0f);
 					createBullet(renderer, kinematic.speed_modified, motion.position, enemy_fire_angle, { x, y });
 				}
-
 				else if (registry.wolfEnemies.has(entity)) {
 					Motion& player_motion = registry.motions.get(player);
 					float x = player_motion.position.x - motion.position.x;
@@ -84,10 +83,13 @@ void BulletSystem::step(float elapsed_ms)
 						/*}*/
 					}
 				}
+				else if (registry.bosses.has(entity)) {
+					// TODO: handle bullet spawn based on phase, also account for direction of spawn based on angle. Consider adding spawns to bullet pattern
+				}
 				fireRate.last_time = current_time;
-
 			}
 		}
+		// TODO: perhaps handle boss bullets here
 	}
 }
 

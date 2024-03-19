@@ -196,6 +196,65 @@ Entity createCoin(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
+Entity createBoss(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ ENEMY_BB_WIDTH / 1.5f, ENEMY_BB_HEIGHT / 1.5f });
+
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 100.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 0 };
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = abs(motion.scale);
+
+	// HP
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 10;
+	hp.curr_hp = hp.max_hp;
+
+	// Collision damage
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.damage = 1;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMY,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	BulletFireRate enemy_bullet_rate;
+	enemy_bullet_rate.fire_rate = 3;
+	enemy_bullet_rate.is_firing = true;
+	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
+	registry.colors.insert(entity, { 1,1,1 });
+
+	Boss& boss = registry.bosses.emplace(entity);
+	BulletPattern phase1_bullet_pattern;
+	phase1_bullet_pattern.commands = {
+		{ BULLET_ACTION::SPEED, 10.f },
+		{ BULLET_ACTION::ACCEL, 1.f },
+		{ BULLET_ACTION::DELAY, 100.f },
+		{ BULLET_ACTION::ACCEL, 0.f },
+		{ BULLET_ACTION::DELAY, 5000.f },
+	};
+	boss.bullet_patterns = { phase1_bullet_pattern };
+
+	return entity;
+}
+
 Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
