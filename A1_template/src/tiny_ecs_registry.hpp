@@ -30,7 +30,7 @@ public:
 	ComponentContainer<HP> hps;
 	ComponentContainer<PlayerBullet> playerBullets;
 	ComponentContainer<IdleMoveAction> idleMoveActions;
-	ComponentContainer<BulletFireRate> bulletFireRates;
+	ComponentContainer<BulletSpawner> bulletSpawners;
 	ComponentContainer<DeathTimer> realDeathTimers;
 	ComponentContainer<RoomHitbox> roomHitbox;
 	ComponentContainer<Kinematic> kinematics;
@@ -67,7 +67,7 @@ public:
 		registry_list.push_back(&hps);
 		registry_list.push_back(&playerBullets);
 		registry_list.push_back(&idleMoveActions);
-		registry_list.push_back(&bulletFireRates);
+		registry_list.push_back(&bulletSpawners);
 		registry_list.push_back(&realDeathTimers);
 		registry_list.push_back(&kinematics);
 		registry_list.push_back(&collidables);

@@ -188,33 +188,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::EMPTY_HEART;
 	}
 
-	//// Spawning new enemies
-	//next_enemy_spawn -= elapsed_ms_since_last_update;
-	//if (registry.deadlys.components.size() < MAX_ENEMIES && next_enemy_spawn < 0.f) {
-	//	// Reset timer
-	//	next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
-	//	Motion& motion = registry.motions.get(player);
-	//	// Create enemy with random initial position
-	//	float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
-	//	float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
-	//	std::random_device ran;
-	//	std::mt19937 gen(ran());
-	//	std::uniform_real_distribution<> dis(0.0, 1.0);
-	//	float random_numer = dis(gen);
-	//	if (random_numer <= 0.33) {
-	//		createBeeEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	}
-	//	else if (random_numer <= 0.66) {
-	//		createWolfEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	}
-	//	else if (random_numer <= 0.99) {
-	//		createBomberEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	}
-	//	//createWolfEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	//createBomberEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	//createBeeEnemy(renderer, vec2(spawn_x, spawn_y));
-	//}
-
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
 	ScreenState& screen = registry.screenStates.components[0];
@@ -269,7 +242,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	if (is_alive && registry.hps.get(player).curr_hp <= 0) {
-		registry.bulletFireRates.get(player).is_firing = false;
+		registry.bulletSpawners.get(player).is_firing = false;
 		is_alive = false;
 		pressed = { 0 };
 		registry.kinematics.get(player).direction = { 0,0 };
@@ -487,6 +460,11 @@ void WorldSystem::handle_collisions() {
 
 			}
 		}
+		else if (registry.enemyBullets.has(entity)) {
+			if (registry.walls.has(entity_other)) {
+				registry.remove_all_components_of(entity);
+			}
+		}
 	}
 
 	// Remove all collisions from this simulation step
@@ -612,12 +590,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Fire bullets at mouse cursor (Also mouse1)
 	if (key == GLFW_KEY_SPACE) {
-		BulletFireRate& fireRate = registry.bulletFireRates.get(player);
+		BulletSpawner& bullet_spawner = registry.bulletSpawners.get(player);
 		if (action == GLFW_PRESS) {
-			fireRate.is_firing = true;
+			bullet_spawner.is_firing = true;
 		}
 		else if (action == GLFW_RELEASE) {
-			fireRate.is_firing = false;
+			bullet_spawner.is_firing = false;
 		}
 	}
 
@@ -658,14 +636,14 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 		return;
 	}
 	if (button == GLFW_MOUSE_BUTTON_LEFT) {
-		BulletFireRate& fireRate = registry.bulletFireRates.get(player);
+		BulletSpawner& bullet_spawner = registry.bulletSpawners.get(player);
 		if (action == GLFW_PRESS) {
 			// Start firing
-			fireRate.is_firing = true;
+			bullet_spawner.is_firing = true;
 		}
 		else if (action == GLFW_RELEASE) {
 			// Stop firing
-			fireRate.is_firing = false;
+			bullet_spawner.is_firing = false;
 		}
 	}
 }

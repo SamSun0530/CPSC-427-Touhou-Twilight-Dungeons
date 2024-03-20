@@ -7,6 +7,7 @@
 #include "audio.hpp"
 
 #include <glm/trigonometric.hpp> // for glm::radians
+#include <glm/glm.hpp>
 
 class BulletSystem
 {
@@ -15,6 +16,7 @@ class BulletSystem
 	// Keep track of mouse position for firing bullet
 	float mouse_rotation_angle = 0.0f;
 	vec2 last_mouse_position = { 0, 0 };
+	vec2 player_bullet_spawn_pos;
 
 	// Misc
 	RenderSystem* renderer;
@@ -25,3 +27,7 @@ public:
 
 	void step(float elapsed_ms);
 };
+
+void set_bullet_directions(int number_bullets, float spread_angle, Transform& transform, glm::vec2& initial_dir, path& bullet_directions);
+
+void spawn_bullets(RenderSystem* renderer, std::vector<vec2>& initial_bullet_directions, BulletSpawner& bullet_spawner, vec2 spawn_position, Kinematic& kinematic, bool is_player_bullet = false);

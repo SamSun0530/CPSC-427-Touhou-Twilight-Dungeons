@@ -1,6 +1,6 @@
 #include "world_init.hpp"
 
-Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet)
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet)
 {
 	auto entity = Entity();
 
@@ -16,7 +16,7 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
-	kinematic.speed_base = 200.f;
+	kinematic.speed_base = bullet_speed;
 	kinematic.speed_modified = 1.f * kinematic.speed_base + entity_speed; // bullet speed takes into account of entity's speed
 	kinematic.direction = direction;
 
@@ -133,7 +133,12 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
-	registry.bulletFireRates.emplace(entity);
+	BulletSpawner bs;
+	bs.fire_rate = 3;
+	bs.is_firing = false;
+	bs.bullet_initial_speed = 200;
+
+	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
 
 	return entity;
@@ -235,22 +240,61 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
-	BulletFireRate enemy_bullet_rate;
-	enemy_bullet_rate.fire_rate = 3;
-	enemy_bullet_rate.is_firing = true;
-	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
+	BulletSpawner bs;
+	bs.fire_rate = 1;
+	bs.is_firing = true;
+	bs.spin_rate = 10;
+	bs.invert = true;
+	bs.spin_delta = 1.f;
+	bs.max_spin_rate = 20.f;
+	bs.total_bullet_array = 3;
+	bs.spread_between_array = 120;
+	bs.bullets_per_array = 3;
+	bs.spread_within_array = 30;
+	bs.bullet_initial_speed = 200;
+	bs.number_to_fire = 5;
+
+	//BulletSpawner bs;
+	//bs.fire_rate = 1;
+	//bs.is_firing = true;
+	//bs.spin_rate = 15;
+	//bs.invert = false;
+	//bs.spin_delta = 0.f;
+	//bs.max_spin_rate = 20.f;
+	//bs.total_bullet_array = 3;
+	//bs.spread_between_array = 120;
+	//bs.bullets_per_array = 1;
+	//bs.spread_within_array = 20;
+	//bs.bullet_initial_speed = 100;
+
+	//BulletSpawner bs;
+	//bs.fire_rate = 1;
+	//bs.is_firing = true;
+	//bs.spin_rate = 20;
+	//bs.invert = false;
+	//bs.spin_delta = 0.f;
+	//bs.max_spin_rate = 20.f;
+	//bs.total_bullet_array = 3;
+	//bs.spread_between_array = 120;
+	//bs.bullets_per_array = 3;
+	//bs.spread_within_array = 30;
+	//bs.bullet_initial_speed = 50;
+
+	//enemy_bullet_rate
+	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
 
 	Boss& boss = registry.bosses.emplace(entity);
 	BulletPattern phase1_bullet_pattern;
-	phase1_bullet_pattern.commands = {
-		{ BULLET_ACTION::SPEED, 10.f },
-		{ BULLET_ACTION::ACCEL, 1.f },
-		{ BULLET_ACTION::DELAY, 100.f },
-		{ BULLET_ACTION::ACCEL, 0.f },
-		{ BULLET_ACTION::DELAY, 5000.f },
-	};
-	boss.bullet_patterns = { phase1_bullet_pattern };
+	//phase1_bullet_pattern.commands = {
+	//	{ BULLET_ACTION::SPEED, 10.f },
+	//	{ BULLET_ACTION::ACCEL, 1.f },
+	//	{ BULLET_ACTION::DELAY, 1000.f },
+	//	{ BULLET_ACTION::ACCEL, 0.f },
+	//	{ BULLET_ACTION::SPEED, 0.f },
+	//	{ BULLET_ACTION::DELAY, 5000.f },
+	//};
+	//boss.bullet_patterns = { phase1_bullet_pattern };
 
 	return entity;
 }
@@ -299,10 +343,13 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	registry.idleMoveActions.emplace(entity);
-	BulletFireRate enemy_bullet_rate;
-	enemy_bullet_rate.fire_rate = 3;
-	enemy_bullet_rate.is_firing = true;
-	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
+
+	BulletSpawner bs;
+	bs.fire_rate = 35;
+	bs.is_firing = true;
+	bs.bullet_initial_speed = 150;
+
+	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
 
 	registry.aitimers.emplace(entity);
@@ -409,10 +456,15 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	registry.idleMoveActions.emplace(entity);
-	BulletFireRate enemy_bullet_rate;
-	enemy_bullet_rate.fire_rate = 6;
-	enemy_bullet_rate.is_firing = true;
-	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
+
+	BulletSpawner bs;
+	bs.fire_rate = 60;
+	bs.is_firing = true;
+	bs.bullet_initial_speed = 150;
+	bs.bullets_per_array = 3;
+	bs.spread_within_array = 30;
+
+	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
 
 	AiTimer& aitimer = registry.aitimers.emplace(entity);
@@ -463,10 +515,10 @@ Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position)
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	registry.idleMoveActions.emplace(entity);
-	BulletFireRate enemy_bullet_rate;
+	BulletSpawner enemy_bullet_rate;
 	enemy_bullet_rate.fire_rate = 5;
 	enemy_bullet_rate.is_firing = true;
-	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
+	registry.bulletSpawners.insert(entity, enemy_bullet_rate);
 	registry.colors.insert(entity, { 1,1,1 });
 
 	return entity;

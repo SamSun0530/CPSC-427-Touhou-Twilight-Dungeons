@@ -50,23 +50,46 @@ struct BulletPattern {
 };
 
 // Manages when entity is able to fire a bullet again
-struct BulletFireRate
+// Inspiration/Credit from: https://youtu.be/whrInb6Z7QI
+struct BulletSpawner
 {
-	// IMPORTANT: set this to -fire_rate so entity can fire immediately
-	float last_time = -0.2;
-	// fire rate is (fire_rate) second/shot or (fire_rate)^-1 shots/second
-	// e.g. fire_rate = 0.1 s/shot = 10 shots/s
-	float fire_rate = 0.2;
 	// determines if bullet can be fired
 	bool is_firing = false;
-	// number of bullets to fire at a time
-	int number_to_fire = 1;
-	// number of current bullets already fired, set cooldown if number_fired == number_to_fire
+	// set this to -1 so entity can fire immediately
+	float last_fire_time = -1.f;
+	// 1 is high fire rate, 10+ is slow fire rate
+	// fires every fire_rate * 100ms
+	float fire_rate = 1.f;
+	// number of rounds to fire, -1 for no cooldown
+	int number_to_fire = -1;
+	// number of current rounds already fired, set cooldown if number_fired == number_to_fire
 	int number_current_fired = 0;
-	// determines next set of bullets to fire, in ms
+	// determines next set of bullets to fire, 
+	// set number_to_fire = -1 for no cooldown
+	// updates every cooldown_rate * 100ms
 	bool is_cooldown = false;
-	float cooldown_time = 2000;
-	float cooldown_current_time = 2000;
+	float last_cooldown = 30.f;
+	float cooldown_rate = 30.f;
+	// number of bullet arrays to spawn
+	// total_bullet_array separated by between spread
+	// bullets_per_array separated by within spread
+	int total_bullet_array = 1;
+	int bullets_per_array = 1;
+	float spread_between_array = 1.f; // in degrees
+	float spread_within_array = 1.f; // in degrees
+	// current angle to spawn
+	float start_angle = 0.f;
+	// adjust angle until max rate, delta increases/decreases rate
+	float spin_rate = 0.f;
+	float max_spin_rate = 1.f;
+	float spin_delta = 0.f;
+	// negate delta once hit max rate
+	bool invert = false;
+	// updates spin rate, needed for independence of fire rate
+	// updates every update_rate * 100ms
+	float last_update = -1.f;
+	float update_rate = 1.f;
+	float bullet_initial_speed = 100;
 };
 
 struct Boss {

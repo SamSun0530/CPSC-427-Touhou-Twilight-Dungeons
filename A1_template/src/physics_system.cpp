@@ -177,7 +177,7 @@ void PhysicsSystem::step(float elapsed_ms)
 	for (uint i = 0; i < collidable_container.components.size(); i++)
 	{
 		Entity entity_i = collidable_container.entities[i];
-		if (registry.walls.has(entity_i)) continue;
+		if (registry.walls.has(entity_i) || registry.enemyBullets.has(entity_i)) continue;
 		Collidable& collidable_i = collidable_container.components[i];
 		Motion& motion_i = motion_container.get(entity_i);
 
@@ -185,7 +185,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (uint j = i + 1; j < collidable_container.components.size(); j++)
 		{
 			Entity entity_j = collidable_container.entities[j];
-			if (registry.walls.has(entity_j)) continue;
+			if (registry.walls.has(entity_j) || registry.enemyBullets.has(entity_j)) continue;
 			Collidable& collidable_j = collidable_container.components[j];
 			Motion& motion_j = motion_container.get(entity_j);
 
@@ -211,6 +211,28 @@ void PhysicsSystem::step(float elapsed_ms)
 		}
 	}
 
+	// Check for collision between enemy bullets and wall, enemy bullets and player
+	// Optimizes performance so do not have to check all wall with all enemy bullets
+	for (Entity player_entity : registry.players.entities) {
+		Motion& player_motion = registry.motions.get(player_entity);
+		//Entity& wall_entity = registry.walls.entities[0]; // quick hack
+		Collidable& player_collidable = registry.collidables.get(player_entity);
+
+		for (Entity entity : registry.enemyBullets.entities) {
+			Motion& motion = registry.motions.get(entity);
+			Collidable& collidable = registry.collidables.get(entity);
+			coord grid_coord = convert_world_to_grid(motion.position);
+			if (!is_valid_cell(grid_coord.x, grid_coord.y)) {
+				//registry.collisions.emplace(entity, wall_entity); // causes bullet to go through walls
+				registry.remove_all_components_of(entity);
+			}
+			//else if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable) && 
+			//	collides_mesh_AABB(player_entity, player_motion, motion, collidable)) {
+			//	registry.collisions.emplace_with_duplicates(player_entity, entity);
+			//}
+		}
+	}
+
 	// Wall collisions - handled manually since wall to wall collisions has a huge performance hit
 	ComponentContainer<Wall>& wall_container = registry.walls;
 	for (uint i = 0; i < wall_container.components.size(); i++)
@@ -226,11 +248,8 @@ void PhysicsSystem::step(float elapsed_ms)
 			Motion& motion_j = registry.motions.get(entity_j);
 			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
 			{
-				//if (collides_mesh_AABB(entity_j, motion_j, motion_i, collidable_i)) {
-				//	std::cout << "colliding" << std::endl;
 				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
 				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
-				//}
 			}
 		}
 
@@ -247,17 +266,6 @@ void PhysicsSystem::step(float elapsed_ms)
 
 		// Wall to player bullet collision
 		for (Entity& entity_j : registry.playerBullets.entities) {
-			Collidable& collidable_j = registry.collidables.get(entity_j);
-			Motion& motion_j = registry.motions.get(entity_j);
-			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
-			{
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
-			}
-		}
-
-		// Wall to enemy bullet collision
-		for (Entity& entity_j : registry.enemyBullets.entities) {
 			Collidable& collidable_j = registry.collidables.get(entity_j);
 			Motion& motion_j = registry.motions.get(entity_j);
 			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))

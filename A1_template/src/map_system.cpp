@@ -33,8 +33,15 @@ void MapSystem::spawnEnemies() {
 
 	// testing boss enemy
 	for (Room& room : rooms) {
-		coord world_coord = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 5));
+		coord world_coord = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 5));		
+		//coord world_coord2 = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 4));		
+		//coord world_coord3 = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 3));
+		//coord world_coord4 = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 2));
 		createBoss(renderer, world_coord);
+		//createBeeEnemy(renderer, world_coord);
+		//createBeeEnemy(renderer, world_coord2);
+		//createWolfEnemy(renderer, world_coord3);
+		//createBomberEnemy(renderer, world_coord4);
 	}
 
 	//for (Room room : rooms) {

@@ -191,14 +191,14 @@ void AISystem::init() {
 	// checks if entity can shoot, throws error if entity does not have bulletfirerate component
 	bool (*canShoot)(Entity & entity) = [](Entity& entity) {
 		float current_time = glfwGetTime();
-		BulletFireRate& fireRate = registry.bulletFireRates.get(entity);
-		return current_time - fireRate.last_time >= fireRate.fire_rate;
+		BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
+		return current_time - bullet_spawner.last_fire_time >= bullet_spawner.fire_rate;
 		};
 	// do nothing
 	void (*doNothing)(Entity & entity) = [](Entity& entity) {};
 	// handles random idle movement, if entity do not have idlemoveactions -> do nothing
 	void (*moveRandomDirection)(Entity & entity) = [](Entity& entity) {
-		if (registry.bulletFireRates.has(entity)) registry.bulletFireRates.get(entity).is_firing = false; // stop firing
+		if (registry.bulletSpawners.has(entity)) registry.bulletSpawners.get(entity).is_firing = false; // stop firing
 		if (!registry.idleMoveActions.has(entity)) return;
 		std::random_device ran;
 		std::mt19937 gen(ran());
@@ -224,17 +224,17 @@ void AISystem::init() {
 		};
 	// stops entity from firing, throws error if entity does not have bulletfirerate component
 	void (*stopFiring)(Entity & entity) = [](Entity& entity) {
-		registry.bulletFireRates.get(entity).is_firing = false;
+		registry.bulletSpawners.get(entity).is_firing = false;
 		};
 	// make entity fire at player and stop motion
 	void (*fireAtPlayer)(Entity & entity) = [](Entity& entity) {
-		registry.bulletFireRates.get(entity).is_firing = true;
+		registry.bulletSpawners.get(entity).is_firing = true;
 		registry.kinematics.get(entity).direction = { 0, 0 };
 		registry.followpaths.remove(entity);
 		};
 	// find player with a star and sets followpath component
 	void (*findPlayer)(Entity & entity) = [](Entity& entity) {
-		if (registry.bulletFireRates.has(entity)) registry.bulletFireRates.get(entity).is_firing = false;
+		if (registry.bulletSpawners.has(entity)) registry.bulletSpawners.get(entity).is_firing = false;
 		Entity& player = registry.players.entities[0];
 		Motion& player_motion = registry.motions.get(player);
 		Motion& entity_motion = registry.motions.get(entity);
