@@ -68,14 +68,15 @@ void BulletSystem::step(float elapsed_ms)
 				player_bullet_spawn_pos = motion.position + shift_forward + shift_down;
 				initial_dir = transform.mat * vec3(last_mouse_position - motion.position - shift_down, 1.0f);
 			}
+			// need to check boss first, since boss also have deadly component
+			else if (registry.bosses.has(entity)) {
+				initial_dir = transform.mat * vec3(1, 0, 1);
+			}
 			else if (registry.deadlys.has(entity)) {
 				Motion& player_motion = registry.motions.get(player);
 				vec2 player_dir = player_motion.position - motion.position;
 				//float enemy_fire_angle = -atan2(x, y) - glm::radians(90.0f);
 				initial_dir = transform.mat * vec3(normalize(player_dir), 1);
-			}
-			else {
-				initial_dir = transform.mat * vec3(1, 0, 1);
 			}
 
 			std::vector<vec2> initial_bullet_directions = { normalize(initial_dir) };
@@ -90,9 +91,17 @@ void BulletSystem::step(float elapsed_ms)
 				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner, player_bullet_spawn_pos, kinematic, true);
 				spawn_bullets(renderer, bullet_direcions, bullet_spawner, player_bullet_spawn_pos, kinematic, true);
 			}
+			else if (registry.bosses.has(entity)) {
+				Boss& boss = registry.bosses.get(entity);
+				bool has_patterns = boss.bullet_patterns.size() != 0;
+				BulletPattern* bullet_pattern = nullptr;
+				if (has_patterns) bullet_pattern = &boss.bullet_patterns[boss.bp_index];
+				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner, motion.position, kinematic, false, bullet_pattern);
+				spawn_bullets(renderer, bullet_direcions, bullet_spawner, motion.position, kinematic, false, bullet_pattern);
+			}
 			else {
-				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner, motion.position, kinematic);
-				spawn_bullets(renderer, bullet_direcions, bullet_spawner, motion.position, kinematic);
+				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner, motion.position, kinematic, false);
+				spawn_bullets(renderer, bullet_direcions, bullet_spawner, motion.position, kinematic, false);
 			}
 
 			if (bullet_spawner.number_to_fire != -1) {
@@ -102,12 +111,76 @@ void BulletSystem::step(float elapsed_ms)
 			bullet_spawner.last_fire_time = bullet_spawner.fire_rate * 50.f;
 		}
 	}
+
+	// Progress bullet delay timers
+	ComponentContainer<BulletDelayTimer>& delay_container = registry.bulletDelayTimers;
+	int delay_container_size = delay_container.components.size();
+	for (int i = delay_container_size - 1; i >= 0; --i) {
+		BulletDelayTimer& bullet_delay_timer = delay_container.components[i];
+		bullet_delay_timer.delay_counter_ms -= elapsed_ms;
+		if (bullet_delay_timer.delay_counter_ms < 0) {
+			Entity entity = delay_container.entities[i];
+			delay_container.remove(entity);
+		}
+	}
+
+	// Process bullet pattern
+	// Iterate backwards to remove without interfering with next entity
+	ComponentContainer<BulletPattern>& pattern_container = registry.bulletPatterns;
+	int pattern_container_size = pattern_container.components.size();
+	for (int i = pattern_container_size - 1; i >= 0; --i) {
+		Entity& entity = pattern_container.entities[i];
+		if (registry.bulletDelayTimers.has(entity)) continue;
+		BulletPattern& bullet_pattern = pattern_container.components[i];
+		std::vector<BulletCommand>& commands = bullet_pattern.commands;
+		int commands_size = commands.size();
+		// Execute all commands until delay command or reached end of list
+		while (bullet_pattern.bc_index < commands_size) {
+			switch (commands[bullet_pattern.bc_index].action) {
+			case BULLET_ACTION::SPEED: {
+				Kinematic& kinematic = registry.kinematics.get(entity);
+				kinematic.speed_modified = commands[bullet_pattern.bc_index].value;
+				break;
+			}
+			case BULLET_ACTION::DELAY: {
+				BulletDelayTimer& bdt = registry.bulletDelayTimers.emplace(entity);
+				bdt.delay_counter_ms = commands[bullet_pattern.bc_index].value;
+				break;
+			}
+			case BULLET_ACTION::DEL: {
+				BulletDeathTimer& bdt = registry.bulletDeathTimers.emplace(entity);
+				bdt.death_counter_ms = commands[bullet_pattern.bc_index].value;
+			}
+			default:
+				break;
+			}
+
+			if (commands[bullet_pattern.bc_index++].action == BULLET_ACTION::DELAY) {
+				break;
+			}
+		}
+
+		if (bullet_pattern.bc_index >= commands_size) {
+			pattern_container.remove(entity);
+		}
+	}
+
+	// Remove bullet death timers
+	ComponentContainer<BulletDeathTimer>& bullet_death_container = registry.bulletDeathTimers;
+	int bullet_delay_container_size = bullet_death_container.components.size();
+	for (int i = bullet_delay_container_size - 1; i >= 0; --i) {
+		BulletDeathTimer& bullet_death_timer = bullet_death_container.components[i];
+		bullet_death_timer.death_counter_ms -= elapsed_ms;
+		if (bullet_death_timer.death_counter_ms < 0) {
+			registry.remove_all_components_of(bullet_death_container.entities[i]);
+		}
+	}
 }
 
-void spawn_bullets(RenderSystem* renderer, std::vector<vec2>& initial_bullet_directions, BulletSpawner& bullet_spawner, vec2 spawn_position, Kinematic& kinematic, bool is_player_bullet)
+void spawn_bullets(RenderSystem* renderer, std::vector<vec2>& initial_bullet_directions, BulletSpawner& bullet_spawner, vec2 spawn_position, Kinematic& kinematic, bool is_player_bullet, BulletPattern* bullet_pattern)
 {
 	for (int i = 0; i < initial_bullet_directions.size(); ++i) {
-		createBullet(renderer, kinematic.speed_modified, spawn_position, 0, initial_bullet_directions[i], bullet_spawner.bullet_initial_speed, is_player_bullet);
+		createBullet(renderer, kinematic.speed_modified, spawn_position, 0, initial_bullet_directions[i], bullet_spawner.bullet_initial_speed, is_player_bullet, bullet_pattern);
 	}
 }
 

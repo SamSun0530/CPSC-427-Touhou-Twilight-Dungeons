@@ -1,6 +1,6 @@
 #include "world_init.hpp"
 
-Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet)
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern)
 {
 	auto entity = Entity();
 
@@ -40,6 +40,10 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 			{ TEXTURE_ASSET_ID::ENEMY_BULLET,
 			 EFFECT_ASSET_ID::TEXTURED,
 			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+	if (bullet_pattern) {
+		registry.bulletPatterns.insert(entity, *bullet_pattern);
 	}
 
 	return entity;
@@ -252,7 +256,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 	bs.bullets_per_array = 3;
 	bs.spread_within_array = 30;
 	bs.bullet_initial_speed = 200;
-	bs.number_to_fire = 5;
+	//bs.number_to_fire = 5;
 
 	//BulletSpawner bs;
 	//bs.fire_rate = 1;
@@ -286,15 +290,14 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 
 	Boss& boss = registry.bosses.emplace(entity);
 	BulletPattern phase1_bullet_pattern;
-	//phase1_bullet_pattern.commands = {
-	//	{ BULLET_ACTION::SPEED, 10.f },
-	//	{ BULLET_ACTION::ACCEL, 1.f },
-	//	{ BULLET_ACTION::DELAY, 1000.f },
-	//	{ BULLET_ACTION::ACCEL, 0.f },
-	//	{ BULLET_ACTION::SPEED, 0.f },
-	//	{ BULLET_ACTION::DELAY, 5000.f },
-	//};
-	//boss.bullet_patterns = { phase1_bullet_pattern };
+	phase1_bullet_pattern.commands = {
+		{ BULLET_ACTION::SPEED, 300.f },
+		{ BULLET_ACTION::DELAY, 1000.f },
+		{ BULLET_ACTION::SPEED, 0.f },
+		{ BULLET_ACTION::DELAY, 5000.f },
+		{ BULLET_ACTION::DEL, 0.f },
+	};
+	boss.bullet_patterns = { phase1_bullet_pattern };
 
 	return entity;
 }

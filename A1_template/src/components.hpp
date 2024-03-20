@@ -22,6 +22,7 @@ ACCEL - float - change in acceleration
 ROTATE - float - change in bullet direction
 DELAY - float - wait until executing next command
 LOOP - float - loop back to specified index
+DEL - float - bullet death timer to remove bullet
 TODO
 */
 enum class BULLET_ACTION {
@@ -29,7 +30,8 @@ enum class BULLET_ACTION {
 	ACCEL,
 	ROTATE,
 	DELAY,
-	LOOP
+	LOOP,
+	DEL
 };
 
 struct BulletCommand {
@@ -47,6 +49,7 @@ struct BulletCommand {
 struct BulletPattern {
 	// Adapted from https://redd.it/1490tat
 	std::vector<BulletCommand> commands;
+	int bc_index = 0; // current bullet command index
 };
 
 // Manages when entity is able to fire a bullet again
@@ -94,6 +97,7 @@ struct BulletSpawner
 
 struct Boss {
 	std::vector<BulletPattern> bullet_patterns; // patterns to use during phase
+	int bp_index = 0; // current bullet pattern index
 };
 
 // Player component
@@ -234,6 +238,11 @@ struct DebugComponent
 	// Note, an empty struct has size 1
 };
 
+// Halts bullet pattern by delay ms
+struct BulletDelayTimer {
+	float delay_counter_ms = -1;
+};
+
 // Update entity ai behavior tree after update ms
 struct AiTimer {
 	float update_timer_ms = 500;
@@ -249,6 +258,11 @@ struct HitTimer
 struct DeathTimer
 {
 	float death_counter_ms = 3000;
+};
+
+struct BulletDeathTimer
+{
+	float death_counter_ms = -1;
 };
 
 struct InvulnerableTimer {

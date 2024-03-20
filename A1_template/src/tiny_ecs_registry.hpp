@@ -43,6 +43,9 @@ public:
 	ComponentContainer<WolfEnemy> wolfEnemies;
 	ComponentContainer<SubmachineGunEnemy> submachineGunEnemies;
 	ComponentContainer<Boss> bosses;
+	ComponentContainer<BulletPattern> bulletPatterns;
+	ComponentContainer<BulletDelayTimer> bulletDelayTimers;
+	ComponentContainer<BulletDeathTimer> bulletDeathTimers;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -79,6 +82,9 @@ public:
 		registry_list.push_back(&wolfEnemies);
 		registry_list.push_back(&submachineGunEnemies);
 		registry_list.push_back(&bosses);
+		registry_list.push_back(&bulletPatterns);
+		registry_list.push_back(&bulletDelayTimers);
+		registry_list.push_back(&bulletDeathTimers);
 	}
 
 	void clear_all_components() {
