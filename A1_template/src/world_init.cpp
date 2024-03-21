@@ -35,11 +35,6 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	}
 	else {
 		registry.enemyBullets.emplace(entity);
-		registry.renderRequests.insert(
-			entity,
-			{ TEXTURE_ASSET_ID::ENEMY_BULLET,
-			 EFFECT_ASSET_ID::TEXTURED,
-			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
 
 	if (bullet_pattern) {
