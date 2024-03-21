@@ -180,6 +180,7 @@ struct HitTimer
 struct DeathTimer
 {
 	float death_counter_ms = 3000;
+	float first_animation_frame = false;
 };
 
 struct InvulnerableTimer {
