@@ -59,6 +59,7 @@ public:
 	std::string get_fps_in_string();
 	void toggle_display_instruction() { display_instruction = !display_instruction; }
 	void toggle_show_fps() { show_fps = !show_fps; }
+	float combo_meter;
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
