@@ -296,6 +296,26 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// reduce window brightness if any of the present players is dying
 	screen.darken_screen_factor = 1 - min_death_time_ms / 3000;
 
+	if (in_focus_mode) {
+		for (Entity entity : registry.enemyBullets.entities) {
+			Kinematic& kinematic = registry.kinematics.get(entity);
+			kinematic.speed_modified = 0.5 * kinematic.speed_base;
+		}
+		for (Entity entity : registry.deadlys.entities) {
+			Kinematic& kinematic = registry.kinematics.get(entity);
+			kinematic.speed_modified = 0.5 * kinematic.speed_base;
+		}
+	}
+	else {
+		for (Entity entity : registry.enemyBullets.entities) {
+			Kinematic& kinematic = registry.kinematics.get(entity);
+			kinematic.speed_modified = kinematic.speed_base;
+		}
+		for (Entity entity : registry.deadlys.entities) {
+			Kinematic& kinematic = registry.kinematics.get(entity);
+			kinematic.speed_modified = kinematic.speed_base;
+		}
+	}
 	return true;
 }
 
@@ -615,7 +635,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	// Fire bullets at mouse cursor (Also mouse1)
+	// Fire bullets at mouse cursor (Also mouse 1)
 	if (key == GLFW_KEY_SPACE) {
 		BulletFireRate& fireRate = registry.bulletFireRates.get(player);
 		if (action == GLFW_PRESS) {
@@ -645,7 +665,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Toggle tutorial display
 	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
 		getInstance().toggle_display_instruction();
+	}
 
+	// use ` to Toggle Focus mode
+	if (key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_RELEASE) {
+		// getInstance().toggle_focus_mode();
+		in_focus_mode = !in_focus_mode;
+		std::cout << std::to_string(in_focus_mode) << std::endl;
 	}
 }
 

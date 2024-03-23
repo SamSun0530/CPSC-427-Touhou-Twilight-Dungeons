@@ -59,6 +59,7 @@ public:
 	std::string get_fps_in_string();
 	void toggle_display_instruction() { display_instruction = !display_instruction; }
 	void toggle_show_fps() { show_fps = !show_fps; }
+	void toggle_focus_mode() { in_focus_mode = !in_focus_mode; }
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -92,6 +93,7 @@ private:
 	bool show_fps = false;
 	bool display_instruction = false;
 	float elapsedSinceLastFPSUpdate = 0.0f;
+	bool in_focus_mode = false;
 
 	// fonts seting
 	std::string font_filename = "..//..//..//data//fonts//Kenney_Future_Narrow.ttf";
