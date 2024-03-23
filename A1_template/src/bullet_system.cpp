@@ -88,20 +88,20 @@ void BulletSystem::step(float elapsed_ms)
 			}
 			// Spawn bullets
 			if (entity == player) {
-				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner, player_bullet_spawn_pos, kinematic, true);
-				spawn_bullets(renderer, bullet_direcions, bullet_spawner, player_bullet_spawn_pos, kinematic, true);
+				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true);
+				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true);
 			}
 			else if (registry.bosses.has(entity)) {
 				Boss& boss = registry.bosses.get(entity);
 				bool has_patterns = boss.bullet_patterns.size() != 0;
 				BulletPattern* bullet_pattern = nullptr;
 				if (has_patterns) bullet_pattern = &boss.bullet_patterns[boss.bp_index];
-				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner, motion.position, kinematic, false, bullet_pattern);
-				spawn_bullets(renderer, bullet_direcions, bullet_spawner, motion.position, kinematic, false, bullet_pattern);
+				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false, bullet_pattern);
+				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false, bullet_pattern);
 			}
 			else {
-				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner, motion.position, kinematic, false);
-				spawn_bullets(renderer, bullet_direcions, bullet_spawner, motion.position, kinematic, false);
+				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false);
+				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false);
 			}
 
 			if (bullet_spawner.number_to_fire != -1) {
@@ -136,6 +136,7 @@ void BulletSystem::step(float elapsed_ms)
 		int commands_size = commands.size();
 		// Execute all commands until delay command or reached end of list
 		while (bullet_pattern.bc_index < commands_size) {
+			bool is_delay = false;
 			switch (commands[bullet_pattern.bc_index].action) {
 			case BULLET_ACTION::SPEED: {
 				Kinematic& kinematic = registry.kinematics.get(entity);
@@ -145,34 +146,67 @@ void BulletSystem::step(float elapsed_ms)
 			case BULLET_ACTION::DELAY: {
 				BulletDelayTimer& bdt = registry.bulletDelayTimers.emplace(entity);
 				bdt.delay_counter_ms = commands[bullet_pattern.bc_index].value;
+				is_delay = true;
 				break;
 			}
 			case BULLET_ACTION::DEL: {
 				BulletDeathTimer& bdt = registry.bulletDeathTimers.emplace(entity);
 				bdt.death_counter_ms = commands[bullet_pattern.bc_index].value;
+				break;
 			}
 			case BULLET_ACTION::ROTATE: {
 				Kinematic& kinematic = registry.kinematics.get(entity);
 				Transform transform;
 				transform.rotate(radians(commands[bullet_pattern.bc_index].value));
 				kinematic.direction = transform.mat * vec3(kinematic.direction, 1.f);
+				break;
 			}
 			case BULLET_ACTION::LOOP: {
 				if (registry.bulletLoops.has(entity)) {
-
+					BulletLoop& bl = registry.bulletLoops.get(entity);
+					if (bl.amount_to_loop <= 0) {
+						// finished looping
+						registry.bulletLoops.remove(entity);
+					}
+					else {
+						// continue looping
+						bl.amount_to_loop--;
+						bullet_pattern.bc_index = bl.index_to_loop;
+					}
 				}
 				else {
+					// initialize loop for the first time
+					vec2& info = commands[bullet_pattern.bc_index].value_vec2;
+					// check if amount to loop is > 0, index to loop to is in bounds
+					if (info[0] <= 0 || info[1] < 0 || info[1] >= commands.size()) break;
 					BulletLoop& bl = registry.bulletLoops.emplace(entity);
-					bl.amount_to_loop = commands[bullet_pattern.bc_index].value_vec[0];
-					bl.index_to_loop = commands[bullet_pattern.bc_index].value_vec[1];
-
+					// we will loop so subtract 1, index will not go out of bounds since increased at end
+					bl.amount_to_loop = info[0] - 1;
+					bl.index_to_loop = info[1] - 1;
+					bullet_pattern.bc_index = bl.index_to_loop;
 				}
+				break;
+			}
+			case BULLET_ACTION::SPLIT: {
+				vec3& info = commands[bullet_pattern.bc_index].value_vec3;
+				// check if there are any bullets to split into
+				if (info[0] <= 1) break;
+				Kinematic& bullet_kinematic = registry.kinematics.get(entity);
+				Motion& bullet_motion = registry.motions.get(entity);
+				Transform transform;
+				std::vector<vec2> bullet_directions = {};
+				set_bullet_directions(info[0] + 1, info[1], transform, bullet_kinematic.direction, bullet_directions);
+				spawn_bullets(renderer, bullet_directions, info[2], bullet_motion.position, bullet_kinematic, false);
+				registry.bulletDeathTimers.emplace(entity); // delete original bullet
+				break;
 			}
 			default:
 				break;
 			}
 
-			if (commands[bullet_pattern.bc_index++].action == BULLET_ACTION::DELAY) {
+			bullet_pattern.bc_index++;
+
+			if (is_delay) {
 				break;
 			}
 		}
@@ -194,10 +228,10 @@ void BulletSystem::step(float elapsed_ms)
 	}
 }
 
-void spawn_bullets(RenderSystem* renderer, std::vector<vec2>& initial_bullet_directions, BulletSpawner& bullet_spawner, vec2 spawn_position, Kinematic& kinematic, bool is_player_bullet, BulletPattern* bullet_pattern)
+void spawn_bullets(RenderSystem* renderer, std::vector<vec2>& initial_bullet_directions, float bullet_initial_speed, vec2 spawn_position, Kinematic& kinematic, bool is_player_bullet, BulletPattern* bullet_pattern)
 {
 	for (int i = 0; i < initial_bullet_directions.size(); ++i) {
-		createBullet(renderer, kinematic.speed_modified, spawn_position, 0, initial_bullet_directions[i], bullet_spawner.bullet_initial_speed, is_player_bullet, bullet_pattern);
+		createBullet(renderer, kinematic.speed_modified, spawn_position, 0, initial_bullet_directions[i], bullet_initial_speed, is_player_bullet, bullet_pattern);
 	}
 }
 

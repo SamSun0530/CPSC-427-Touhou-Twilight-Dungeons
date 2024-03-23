@@ -17,14 +17,22 @@ struct EnemyBullet
 
 /*
 Bullet actions:
+Floats:
 SPEED - float - change in velocity magnitude
 ROTATE - float - change in bullet direction
 DELAY - float - wait until executing next command
+DEL - float - bullet death timer to remove bullet
+
+Vec2s:
 LOOP - vec2 - loop back to specified index
 	- vec2[0] = number to loop (specify 1 - loops once)
-	- vec2[1] = index to loop to (index >= 0 && index < commands.size)
-DEL - float - bullet death timer to remove bullet
-TODO
+	- vec2[1] = 0-indexed to loop to (should be index >= 0 && index < commands.size)
+
+Vec3s:
+SPLIT - vec3 - split one bullets into multiple bullets based on angle
+	- vec2[0] = number of bullets to split into (<= 1 - won't do anything)
+	- vec2[1] = angle for the bullet spread
+	- vec2[2] = initial bullet speed
 */
 enum class BULLET_ACTION {
 	SPEED,
@@ -32,17 +40,20 @@ enum class BULLET_ACTION {
 	DELAY,
 	LOOP,
 	DEL,
+	SPLIT
 };
 
 struct BulletCommand {
 	BULLET_ACTION action;
 	union {
-		vec2 value_vec;
+		vec2 value_vec2;
+		vec3 value_vec3;
 		float value;
 	};
 
 	BulletCommand(BULLET_ACTION a, float v) : action(a), value(v) {}
-	BulletCommand(BULLET_ACTION a, vec2 v) : action(a), value_vec(v) {}
+	BulletCommand(BULLET_ACTION a, vec2 v) : action(a), value_vec2(v) {}
+	BulletCommand(BULLET_ACTION a, vec3 v) : action(a), value_vec3(v) {}
 };
 
 // Bullet follows pattern based on list of command
