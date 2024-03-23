@@ -305,6 +305,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			Kinematic& kinematic = registry.kinematics.get(entity);
 			kinematic.speed_modified = 0.5 * kinematic.speed_base;
 		}
+		for (Entity entity : registry.players.entities) {
+			// Player& player = registry.players.get(entity);
+			Collidable& collidable = registry.collidables.get(entity);
+			collidable.size = { 1.0f, 1.0f };
+		}
 	}
 	else {
 		for (Entity entity : registry.enemyBullets.entities) {
@@ -314,6 +319,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		for (Entity entity : registry.deadlys.entities) {
 			Kinematic& kinematic = registry.kinematics.get(entity);
 			kinematic.speed_modified = kinematic.speed_base;
+		}
+		for (Entity entity : registry.players.entities) {
+			// Player& player = registry.players.get(entity);
+			Collidable& collidable = registry.collidables.get(entity);
+			Motion& motion = registry.motions.get(entity);
+			collidable.size = { motion.scale.x / 32 * 24, motion.scale.y / 2.f };
+			collidable.shift = { 0, motion.scale.y / 4.f };
 		}
 	}
 	return true;
