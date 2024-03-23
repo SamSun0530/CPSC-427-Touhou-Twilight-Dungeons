@@ -156,6 +156,10 @@ struct Debug {
 };
 extern Debug debugging;
 
+struct FocusMode {
+	bool in_focus_mode = 0;
+};
+extern FocusMode focus_mode;
 
 // Sets the brightness of the screen
 struct ScreenState

@@ -117,6 +117,10 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	collidable.size = { motion.scale.x / 32 * 24, motion.scale.y / 2.f };
 	collidable.shift = { 0, motion.scale.y / 4.f };
 
+	// Set the collision circle
+	auto& collidable_circle = registry.circleCollidables.emplace(entity);
+	collidable_circle.radius = 3.f;
+
 	HP& hp = registry.hps.emplace(entity);
 	hp.max_hp = 6;
 	hp.curr_hp = hp.max_hp;
@@ -604,7 +608,6 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
-// TEMPORARY EGG (remove/refactor later)
 Entity createEgg(vec2 pos, vec2 size)
 {
 	auto entity = Entity();
@@ -615,13 +618,13 @@ Entity createEgg(vec2 pos, vec2 size)
 	motion.angle = 0.f;
 	motion.scale = size;
 
-	registry.deadlys.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::EGG,
 			GEOMETRY_BUFFER_ID::EGG });
 
+	registry.debugComponents.emplace(entity);
 	return entity;
 }
 

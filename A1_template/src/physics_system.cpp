@@ -10,24 +10,17 @@ struct CollisionInfo {
 	float penetrationDepth = 0.0f;
 };
 
+// Collision test between circle and AABB
+// Credit to "Ghoster": https://gamedev.stackexchange.com/a/178154
 bool collides_circle_AABB(const Motion& circleMotion, const CircleCollidable& circleCollidable, const Motion& AABBMotion, const Collidable& AABB)
 {
-	float circleRadius = circleCollidable.radius;
-	vec2 circleCenter = circleMotion.position;
-
-	const vec2 AABBHalfExtents = abs(AABB.size) / 2.f;
-	const vec2 AABBcenter = AABBMotion.position + AABB.shift;
-
-	float distX = abs(circleCenter.x - AABBcenter.x);
-	float distY = abs(circleCenter.y - AABBcenter.y);
-
-	// Clamp the distance to the half-extents of the AABB to get the closest point on the AABB to the circle
-	float closestX = clamp(distX, 0.0f, AABBHalfExtents.x);
-	float closestY = clamp(distY, 0.0f, AABBHalfExtents.y);
-
-	float distance = sqrt((closestX - circleCenter.x) * (closestX - circleCenter.x) + (closestY - circleCenter.y) * (closestY - circleCenter.y));
-
-	return distance <= circleRadius;
+	vec2 circle_center = circleMotion.position;
+	vec2 AABB_center = AABBMotion.position + AABB.shift;
+	vec2 distance = circle_center - AABB_center;
+	const vec2 AABB_half_extents = abs(AABB.size) / 2.f;
+	vec2 clamp_distance = clamp(distance, -AABB_half_extents, AABB_half_extents);
+	vec2 closest_point = AABB_center + clamp_distance;
+	return length(closest_point - circle_center) < circleCollidable.radius;
 }
 
 // Collision test between AABB and AABB
@@ -164,14 +157,13 @@ bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& m
 
 void PhysicsSystem::step(float elapsed_ms)
 {
-	if (WorldSystem::getInstance().isPlayerInFocusMode()) {
+	if (focus_mode.in_focus_mode) {
 		
 		// Iterate through player entities
 		for (Entity& playerEntity : registry.players.entities) {
 
 			Motion& playerMotion = registry.motions.get(playerEntity);
-			CircleCollidable playerCircleCollidable;
-			playerCircleCollidable.radius = 1.0f;
+			CircleCollidable& playerCircleCollidable = registry.circleCollidables.get(playerEntity);
 
 			for (Entity& enemyBulletEntity : registry.enemyBullets.entities) {
 				Motion& enemyBulletMotion = registry.motions.get(enemyBulletEntity);
@@ -231,7 +223,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		{
 			Entity entity_j = collidable_container.entities[j];
 			if (registry.walls.has(entity_j)) continue;
-			if (WorldSystem::getInstance().isPlayerInFocusMode() && ((registry.players.has(entity_i) && registry.enemyBullets.has(entity_j)) || (registry.players.has(entity_j) && registry.enemyBullets.has(entity_i)))) {
+			if (focus_mode.in_focus_mode && ((registry.players.has(entity_i) && registry.enemyBullets.has(entity_j)) || (registry.players.has(entity_j) && registry.enemyBullets.has(entity_i)))) {
 				// std::cout << "skip" << std::endl;
 				continue;
 			}
