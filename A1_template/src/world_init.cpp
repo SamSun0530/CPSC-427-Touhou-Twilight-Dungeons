@@ -309,6 +309,34 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 	//};
 	//boss.bullet_patterns = { phase1_bullet_pattern };
 
+	// try this combo #2:
+	//BulletSpawner bs;
+	//bs.fire_rate = 1;
+	//bs.is_firing = true;
+	//bs.spin_rate = 2;
+	//bs.invert = false;
+	//bs.spin_delta = 1.f;
+	//bs.max_spin_rate = 20.f;
+	//bs.total_bullet_array = 3;
+	//bs.spread_between_array = 30;
+	//bs.bullets_per_array = 4;
+	//bs.spread_within_array = 90;
+	//bs.bullet_initial_speed = 100;
+	//bs.cooldown_rate = 100;
+	//bs.number_to_fire = 5;
+	//Boss& boss = registry.bosses.emplace(entity);
+	//BulletPattern phase1_bullet_pattern;
+	//phase1_bullet_pattern.commands = {
+	//	{ BULLET_ACTION::DELAY, 500.f },
+	//	{ BULLET_ACTION::DIRECTION, vec2(0,1) },
+	//	{ BULLET_ACTION::DELAY, 1500.f },
+	//	{ BULLET_ACTION::DIRECTION, vec2(0,0) },
+	//	{ BULLET_ACTION::DELAY, 1000.f },
+	//	{ BULLET_ACTION::DIRECTION, vec2(1,1) },
+	//	{ BULLET_ACTION::SPLIT, vec3(10, 36, -100)},
+
+	//};
+	//boss.bullet_patterns = { phase1_bullet_pattern };
 
 	//enemy_bullet_rate
 	registry.bulletSpawners.insert(entity, bs);

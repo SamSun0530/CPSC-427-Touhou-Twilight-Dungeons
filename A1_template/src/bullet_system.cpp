@@ -194,10 +194,15 @@ void BulletSystem::step(float elapsed_ms)
 				Kinematic& bullet_kinematic = registry.kinematics.get(entity);
 				Motion& bullet_motion = registry.motions.get(entity);
 				Transform transform;
-				std::vector<vec2> bullet_directions = {};
+				std::vector<vec2> bullet_directions = { normalize(bullet_kinematic.direction) };
 				set_bullet_directions(info[0] + 1, info[1], transform, bullet_kinematic.direction, bullet_directions);
 				spawn_bullets(renderer, bullet_directions, info[2], bullet_motion.position, bullet_kinematic, false);
 				registry.bulletDeathTimers.emplace(entity); // delete original bullet
+				break;
+			}
+			case BULLET_ACTION::DIRECTION: {
+				Kinematic& bullet_kinematic = registry.kinematics.get(entity);
+				bullet_kinematic.direction = commands[bullet_pattern.bc_index].value_vec2;
 				break;
 			}
 			default:

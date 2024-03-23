@@ -27,6 +27,7 @@ Vec2s:
 LOOP - vec2 - loop back to specified index
 	- vec2[0] = number to loop (specify 1 - loops once)
 	- vec2[1] = 0-indexed to loop to (should be index >= 0 && index < commands.size)
+DIRECTION - vec2 - change direction to x,y
 
 Vec3s:
 SPLIT - vec3 - split one bullets into multiple bullets based on angle
@@ -40,7 +41,8 @@ enum class BULLET_ACTION {
 	DELAY,
 	LOOP,
 	DEL,
-	SPLIT
+	SPLIT,
+	DIRECTION
 };
 
 struct BulletCommand {
