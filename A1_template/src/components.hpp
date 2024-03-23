@@ -73,10 +73,6 @@ struct SubmachineGunEnemy
 
 };
 
-struct CircleCollidable {
-	float radius;
-};
-
 struct HP {
 	int max_hp = 6;
 	int curr_hp = 6;
@@ -129,6 +125,12 @@ struct Collidable {
 	// width and height of box
 	// IMPORTANT: size MUST be positive
 	vec2 size = { 1, 1 };
+};
+
+// Represents collision circle with shift transform and radius
+struct CircleCollidable {
+	vec2 shift = { 0, 0 };
+	float radius;
 };
 
 // Stucture to store collision information

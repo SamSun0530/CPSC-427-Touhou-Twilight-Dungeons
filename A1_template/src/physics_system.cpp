@@ -14,7 +14,7 @@ struct CollisionInfo {
 // Credit to "Ghoster": https://gamedev.stackexchange.com/a/178154
 bool collides_circle_AABB(const Motion& circleMotion, const CircleCollidable& circleCollidable, const Motion& AABBMotion, const Collidable& AABB)
 {
-	vec2 circle_center = circleMotion.position;
+	vec2 circle_center = circleMotion.position + circleCollidable.shift;
 	vec2 AABB_center = AABBMotion.position + AABB.shift;
 	vec2 distance = circle_center - AABB_center;
 	const vec2 AABB_half_extents = abs(AABB.size) / 2.f;

@@ -193,8 +193,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (focus_mode.in_focus_mode) {
 		for (Entity entity : registry.circleCollidables.entities) {
 			Motion& motion = registry.motions.get(entity);
-			float radius = registry.circleCollidables.get(entity).radius;
-			createEgg(motion.position, vec2(radius * 2.f));
+			CircleCollidable& circle_collidable = registry.circleCollidables.get(entity);
+			createEgg(motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
 		}
 	}
 

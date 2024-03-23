@@ -111,15 +111,14 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = abs(motion.scale);
-
 	// Set player collision box at the feet of the player
 	collidable.size = { motion.scale.x / 32 * 24, motion.scale.y / 2.f };
 	collidable.shift = { 0, motion.scale.y / 4.f };
 
 	// Set the collision circle
 	auto& collidable_circle = registry.circleCollidables.emplace(entity);
-	collidable_circle.radius = 3.f;
+	collidable_circle.radius = 5.f;
+	collidable_circle.shift = { 0, motion.scale.y / 6.f };
 
 	HP& hp = registry.hps.emplace(entity);
 	hp.max_hp = 6;
