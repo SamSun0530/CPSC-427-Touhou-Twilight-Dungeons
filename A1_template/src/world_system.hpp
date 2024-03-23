@@ -60,6 +60,9 @@ public:
 	void toggle_display_instruction() { display_instruction = !display_instruction; }
 	void toggle_show_fps() { show_fps = !show_fps; }
 	void toggle_focus_mode() { in_focus_mode = !in_focus_mode; }
+	bool isPlayerInFocusMode() {
+		return in_focus_mode;
+	}
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);

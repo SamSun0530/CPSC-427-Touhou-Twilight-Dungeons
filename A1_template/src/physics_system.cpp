@@ -10,6 +10,26 @@ struct CollisionInfo {
 	float penetrationDepth = 0.0f;
 };
 
+bool collides_circle_AABB(const Motion& circleMotion, const CircleCollidable& circleCollidable, const Motion& AABBMotion, const Collidable& AABB)
+{
+	float circleRadius = circleCollidable.radius;
+	vec2 circleCenter = circleMotion.position;
+
+	const vec2 AABBHalfExtents = abs(AABB.size) / 2.f;
+	const vec2 AABBcenter = AABBMotion.position + AABB.shift;
+
+	float distX = abs(circleCenter.x - AABBcenter.x);
+	float distY = abs(circleCenter.y - AABBcenter.y);
+
+	// Clamp the distance to the half-extents of the AABB to get the closest point on the AABB to the circle
+	float closestX = clamp(distX, 0.0f, AABBHalfExtents.x);
+	float closestY = clamp(distY, 0.0f, AABBHalfExtents.y);
+
+	float distance = sqrt((closestX - circleCenter.x) * (closestX - circleCenter.x) + (closestY - circleCenter.y) * (closestY - circleCenter.y));
+
+	return distance <= circleRadius;
+}
+
 // Collision test between AABB and AABB
 bool collides_AABB_AABB(const Motion& motion1, const Motion& motion2, const Collidable& collidable1, const Collidable& collidable2)
 {
@@ -144,6 +164,28 @@ bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& m
 
 void PhysicsSystem::step(float elapsed_ms)
 {
+	if (WorldSystem::getInstance().isPlayerInFocusMode()) {
+		
+		// Iterate through player entities
+		for (Entity& playerEntity : registry.players.entities) {
+
+			Motion& playerMotion = registry.motions.get(playerEntity);
+			CircleCollidable playerCircleCollidable;
+			playerCircleCollidable.radius = 1.0f;
+
+			for (Entity& enemyBulletEntity : registry.enemyBullets.entities) {
+				Motion& enemyBulletMotion = registry.motions.get(enemyBulletEntity);
+				Collidable& enemyBulletCollidable = registry.collidables.get(enemyBulletEntity);
+
+				if (collides_circle_AABB(playerMotion, playerCircleCollidable, enemyBulletMotion, enemyBulletCollidable)) {
+					registry.collisions.emplace_with_duplicates(playerEntity, enemyBulletEntity);
+					registry.collisions.emplace_with_duplicates(enemyBulletEntity, playerEntity);
+					std::cout << "hit" << std::endl;
+				}
+			}
+		}
+	}
+
 	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
 	auto& kinematic_registry = registry.kinematics;
@@ -177,7 +219,10 @@ void PhysicsSystem::step(float elapsed_ms)
 	for (uint i = 0; i < collidable_container.components.size(); i++)
 	{
 		Entity entity_i = collidable_container.entities[i];
-		if (registry.walls.has(entity_i)) continue;
+		if (registry.walls.has(entity_i) ) continue;
+		//if (WorldSystem::getInstance().isPlayerInFocusMode()) {
+		//	if (registry.players.has(entity_i))continue;
+		//}
 		Collidable& collidable_i = collidable_container.components[i];
 		Motion& motion_i = motion_container.get(entity_i);
 
@@ -186,6 +231,10 @@ void PhysicsSystem::step(float elapsed_ms)
 		{
 			Entity entity_j = collidable_container.entities[j];
 			if (registry.walls.has(entity_j)) continue;
+			if (WorldSystem::getInstance().isPlayerInFocusMode() && ((registry.players.has(entity_i) && registry.enemyBullets.has(entity_j)) || (registry.players.has(entity_j) && registry.enemyBullets.has(entity_i)))) {
+				// std::cout << "skip" << std::endl;
+				continue;
+			}
 			Collidable& collidable_j = collidable_container.components[j];
 			Motion& motion_j = motion_container.get(entity_j);
 

@@ -305,11 +305,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			Kinematic& kinematic = registry.kinematics.get(entity);
 			kinematic.speed_modified = 0.5 * kinematic.speed_base;
 		}
-		for (Entity entity : registry.players.entities) {
-			// Player& player = registry.players.get(entity);
-			Collidable& collidable = registry.collidables.get(entity);
-			collidable.size = { 1.0f, 1.0f };
-		}
+		//for (Entity entity : registry.players.entities) {
+		//	// Player& player = registry.players.get(entity);
+		//	Collidable& collidable = registry.collidables.get(entity);
+		//	collidable.size = { 2.0f, 2.0f };
+		//}
 	}
 	else {
 		for (Entity entity : registry.enemyBullets.entities) {
@@ -320,13 +320,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			Kinematic& kinematic = registry.kinematics.get(entity);
 			kinematic.speed_modified = kinematic.speed_base;
 		}
-		for (Entity entity : registry.players.entities) {
-			// Player& player = registry.players.get(entity);
-			Collidable& collidable = registry.collidables.get(entity);
-			Motion& motion = registry.motions.get(entity);
-			collidable.size = { motion.scale.x / 32 * 24, motion.scale.y / 2.f };
-			collidable.shift = { 0, motion.scale.y / 4.f };
-		}
+		//for (Entity entity : registry.players.entities) {
+		//	// Player& player = registry.players.get(entity);
+		//	Collidable& collidable = registry.collidables.get(entity);
+		//	Motion& motion = registry.motions.get(entity);
+		//	collidable.size = { motion.scale.x / 32 * 24, motion.scale.y / 2.f };
+		//	collidable.shift = { 0, motion.scale.y / 4.f };
+		//}
 	}
 	return true;
 }
@@ -681,7 +681,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// use ` to Toggle Focus mode
 	if (key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_RELEASE) {
-		// getInstance().toggle_focus_mode();
+		getInstance().toggle_focus_mode();
 		in_focus_mode = !in_focus_mode;
 		std::cout << std::to_string(in_focus_mode) << std::endl;
 	}

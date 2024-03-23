@@ -73,6 +73,10 @@ struct SubmachineGunEnemy
 
 };
 
+struct CircleCollidable {
+	float radius;
+};
+
 struct HP {
 	int max_hp = 6;
 	int curr_hp = 6;
