@@ -18,20 +18,20 @@ struct EnemyBullet
 /*
 Bullet actions:
 SPEED - float - change in velocity magnitude
-ACCEL - float - change in acceleration
 ROTATE - float - change in bullet direction
 DELAY - float - wait until executing next command
-LOOP - float - loop back to specified index
+LOOP - vec2 - loop back to specified index
+	- vec2[0] = number to loop (specify 1 - loops once)
+	- vec2[1] = index to loop to (index >= 0 && index < commands.size)
 DEL - float - bullet death timer to remove bullet
 TODO
 */
 enum class BULLET_ACTION {
 	SPEED,
-	ACCEL,
 	ROTATE,
 	DELAY,
 	LOOP,
-	DEL
+	DEL,
 };
 
 struct BulletCommand {
@@ -238,7 +238,14 @@ struct DebugComponent
 	// Note, an empty struct has size 1
 };
 
-// Halts bullet pattern by delay ms
+// Used for bullet control - loop to specified index
+// This could potentially stall if amount to loop is large with no delays
+struct BulletLoop {
+	float index_to_loop = -1;
+	float amount_to_loop = -1;
+};
+
+// Used for bullet control - Halts bullet pattern by delay ms
 struct BulletDelayTimer {
 	float delay_counter_ms = -1;
 };

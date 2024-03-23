@@ -166,8 +166,6 @@ void PhysicsSystem::step(float elapsed_ms)
 		float K = 10.f;
 		kinematic.velocity = vec2_lerp(kinematic.velocity, direction_normalized * kinematic.speed_modified, step_seconds * K);
 		motion.position += kinematic.velocity * step_seconds;
-
-		//motion.position += direction_normalized * kinematic.speed_modified * step_seconds;
 	}
 
 	// Check for collisions between all collidable entities

@@ -151,6 +151,23 @@ void BulletSystem::step(float elapsed_ms)
 				BulletDeathTimer& bdt = registry.bulletDeathTimers.emplace(entity);
 				bdt.death_counter_ms = commands[bullet_pattern.bc_index].value;
 			}
+			case BULLET_ACTION::ROTATE: {
+				Kinematic& kinematic = registry.kinematics.get(entity);
+				Transform transform;
+				transform.rotate(radians(commands[bullet_pattern.bc_index].value));
+				kinematic.direction = transform.mat * vec3(kinematic.direction, 1.f);
+			}
+			case BULLET_ACTION::LOOP: {
+				if (registry.bulletLoops.has(entity)) {
+
+				}
+				else {
+					BulletLoop& bl = registry.bulletLoops.emplace(entity);
+					bl.amount_to_loop = commands[bullet_pattern.bc_index].value_vec[0];
+					bl.index_to_loop = commands[bullet_pattern.bc_index].value_vec[1];
+
+				}
+			}
 			default:
 				break;
 			}

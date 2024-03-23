@@ -380,6 +380,11 @@ void WorldSystem::handle_collisions() {
 
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
 					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+
+					//Kinematic& bullet_kin = registry.kinematics.get(entity_other);
+					//Kinematic& kin = registry.kinematics.get(entity);
+					//kin.velocity += bullet_kin.velocity * 10.f;
+
 					registry.remove_all_components_of(entity_other);
 				}
 			}
