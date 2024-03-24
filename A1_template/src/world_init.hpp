@@ -19,13 +19,16 @@ const float HP_BB_WIDTH = 0.2f * 283.f;
 const float HP_BB_HEIGHT = 0.2f * 244.f;
 const float HEALTH_WIDTH = 0.3f * 128.f;
 const float HEALTH_HEIGHT = 0.3f * 80.f;
+const float BOSS_HEALTH_BAR_WIDTH = 0.6f * 931.f;
+const float BOSS_HEALTH_BAR_HEIGHT = 0.6f * 116.f /*232.f*/;
 
 // the bullet, takes into account entity's speed and position
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern* bullet_pattern = nullptr);
 
+// HP related
 Entity createPlayerHeartUI(RenderSystem*);
-
 Entity createHealth(RenderSystem* renderer, vec2 position);
+Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss);
 
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);

@@ -143,7 +143,7 @@ struct Boss {
 	// phases determined by health thresholds
 	// e.g. 4 phases -> [75, 50, 25, -1] (from hp 0-25,26-50,51-75,76-?)
 	// if health lower than hp threshold, move on to next phase
-	std::vector<int> health_phase_thresholds; 
+	std::vector<int> health_phase_thresholds;
 	// current boss phase index into health_phase_thresholds
 	int phase_index = 0;
 	// current BulletPhase id
@@ -209,6 +209,16 @@ struct HP {
 };
 
 struct PlayerHeart {
+};
+
+struct BossHealthBarUI {
+	bool is_visible = false;
+};
+
+// keep track of which boss this ui belongs to
+struct BossHealthBarLink {
+	Entity other; 
+	BossHealthBarLink(Entity& other) { this->other = other; };
 };
 
 struct Pickupable
@@ -417,7 +427,8 @@ enum class TEXTURE_ASSET_ID {
 	HEALTH_2 = HEALTH_1 + 1,
 	REGENERATE_HEALTH = HEALTH_2 + 1,
 	BOSS = REGENERATE_HEALTH + 1,
-	TEXTURE_COUNT = BOSS + 1
+	BOSS_HEALTH_BAR = BOSS + 1,
+	TEXTURE_COUNT = BOSS_HEALTH_BAR + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -429,7 +440,8 @@ enum class EFFECT_ASSET_ID {
 	WIND = TEXTURED + 1,
 	UI = WIND + 1,
 	FONT = UI + 1,
-	EFFECT_COUNT = FONT + 1
+	BOSSHEALTHBAR = FONT + 1,
+	EFFECT_COUNT = BOSSHEALTHBAR + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

@@ -184,6 +184,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		HP& player_hp = registry.hps.get(player);
 		render_request.used_texture = i < player_hp.curr_hp ? TEXTURE_ASSET_ID::FULL_HEART : TEXTURE_ASSET_ID::EMPTY_HEART;
 	}
+	for (Entity entity : registry.bossHealthBarUIs.entities) {
+		Motion& motion = registry.motions.get(entity);
+		vec2 padding = { 0, -60 };
+		motion.position = player_position + vec2(0, window_px_half.y) + padding;
+	}
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -259,6 +264,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				double number = distrib(gen);
 				if (number <= 0.5)
 					createHealth(renderer, registry.motions.get(entity).position);
+				// remove boss health bar ui
+				if (registry.bossHealthBarLink.has(entity)) {
+					registry.remove_all_components_of(registry.bossHealthBarLink.get(entity).other);
+				}
 			}
 			registry.remove_all_components_of(entity);
 		}
@@ -330,15 +339,13 @@ void WorldSystem::handle_collisions() {
 						registry.hitTimers.emplace(entity);
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
-						// should decrease HP but not yet implemented
-						if (registry.deadlys.has(entity_other)) {
-							HP& player_hp = registry.hps.get(player);
-							player_hp.curr_hp -= registry.deadlys.get(entity_other).damage;
-							if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
+						// decrease HP
+						HP& player_hp = registry.hps.get(player);
+						player_hp.curr_hp -= registry.deadlys.get(entity_other).damage;
+						if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
 
-							if (registry.bomberEnemies.has(entity_other)) {
-								registry.hps.get(entity_other).curr_hp = 0;
-							}
+						if (registry.bomberEnemies.has(entity_other)) {
+							registry.hps.get(entity_other).curr_hp = 0;
 						}
 
 						registry.players.get(player).invulnerability = true;

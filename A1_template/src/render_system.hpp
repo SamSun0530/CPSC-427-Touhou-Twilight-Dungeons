@@ -66,7 +66,8 @@ class RenderSystem {
 			textures_path("Health+1.png"),
 			textures_path("Health+2.png"),
 			textures_path("RegenerateHealth.png"),
-			textures_path("Cirno-Figure.png")
+			textures_path("Cirno-Figure.png"),
+			textures_path("BossHealthBar.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -78,7 +79,8 @@ class RenderSystem {
 		shader_path("textured"),
 		shader_path("wind"),
 		shader_path("ui"),
-		shader_path("font")
+		shader_path("font"),
+		shader_path("bosshealthbar")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

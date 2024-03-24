@@ -48,7 +48,9 @@ public:
 	ComponentContainer<BulletDeathTimer> bulletDeathTimers;
 	ComponentContainer<BulletLoop> bulletLoops;
 	ComponentContainer<PlayerHeart> playerHearts;
-
+	ComponentContainer<BossHealthBarUI> bossHealthBarUIs;
+	ComponentContainer<BossHealthBarLink> bossHealthBarLink;
+	
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()
@@ -89,6 +91,8 @@ public:
 		registry_list.push_back(&bulletDeathTimers);
 		registry_list.push_back(&bulletLoops);
 		registry_list.push_back(&playerHearts);
+		registry_list.push_back(&bossHealthBarUIs);
+		registry_list.push_back(&bossHealthBarLink);
 	}
 
 	void clear_all_components() {

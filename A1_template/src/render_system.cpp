@@ -54,7 +54,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 
 	// Input data location as in the vertex buffer
-	if ((*render_request).used_effect == EFFECT_ASSET_ID::TEXTURED || (*render_request).used_effect == EFFECT_ASSET_ID::UI)
+	if ((*render_request).used_effect == EFFECT_ASSET_ID::TEXTURED || 
+		(*render_request).used_effect == EFFECT_ASSET_ID::UI ||
+		(*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -90,9 +92,18 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			assert(false && "Entity not contained in ECS registry");
 		}
 
-
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
+
+		if ((*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR && registry.bossHealthBarUIs.has(entity)) {
+			BossHealthBarLink& link = registry.bossHealthBarLink.get(entity);
+			GLint health_uloc = glGetUniformLocation(program, "health_percentage");
+			const HP* boss_hp = registry.hps.has(link.other) ? &registry.hps.get(link.other) : nullptr;
+			float health_percentage = boss_hp ? (float) boss_hp->curr_hp / boss_hp->max_hp : 0.f;
+			//printf("percent: %f\n", health_percent);
+			glUniform1f(health_uloc, health_percentage);
+			gl_has_errors();
+		}
 	}
 	else if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER || (*render_request).used_effect == EFFECT_ASSET_ID::EGG)
 	{
@@ -260,12 +271,17 @@ void RenderSystem::draw()
 
 	// Draw all textured meshes that have a position and size component
 	std::vector<Entity> ui_entities;
+	std::vector<Entity> boss_ui_entities;
 	for (Entity entity : registry.renderRequests.entities)
 	{
 		TEXTURE_ASSET_ID texture_id = registry.renderRequests.get(entity).used_texture;
 		if (texture_id == TEXTURE_ASSET_ID::EMPTY_HEART || texture_id == TEXTURE_ASSET_ID::FULL_HEART)
 		{
 			ui_entities.push_back(entity);
+			continue;
+		}
+		else if (texture_id == TEXTURE_ASSET_ID::BOSS_HEALTH_BAR) {
+			boss_ui_entities.push_back(entity);
 			continue;
 		}
 		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
@@ -298,11 +314,14 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
 
+	for (Entity entity : boss_ui_entities) {
+		BossHealthBarUI& bhp = registry.bossHealthBarUIs.get(entity);
+		if (!bhp.is_visible) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+	}
 
 	// Render user guide on screen
-	if (WorldSystem::getInstance().get_tutorial_counter() > 0) {
-		//renderText("Press T to show user guide", window_width_px / 2 - 200, window_height_px - 100, 1.0f, glm::vec3(1.0, 1.0, 1.0), trans);
-	}
 	if (WorldSystem::getInstance().get_display_instruction() == true) {
 
 		renderText("User Guide:", window_width_px / 30 - 25, window_height_px / 2 + 200, 0.8f, glm::vec3(0, 0, 0), trans);

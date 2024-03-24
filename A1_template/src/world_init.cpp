@@ -166,6 +166,30 @@ Entity createPlayerHeartUI(RenderSystem* renderer)
 	return entity;
 }
 
+Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.scale = vec2({ BOSS_HEALTH_BAR_WIDTH, BOSS_HEALTH_BAR_HEIGHT });
+
+	BossHealthBarUI& hb = registry.bossHealthBarUIs.emplace(entity);
+	hb.is_visible = false;
+	registry.bossHealthBarLink.emplace(entity, boss);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BOSS_HEALTH_BAR,
+			EFFECT_ASSET_ID::BOSSHEALTHBAR,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createCoin(RenderSystem* renderer, vec2 position)
 {
 	// Reserve en entity
@@ -243,9 +267,14 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	Boss& boss = registry.bosses.emplace(entity);
+	// Boss bullet patterns
 	boss.health_phase_thresholds = { 100, 75, 50, 25, -1 }; // -1 for end of phase
 	boss.duration = 10000; // duration for each pattern
 	registry.colors.insert(entity, { 1,1,1 });
+
+	// Boss health bar ui
+	Entity ui_entity = createBossHealthBarUI(renderer, entity);
+	registry.bossHealthBarLink.emplace(entity, ui_entity);
 
 	return entity;
 }
