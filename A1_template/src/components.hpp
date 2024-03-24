@@ -208,6 +208,9 @@ struct HP {
 	int curr_hp = 6;
 };
 
+struct PlayerHeart {
+};
+
 struct Pickupable
 {
 	int health_change = 1;

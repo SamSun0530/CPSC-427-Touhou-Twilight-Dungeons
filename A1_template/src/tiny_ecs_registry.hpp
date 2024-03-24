@@ -47,6 +47,7 @@ public:
 	ComponentContainer<BulletDelayTimer> bulletDelayTimers;
 	ComponentContainer<BulletDeathTimer> bulletDeathTimers;
 	ComponentContainer<BulletLoop> bulletLoops;
+	ComponentContainer<PlayerHeart> playerHearts;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -87,6 +88,7 @@ public:
 		registry_list.push_back(&bulletDelayTimers);
 		registry_list.push_back(&bulletDeathTimers);
 		registry_list.push_back(&bulletLoops);
+		registry_list.push_back(&playerHearts);
 	}
 
 	void clear_all_components() {

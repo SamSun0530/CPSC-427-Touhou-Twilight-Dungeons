@@ -143,30 +143,27 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-std::vector<Entity> createUI(RenderSystem* renderer, int max_hp)
+Entity createPlayerHeartUI(RenderSystem* renderer)
 {
-	std::vector<Entity> hp_entities;
-	for (int i = 0; i < max_hp; i++) {
-		auto entity = Entity();
+	auto entity = Entity();
 
-		// Store a reference to the potentially re-used mesh object
-		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-		registry.meshPtrs.emplace(entity, &mesh);
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
 
-		// Setting initial motion values
-		Motion& motion = registry.motions.emplace(entity);
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.scale = vec2({ HP_BB_WIDTH, HP_BB_HEIGHT });
 
-		motion.scale = vec2({ -HP_BB_WIDTH, HP_BB_HEIGHT });
-		registry.renderRequests.insert(
-			entity,
-			{ TEXTURE_ASSET_ID::FULL_HEART, // TEXTURE_COUNT indicates that no txture is needed
-				EFFECT_ASSET_ID::UI,
-				GEOMETRY_BUFFER_ID::SPRITE });
-		registry.colors.insert(entity, { 1,1,1 });
-		hp_entities.push_back(entity);
-	}
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::FULL_HEART,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.playerHearts.emplace(entity);
+	registry.colors.insert(entity, { 1,1,1 });
 
-	return hp_entities;
+	return entity;
 }
 
 Entity createCoin(RenderSystem* renderer, vec2 position)
