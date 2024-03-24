@@ -21,7 +21,6 @@ void BossSystem::step(float elapsed_ms) {
 			if (boss.current_duration >= boss.duration) {
 				std::random_device ran;
 				std::mt19937 gen(ran());
-				std::uniform_real_distribution<> real_distrib(0.9, 2.0);
 				set_random_phase(boss, gen, entity);
 				boss.current_duration = 0;
 			}
@@ -37,6 +36,7 @@ void BossSystem::set_random_phase(Boss& boss, std::mt19937& gen, const Entity& e
 		// if no bullet pattern -> uses bullet spawner only
 		// if no bullet spawner -> uses previous spawner
 		std::vector<BulletPhase>& phases = bullet_phases[boss.phase_index];
+		if (phases.size() == 0) return; // no need to set phase if there are no phases
 		std::uniform_int_distribution<> int_distrib(0, phases.size() - 1);
 		int random_index = int_distrib(gen);
 		BulletPhase& phase = phases[random_index];

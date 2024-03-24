@@ -213,7 +213,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 	motion.angle = 0.f;
 	motion.position = position;
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ ENEMY_BB_WIDTH / 1.5f, ENEMY_BB_HEIGHT / 1.5f });
+	motion.scale = vec2({ ENEMY_BB_WIDTH / 1.2f, ENEMY_BB_HEIGHT / 1.2f });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 100.f;
@@ -222,7 +222,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = abs(motion.scale);
+	collidable.size = abs(vec2(motion.scale.x / 1.4f, motion.scale.y / 1.2f));
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
@@ -233,9 +233,15 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 	Deadly& deadly = registry.deadlys.emplace(entity);
 	deadly.damage = 1;
 
+	// Animation
+	EntityAnimation enemy_ani;
+	enemy_ani.spritesheet_scale = { 1.f / 4.f, 1.f / 4.f };
+	enemy_ani.render_pos = { 1.f / 4.f, 1.f / 4.f };
+	registry.animation.insert(entity, enemy_ani);
+
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::ENEMY,
+		{ TEXTURE_ASSET_ID::BOSS,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
