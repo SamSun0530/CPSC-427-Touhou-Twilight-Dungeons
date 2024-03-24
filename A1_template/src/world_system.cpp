@@ -121,10 +121,11 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map) {
+void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
 	this->map = map;
+	this->ai = ai;
 	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
 	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
@@ -333,6 +334,8 @@ void WorldSystem::restart_game() {
 	ui = createUI(renderer, registry.hps.get(player).max_hp);
 
 	renderer->camera.setPosition({ 0, 0 });
+
+	ai->restart_flow_field_map();
 }
 
 // Compute collisions between entities

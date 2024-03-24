@@ -15,6 +15,7 @@
 #include "render_system.hpp"
 #include "audio.hpp"
 #include "map_system.hpp"
+#include "ai_system.hpp"
 #include <map>
 
 // Container for all our entities and game logic. Individual rendering / update is
@@ -35,7 +36,7 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer, Audio* audio, MapSystem* map);
+	void init(RenderSystem* renderer, Audio* audio, MapSystem* map, AISystem* ai);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -103,6 +104,9 @@ private:
 	
 	// World Map
 	MapSystem* map;
+
+	// Ai system - for restarting flow field
+	AISystem* ai;
 
 	// C++ random number generator
 	std::default_random_engine rng;

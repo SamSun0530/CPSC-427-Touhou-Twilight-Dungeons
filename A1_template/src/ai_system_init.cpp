@@ -1,4 +1,5 @@
 #include "ai_system.hpp"
+#include "world_system.hpp"
 
 // checks if (x,y) on the map grid is valid, this is not world coordinates
 bool is_valid_cell(int x, int y) {
@@ -146,7 +147,7 @@ path astar(coord start, coord goal) {
 		if (current.second == goal) return reconstruct_path(came_from, current.second, start);
 		open_list.pop();
 		close_list.insert(current.second);
-		for (std::pair<float, coord> actioncost : astar_actioncosts()) {
+		for (std::pair<float, coord>& actioncost : astar_actioncosts()) {
 			vec2 candidate = current.second + actioncost.second;
 			if (close_list.count(candidate) || (!is_valid_cell(candidate.x, candidate.y))) continue;
 			// f_value = total_cost + heuristic, therefore total_cost = f_value - heuristic
@@ -174,6 +175,9 @@ void set_follow_path(Entity& entity, coord from, coord to) {
 }
 
 void AISystem::init() {
+	// Initialize flow field
+	restart_flow_field_map();
+
 	// A list of function pointers for conditionals and actions
 	// checks if entity is within range of player
 	bool (*isInRange)(Entity & entity) = [](Entity& entity) {
@@ -308,4 +312,43 @@ void AISystem::init() {
 	this->bomber_tree.setRoot(is_in_range_bomber);
 
 	// TODO: create decision trees/condition/action functions here for different enemies
+}
+
+void AISystem::restart_flow_field_map()
+{
+	flow_field_map = std::vector<std::vector<int>>(world_height, std::vector<int>(world_width, -1));
+	//update_flow_field_map();
+	//for (int i = 0; i < flow_field_map.size(); i++) {
+	//	for (int j = 0; j < flow_field_map.size(); j++) {
+	//		printf("%d ", flow_field_map[i][j]);
+	//	}
+	//	printf("\n");
+	//}
+}
+
+void AISystem::update_flow_field_map()
+{
+	Entity& player = registry.players.entities[0];
+	coord start = convert_world_to_grid(registry.motions.get(player).position);
+	if (!is_valid_cell(start.x, start.y)) return;
+
+	std::queue<std::pair<coord, int>> open_list;
+	std::unordered_set<coord> close_list;
+
+	open_list.push(std::make_pair(start, 0));
+
+	while (!open_list.empty()) {
+		auto current = open_list.front();
+		open_list.pop();
+		close_list.insert(current.first);
+		flow_field_map[current.first.y][current.first.x] = current.second;
+		if (current.second + 1 <= flow_field.max_length) {
+			for (const coord& action : ACTIONS) {
+				coord candidate = current.first + action;
+				if (close_list.count(candidate) || (!is_valid_cell(candidate.x, candidate.y))) continue;
+				close_list.insert(candidate);
+				open_list.push(std::make_pair(candidate, current.second + 1));
+			}
+		}
+	}
 }
