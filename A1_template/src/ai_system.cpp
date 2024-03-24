@@ -10,7 +10,7 @@ void AISystem::step(float elapsed_ms)
 		Entity player = registry.players.entities[0];
 		Motion& motion = registry.motions.get(player);
 		coord grid_pos = convert_world_to_grid(motion.position);
-		if (is_valid_cell(grid_pos.x, grid_pos.y) && flow_field.last_position != grid_pos) {
+		if (flow_field.last_position != grid_pos && is_valid_cell(grid_pos.x, grid_pos.y)) {
 			update_flow_field_map();
 			flow_field.last_position = grid_pos;
 		}
@@ -133,6 +133,14 @@ void AISystem::step(float elapsed_ms)
 			continue;
 		}
 
+		// Initialize flow field for the first time
+		if (ff.next_grid_pos.x == -1 && ff.next_grid_pos.y == -1) {
+			int retFlag;
+			coord best_grid_pos = get_best_grid_pos(grid_pos, current_dist, retFlag);
+			if (retFlag == 3) continue;
+			ff.next_grid_pos = best_grid_pos;
+		}
+
 		vec2 world_next_pos = convert_grid_to_world(ff.next_grid_pos);
 		vec2 dp = world_next_pos - motion.position;
 		vec2 direction_normalized = normalize(dp);
@@ -143,24 +151,37 @@ void AISystem::step(float elapsed_ms)
 		// Do not account for lerped velocity as don't want entity to slow down-speed up-slow...
 		// Check if entity's velocity is able to reach next position and direct entity to next grid cell
 		if (velocity_magnitude > distance_squared) {
-			coord best_grid_pos = { -1, -1 };
-			for (const coord& action : ACTIONS) {
-				vec2 temp = grid_pos + action;
-				int& candidate_dist = flow_field_map[temp.y][temp.x];
-				if (candidate_dist != 1 && candidate_dist < current_dist) {
-					best_grid_pos = temp;
-					break;
-				}
-			}
-			if (best_grid_pos.x == -1 || best_grid_pos.y == -1) continue;
-
+			int retFlag;
+			coord best_grid_pos = get_best_grid_pos(grid_pos, current_dist, retFlag);
+			if (retFlag == 3) continue;
 			ff.next_grid_pos = best_grid_pos;
+
 			world_next_pos = convert_grid_to_world(best_grid_pos);
 			direction_normalized = normalize(world_next_pos - motion.position);
 		}
 
 		kinematic.direction = direction_normalized;
 	}
+}
+
+// helper function to get next best grid position on flow field
+// input grid position, current grid dist/value on flow field, and return flag (if 3, then error)
+coord AISystem::get_best_grid_pos(coord& grid_pos, int current_dist, int& retFlag)
+{
+	retFlag = 1;
+	coord best_grid_pos = { -1, -1 };
+	for (const coord& action : ACTIONS) {
+		vec2 temp = grid_pos + action;
+		int candidate_dist = flow_field_map[temp.y][temp.x];
+		if (candidate_dist != -1 && candidate_dist < current_dist) {
+			best_grid_pos = temp;
+			break;
+		}
+	}
+	if (best_grid_pos.x == -1 || best_grid_pos.y == -1) { 
+		retFlag = 3; 
+	};
+	return best_grid_pos;
 }
 
 AISystem::AISystem() {
