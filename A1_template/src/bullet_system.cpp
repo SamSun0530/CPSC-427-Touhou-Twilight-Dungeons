@@ -93,9 +93,9 @@ void BulletSystem::step(float elapsed_ms)
 			}
 			else if (registry.bosses.has(entity)) {
 				Boss& boss = registry.bosses.get(entity);
-				bool has_patterns = boss.bullet_patterns.size() != 0;
+				bool has_patterns = boss.bullet_pattern.commands.size() != 0;
 				BulletPattern* bullet_pattern = nullptr;
-				if (has_patterns) bullet_pattern = &boss.bullet_patterns[boss.bp_index];
+				if (has_patterns) bullet_pattern = &boss.bullet_pattern;
 				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false, bullet_pattern);
 				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false, bullet_pattern);
 			}
@@ -194,7 +194,9 @@ void BulletSystem::step(float elapsed_ms)
 				Kinematic& bullet_kinematic = registry.kinematics.get(entity);
 				Motion& bullet_motion = registry.motions.get(entity);
 				Transform transform;
-				std::vector<vec2> bullet_directions = { normalize(bullet_kinematic.direction) };
+				// if direction is (0,0), set_bullet_directions will return bullets that also have direction (0,0)
+				if (bullet_kinematic.direction.x == 0 && bullet_kinematic.direction.y == 0) bullet_kinematic.direction = { 1, 0 };
+				std::vector<vec2> bullet_directions = { bullet_kinematic.direction };
 				set_bullet_directions(info[0] + 1, info[1], transform, bullet_kinematic.direction, bullet_directions);
 				spawn_bullets(renderer, bullet_directions, info[2], bullet_motion.position, bullet_kinematic, false);
 				registry.bulletDeathTimers.emplace(entity); // delete original bullet

@@ -226,7 +226,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 10;
+	hp.max_hp = 102;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -239,117 +239,10 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
-	BulletSpawner bs;
-	bs.fire_rate = 2;
-	bs.is_firing = true;
-	bs.spin_rate = 2;
-	bs.invert = false;
-	bs.spin_delta = 1.f;
-	bs.max_spin_rate = 20.f;
-	bs.total_bullet_array = 3;
-	bs.spread_between_array = 30;
-	bs.bullets_per_array = 4;
-	bs.spread_within_array = 90;
-	bs.bullet_initial_speed = 100;
-	bs.number_to_fire = 1;
-
-	//BulletSpawner bs;
-	//bs.fire_rate = 1;
-	//bs.is_firing = true;
-	//bs.spin_rate = 15;
-	//bs.invert = false;
-	//bs.spin_delta = 0.f;
-	//bs.max_spin_rate = 20.f;
-	//bs.total_bullet_array = 3;
-	//bs.spread_between_array = 120;
-	//bs.bullets_per_array = 1;
-	//bs.spread_within_array = 20;
-	//bs.bullet_initial_speed = 100;
-
-	//BulletSpawner bs;
-	//bs.fire_rate = 1;
-	//bs.is_firing = true;
-	//bs.spin_rate = 20;
-	//bs.invert = false;
-	//bs.spin_delta = 0.f;
-	//bs.max_spin_rate = 20.f;
-	//bs.total_bullet_array = 3;
-	//bs.spread_between_array = 120;
-	//bs.bullets_per_array = 3;
-	//bs.spread_within_array = 30;
-	//bs.bullet_initial_speed = 50;
-
-	// try this combo:
-	//BulletSpawner bs;
-	//bs.fire_rate = 2;
-	//bs.is_firing = true;
-	//bs.spin_rate = 2;
-	//bs.invert = false;
-	//bs.spin_delta = 1.f;
-	//bs.max_spin_rate = 20.f;
-	//bs.total_bullet_array = 3;
-	//bs.spread_between_array = 30;
-	//bs.bullets_per_array = 4;
-	//bs.spread_within_array = 90;
-	//bs.bullet_initial_speed = 100;
-	////bs.number_to_fire = 5;
-	//Boss& boss = registry.bosses.emplace(entity);
-	//BulletPattern phase1_bullet_pattern;
-	//phase1_bullet_pattern.commands = {
-	//	{ BULLET_ACTION::DELAY, 1000.f },
-	//	{ BULLET_ACTION::ROTATE, 20.f },
-	//	{ BULLET_ACTION::DELAY, 100.f },
-	//	{ BULLET_ACTION::LOOP, vec2(10, 1)},
-	//	{ BULLET_ACTION::DELAY, 1500.f },
-	//	{ BULLET_ACTION::ROTATE, 30.f },
-	//	{ BULLET_ACTION::DELAY, 150.f },
-	//	{ BULLET_ACTION::LOOP, vec2(10, 4)},
-	//	{ BULLET_ACTION::DELAY, 5000.f },
-	//	{ BULLET_ACTION::DEL, 0.f },
-	//};
-	//boss.bullet_patterns = { phase1_bullet_pattern };
-
-	// try this combo #2:
-	//BulletSpawner bs;
-	//bs.fire_rate = 1;
-	//bs.is_firing = true;
-	//bs.spin_rate = 2;
-	//bs.invert = false;
-	//bs.spin_delta = 1.f;
-	//bs.max_spin_rate = 20.f;
-	//bs.total_bullet_array = 3;
-	//bs.spread_between_array = 30;
-	//bs.bullets_per_array = 4;
-	//bs.spread_within_array = 90;
-	//bs.bullet_initial_speed = 100;
-	//bs.cooldown_rate = 100;
-	//bs.number_to_fire = 5;
-	//Boss& boss = registry.bosses.emplace(entity);
-	//BulletPattern phase1_bullet_pattern;
-	//phase1_bullet_pattern.commands = {
-	//	{ BULLET_ACTION::DELAY, 500.f },
-	//	{ BULLET_ACTION::DIRECTION, vec2(0,1) },
-	//	{ BULLET_ACTION::DELAY, 1500.f },
-	//	{ BULLET_ACTION::DIRECTION, vec2(0,0) },
-	//	{ BULLET_ACTION::DELAY, 1000.f },
-	//	{ BULLET_ACTION::DIRECTION, vec2(1,1) },
-	//	{ BULLET_ACTION::SPLIT, vec3(10, 36, -100)},
-
-	//};
-	//boss.bullet_patterns = { phase1_bullet_pattern };
-
-	//enemy_bullet_rate
-	registry.bulletSpawners.insert(entity, bs);
-	registry.colors.insert(entity, { 1,1,1 });
-
 	Boss& boss = registry.bosses.emplace(entity);
-	BulletPattern phase1_bullet_pattern;
-	phase1_bullet_pattern.commands = {
-		{ BULLET_ACTION::DELAY, 4000 },
-		{ BULLET_ACTION::SPLIT, vec3(20, 18, 20)},
-		{ BULLET_ACTION::DELAY, 2000 },
-	};
-	boss.bullet_patterns = { phase1_bullet_pattern };
+	boss.health_phase_thresholds = { 100, 75, 50, 25, -1 }; // -1 for end of phase
+	boss.duration = 10000; // duration for each pattern
+	registry.colors.insert(entity, { 1,1,1 });
 
 	return entity;
 }

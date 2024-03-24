@@ -14,6 +14,7 @@
 #include "bullet_system.hpp"
 #include "audio.hpp"
 #include "animation.hpp"
+#include "boss_system.hpp"
 
 // debug
 #include <iostream>
@@ -31,6 +32,7 @@ int main()
 	BulletSystem bullets;
 	MapSystem map;
 	Animation animation;
+	BossSystem boss_system;
 
 	// Global classes
 	Audio audio;
@@ -66,6 +68,7 @@ int main()
 		t = now;
 
 		world.step(elapsed_ms);
+		boss_system.step(elapsed_ms);
 		animation.step(elapsed_ms);
 		physics.step(elapsed_ms);
 		ai.step(elapsed_ms);

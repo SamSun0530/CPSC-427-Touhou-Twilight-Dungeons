@@ -106,11 +106,49 @@ struct BulletSpawner
 	float last_update = -1.f;
 	float update_rate = 1.f;
 	float bullet_initial_speed = 100;
+
+	inline bool operator==(const BulletSpawner& o) {
+		return (is_firing == o.is_firing &&
+			last_fire_time == o.last_fire_time &&
+			fire_rate == o.fire_rate &&
+			number_current_fired == o.number_to_fire &&
+			number_current_fired == o.number_current_fired &&
+			is_cooldown == o.is_cooldown &&
+			last_cooldown == o.last_cooldown &&
+			cooldown_rate == o.cooldown_rate &&
+			total_bullet_array == o.total_bullet_array &&
+			bullets_per_array == o.bullets_per_array &&
+			spread_between_array == o.spread_between_array &&
+			spread_within_array == o.spread_within_array &&
+			start_angle == o.start_angle &&
+			spin_rate == o.spin_rate &&
+			max_spin_rate == o.max_spin_rate &&
+			spin_delta == o.spin_delta &&
+			invert == o.invert &&
+			last_update == o.last_update &&
+			update_rate == o.update_rate &&
+			bullet_initial_speed == o.bullet_initial_speed);
+	}
+	inline bool operator!=(const BulletSpawner& o) {
+		return !(*this == o);
+	}
 };
 
 struct Boss {
-	std::vector<BulletPattern> bullet_patterns; // patterns to use during phase
-	int bp_index = 0; // current bullet pattern index
+	// current pattern to use during phase
+	BulletPattern bullet_pattern;
+	// duration of the pattern to change to next one
+	float duration = -1;
+	float current_duration = -1;
+	// phases determined by health thresholds
+	// e.g. 4 phases -> [75, 50, 25, -1] (from hp 0-25,26-50,51-75,76-?)
+	// if health lower than hp threshold, move on to next phase
+	std::vector<int> health_phase_thresholds; 
+	// current boss phase index into health_phase_thresholds
+	int phase_index = 0;
+	// current BulletPhase id
+	// used in boss system to check if two bullet phase id are the same
+	int current_bullet_phase_id = -1;
 };
 
 // Player component
