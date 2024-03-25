@@ -331,8 +331,8 @@ void WorldSystem::restart_game() {
 
 	// Generate map
 	// map->generateMap(1);
-	//map->generateBasicMap();
-	map->generateTutMap();
+	map->generateBasicMap();
+	//map->generateTutMap();
 	world_map = map->world_map;
 	map->spawnEnemies();
 
@@ -655,7 +655,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Toggle tutorial display
 	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
-		getInstance().toggle_display_instruction();
+		//getInstance().toggle_display_instruction();
+		map->clearWorld();
+		map->generateTutMap();
 
 	}
 }

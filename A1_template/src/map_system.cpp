@@ -224,6 +224,17 @@ void MapSystem::generateMap(int floor) {
 	//Triangulation: https://www.gorillasun.de/blog/bowyer-watson-algorithm-for-delaunay-triangulation/
 }
 
+void MapSystem::clearWorld() {
+	rooms.clear();
+	for (auto& row : world_map) {
+		std::fill(row.begin(), row.end(), 0); 
+	}
+	registry.bomberEnemies.clear();
+	registry.beeEnemies.clear();
+	registry.wolfEnemies.clear();
+	registry.enemyBullets.clear();
+}
+
 void MapSystem::debug() {
 	// createLine({0,0},{100,100});
 	for (Entity room : registry.roomHitbox.entities) {

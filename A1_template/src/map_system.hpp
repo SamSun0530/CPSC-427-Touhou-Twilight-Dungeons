@@ -85,5 +85,6 @@ public:
 	void generateTutMap();
 	void spawnEnemies();
 	void debug();
+	void clearWorld();
 	Room generateTutRoom(int x, int y);
 };
