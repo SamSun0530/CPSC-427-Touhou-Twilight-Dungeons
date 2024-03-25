@@ -30,7 +30,15 @@ Entity createHealth(RenderSystem* renderer, vec2 position);
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the coin
-Entity createCoin(RenderSystem* renderer, vec2 position);
+Entity createCoin(RenderSystem* renderer, vec2 position, int value);
+// max hp increase
+Entity createMaxHPIncrease(RenderSystem* renderer, vec2 position);
+// the attack up
+Entity createAttackUp(RenderSystem* renderer, vec2 position);
+// the chest
+Entity createChest(RenderSystem* renderer, vec2 position);
+// the key
+Entity createKey(RenderSystem* renderer, vec2 position);
 // the enemy
 Entity createBeeEnemy(RenderSystem* renderer, vec2 position);
 // the suicide enemy

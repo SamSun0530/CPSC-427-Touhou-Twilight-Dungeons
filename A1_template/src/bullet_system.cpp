@@ -68,22 +68,22 @@ void BulletSystem::step(float elapsed_ms)
 					createBullet(renderer, kinematic.speed_modified, motion.position, enemy_fire_angle, second);
 					createBullet(renderer, kinematic.speed_modified, motion.position, enemy_fire_angle, third);
 				}
-				else if (registry.submachineGunEnemies.has(entity)) {
-					Motion& player_motion = registry.motions.get(player);
-					float x = player_motion.position.x - motion.position.x;
-					float y = player_motion.position.y - motion.position.y;
-					float enemy_fire_angle = -atan2(x, y) - glm::radians(90.0f);
+				//else if (registry.submachineGunEnemies.has(entity)) {
+				//	Motion& player_motion = registry.motions.get(player);
+				//	float x = player_motion.position.x - motion.position.x;
+				//	float y = player_motion.position.y - motion.position.y;
+				//	float enemy_fire_angle = -atan2(x, y) - glm::radians(90.0f);
 
 
-					int i = 0;
-					while (i < 5) {
-						float fireTimer = glfwGetTime();
-						/*if (glfwGetTime() - fireTimer >= 0.5) {*/
-						createBullet(renderer, kinematic.speed_modified, motion.position, enemy_fire_angle, { x, y });
-						i++;
-						/*}*/
-					}
-				}
+				//	int i = 0;
+				//	while (i < 5) {
+				//		float fireTimer = glfwGetTime();
+				//		/*if (glfwGetTime() - fireTimer >= 0.5) {*/
+				//		createBullet(renderer, kinematic.speed_modified, motion.position, enemy_fire_angle, { x, y });
+				//		i++;
+				//		/*}*/
+				//	}
+				//}
 				fireRate.last_time = current_time;
 
 			}

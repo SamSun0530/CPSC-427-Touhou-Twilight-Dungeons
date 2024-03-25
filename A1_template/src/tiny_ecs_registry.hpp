@@ -42,6 +42,12 @@ public:
 	ComponentContainer<BomberEnemy> bomberEnemies;
 	ComponentContainer<WolfEnemy> wolfEnemies;
 	ComponentContainer<SubmachineGunEnemy> submachineGunEnemies;
+	ComponentContainer<Coin> coins;
+	ComponentContainer<Product> products;
+	ComponentContainer<MaxHPIncrease> maxhpIncreases;
+	ComponentContainer<AttackUp> attackUps;
+	ComponentContainer<Chest> chests;
+	ComponentContainer<Key> keys;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -77,6 +83,12 @@ public:
 		registry_list.push_back(&bomberEnemies);
 		registry_list.push_back(&wolfEnemies);
 		registry_list.push_back(&submachineGunEnemies);
+		registry_list.push_back(&coins);
+		registry_list.push_back(&products);
+		registry_list.push_back(&maxhpIncreases);
+		registry_list.push_back(&attackUps);
+		registry_list.push_back(&chests);
+		registry_list.push_back(&keys);
 	}
 
 	void clear_all_components() {

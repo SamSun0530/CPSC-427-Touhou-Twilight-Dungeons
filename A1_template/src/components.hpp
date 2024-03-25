@@ -25,6 +25,9 @@ struct BulletFireRate
 struct Player
 {
 	bool invulnerability = false;
+	int bullet_damage = 1;
+	int coin_amount = 0;
+	int key_amount = 0;
 };
 
 enum class State {
@@ -83,6 +86,40 @@ struct Pickupable
 	int health_change = 1;
 };
 
+struct Coin
+{
+	int coin_amount = 1;
+};
+
+struct Product
+{
+	int price = 0;
+};
+
+struct MaxHPIncrease
+{
+	int max_health_increase = 1;
+};
+
+struct Shield
+{
+	int defense = 5;
+};
+
+struct AttackUp
+{
+	int damageUp = 1;
+};
+
+struct Chest
+{
+
+};
+
+struct Key
+{
+	
+};
 
 struct EnemyBullet
 {

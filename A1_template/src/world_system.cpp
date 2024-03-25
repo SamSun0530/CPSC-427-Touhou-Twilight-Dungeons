@@ -272,6 +272,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				std::mt19937 gen(rd());
 				std::uniform_real_distribution<> distrib(0, 1);
 				double number = distrib(gen);
+				if (registry.beeEnemies.has(entity)) {
+					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 1);
+				}
+				else if (registry.bomberEnemies.has(entity)) {
+					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 3);
+				}
+				else if (registry.wolfEnemies.has(entity)) {
+					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 5);
+				}
+
 				if (number <= 0.5)
 					createHealth(renderer, registry.motions.get(entity).position);
 				registry.remove_all_components_of(entity);
@@ -426,6 +436,30 @@ void WorldSystem::handle_collisions() {
 					}
 					registry.remove_all_components_of(entity_other);
 				}
+			}
+			else if (registry.coins.has(entity_other)) {
+				if (!registry.realDeathTimers.has(entity)) {
+					registry.players.get(entity).coin_amount += registry.coins.get(entity_other).coin_amount;
+					registry.remove_all_components_of(entity_other);
+				}
+			}
+			else if (registry.maxhpIncreases.has(entity_other)) {
+				
+				registry.hps.get(entity).max_hp += registry.maxhpIncreases.get(entity_other).max_health_increase;
+				if (registry.hps.get(entity).max_hp > 12) {
+					registry.hps.get(entity).max_hp = 12;
+				}
+				registry.hps.get(entity).curr_hp += registry.maxhpIncreases.get(entity_other).max_health_increase;
+				registry.remove_all_components_of(entity_other);
+				
+			}
+			else if (registry.attackUps.has(entity_other)) {	
+				registry.players.get(entity).bullet_damage += 1;
+				registry.remove_all_components_of(entity_other);
+			}
+			else if (registry.keys.has(entity_other)) {
+				registry.players.get(entity).key_amount++;
+				registry.remove_all_components_of(entity_other);
 			}
 		}
 		else if (registry.deadlys.has(entity)) {
