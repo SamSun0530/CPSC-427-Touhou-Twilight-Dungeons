@@ -267,6 +267,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			return true;
 		}
 	}
+	
+	for (Entity entity : registry.bezierCurves.entities) {
+
+		BezierCurve& curve_counter = registry.bezierCurves.get(entity);
+		curve_counter.curve_counter_ms -= elapsed_ms_since_last_update;
+
+		if (curve_counter.curve_counter_ms < 0) {
+			registry.bezierCurves.remove(entity);
+		}
+	}
 
 	if (is_alive && registry.hps.get(player).curr_hp <= 0) {
 		registry.bulletFireRates.get(player).is_firing = false;
@@ -287,7 +297,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				std::mt19937 gen(rd());
 				std::uniform_real_distribution<> distrib(0, 1);
 				double number = distrib(gen);
-				if (number <= 0.5)
+				if (number <= 0.9)
 					createHealth(renderer, registry.motions.get(entity).position);
 			}
 			registry.remove_all_components_of(entity);
