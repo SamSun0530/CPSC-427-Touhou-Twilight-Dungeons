@@ -68,7 +68,7 @@ int main()
 		t = now;
 
 		//printf("=============\n");
-
+		elapsed_ms = world.combo_meter * elapsed_ms;
 		//time_debug.initTime();
 		world.step(elapsed_ms);
 		//time_debug.getTime("world");

@@ -65,55 +65,86 @@ void Animation::step(float elapsed_ms)
 	}
 	for (Entity& enemy : registry.beeEnemies.entities) {
 		EntityAnimation& enemy_ani = registry.animation.get(enemy);
-		Motion& enemy_motion = registry.motions.get(enemy);
-		float x = player_motion.position.x - enemy_motion.position.x;
-		float y = player_motion.position.y - enemy_motion.position.y;
-		float facing_degree = (-atan2(x, y) + M_PI) * (180.0 / M_PI);
-		if (facing_degree <= 45 || facing_degree >= 325) {
-			enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y;
-		}
-		else if (facing_degree <= 135) {
-			enemy_ani.render_pos.y = 3 * enemy_ani.spritesheet_scale.y;
-		}
-		else if (facing_degree <= 225) {
-			enemy_ani.render_pos.y = 1 * enemy_ani.spritesheet_scale.y;
+		if (registry.realDeathTimers.has(enemy)) {
+			if (registry.realDeathTimers.get(enemy).first_animation_frame == false) {
+				enemy_ani.render_pos.y = 4*enemy_ani.spritesheet_scale.y + enemy_ani.render_pos.y;
+				enemy_ani.render_pos.x = enemy_ani.spritesheet_scale.x;
+				registry.realDeathTimers.get(enemy).first_animation_frame = true;
+			}
 		}
 		else {
-			enemy_ani.render_pos.y = 2 * enemy_ani.spritesheet_scale.y;
+			Motion& enemy_motion = registry.motions.get(enemy);
+			float x = player_motion.position.x - enemy_motion.position.x;
+			float y = player_motion.position.y - enemy_motion.position.y;
+			float facing_degree = (-atan2(x, y) + M_PI) * (180.0 / M_PI);
+			if (facing_degree <= 45 || facing_degree >= 325) {
+				enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y;
+			}
+			else if (facing_degree <= 135) {
+				enemy_ani.render_pos.y = 3 * enemy_ani.spritesheet_scale.y;
+			}
+			else if (facing_degree <= 225) {
+				enemy_ani.render_pos.y = 1 * enemy_ani.spritesheet_scale.y;
+			}
+			else {
+				enemy_ani.render_pos.y = 2 * enemy_ani.spritesheet_scale.y;
+			}
 		}
 	}
 	for (Entity& enemy : registry.bomberEnemies.entities) {
 		EntityAnimation& enemy_ani = registry.animation.get(enemy);
-		vec2 enemy_velocity = normalize(registry.kinematics.get(enemy).velocity);
-		float facing_degree = (-atan2(enemy_velocity.x, enemy_velocity.y) + M_PI) * (180.0 / M_PI);
-		if (facing_degree <= 45 || facing_degree >= 325) {
-			enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y;
-		}
-		else if (facing_degree <= 135) {
-			enemy_ani.render_pos.y = 3 * enemy_ani.spritesheet_scale.y;
-		}
-		else if (facing_degree <= 225) {
-			enemy_ani.render_pos.y = 1 * enemy_ani.spritesheet_scale.y;
+		if (registry.realDeathTimers.has(enemy)) {
+			if (registry.realDeathTimers.get(enemy).first_animation_frame == false) {
+				enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y + enemy_ani.render_pos.y;
+				enemy_ani.render_pos.x = enemy_ani.spritesheet_scale.x;
+				registry.realDeathTimers.get(enemy).first_animation_frame = true;
+			}
 		}
 		else {
-			enemy_ani.render_pos.y = 2 * enemy_ani.spritesheet_scale.y;
+			vec2 enemy_velocity = normalize(registry.kinematics.get(enemy).velocity);
+			float facing_degree = (-atan2(enemy_velocity.x, enemy_velocity.y) + M_PI) * (180.0 / M_PI);
+			if (facing_degree <= 45 || facing_degree >= 325) {
+				enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y;
+			}
+			else if (facing_degree <= 135) {
+				enemy_ani.render_pos.y = 3 * enemy_ani.spritesheet_scale.y;
+			}
+			else if (facing_degree <= 225) {
+				enemy_ani.render_pos.y = 1 * enemy_ani.spritesheet_scale.y;
+			}
+			else {
+				enemy_ani.render_pos.y = 2 * enemy_ani.spritesheet_scale.y;
+			}
 		}
 	}
 	for (Entity& enemy : registry.wolfEnemies.entities) {
 		EntityAnimation& enemy_ani = registry.animation.get(enemy);
-		vec2 enemy_velocity = normalize(registry.kinematics.get(enemy).velocity);
-		float facing_degree = (-atan2(enemy_velocity.x, enemy_velocity.y) + M_PI) * (180.0 / M_PI);
-		if (facing_degree <= 45 || facing_degree >= 325) {
-			enemy_ani.render_pos.y = (4 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
-		}
-		else if (facing_degree <= 135) {
-			enemy_ani.render_pos.y = (3 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
-		}
-		else if (facing_degree <= 225) {
-			enemy_ani.render_pos.y = (1 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+		if (registry.realDeathTimers.has(enemy)) {
+			if (registry.realDeathTimers.get(enemy).first_animation_frame == false) {
+				float offset_death = 8;
+				if (enemy_ani.render_pos.y > 4 * enemy_ani.spritesheet_scale.y) {
+					offset_death /= 2;
+				}
+				enemy_ani.render_pos.y = offset_death * enemy_ani.spritesheet_scale.y + enemy_ani.render_pos.y;
+				enemy_ani.render_pos.x = enemy_ani.spritesheet_scale.x;
+				registry.realDeathTimers.get(enemy).first_animation_frame = true;
+			}
 		}
 		else {
-			enemy_ani.render_pos.y = (2 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+			vec2 enemy_velocity = normalize(registry.kinematics.get(enemy).velocity);
+			float facing_degree = (-atan2(enemy_velocity.x, enemy_velocity.y) + M_PI) * (180.0 / M_PI);
+			if (facing_degree <= 45 || facing_degree >= 325) {
+				enemy_ani.render_pos.y = (4 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+			}
+			else if (facing_degree <= 135) {
+				enemy_ani.render_pos.y = (3 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+			}
+			else if (facing_degree <= 225) {
+				enemy_ani.render_pos.y = (1 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+			}
+			else {
+				enemy_ani.render_pos.y = (2 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+			}
 		}
 	}
 

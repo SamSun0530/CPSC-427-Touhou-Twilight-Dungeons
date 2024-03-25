@@ -257,14 +257,25 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		DeathTimer& death_counter = registry.realDeathTimers.get(entity);
 		death_counter.death_counter_ms -= elapsed_ms_since_last_update;
 
-		if (death_counter.death_counter_ms < min_death_time_ms) {
+		if (death_counter.death_counter_ms < min_death_time_ms && registry.players.has(entity)) {
 			min_death_time_ms = death_counter.death_counter_ms;
 		}
 
 		if (death_counter.death_counter_ms < 0) {
-			registry.realDeathTimers.remove(entity);
-			restart_game();
-			return true;
+			if (registry.players.has(entity)) {
+				registry.realDeathTimers.remove(entity);
+				restart_game();
+				return true;
+			}
+			else if (registry.deadlys.has(entity)) {
+				std::random_device rd;
+				std::mt19937 gen(rd());
+				std::uniform_real_distribution<> distrib(0, 1);
+				double number = distrib(gen);
+				if (number <= 0.5)
+					createHealth(renderer, registry.motions.get(entity).position);
+				registry.remove_all_components_of(entity);
+			}
 		}
 	}
 	
@@ -296,7 +307,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				std::random_device rd;
 				std::mt19937 gen(rd());
 				std::uniform_real_distribution<> distrib(0, 1);
-				double number = distrib(gen);
+				float number = distrib(gen);
 				if (number <= 0.9)
 					createHealth(renderer, registry.motions.get(entity).position);
 			}
@@ -341,6 +352,7 @@ void WorldSystem::restart_game() {
 	player = createPlayer(renderer, { 0, 0 });
 	is_alive = true;
 	ui = createUI(renderer, registry.hps.get(player).max_hp);
+	combo_meter = 1;
 
 	renderer->camera.setPosition({ 0, 0 });
 }
@@ -362,17 +374,25 @@ void WorldSystem::handle_collisions() {
 
 					// player turn red and decrease hp
 					if (!registry.players.get(player).invulnerability) {
-						registry.hitTimers.emplace(entity);
-						Mix_PlayChannel(-1, audio->damage_sound, 0);
-						registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
 						// should decrease HP but not yet implemented
-						if (registry.deadlys.has(entity_other)) {
+						if (!registry.realDeathTimers.has(entity_other)) {
+							registry.hitTimers.emplace(entity);
+							Mix_PlayChannel(-1, audio->damage_sound, 0);
+							registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
 							HP& player_hp = registry.hps.get(player);
 							player_hp.curr_hp -= registry.deadlys.get(entity_other).damage;
 							if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
-
+							combo_meter = 1;
 							if (registry.bomberEnemies.has(entity_other)) {
-								registry.hps.get(entity_other).curr_hp = 0;
+								registry.realDeathTimers.emplace(entity_other).death_counter_ms = 1000;
+								registry.hps.remove(entity_other);
+								registry.aitimers.remove(entity_other);
+								registry.followpaths.remove(entity_other);
+								if (registry.bulletFireRates.has(entity_other)) {
+									registry.bulletFireRates.get(entity_other).is_firing = false;
+								}
+								registry.kinematics.get(entity_other).velocity = { 0,0 };
+								registry.kinematics.get(entity_other).direction = { 0,0 };
 							}
 						}
 
@@ -389,7 +409,7 @@ void WorldSystem::handle_collisions() {
 						registry.hitTimers.emplace(entity);
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
-
+						combo_meter = 1;
 						registry.hps.get(player).curr_hp -= registry.enemyBullets.get(entity_other).damage;
 						registry.remove_all_components_of(entity_other);
 						registry.players.get(player).invulnerability = true;
@@ -409,13 +429,28 @@ void WorldSystem::handle_collisions() {
 		}
 		else if (registry.deadlys.has(entity)) {
 			if (registry.playerBullets.has(entity_other)) {
-				if (!registry.hitTimers.has(entity)) {
+				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
 					// enemy turn red and decrease hp, bullet disappear
 					registry.hitTimers.emplace(entity);
 					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
 					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+					HP& hp = registry.hps.get(entity);
+					if (hp.curr_hp <= 0.0f) {
+						combo_meter = min(combo_meter + 0.02f, COMBO_METER_MAX);
+						if (registry.beeEnemies.has(entity) || registry.wolfEnemies.has(entity) || registry.bomberEnemies.has(entity)) {
+							registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
+							registry.hps.remove(entity);
+							registry.aitimers.remove(entity);
+							registry.followpaths.remove(entity);
+							if (registry.bulletFireRates.has(entity)) {
+								registry.bulletFireRates.get(entity).is_firing = false;
+							}
+							registry.kinematics.get(entity).velocity = { 0,0 };
+							registry.kinematics.get(entity).direction = { 0,0 };
+						}
+					}
 					registry.remove_all_components_of(entity_other);
 				}
 			}
