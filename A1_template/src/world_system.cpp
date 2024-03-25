@@ -331,7 +331,8 @@ void WorldSystem::restart_game() {
 
 	// Generate map
 	// map->generateMap(1);
-	map->generateBasicMap();
+	//map->generateBasicMap();
+	map->generateTutMap();
 	world_map = map->world_map;
 	map->spawnEnemies();
 

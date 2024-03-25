@@ -97,6 +97,26 @@ void MapSystem::generateBasicMap() {
 	world_map = map;
 }
 
+void MapSystem::generateTutMap() {
+	std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
+	rooms.clear();
+	int room_radius = room_size >> 1;
+	rooms.push_back(generateTutRoom(room_radius, room_radius));
+	rooms.push_back(generateTutRoom(room_size + 2 * room_radius, room_radius));
+	rooms.push_back(generateTutRoom(room_size + 2 * room_radius, room_size + 2 * room_radius));
+
+	for (Room& room : rooms) {
+		addRoomToMap(room, map);
+	}
+
+	addHallwayBetweenRoom(rooms[0], rooms[1], map);
+	addHallwayBetweenRoom(rooms[1], rooms[2], map);
+
+	MapSystem::generateAllEntityTiles(map);
+
+	world_map = map;
+}
+
 void MapSystem::generateMap(int floor) {
 	// Resets all values
 	registry.roomHitbox.clear();
@@ -341,6 +361,32 @@ Room generateBasicRoom(int x, int y) {
 		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
 		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
 		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+	};
+	room.grid = grid;
+	return room;
+}
+
+Room MapSystem::generateTutRoom(int x, int y) {
+	Room room;
+	room.id = room_id++;
+	room.x = x;
+	room.y = y;
+
+	std::vector<std::vector<int>> grid = {
+		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
 	};
 	room.grid = grid;
 	return room;
