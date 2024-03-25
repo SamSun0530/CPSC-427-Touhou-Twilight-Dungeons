@@ -229,6 +229,8 @@ void MapSystem::clearWorld() {
 	for (auto& row : world_map) {
 		std::fill(row.begin(), row.end(), 0); 
 	}
+	registry.walls.clear();
+	registry.floors.clear();
 	registry.bomberEnemies.clear();
 	registry.beeEnemies.clear();
 	registry.wolfEnemies.clear();

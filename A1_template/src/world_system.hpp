@@ -76,6 +76,9 @@ private:
 	// restart level
 	void restart_game();
 
+	// toggle tutorial mode
+	void toggle_tutorial();
+
 	// OpenGL window handle
 	GLFWwindow* window;
 

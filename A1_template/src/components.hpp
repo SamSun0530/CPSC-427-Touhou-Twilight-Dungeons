@@ -10,6 +10,14 @@ struct PlayerBullet {
 	int damage = 1;
 };
 
+struct MapLevel {
+	enum LEVEL {
+		TUTORIAL,
+		MAIN
+	} level = LEVEL::MAIN;
+};
+extern MapLevel map_level;
+
 // Manages when entity is able to fire a bullet again
 struct BulletFireRate
 {

@@ -339,10 +339,15 @@ void WorldSystem::restart_game() {
 
 	// Generate map
 	// map->generateMap(1);
-	map->generateBasicMap();
-	//map->generateTutMap();
+	//map->generateBasicMap();
+	if (map_level.level == MapLevel::TUTORIAL) {
+		map->generateTutMap();
+	}
+	else {
+		map->generateBasicMap();
+	}
 	world_map = map->world_map;
-	map->spawnEnemies();
+	//map->spawnEnemies();
 
 	createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
@@ -352,6 +357,17 @@ void WorldSystem::restart_game() {
 	ui = createUI(renderer, registry.hps.get(player).max_hp);
 
 	renderer->camera.setPosition({ 0, 0 });
+}
+
+void WorldSystem::toggle_tutorial() {
+	// Used for debugging
+	registry.list_all_components();
+	printf("Toggling Tutorial Mode\n");
+
+	// Reset keyboard presses
+	pressed = { 0 };
+
+	Mix_PlayMusic(audio->background_music, -1);
 }
 
 // Compute collisions between entities
@@ -551,6 +567,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
+		map_level.level = MapLevel::MAIN;
 		restart_game();
 	}
 
@@ -664,9 +681,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Toggle tutorial display
 	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
 		//getInstance().toggle_display_instruction();
-		map->clearWorld();
-		map->generateTutMap();
-
+		map_level.level = MapLevel::TUTORIAL;
+		restart_game();
 	}
 }
 
