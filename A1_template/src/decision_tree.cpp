@@ -19,7 +19,10 @@ ConditionalNode::ConditionalNode(bool (*condition)(Entity& entity)) : Conditiona
 ConditionalNode::ConditionalNode(IDecisionNode* true_node = nullptr,
 	IDecisionNode* false_node = nullptr,
 	bool (*condition)(Entity& entity) = nullptr) : true_node(true_node), false_node(false_node), condition(condition) {}
-ConditionalNode::~ConditionalNode() { if (true_node) delete true_node; if (false_node) delete false_node; };
+ConditionalNode::~ConditionalNode() { 
+	delete true_node; 
+	delete false_node; 
+};
 
 IDecisionNode* ConditionalNode::process(Entity& entity) {
 	assert(this->true_node != nullptr && "No decision node set for true node");
@@ -42,10 +45,9 @@ void ConditionalNode::setFalse(IDecisionNode* false_node) {
 }
 
 // ========== Decision Tree ==========
-DecisionTree::DecisionTree() : DecisionTree(nullptr) {}
-DecisionTree::DecisionTree(IDecisionNode* root = nullptr) : root(root), current_node(root) {}
-//DecisionTree::~DecisionTree() { delete root; }; // TODO: memory leak
-DecisionTree::~DecisionTree() {}; // TODO: memory leak
+DecisionTree::~DecisionTree() { 
+	delete root;
+};
 
 void DecisionTree::update(Entity& entity) {
 	// reset current node to root for next entity

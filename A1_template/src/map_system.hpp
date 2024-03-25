@@ -34,6 +34,7 @@ private:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
+	// Binary space partitioning tree
 	BSPTree bsptree;
 public:
 	MapSystem();
@@ -41,5 +42,6 @@ public:
 	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
 	void generateMap(int floor);
 	void generateBasicMap();
+	void generateRandomMap();
 	void spawnEnemies();
 };

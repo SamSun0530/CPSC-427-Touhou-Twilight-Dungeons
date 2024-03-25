@@ -16,14 +16,9 @@ MapSystem::MapSystem() {
 
 void MapSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
-
-	//bsptree.init(vec2(room_size), vec2(world_width, world_height));
-	//bsptree.generate_partitions(bsptree.root);
-	//bsptree.print_tree(bsptree.root);
 }
 
 void MapSystem::spawnEnemies() {
-
 	for (Room room : rooms) {
 		std::vector<vec2> spawn_points;
 		spawn_points.push_back(vec2(room.x + 2, room.y + 2));
@@ -87,6 +82,28 @@ void MapSystem::generateBasicMap() {
 
 	MapSystem::generateAllEntityTiles(map);
 
+	world_map = map;
+}
+
+void MapSystem::generateRandomMap() {
+	bsptree.init(vec2(room_size), vec2(world_width, world_height));
+	bsptree.generate_partitions(bsptree.root);
+	bsptree.generate_rooms_random(bsptree.root);
+	std::vector<Room2> room_test;
+	bsptree.get_rooms(bsptree.root, room_test);
+	//bsptree.print_tree(bsptree.root);
+
+	std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
+
+	for (int i = 0; i < room_test.size(); i++) {
+		Room2& room2 = room_test[i];
+		for (int i = room2.top_left.y; i < room2.bottom_left.y; i++) {
+			for (int j = room2.top_left.x; j < room2.bottom_left.x; j++) {
+				map[i][j] = 1;
+			}
+		}
+	}
+	MapSystem::generateAllEntityTiles(map);
 	world_map = map;
 }
 

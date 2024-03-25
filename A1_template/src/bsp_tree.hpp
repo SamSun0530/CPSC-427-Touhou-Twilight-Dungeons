@@ -12,6 +12,9 @@ public:
 	vec2 min;
 	vec2 max;
 
+	// Room associated with this node
+	Room2* room = nullptr;
+
 	BSPNode* left_node = nullptr;
 	BSPNode* right_node = nullptr;
 
@@ -27,11 +30,19 @@ private:
 	vec2 max_room_size;
 
 public:
-	BSPNode* root;
+	BSPNode* root = nullptr;
 	~BSPTree();
 	void init(vec2 max_room_size, vec2 world_size);
-	BSPNode* BSPTree::generate_partitions(BSPNode* node);
+	/*
+	Steps in order:
+	(1) Generate partitions
+	(2) Generate rooms (either random/premade)
+	(3) Generate corridors/hallways
+	*/
+	BSPNode* generate_partitions(BSPNode* node);
+	void generate_rooms_random(BSPNode* node);
 	void print_tree(BSPNode* node); // for debugging
+	void get_rooms(BSPNode* node, std::vector<Room2>& rooms);
 
 private:
 	// Utilities:

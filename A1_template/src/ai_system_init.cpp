@@ -280,6 +280,30 @@ void AISystem::init() {
 	is_in_range_bee->setTrue(can_see_player_bee);
 	is_in_range_bee->setFalse(move_random_direction_bee);
 
+	// Fixes memory leak issue where wolf points to bee's allocated nodes
+	// When deleting nodes in destructor, bee deletes first, then wolf tries to delete
+	// the same node, resulting in error
+	// IMPORTANT: for now it's a quick fix, do not reuse nodes
+	// TODO: use shared_ptr instead
+	ConditionalNode* can_see_player_wolf = new ConditionalNode(canSeePlayer);
+	ConditionalNode* is_in_range_wolf = new ConditionalNode(isInRange);
+	ConditionalNode* can_shoot_wolf = new ConditionalNode(canShoot);
+
+	ActionNode* move_random_direction_wolf = new ActionNode(moveRandomDirection);
+	ActionNode* stop_firing_wolf = new ActionNode(stopFiring);
+	ActionNode* fire_at_player_wolf = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_wolf = new ActionNode(findPlayer);
+	ActionNode* find_player_threshold_wolf = new ActionNode(findPlayerThreshold);
+
+	can_shoot_wolf->setTrue(fire_at_player_wolf);
+	can_shoot_wolf->setFalse(find_player_threshold_wolf);
+
+	can_see_player_wolf->setTrue(can_shoot_wolf);
+	can_see_player_wolf->setFalse(find_player_wolf);
+
+	is_in_range_wolf->setTrue(can_see_player_wolf);
+	is_in_range_wolf->setFalse(move_random_direction_wolf);
+
 	/*
 	Wolf has same tree (temporary)
 	Bee enemy decision tree
@@ -294,7 +318,7 @@ void AISystem::init() {
 				T -> stop and shoot
 	*/
 	this->bee_tree.setRoot(is_in_range_bee);
-	this->wolf_tree.setRoot(is_in_range_bee);
+	this->wolf_tree.setRoot(is_in_range_wolf);
 
 	/*
 	Bomber enemy decision tree

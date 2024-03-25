@@ -330,9 +330,10 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Generate map
-	map->generateBasicMap();
+	//map->generateBasicMap();
+	map->generateRandomMap();
 	world_map = map->world_map;
-	map->spawnEnemies();
+	//map->spawnEnemies();
 
 	createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
