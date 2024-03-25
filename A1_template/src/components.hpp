@@ -89,9 +89,6 @@ struct EnemyBullet
 	int damage = 1;
 };
 
-struct RoomHitbox {
-};
-
 // A non interactable tile of the map
 struct Floor
 {

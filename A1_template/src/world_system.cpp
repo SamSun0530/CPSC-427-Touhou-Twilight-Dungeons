@@ -330,7 +330,6 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Generate map
-	// map->generateMap(1);
 	map->generateBasicMap();
 	world_map = map->world_map;
 	map->spawnEnemies();

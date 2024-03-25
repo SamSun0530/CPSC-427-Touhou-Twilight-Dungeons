@@ -19,7 +19,7 @@ ConditionalNode::ConditionalNode(bool (*condition)(Entity& entity)) : Conditiona
 ConditionalNode::ConditionalNode(IDecisionNode* true_node = nullptr,
 	IDecisionNode* false_node = nullptr,
 	bool (*condition)(Entity& entity) = nullptr) : true_node(true_node), false_node(false_node), condition(condition) {}
-ConditionalNode::~ConditionalNode() { delete true_node; delete false_node; };
+ConditionalNode::~ConditionalNode() { if (true_node) delete true_node; if (false_node) delete false_node; };
 
 IDecisionNode* ConditionalNode::process(Entity& entity) {
 	assert(this->true_node != nullptr && "No decision node set for true node");
