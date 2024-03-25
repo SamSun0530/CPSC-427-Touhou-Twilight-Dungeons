@@ -12,7 +12,7 @@ struct CollisionInfo {
 
 // Collision test between circle and AABB
 // Credit to "Ghoster": https://gamedev.stackexchange.com/a/178154
-bool collides_circle_AABB(const Motion& circleMotion, const CircleCollidable& circleCollidable, const Motion& AABBMotion, const Collidable& AABB)
+bool collides_circle_AABB(const Motion & circleMotion, const CircleCollidable & circleCollidable, const Motion & AABBMotion, const Collidable & AABB)
 {
 	vec2 circle_center = circleMotion.position + circleCollidable.shift;
 	vec2 AABB_center = AABBMotion.position + AABB.shift;
@@ -21,6 +21,16 @@ bool collides_circle_AABB(const Motion& circleMotion, const CircleCollidable& ci
 	vec2 clamp_distance = clamp(distance, -AABB_half_extents, AABB_half_extents);
 	vec2 closest_point = AABB_center + clamp_distance;
 	return length(closest_point - circle_center) < circleCollidable.radius;
+}
+
+vec2 get_bezier_point(std::vector<vec2> points, float t) {
+	int i = points.size() - 1;
+	while (i > 0) {
+		for (int k = 0; k < i; k++)
+			points[k] = vec2_lerp(points[k], points[k + 1], t);
+		i--;
+	}
+	return points[0];
 }
 
 // Collision test between AABB and AABB
@@ -202,6 +212,13 @@ void PhysicsSystem::step(float elapsed_ms)
 		motion.position += kinematic.velocity * step_seconds;
 
 		//motion.position += direction_normalized * kinematic.speed_modified * step_seconds;
+	}
+	for (uint i = 0; i < registry.bezierCurves.size(); i++) {
+		Entity& entity = registry.bezierCurves.entities[i];
+		BezierCurve& bezier_curve = registry.bezierCurves.components[i];
+		Motion& motion = registry.motions.get(entity);
+		bezier_curve.t += elapsed_ms / 500.f;
+		motion.position = get_bezier_point(bezier_curve.bezier_pts, bezier_curve.t);
 	}
 
 	// Check for collisions between all collidable entities
