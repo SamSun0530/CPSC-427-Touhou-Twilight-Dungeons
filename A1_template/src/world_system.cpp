@@ -135,9 +135,6 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map)
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-
-	tutorial_counter--;
-
 	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
 	if (elapsedSinceLastFPSUpdate >= 1000.0) {
 		// Calculate FPS
@@ -420,7 +417,7 @@ void WorldSystem::handle_collisions() {
 					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
 					HP& hp = registry.hps.get(entity);
 					if (hp.curr_hp <= 0.0f) {
-						combo_meter += 0.01;
+						combo_meter = min(combo_meter + 0.02f, COMBO_METER_MAX);
 						if (registry.beeEnemies.has(entity) || registry.wolfEnemies.has(entity) || registry.bomberEnemies.has(entity)) {
 							registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
 							registry.hps.remove(entity);
@@ -510,10 +507,6 @@ bool WorldSystem::get_show_fps()
 std::string WorldSystem::get_fps_in_string()
 {
 	return std::to_string(fps);
-}
-
-int WorldSystem::get_tutorial_counter() {
-	return tutorial_counter;
 }
 
 // Helper for updating player direction
