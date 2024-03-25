@@ -135,6 +135,9 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map)
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+
+	tutorial_counter--;
+
 	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
 	if (elapsedSinceLastFPSUpdate >= 1000.0) {
 		// Calculate FPS
@@ -275,6 +278,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 		}
 	}
+	
+	for (Entity entity : registry.bezierCurves.entities) {
+
+		BezierCurve& curve_counter = registry.bezierCurves.get(entity);
+		curve_counter.curve_counter_ms -= elapsed_ms_since_last_update;
+
+		if (curve_counter.curve_counter_ms < 0) {
+			registry.bezierCurves.remove(entity);
+		}
+	}
 
 	if (is_alive && registry.hps.get(player).curr_hp <= 0) {
 		registry.bulletFireRates.get(player).is_firing = false;
@@ -290,6 +303,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (registry.players.has(entity)) continue;
 		HP& hp = registry.hps.get(entity);
 		if (hp.curr_hp <= 0.0f) {
+			if (registry.deadlys.has(entity)) {
+				std::random_device rd;
+				std::mt19937 gen(rd());
+				std::uniform_real_distribution<> distrib(0, 1);
+				float number = distrib(gen);
+				if (number <= 0.9)
+					createHealth(renderer, registry.motions.get(entity).position);
+			}
 			registry.remove_all_components_of(entity);
 		}
 	}
@@ -354,7 +375,7 @@ void WorldSystem::handle_collisions() {
 					// player turn red and decrease hp
 					if (!registry.players.get(player).invulnerability) {
 						// should decrease HP but not yet implemented
-						if (registry.deadlys.has(entity_other) && !registry.realDeathTimers.has(entity_other)) {
+						if (!registry.realDeathTimers.has(entity_other)) {
 							registry.hitTimers.emplace(entity);
 							Mix_PlayChannel(-1, audio->damage_sound, 0);
 							registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
@@ -433,6 +454,32 @@ void WorldSystem::handle_collisions() {
 					registry.remove_all_components_of(entity_other);
 				}
 			}
+			else if (registry.deadlys.has(entity_other)) {
+				Motion& motion1 = registry.motions.get(entity);
+				Motion& motion2 = registry.motions.get(entity_other);
+				Kinematic& kinematic = registry.kinematics.get(entity_other);
+				Collidable& collidable1 = registry.collidables.get(entity);
+				Collidable& collidable2 = registry.collidables.get(entity_other);
+				vec2 center1 = motion1.position + collidable1.shift;
+				vec2 center2 = motion2.position + collidable2.shift;
+
+				// Adapted from Minkowski Sum below
+				vec2 center_delta = center2 - center1;
+				vec2 center_delta_non_collide = collidable1.size / 2.f + collidable2.size / 2.f;
+				// Penetration depth from collision
+				// if center2 is to the right/below of center1, depth is positive, otherwise negative
+				// depth corresponds to the entity_other's velocity change.
+				// e.g. if entity collides on left of entity_other, depth.x is positive -> entity_other's velocity.x will increase
+				vec2 depth = { center_delta.x > 0 ? center_delta_non_collide.x - center_delta.x : -(center_delta_non_collide.x + center_delta.x),
+								center_delta.y > 0 ? center_delta_non_collide.y - center_delta.y : -(center_delta_non_collide.y + center_delta.y) };
+				// check how deep the collision between the two entities are, if passes threshold, apply delta velocity
+				float threshold = 10.f; // in pixels
+				float depth_size = length(depth);
+				if (depth_size > threshold) {
+					float strength = 0.5f;
+					kinematic.velocity += depth * strength;
+				}
+			}
 		}
 		else if (registry.walls.has(entity)) {
 			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
@@ -507,6 +554,10 @@ bool WorldSystem::get_show_fps()
 std::string WorldSystem::get_fps_in_string()
 {
 	return std::to_string(fps);
+}
+
+int WorldSystem::get_tutorial_counter() {
+	return tutorial_counter;
 }
 
 // Helper for updating player direction

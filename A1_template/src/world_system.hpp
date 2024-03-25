@@ -60,7 +60,7 @@ public:
 	void toggle_display_instruction() { display_instruction = !display_instruction; }
 	void toggle_show_fps() { show_fps = !show_fps; }
 	float combo_meter;
-	float COMBO_METER_MAX = 1.5f;
+	const float COMBO_METER_MAX = 1.5f;
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -89,6 +89,7 @@ private:
 	RenderSystem* renderer;
 	float next_enemy_spawn;
 	Audio* audio;
+	int tutorial_counter = 10;
 	int fps;
 	bool show_fps = false;
 	bool display_instruction = false;
