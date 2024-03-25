@@ -90,11 +90,12 @@ private:
 	int tutorial_counter = 10;
 	int fps;
 	bool show_fps = false;
-	bool display_instruction = false;
+	bool display_instruction;
 	float elapsedSinceLastFPSUpdate = 0.0f;
+	float tutorial_timer = 120.0f;
 
 	// fonts seting
-	std::string font_filename = "..//..//..//data//fonts//Kenney_Future_Narrow.ttf";
+	std::string font_filename = "..//..//..//data//fonts//OpenSans-Bold.ttf";
 	unsigned int font_default_size = 25;
 
 	// Player state

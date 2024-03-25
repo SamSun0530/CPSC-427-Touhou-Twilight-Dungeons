@@ -25,7 +25,8 @@ std::vector<std::vector<int>> WorldSystem::world_map = std::vector<std::vector<i
 // Create the world
 WorldSystem::WorldSystem()
 	: points(0)
-	, next_enemy_spawn(0.f) {
+	, next_enemy_spawn(0.f)
+	, display_instruction(true){
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -145,6 +146,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		elapsedSinceLastFPSUpdate = 0.0f;
 	}
 
+	if (tutorial_timer > 0) {
+		tutorial_timer -= elapsedSinceLastFPSUpdate / 1000.0f;
+		if (tutorial_timer <= 0) {
+			getInstance().display_instruction = false;
+			//tutorial_timer = 120.0f;
+		}
+	}
 
 	// Updating window title with points
 	std::stringstream title_ss;
