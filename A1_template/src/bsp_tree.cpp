@@ -66,7 +66,7 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 		node->room = new Room2();
 		// remove split between partitions
 		vec2 min_temp = node->min + vec2(1);
-		vec2 max_temp = node->max + vec2(1);
+		vec2 max_temp = node->max - vec2(1);
 		vec2 size = max_temp - min_temp;
 		// randomly generate room size based on constraint
 		std::uniform_real_distribution<> float_distrib(0.6, 0.9);
@@ -83,6 +83,17 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 
 	generate_rooms_random(node->left_node);
 	generate_rooms_random(node->right_node);
+}
+
+void BSPTree::generate_corridors(BSPNode* node) {
+	if (!node) return;
+
+	generate_corridors(node->left_node);
+	generate_corridors(node->right_node);
+
+	if (node->left_node && node->right_node) {
+		// TODO
+	}
 }
 
 void BSPTree::get_rooms(BSPNode* node, std::vector<Room2>& rooms) {

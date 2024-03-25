@@ -4,6 +4,11 @@
 
 #include "common.hpp"
 
+struct Corridor {
+	vec2 start;
+	vec2 end;
+};
+
 class BSPNode {
 public:
 	unsigned int id;
@@ -14,6 +19,7 @@ public:
 
 	// Room associated with this node
 	Room2* room = nullptr;
+	Corridor* corridor = nullptr;
 
 	BSPNode* left_node = nullptr;
 	BSPNode* right_node = nullptr;
@@ -41,6 +47,7 @@ public:
 	*/
 	BSPNode* generate_partitions(BSPNode* node);
 	void generate_rooms_random(BSPNode* node);
+	void generate_corridors(BSPNode* node);
 	void print_tree(BSPNode* node); // for debugging
 	void get_rooms(BSPNode* node, std::vector<Room2>& rooms);
 
