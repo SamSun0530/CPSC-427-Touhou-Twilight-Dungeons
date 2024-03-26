@@ -49,7 +49,7 @@ int main()
 
 	// initialize the main systems
 	renderer.init(window);
-	world.init(&renderer, &audio, &map);
+	world.init(&renderer, &audio, &map, &ai);
 	bullets.init(&renderer, window, &audio);
 	ai.init();
 	map.init(&renderer);

@@ -303,6 +303,23 @@ Entity createCoin(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
+Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm) {
+	auto entity = Entity();
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.scale = scale;
+	registry.kinematics.emplace(entity);
+	if (is_perm) {
+		registry.textsPerm.emplace(entity).content = text_content;
+	}
+	else {
+		registry.texts.emplace(entity).content = text_content;
+	}
+	registry.colors.emplace(entity) = color;
+	return entity;
+}
+
 Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();

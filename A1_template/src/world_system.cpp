@@ -122,10 +122,11 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map) {
+void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
 	this->map = map;
+	this->ai = ai;
 	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
 	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
@@ -142,7 +143,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
 	if (elapsedSinceLastFPSUpdate >= 1000.0) {
 		// Calculate FPS
-		getInstance().fps = static_cast<int>(1000.0f / elapsed_ms_since_last_update);
+		getInstance().fps = static_cast<int>(1000.0f / (elapsed_ms_since_last_update / combo_meter));
 		elapsedSinceLastFPSUpdate = 0.0f;
 	}
 
@@ -162,10 +163,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
 		registry.remove_all_components_of(registry.debugComponents.entities.back());
-
+	while (registry.texts.entities.size() > 0)
+		registry.remove_all_components_of(registry.texts.entities.back());
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
-
+	createText({ 0,100 }, { 1, 1 }, std::to_string(combo_meter), { 0, 1, 0 }, false);
 	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
 	// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
 	// Adapted from: https://gamedev.stackexchange.com/questions/152465/smoothly-move-camera-to-follow-player
@@ -370,8 +372,12 @@ void WorldSystem::restart_game() {
 	is_alive = true;
 	ui = createUI(renderer, registry.hps.get(player).max_hp);
 	combo_meter = 1;
+	focus_mode.in_focus_mode = false;
+	focus_mode.speed_constant = 1.0f;
 	createKey({ 0,0 }, { 100, 100 }, KEYS::MOUSE_1);
 	renderer->camera.setPosition({ 0, 0 });
+
+	ai->restart_flow_field_map();
 }
 
 void WorldSystem::toggle_tutorial() {
@@ -398,10 +404,10 @@ void WorldSystem::handle_collisions() {
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
-				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(player)) {
-
+				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
+					Player& player_component = registry.players.get(entity);
 					// player turn red and decrease hp
-					if (!registry.players.get(player).invulnerability) {
+					if (!player_component.invulnerability) {
 						// should decrease HP but not yet implemented
 						if (!registry.realDeathTimers.has(entity_other)) {
 							registry.hitTimers.emplace(entity);
@@ -416,6 +422,7 @@ void WorldSystem::handle_collisions() {
 								registry.hps.remove(entity_other);
 								registry.aitimers.remove(entity_other);
 								registry.followpaths.remove(entity_other);
+								registry.followFlowField.remove(entity);
 								if (registry.bulletFireRates.has(entity_other)) {
 									registry.bulletFireRates.get(entity_other).is_firing = false;
 								}
@@ -424,7 +431,7 @@ void WorldSystem::handle_collisions() {
 							}
 						}
 
-						registry.players.get(player).invulnerability = true;
+						player_component.invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
 				}
@@ -472,6 +479,7 @@ void WorldSystem::handle_collisions() {
 							registry.hps.remove(entity);
 							registry.aitimers.remove(entity);
 							registry.followpaths.remove(entity);
+							registry.followFlowField.remove(entity);
 							if (registry.bulletFireRates.has(entity)) {
 								registry.bulletFireRates.get(entity).is_firing = false;
 							}
