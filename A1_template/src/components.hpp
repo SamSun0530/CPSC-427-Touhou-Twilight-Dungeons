@@ -43,6 +43,7 @@ struct IdleMoveAction {
 struct EntityAnimation {
 	State state = State::IDLE;
 	float frame_rate_ms = 200;
+	float full_rate_ms = 200;
 	vec2 spritesheet_scale = { 0, 0 };
 	vec2 render_pos = { 0, 0 };
 	bool isCursor = false;
@@ -273,7 +274,8 @@ enum class TEXTURE_ASSET_ID {
 	HEALTH_1 = PILLAR_BOTTOM + 1,
 	HEALTH_2 = HEALTH_1 + 1,
 	REGENERATE_HEALTH = HEALTH_2 + 1,
-	TEXTURE_COUNT = REGENERATE_HEALTH + 1
+	REIMU_BULLET_DISAPPEAR = REGENERATE_HEALTH + 1,
+	TEXTURE_COUNT = REIMU_BULLET_DISAPPEAR + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

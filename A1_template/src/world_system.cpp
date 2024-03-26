@@ -276,6 +276,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					createHealth(renderer, registry.motions.get(entity).position);
 				registry.remove_all_components_of(entity);
 			}
+			else {
+				registry.remove_all_components_of(entity);
+			}
 		}
 	}
 
@@ -443,6 +446,10 @@ void WorldSystem::handle_collisions() {
 		}
 		else if (registry.walls.has(entity)) {
 			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
+				Motion& bullet_motion = registry.motions.get(entity_other);
+				if (registry.playerBullets.has(entity_other)) {
+					registry.realDeathTimers.emplace(createBulletDisappear(renderer, bullet_motion.position, bullet_motion.angle, true)).death_counter_ms = 200; ;
+				}
 				registry.remove_all_components_of(entity_other);
 			}
 			else if (registry.players.has(entity_other) || registry.deadlys.has(entity_other)) {
