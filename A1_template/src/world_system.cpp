@@ -316,27 +316,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// reduce window brightness if any of the present players is dying
 	screen.darken_screen_factor = 1 - min_death_time_ms / 3000;
 
-	if (focus_mode.in_focus_mode) {
-		for (Entity entity : registry.enemyBullets.entities) {
-			Kinematic& kinematic = registry.kinematics.get(entity);
-			kinematic.speed_modified = 0.5 * kinematic.speed_base;
-		}
-		for (Entity entity : registry.deadlys.entities) {
-			Kinematic& kinematic = registry.kinematics.get(entity);
-			kinematic.speed_modified = 0.5 * kinematic.speed_base;
-		}
-	}
-	else {
-		for (Entity entity : registry.enemyBullets.entities) {
-			Kinematic& kinematic = registry.kinematics.get(entity);
-			kinematic.speed_modified = kinematic.speed_base;
-		}
-		for (Entity entity : registry.deadlys.entities) {
-			Kinematic& kinematic = registry.kinematics.get(entity);
-			kinematic.speed_modified = kinematic.speed_base;
-		}
-	}
-
 	return true;
 }
 
@@ -688,9 +667,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		getInstance().toggle_display_instruction();
 	}
 
-	// use ` to Toggle Focus mode
+	// use ` to toggle focus mode
 	if (key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_RELEASE) {
 		focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+		focus_mode.speed_constant = focus_mode.in_focus_mode ? 0.5f : 1.0f;
 	}
 }
 

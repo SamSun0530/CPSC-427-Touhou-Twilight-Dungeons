@@ -160,6 +160,7 @@ extern Debug debugging;
 
 struct FocusMode {
 	bool in_focus_mode = 0;
+	float speed_constant = 1.0f;
 };
 extern FocusMode focus_mode;
 

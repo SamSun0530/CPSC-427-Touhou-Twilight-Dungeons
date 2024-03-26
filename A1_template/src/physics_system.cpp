@@ -12,7 +12,7 @@ struct CollisionInfo {
 
 // Collision test between circle and AABB
 // Credit to "Ghoster": https://gamedev.stackexchange.com/a/178154
-bool collides_circle_AABB(const Motion & circleMotion, const CircleCollidable & circleCollidable, const Motion & AABBMotion, const Collidable & AABB)
+bool collides_circle_AABB(const Motion& circleMotion, const CircleCollidable& circleCollidable, const Motion& AABBMotion, const Collidable& AABB)
 {
 	vec2 circle_center = circleMotion.position + circleCollidable.shift;
 	vec2 AABB_center = AABBMotion.position + AABB.shift;
@@ -168,7 +168,7 @@ bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& m
 void PhysicsSystem::step(float elapsed_ms)
 {
 	if (focus_mode.in_focus_mode) {
-		
+
 		// Iterate through player entities
 		for (Entity& playerEntity : registry.players.entities) {
 
@@ -182,7 +182,6 @@ void PhysicsSystem::step(float elapsed_ms)
 				if (collides_circle_AABB(playerMotion, playerCircleCollidable, enemyBulletMotion, enemyBulletCollidable)) {
 					registry.collisions.emplace_with_duplicates(playerEntity, enemyBulletEntity);
 					registry.collisions.emplace_with_duplicates(enemyBulletEntity, playerEntity);
-					std::cout << "hit" << std::endl;
 				}
 			}
 		}
@@ -208,7 +207,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		// Linear interpolation of velocity
 		// K factor (0,30] = ~0 (not zero, slippery, ice) -> 10-20 (quick start up/slow down, natural) -> 30 (instant velocity, jittery)
 		float K = 10.f;
-		kinematic.velocity = vec2_lerp(kinematic.velocity, direction_normalized * kinematic.speed_modified, step_seconds * K);
+		kinematic.velocity = vec2_lerp(kinematic.velocity, direction_normalized * kinematic.speed_modified * focus_mode.speed_constant, step_seconds * K);
 		motion.position += kinematic.velocity * step_seconds;
 
 		//motion.position += direction_normalized * kinematic.speed_modified * step_seconds;
@@ -228,10 +227,7 @@ void PhysicsSystem::step(float elapsed_ms)
 	for (uint i = 0; i < collidable_container.components.size(); i++)
 	{
 		Entity entity_i = collidable_container.entities[i];
-		if (registry.walls.has(entity_i) ) continue;
-		//if (WorldSystem::getInstance().isPlayerInFocusMode()) {
-		//	if (registry.players.has(entity_i))continue;
-		//}
+		if (registry.walls.has(entity_i)) continue;
 		Collidable& collidable_i = collidable_container.components[i];
 		Motion& motion_i = motion_container.get(entity_i);
 
@@ -241,7 +237,6 @@ void PhysicsSystem::step(float elapsed_ms)
 			Entity entity_j = collidable_container.entities[j];
 			if (registry.walls.has(entity_j)) continue;
 			if (focus_mode.in_focus_mode && ((registry.players.has(entity_i) && registry.enemyBullets.has(entity_j)) || (registry.players.has(entity_j) && registry.enemyBullets.has(entity_i)))) {
-				// std::cout << "skip" << std::endl;
 				continue;
 			}
 			Collidable& collidable_j = collidable_container.components[j];
