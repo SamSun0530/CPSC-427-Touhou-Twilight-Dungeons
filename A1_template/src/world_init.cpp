@@ -443,7 +443,7 @@ Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size)
 	return entity;
 }
 
-std::vector<Entity> createUI(RenderSystem* renderer, int max_hp)
+std::vector<Entity> createHealthUI(RenderSystem* renderer, int max_hp)
 {
 	std::vector<Entity> hp_entities;
 	for (int i = 0; i < max_hp; i++) {
@@ -457,6 +457,7 @@ std::vector<Entity> createUI(RenderSystem* renderer, int max_hp)
 		Motion& motion = registry.motions.emplace(entity);
 
 		motion.scale = vec2({ -HP_BB_WIDTH, HP_BB_HEIGHT });
+		registry.UIUX.emplace(entity);
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::FULL_HEART, // TEXTURE_COUNT indicates that no txture is needed

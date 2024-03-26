@@ -10,6 +10,11 @@ struct PlayerBullet {
 	int damage = 1;
 };
 
+struct UIUX {
+
+};
+
+
 // Manages when entity is able to fire a bullet again
 struct BulletFireRate
 {

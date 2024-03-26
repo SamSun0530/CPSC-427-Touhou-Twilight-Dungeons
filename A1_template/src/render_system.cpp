@@ -272,19 +272,13 @@ void RenderSystem::draw()
 	camera.setCameraAABB();
 
 	// Draw all textured meshes that have a position and size component
-	std::vector<Entity> ui_entities;
 	for (Entity entity : registry.renderRequests.entities)
 	{
-		TEXTURE_ASSET_ID texture_id = registry.renderRequests.get(entity).used_texture;
-		if (texture_id == TEXTURE_ASSET_ID::EMPTY_HEART || texture_id == TEXTURE_ASSET_ID::FULL_HEART)
-		{
-			ui_entities.push_back(entity);
-			continue;
-		}
 		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 			continue;
 		}
 		if (registry.focusdots.has(entity)) continue;
+		if (registry.UIUX.has(entity)) continue;
 
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
@@ -304,7 +298,7 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
 
-	for (Entity entity : ui_entities) {
+	for (Entity entity : registry.UIUX.entities) {
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
 
