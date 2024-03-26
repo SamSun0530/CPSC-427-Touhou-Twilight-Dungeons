@@ -10,6 +10,10 @@ struct PlayerBullet {
 	int damage = 1;
 };
 
+struct UIUX {
+
+};
+
 struct MapLevel {
 	enum LEVEL {
 		TUTORIAL,

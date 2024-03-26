@@ -168,7 +168,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	float sharpness_factor_camera = 0.95f;
 	float K = 1.0f - pow(1.0f - sharpness_factor_camera, elapsed_ms_since_last_update / 1000.f);
 	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), motions_registry.get(player).position, K));
-	renderer->ui.setPosition(motions_registry.get(player).position);
+	//renderer->ui.setPosition(motions_registry.get(player).position);
 
 	// Interpolate mouse-camera offset
 	// sharpness_factor_camera_offset possible values:
@@ -183,7 +183,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	vec2 ui_pos = { 50.f, 50.f };
 	for (int i = 0; i < ui.size(); i++) {
 		vec2 padding = { i * 60, 0 };
-		motions_registry.get(ui[i]).position = motions_registry.get(player).position - window_px_half + ui_pos + padding;
+		motions_registry.get(ui[i]).position = vec2(0,0) - window_px_half + ui_pos + padding;
 	}
 	for (int i = 0; i < registry.hps.get(player).curr_hp; i++) {
 		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::FULL_HEART;
@@ -365,7 +365,7 @@ void WorldSystem::restart_game() {
 	// Create a new player
 	player = createPlayer(renderer, { 0, 0 });
 	is_alive = true;
-	ui = createUI(renderer, registry.hps.get(player).max_hp);
+	ui = createHealth(renderer, registry.hps.get(player).max_hp);
 	combo_meter = 1;
 	//createKey({ 0,0 }, { 100, 100 }, KEYS::MOUSE_1);
 	renderer->camera.setPosition({ 0, 0 });
