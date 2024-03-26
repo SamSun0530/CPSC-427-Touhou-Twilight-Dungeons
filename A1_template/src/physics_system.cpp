@@ -167,25 +167,6 @@ bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& m
 
 void PhysicsSystem::step(float elapsed_ms)
 {
-	if (focus_mode.in_focus_mode) {
-		// Iterate through player entities
-		for (Entity& playerEntity : registry.players.entities) {
-
-			Motion& playerMotion = registry.motions.get(playerEntity);
-			CircleCollidable& playerCircleCollidable = registry.circleCollidables.get(playerEntity);
-
-			for (Entity& enemyBulletEntity : registry.enemyBullets.entities) {
-				Motion& enemyBulletMotion = registry.motions.get(enemyBulletEntity);
-				Collidable& enemyBulletCollidable = registry.collidables.get(enemyBulletEntity);
-
-				if (collides_circle_AABB(playerMotion, playerCircleCollidable, enemyBulletMotion, enemyBulletCollidable)) {
-					registry.collisions.emplace_with_duplicates(playerEntity, enemyBulletEntity);
-					registry.collisions.emplace_with_duplicates(enemyBulletEntity, playerEntity);
-				}
-			}
-		}
-	}
-
 	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
 	auto& kinematic_registry = registry.kinematics;
@@ -269,19 +250,26 @@ void PhysicsSystem::step(float elapsed_ms)
 		Motion& player_motion = registry.motions.get(player_entity);
 		//Entity& wall_entity = registry.walls.entities[0]; // quick hack
 		Collidable& player_collidable = registry.collidables.get(player_entity);
+		CircleCollidable& playerCircleCollidable = registry.circleCollidables.get(player_entity);
 
-		for (Entity entity : registry.enemyBullets.entities) {
-			Motion& motion = registry.motions.get(entity);
-			Collidable& collidable = registry.collidables.get(entity);
+		for (Entity bullet_entity : registry.enemyBullets.entities) {
+			Motion& motion = registry.motions.get(bullet_entity);
+			Collidable& collidable = registry.collidables.get(bullet_entity);
 			coord grid_coord = convert_world_to_grid(motion.position);
 			if (!is_valid_cell(grid_coord.x, grid_coord.y)) {
-				//registry.collisions.emplace(entity, wall_entity); // causes bullet to go through walls
-				registry.remove_all_components_of(entity);
+				//registry.collisions.emplace(bullet_entity, wall_entity); // causes bullet to go through walls
+				registry.remove_all_components_of(bullet_entity);
 			}
-			//else if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable) && 
-			//	collides_mesh_AABB(player_entity, player_motion, motion, collidable)) {
-			//	registry.collisions.emplace_with_duplicates(player_entity, entity);
-			//}
+			if (focus_mode.in_focus_mode) {
+				if (collides_circle_AABB(player_motion, playerCircleCollidable, motion, collidable)) {
+					registry.collisions.emplace_with_duplicates(player_entity, bullet_entity);
+					registry.collisions.emplace_with_duplicates(bullet_entity, player_entity);
+				}
+			}
+			else if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable) &&
+				collides_mesh_AABB(player_entity, player_motion, motion, collidable)) {
+				registry.collisions.emplace_with_duplicates(player_entity, bullet_entity);
+			}
 		}
 	}
 
