@@ -1,4 +1,4 @@
-#include "world_init.hpp"
+                                                                                                                                                                                                                                      #include "world_init.hpp"
 
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet)
 {
@@ -23,7 +23,6 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = abs(motion.scale);
-
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
 		registry.playerBullets.emplace(entity);
@@ -44,6 +43,52 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 
 	return entity;
 }
+Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = rotation_angle;
+	motion.position = entity_position; // bullet spawns from entity's center position
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+
+	auto& kinematic = registry.kinematics.emplace(entity);
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = abs(motion.scale);
+
+	// Create and (empty) bullet component to be able to refer to all bullets
+	if (is_player_bullet) {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::REIMU_BULLET_DISAPPEAR,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ENEMY_BULLET,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	EntityAnimation ani;
+	ani.isCursor = false;
+	ani.offset = 0;
+	ani.frame_rate_ms = 50;
+	ani.full_rate_ms = 50;
+	ani.spritesheet_scale = { 0.25, 1 };
+	ani.render_pos = { 0.25, 1 };
+	registry.alwaysplayAni.insert(entity, ani);
+	return entity;
+}
 
 Entity createHealth(RenderSystem* renderer, vec2 position)
 {
@@ -53,13 +98,14 @@ Entity createHealth(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 	motion.angle = 0.f;
 	motion.scale = vec2({ HEALTH_WIDTH, HEALTH_HEIGHT });
-
+	registry.kinematics.emplace(entity);
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = abs(motion.scale);
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<> distrib(0, 1);
 	double number = distrib(gen);
+	double number_y = distrib(gen) / 2;
 	auto& pickupable = registry.pickupables.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
 	if (number <= 0.6) {
@@ -87,6 +133,12 @@ Entity createHealth(RenderSystem* renderer, vec2 position)
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
+	vec2 dir = { 60* (number - 0.5), 50*(number_y) };
+	BezierCurve curve;
+	curve.bezier_pts.push_back(position);
+	curve.bezier_pts.push_back(position + vec2(0, -20));
+	curve.bezier_pts.push_back(position + dir);
+	registry.bezierCurves.insert(entity, curve);
 	return entity;
 }
 
