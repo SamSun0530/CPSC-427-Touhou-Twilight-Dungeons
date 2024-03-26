@@ -284,12 +284,19 @@ void RenderSystem::draw()
 		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 			continue;
 		}
+		if (registry.focusdots.has(entity)) continue;
 
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
 
+	// this will only have at most one focusdots
+	// it will always be in camera view, and has motion
+	for (Entity entity : registry.focusdots.entities) {
+		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+	}
+	
 	for (Entity entity : registry.renderRequestsForeground.entities) {
 		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 			continue;
