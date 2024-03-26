@@ -42,7 +42,10 @@ public:
 	ComponentContainer<BomberEnemy> bomberEnemies;
 	ComponentContainer<WolfEnemy> wolfEnemies;
 	ComponentContainer<SubmachineGunEnemy> submachineGunEnemies;
+	ComponentContainer<CircleCollidable> circleCollidables;
+	ComponentContainer<EntityAnimation> alwaysplayAni;
 	ComponentContainer<BezierCurve> bezierCurves;
+	ComponentContainer<FocusDot> focusdots; // only for rendering dot for reimu
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -78,7 +81,10 @@ public:
 		registry_list.push_back(&bomberEnemies);
 		registry_list.push_back(&wolfEnemies);
 		registry_list.push_back(&submachineGunEnemies);
+		registry_list.push_back(&circleCollidables);
+		registry_list.push_back(&alwaysplayAni);
 		registry_list.push_back(&bezierCurves);
+		registry_list.push_back(&focusdots);
 	}
 
 	void clear_all_components() {

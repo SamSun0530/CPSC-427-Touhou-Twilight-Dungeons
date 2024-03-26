@@ -8,7 +8,11 @@
 #include <iostream>
 #include <sstream>
 
+<<<<<<< HEAD
 MapLevel map_level;
+=======
+FocusMode focus_mode;
+>>>>>>> origin
 Debug debugging;
 float death_timer_counter_ms = 3000;
 

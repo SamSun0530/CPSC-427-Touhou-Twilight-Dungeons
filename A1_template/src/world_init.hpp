@@ -23,10 +23,14 @@ const float HEALTH_HEIGHT = 0.3f * 80.f;
 // the bullet, takes into account entity's speed and position
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet = false);
 
+Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet);
+
 std::vector<Entity> createUI(RenderSystem*, int max_hp);
 
 Entity createHealth(RenderSystem* renderer, vec2 position);
 
+// focus mode dot
+Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the coin

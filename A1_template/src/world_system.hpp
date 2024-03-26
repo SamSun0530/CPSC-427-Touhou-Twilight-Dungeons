@@ -59,6 +59,12 @@ public:
 	std::string get_fps_in_string();
 	void toggle_display_instruction() { display_instruction = !display_instruction; }
 	void toggle_show_fps() { show_fps = !show_fps; }
+	// Updates focus mode position
+	// Fixes issue where dot lags behind player due to physics lerp step after setting position
+	void update_focus_dot();
+	// Combo meter
+	float combo_meter;
+	const float COMBO_METER_MAX = 1.5f;
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);

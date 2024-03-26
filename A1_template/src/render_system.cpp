@@ -133,12 +133,25 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 
 	GLint end_pos_uloc = glGetUniformLocation(program, "end_pos");
-	const vec2 end_pos = registry.animation.has(entity) ? registry.animation.get(entity).render_pos : vec2(1);
+	vec2 end_pos = vec2(1);
+	if (registry.animation.has(entity)) {
+		end_pos = registry.animation.get(entity).render_pos;
+	}
+	else if (registry.alwaysplayAni.has(entity)) {
+		end_pos = registry.alwaysplayAni.get(entity).render_pos;
+	}
 	glUniform2fv(end_pos_uloc, 1, (float*)&end_pos);
 	gl_has_errors();
 
 	GLint scale_uloc = glGetUniformLocation(program, "scale");
-	const vec2 ani_scale = registry.animation.has(entity) ? registry.animation.get(entity).spritesheet_scale : vec2(1);
+
+	vec2 ani_scale = vec2(1);
+	if (registry.animation.has(entity)) {
+		ani_scale = registry.animation.get(entity).spritesheet_scale;
+	}
+	else if (registry.alwaysplayAni.has(entity)) {
+		ani_scale = registry.alwaysplayAni.get(entity).spritesheet_scale;
+	}
 	glUniform2fv(scale_uloc, 1, (float*)&ani_scale);
 	gl_has_errors();
 
