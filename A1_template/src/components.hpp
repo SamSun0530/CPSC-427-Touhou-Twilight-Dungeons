@@ -110,6 +110,14 @@ struct Motion {
 	vec2 scale = { 10, 10 };
 };
 
+struct RenderText {
+	std::string content;
+};
+
+struct RenderTextPermanent {
+	std::string content;
+};
+
 // Velocity related data
 struct Kinematic {
 	float speed_base = 0.f;
