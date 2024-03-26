@@ -43,6 +43,7 @@ public:
 	ComponentContainer<WolfEnemy> wolfEnemies;
 	ComponentContainer<SubmachineGunEnemy> submachineGunEnemies;
 	ComponentContainer<CircleCollidable> circleCollidables;
+	ComponentContainer<EntityAnimation> alwaysplayAni;
 	ComponentContainer<BezierCurve> bezierCurves;
 	ComponentContainer<FocusDot> focusdots; // only for rendering dot for reimu
 
@@ -81,6 +82,7 @@ public:
 		registry_list.push_back(&wolfEnemies);
 		registry_list.push_back(&submachineGunEnemies);
 		registry_list.push_back(&circleCollidables);
+		registry_list.push_back(&alwaysplayAni);
 		registry_list.push_back(&bezierCurves);
 		registry_list.push_back(&focusdots);
 	}

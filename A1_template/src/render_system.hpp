@@ -66,6 +66,7 @@ class RenderSystem {
 			textures_path("Health+1.png"),
 			textures_path("Health+2.png"),
 			textures_path("RegenerateHealth.png"),
+			textures_path("Reimu-Bullet-Disappear.png"),
 			textures_path("FocusDot.png")
 	};
 
