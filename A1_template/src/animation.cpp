@@ -27,7 +27,22 @@ void Animation::step(float elapsed_ms)
 			if (animation.render_pos.x > 1.0) {
 				animation.render_pos.x = animation.spritesheet_scale.x;
 			}
-			animation.frame_rate_ms = 200.f;
+			animation.frame_rate_ms = animation.full_rate_ms;
+		}
+	}
+	for (EntityAnimation& animation : registry.alwaysplayAni.components) {
+		animation.frame_rate_ms -= elapsed_ms;
+
+		if (animation.frame_rate_ms < animation_frame_rate) {
+			animation_frame_rate = animation.frame_rate_ms;
+		}
+
+		if (animation.frame_rate_ms < 0) {
+			animation.render_pos.x += animation.spritesheet_scale.x;
+			if (animation.render_pos.x > 1.0) {
+				animation.render_pos.x = animation.spritesheet_scale.x;
+			}
+			animation.frame_rate_ms = animation.full_rate_ms;
 		}
 	}
 	double mouse_pos_x;

@@ -42,6 +42,7 @@ public:
 	ComponentContainer<BomberEnemy> bomberEnemies;
 	ComponentContainer<WolfEnemy> wolfEnemies;
 	ComponentContainer<SubmachineGunEnemy> submachineGunEnemies;
+	ComponentContainer<EntityAnimation> alwaysplayAni;
 	ComponentContainer<BezierCurve> bezierCurves;
 
 	// constructor that adds all containers for looping over them
@@ -78,6 +79,7 @@ public:
 		registry_list.push_back(&bomberEnemies);
 		registry_list.push_back(&wolfEnemies);
 		registry_list.push_back(&submachineGunEnemies);
+		registry_list.push_back(&alwaysplayAni);
 		registry_list.push_back(&bezierCurves);
 	}
 
