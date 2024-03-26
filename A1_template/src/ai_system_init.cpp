@@ -180,10 +180,10 @@ void AISystem::init() {
 
 	// A list of function pointers for conditionals and actions
 	// checks if entity is within range of player
-	bool (*isInRange)(Entity & entity) = [](Entity& entity) {
+	bool (*isInRangeRemoveFollow)(Entity & entity) = [](Entity& entity) {
 		float minimum_range_to_check = 360000; // sqrt(360000)=600 pixels
 		Motion& motion = registry.motions.get(entity);
-		// asusme there is only one player
+		// asume there is only one player
 		for (Entity& player_entity : registry.players.entities) {
 			Motion& player_motion = registry.motions.get(player_entity);
 			vec2 dp = player_motion.position - motion.position;
@@ -191,6 +191,18 @@ void AISystem::init() {
 		}
 		registry.followpaths.remove(entity);
 		registry.followFlowField.remove(entity);
+		return false;
+		};
+	bool (*isInRange)(Entity & entity) = [](Entity& entity) {
+		float minimum_range_to_check = 1300000; // sqrt(minimum_range_to_check) = x, where x = # of pixels
+		Motion& motion = registry.motions.get(entity);
+		// asume there is only one player
+		for (Entity& player_entity : registry.players.entities) {
+			Motion& player_motion = registry.motions.get(player_entity);
+			vec2 dp = player_motion.position - motion.position;
+			printf("dot(dp,dp) = %f\n", dot(dp, dp));
+			if (dot(dp, dp) < minimum_range_to_check) return true;
+		}
 		return false;
 		};
 	// checks if entity can shoot, throws error if entity does not have bullet spawner component
@@ -291,16 +303,30 @@ void AISystem::init() {
 			registry.followFlowField.remove(entity);
 		}
 		};
+	void (*showBossHealthBar)(Entity & entity) = [](Entity& entity) {
+		if (!registry.bosses.has(entity)) return;
+		BossHealthBarLink& link = registry.bossHealthBarLink.get(entity);
+		BossHealthBarUI& ui = registry.bossHealthBarUIs.get(link.other);
+		printf("show\n");
+		if (!ui.is_visible) ui.is_visible = true;
+		};
+	void (*hideBossHealthBar)(Entity& entity) = [](Entity& entity) {
+		if (!registry.bosses.has(entity)) return;
+		BossHealthBarLink& link = registry.bossHealthBarLink.get(entity);
+		BossHealthBarUI& ui = registry.bossHealthBarUIs.get(link.other);
+		printf("hide\n");
+		if (ui.is_visible) ui.is_visible = false;
+		};
 
 	ConditionalNode* can_see_player_bee = new ConditionalNode(canSeePlayer);
-	ConditionalNode* is_in_range_bee = new ConditionalNode(isInRange);
+	ConditionalNode* is_in_range_bee = new ConditionalNode(isInRangeRemoveFollow);
 	ConditionalNode* can_shoot_bee = new ConditionalNode(canShoot);
 
 	ActionNode* move_random_direction_bee = new ActionNode(moveRandomDirection);
-	ActionNode* stop_firing_bee = new ActionNode(stopFiring);
+	//ActionNode* stop_firing_bee = new ActionNode(stopFiring);
 	ActionNode* fire_at_player_bee = new ActionNode(fireAtPlayer);
 	ActionNode* find_player_bee = new ActionNode(findPlayerAStar);
-	ActionNode* find_player_threshold_bee = new ActionNode(findPlayerThresholdAStar);
+	//ActionNode* find_player_threshold_bee = new ActionNode(findPlayerThresholdAStar);
 	ActionNode* follow_flow_field_threshold_bee = new ActionNode(followFlowFieldThreshold);
 
 	can_shoot_bee->setTrue(fire_at_player_bee);
@@ -335,10 +361,21 @@ void AISystem::init() {
 		T -> find player with a star
 	*/
 	ActionNode* move_random_direction_bomber = new ActionNode(moveRandomDirection);
-	ActionNode* find_player_bomber = new ActionNode(findPlayerAStar);
+	//ActionNode* find_player_bomber = new ActionNode(findPlayerAStar);
 	ActionNode* follow_flow_field_bomber = new ActionNode(followFlowField);
-	ConditionalNode* is_in_range_bomber = new ConditionalNode(follow_flow_field_bomber, move_random_direction_bomber, isInRange);
+	ConditionalNode* is_in_range_bomber = new ConditionalNode(follow_flow_field_bomber, move_random_direction_bomber, isInRangeRemoveFollow);
 	this->bomber_tree.setRoot(is_in_range_bomber);
+
+	/*
+	Cirno boss decision tree
+	COND in range global?
+		F -> hide boss health bar
+		T -> show boss health bar
+	*/
+	ActionNode* show_boss_health_bar_cirno = new ActionNode(showBossHealthBar);
+	ActionNode* hide_boss_health_bar_cirno = new ActionNode(hideBossHealthBar);
+	ConditionalNode* is_in_range_cirno = new ConditionalNode(show_boss_health_bar_cirno, hide_boss_health_bar_cirno, isInRange);
+	this->cirno_boss_tree.setRoot(is_in_range_cirno);
 
 	// TODO: create decision trees/condition/action functions here for different enemies
 }

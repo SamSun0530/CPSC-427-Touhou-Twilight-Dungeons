@@ -50,6 +50,9 @@ void AISystem::step(float elapsed_ms)
 			else if (registry.wolfEnemies.has(entity)) {
 				wolf_tree.update(entity);
 			}
+			else if (registry.bosses.has(entity)) {
+				cirno_boss_tree.update(entity);
+			}
 			aitimer.update_timer_ms = aitimer.update_base;
 		}
 	}

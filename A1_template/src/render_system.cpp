@@ -336,7 +336,7 @@ void RenderSystem::draw()
 
 	for (Entity entity : boss_ui_entities) {
 		BossHealthBarUI& bhp = registry.bossHealthBarUIs.get(entity);
-		if (!bhp.is_visible) {
+		if (bhp.is_visible) {
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
 	}
