@@ -60,7 +60,5 @@ std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std
 Entity createLine(vec2 position, vec2 size);
 // a egg
 Entity createEgg(vec2 pos, vec2 size);
-Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm);
-
 
 

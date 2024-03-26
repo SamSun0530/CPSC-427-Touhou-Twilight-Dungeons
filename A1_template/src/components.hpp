@@ -118,14 +118,6 @@ struct Motion {
 	vec2 scale = { 10, 10 };
 };
 
-struct RenderText {
-	std::string content;
-};
-
-struct RenderTextPermanent {
-	std::string content;
-};
-
 // Velocity related data
 struct Kinematic {
 	float speed_base = 0.f;
@@ -167,15 +159,6 @@ struct FollowPath
 {
 	path path;
 	int next_path_index = 0;
-	// whether to continue chasing or stop at grid
-	// set to true to prevent enemy from stopping early
-	bool is_player_target = true;
-};
-
-// Entity follows flow field
-struct FollowFlowField
-{
-	coord next_grid_pos = { -1, -1 };
 	// whether to continue chasing or stop at grid
 	// set to true to prevent enemy from stopping early
 	bool is_player_target = true;
