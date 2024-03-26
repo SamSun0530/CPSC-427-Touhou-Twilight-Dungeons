@@ -188,16 +188,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::EMPTY_HEART;
 	}
 
-	// Focus mode circle 
-	// TODO: replace with texture instead of using debug egg because it's been deleted/created per frame (for optimization)
-	if (focus_mode.in_focus_mode) {
-		for (Entity entity : registry.circleCollidables.entities) {
-			Motion& motion = registry.motions.get(entity);
-			CircleCollidable& circle_collidable = registry.circleCollidables.get(entity);
-			createEgg(motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
-		}
-	}
-
 	//// Spawning new enemies
 	//next_enemy_spawn -= elapsed_ms_since_last_update;
 	//if (registry.deadlys.components.size() < MAX_ENEMIES && next_enemy_spawn < 0.f) {
@@ -277,7 +267,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			return true;
 		}
 	}
-	
+
 	for (Entity entity : registry.bezierCurves.entities) {
 
 		BezierCurve& curve_counter = registry.bezierCurves.get(entity);
@@ -667,10 +657,30 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		getInstance().toggle_display_instruction();
 	}
 
-	// use ` to toggle focus mode
-	if (key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_RELEASE) {
-		focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
-		focus_mode.speed_constant = focus_mode.in_focus_mode ? 0.5f : 1.0f;
+	// Hold for focus mode
+	if (is_alive) {
+		if (key == GLFW_KEY_LEFT_SHIFT &&
+			!pressed[key] &&
+			action == GLFW_PRESS &&
+			!focus_mode.in_focus_mode) {
+			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+			focus_mode.speed_constant = 0.5f;
+			Motion& motion = registry.motions.get(player);
+			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
+			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+			pressed[key] = true;
+		}
+		else if (key == GLFW_KEY_LEFT_SHIFT &&
+			pressed[key] &&
+			action == GLFW_RELEASE &&
+			focus_mode.in_focus_mode) {
+			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+			focus_mode.speed_constant = 1.0f;
+
+			while (registry.focusdots.entities.size() > 0)
+				registry.remove_all_components_of(registry.focusdots.entities.back());
+			pressed[key] = false;
+		}
 	}
 }
 
@@ -704,4 +714,23 @@ void WorldSystem::on_scroll(vec2 scroll_offset) {
 	renderer->camera.addZoom(scroll_offset.y);
 
 	(vec2)scroll_offset;
+}
+
+void WorldSystem::update_focus_dot() {
+	if (focus_mode.in_focus_mode) {
+		// Only reimu should have focus dot
+		for (Entity entity : registry.focusdots.entities) {
+			Motion& motion = registry.motions.get(entity);
+			Motion& player_motion = registry.motions.get(player);
+			CircleCollidable& player_circle_collidable = registry.circleCollidables.get(player);
+			motion.position = player_motion.position + player_circle_collidable.shift;
+		}
+
+		// This is for testing circleCollidable size if focus mode texture is not present
+		//for (Entity entity : registry.circleCollidables.entities) {
+		//	Motion& motion = registry.motions.get(entity);
+		//	CircleCollidable& circle_collidable = registry.circleCollidables.get(entity);
+		//	createEgg(motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+		//}
+	}
 }

@@ -81,6 +81,8 @@ int main()
 		physics.step(elapsed_ms);
 		//time_debug.getTime("physics");
 
+		world.update_focus_dot();
+
 		//time_debug.initTime();
 		ai.step(elapsed_ms);
 		//time_debug.getTime("ai");

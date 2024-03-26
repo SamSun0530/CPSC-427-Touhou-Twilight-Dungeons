@@ -141,6 +141,10 @@ struct Collision
 	Collision(Entity& other) { this->other = other; };
 };
 
+// Focus dot rendering sprite for reimu
+struct FocusDot {
+};
+
 // Entity follows given path
 struct FollowPath
 {
@@ -291,7 +295,8 @@ enum class TEXTURE_ASSET_ID {
 	HEALTH_1 = PILLAR_BOTTOM + 1,
 	HEALTH_2 = HEALTH_1 + 1,
 	REGENERATE_HEALTH = HEALTH_2 + 1,
-	TEXTURE_COUNT = REGENERATE_HEALTH + 1
+	FOCUS_DOT = REGENERATE_HEALTH + 1,
+	TEXTURE_COUNT = FOCUS_DOT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
