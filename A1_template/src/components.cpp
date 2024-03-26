@@ -8,6 +8,7 @@
 #include <iostream>
 #include <sstream>
 
+FocusMode focus_mode;
 Debug debugging;
 float death_timer_counter_ms = 3000;
 

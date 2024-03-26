@@ -10,6 +10,29 @@ struct CollisionInfo {
 	float penetrationDepth = 0.0f;
 };
 
+// Collision test between circle and AABB
+// Credit to "Ghoster": https://gamedev.stackexchange.com/a/178154
+bool collides_circle_AABB(const Motion& circleMotion, const CircleCollidable& circleCollidable, const Motion& AABBMotion, const Collidable& AABB)
+{
+	vec2 circle_center = circleMotion.position + circleCollidable.shift;
+	vec2 AABB_center = AABBMotion.position + AABB.shift;
+	vec2 distance = circle_center - AABB_center;
+	const vec2 AABB_half_extents = abs(AABB.size) / 2.f;
+	vec2 clamp_distance = clamp(distance, -AABB_half_extents, AABB_half_extents);
+	vec2 closest_point = AABB_center + clamp_distance;
+	return length(closest_point - circle_center) < circleCollidable.radius;
+}
+
+vec2 get_bezier_point(std::vector<vec2> points, float t) {
+	int i = points.size() - 1;
+	while (i > 0) {
+		for (int k = 0; k < i; k++)
+			points[k] = vec2_lerp(points[k], points[k + 1], t);
+		i--;
+	}
+	return points[0];
+}
+
 // Collision test between AABB and AABB
 bool collides_AABB_AABB(const Motion& motion1, const Motion& motion2, const Collidable& collidable1, const Collidable& collidable2)
 {
@@ -144,6 +167,25 @@ bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& m
 
 void PhysicsSystem::step(float elapsed_ms)
 {
+	if (focus_mode.in_focus_mode) {
+		// Iterate through player entities
+		for (Entity& playerEntity : registry.players.entities) {
+
+			Motion& playerMotion = registry.motions.get(playerEntity);
+			CircleCollidable& playerCircleCollidable = registry.circleCollidables.get(playerEntity);
+
+			for (Entity& enemyBulletEntity : registry.enemyBullets.entities) {
+				Motion& enemyBulletMotion = registry.motions.get(enemyBulletEntity);
+				Collidable& enemyBulletCollidable = registry.collidables.get(enemyBulletEntity);
+
+				if (collides_circle_AABB(playerMotion, playerCircleCollidable, enemyBulletMotion, enemyBulletCollidable)) {
+					registry.collisions.emplace_with_duplicates(playerEntity, enemyBulletEntity);
+					registry.collisions.emplace_with_duplicates(enemyBulletEntity, playerEntity);
+				}
+			}
+		}
+	}
+
 	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
 	auto& kinematic_registry = registry.kinematics;
@@ -164,8 +206,15 @@ void PhysicsSystem::step(float elapsed_ms)
 		// Linear interpolation of velocity
 		// K factor (0,30] = ~0 (not zero, slippery, ice) -> 10-20 (quick start up/slow down, natural) -> 30 (instant velocity, jittery)
 		float K = 10.f;
-		kinematic.velocity = vec2_lerp(kinematic.velocity, direction_normalized * kinematic.speed_modified, step_seconds * K);
+		kinematic.velocity = vec2_lerp(kinematic.velocity, direction_normalized * kinematic.speed_modified * focus_mode.speed_constant, step_seconds * K);
 		motion.position += kinematic.velocity * step_seconds;
+	}
+	for (uint i = 0; i < registry.bezierCurves.size(); i++) {
+		Entity& entity = registry.bezierCurves.entities[i];
+		BezierCurve& bezier_curve = registry.bezierCurves.components[i];
+		Motion& motion = registry.motions.get(entity);
+		bezier_curve.t += elapsed_ms / 500.f;
+		motion.position = get_bezier_point(bezier_curve.bezier_pts, bezier_curve.t);
 	}
 
 	// Check for collisions between all collidable entities
@@ -183,7 +232,12 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (uint j = i + 1; j < collidable_container.components.size(); j++)
 		{
 			Entity entity_j = collidable_container.entities[j];
-			if (registry.walls.has(entity_j) || registry.enemyBullets.has(entity_j)) continue;
+			if (registry.walls.has(entity_j)) continue;
+			if (focus_mode.in_focus_mode && ((registry.players.has(entity_i) && registry.enemyBullets.has(entity_j)) || (registry.players.has(entity_j) && registry.enemyBullets.has(entity_i)))) {
+				continue;
+			}
+			if (registry.enemyBullets.has(entity_j)) continue;
+
 			Collidable& collidable_j = collidable_container.components[j];
 			Motion& motion_j = motion_container.get(entity_j);
 

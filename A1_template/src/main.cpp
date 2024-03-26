@@ -49,7 +49,7 @@ int main()
 
 	// initialize the main systems
 	renderer.init(window);
-	world.init(&renderer, &audio, &map);
+	world.init(&renderer, &audio, &map, &ai);
 	bullets.init(&renderer, window, &audio);
 	ai.init();
 	map.init(&renderer);
@@ -67,10 +67,12 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
+		elapsed_ms = world.combo_meter * elapsed_ms;
 		world.step(elapsed_ms);
 		boss_system.step(elapsed_ms);
 		animation.step(elapsed_ms);
 		physics.step(elapsed_ms);
+		world.update_focus_dot();
 		ai.step(elapsed_ms);
 		bullets.step(elapsed_ms);
 		world.handle_collisions();

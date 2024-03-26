@@ -68,6 +68,8 @@ class RenderSystem {
 			textures_path("RegenerateHealth.png"),
 			textures_path("Cirno-Figure.png"),
 			textures_path("BossHealthBar.png"),
+			textures_path("Reimu-Bullet-Disappear.png"),
+			textures_path("FocusDot.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
