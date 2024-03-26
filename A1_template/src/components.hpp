@@ -128,12 +128,22 @@ struct Collidable {
 	vec2 size = { 1, 1 };
 };
 
+// Represents collision circle with shift transform and radius
+struct CircleCollidable {
+	vec2 shift = { 0, 0 };
+	float radius;
+};
+
 // Stucture to store collision information
 struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
 	Entity other; // the second object involved in the collision
 	Collision(Entity& other) { this->other = other; };
+};
+
+// Focus dot rendering sprite for reimu
+struct FocusDot {
 };
 
 // Entity follows given path
@@ -153,6 +163,11 @@ struct Debug {
 };
 extern Debug debugging;
 
+struct FocusMode {
+	bool in_focus_mode = 0;
+	float speed_constant = 1.0f;
+};
+extern FocusMode focus_mode;
 
 // Sets the brightness of the screen
 struct ScreenState
@@ -283,7 +298,8 @@ enum class TEXTURE_ASSET_ID {
 	HEALTH_2 = HEALTH_1 + 1,
 	REGENERATE_HEALTH = HEALTH_2 + 1,
 	REIMU_BULLET_DISAPPEAR = REGENERATE_HEALTH + 1,
-	TEXTURE_COUNT = REIMU_BULLET_DISAPPEAR + 1
+	FOCUS_DOT = REIMU_BULLET_DISAPPEAR + 1,
+	TEXTURE_COUNT = FOCUS_DOT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

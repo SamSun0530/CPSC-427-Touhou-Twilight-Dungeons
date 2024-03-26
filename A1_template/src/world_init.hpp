@@ -29,6 +29,8 @@ std::vector<Entity> createUI(RenderSystem*, int max_hp);
 
 Entity createHealth(RenderSystem* renderer, vec2 position);
 
+// focus mode dot
+Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the coin
