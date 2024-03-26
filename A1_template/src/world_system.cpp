@@ -370,7 +370,7 @@ void WorldSystem::restart_game() {
 	is_alive = true;
 	ui = createUI(renderer, registry.hps.get(player).max_hp);
 	combo_meter = 1;
-
+	createKey({ 0,0 }, { 100, 100 }, KEYS::MOUSE_1);
 	renderer->camera.setPosition({ 0, 0 });
 }
 

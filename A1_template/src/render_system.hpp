@@ -68,7 +68,7 @@ class RenderSystem {
 			textures_path("RegenerateHealth.png"),
 			textures_path("Reimu-Bullet-Disappear.png"),
 			textures_path("FocusDot.png"),
-			textures_path("keyboard_a.png")
+			textures_path("keyboard.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
