@@ -165,12 +165,22 @@ struct Collidable {
 	vec2 size = { 1, 1 };
 };
 
+// Represents collision circle with shift transform and radius
+struct CircleCollidable {
+	vec2 shift = { 0, 0 };
+	float radius;
+};
+
 // Stucture to store collision information
 struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
 	Entity other; // the second object involved in the collision
 	Collision(Entity& other) { this->other = other; };
+};
+
+// Focus dot rendering sprite for reimu
+struct FocusDot {
 };
 
 // Entity follows given path
@@ -183,6 +193,15 @@ struct FollowPath
 	bool is_player_target = true;
 };
 
+// Entity follows flow field
+struct FollowFlowField
+{
+	coord next_grid_pos = { -1, -1 };
+	// whether to continue chasing or stop at grid
+	// set to true to prevent enemy from stopping early
+	bool is_player_target = true;
+};
+
 // Data structure for toggling debug mode
 struct Debug {
 	bool in_debug_mode = 0;
@@ -190,6 +209,11 @@ struct Debug {
 };
 extern Debug debugging;
 
+struct FocusMode {
+	bool in_focus_mode = 0;
+	float speed_constant = 1.0f;
+};
+extern FocusMode focus_mode;
 
 // Sets the brightness of the screen
 struct ScreenState
@@ -245,6 +269,14 @@ struct TexturedVertex
 {
 	vec3 position;
 	vec2 texcoord;
+};
+
+struct RenderText {
+	std::string content;
+};
+
+struct RenderTextPermanent {
+	std::string content;
 };
 
 // Mesh datastructure for storing vertex and index buffers
@@ -321,7 +353,8 @@ enum class TEXTURE_ASSET_ID {
 	REGENERATE_HEALTH = HEALTH_2 + 1,
 	REIMU_BULLET_DISAPPEAR = REGENERATE_HEALTH + 1,
 	COIN = REIMU_BULLET_DISAPPEAR + 1,
-	TEXTURE_COUNT = COIN + 1,
+	FOCUS_DOT = COIN + 1,
+	TEXTURE_COUNT = FOCUS_DOT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

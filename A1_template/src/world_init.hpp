@@ -25,10 +25,14 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 
 Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet);
 
+Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm);
+
 std::vector<Entity> createUI(RenderSystem*, int max_hp);
 
 Entity createHealth(RenderSystem* renderer, vec2 position);
 
+// focus mode dot
+Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the coin

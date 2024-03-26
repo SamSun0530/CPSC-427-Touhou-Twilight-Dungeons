@@ -121,10 +121,11 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map) {
+void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
 	this->map = map;
+	this->ai = ai;
 	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
 	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
@@ -141,7 +142,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
 	if (elapsedSinceLastFPSUpdate >= 1000.0) {
 		// Calculate FPS
-		getInstance().fps = static_cast<int>(1000.0f / elapsed_ms_since_last_update);
+		getInstance().fps = static_cast<int>(1000.0f / (elapsed_ms_since_last_update / combo_meter));
 		elapsedSinceLastFPSUpdate = 0.0f;
 	}
 
@@ -154,7 +155,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
 		registry.remove_all_components_of(registry.debugComponents.entities.back());
-
+	while (registry.texts.entities.size() > 0)
+		registry.remove_all_components_of(registry.texts.entities.back());
+	createText({ 0,100 }, { 1, 1 }, std::to_string(combo_meter), { 0, 1, 0 }, false);
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
 
@@ -291,7 +294,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 		}
 	}
-	
+
 	for (Entity entity : registry.bezierCurves.entities) {
 
 		BezierCurve& curve_counter = registry.bezierCurves.get(entity);
@@ -358,8 +361,12 @@ void WorldSystem::restart_game() {
 	is_alive = true;
 	ui = createUI(renderer, registry.hps.get(player).max_hp);
 	combo_meter = 1;
+	focus_mode.in_focus_mode = false;
+	focus_mode.speed_constant = 1.0f;
 
 	renderer->camera.setPosition({ 0, 0 });
+
+	ai->restart_flow_field_map();
 }
 
 // Compute collisions between entities
@@ -375,10 +382,10 @@ void WorldSystem::handle_collisions() {
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
-				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(player)) {
-
+				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
+					Player& player_component = registry.players.get(entity);
 					// player turn red and decrease hp
-					if (!registry.players.get(player).invulnerability) {
+					if (!player_component.invulnerability) {
 						// should decrease HP but not yet implemented
 						if (!registry.realDeathTimers.has(entity_other)) {
 							registry.hitTimers.emplace(entity);
@@ -393,6 +400,7 @@ void WorldSystem::handle_collisions() {
 								registry.hps.remove(entity_other);
 								registry.aitimers.remove(entity_other);
 								registry.followpaths.remove(entity_other);
+								registry.followFlowField.remove(entity);
 								if (registry.bulletFireRates.has(entity_other)) {
 									registry.bulletFireRates.get(entity_other).is_firing = false;
 								}
@@ -401,7 +409,7 @@ void WorldSystem::handle_collisions() {
 							}
 						}
 
-						registry.players.get(player).invulnerability = true;
+						player_component.invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
 				}
@@ -473,6 +481,7 @@ void WorldSystem::handle_collisions() {
 							registry.hps.remove(entity);
 							registry.aitimers.remove(entity);
 							registry.followpaths.remove(entity);
+							registry.followFlowField.remove(entity);
 							if (registry.bulletFireRates.has(entity)) {
 								registry.bulletFireRates.get(entity).is_firing = false;
 							}
@@ -693,7 +702,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	// Fire bullets at mouse cursor (Also mouse1)
+	// Fire bullets at mouse cursor (Also mouse 1)
 	if (key == GLFW_KEY_SPACE) {
 		BulletFireRate& fireRate = registry.bulletFireRates.get(player);
 		if (action == GLFW_PRESS) {
@@ -723,7 +732,31 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Toggle tutorial display
 	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
 		getInstance().toggle_display_instruction();
+	}
 
+	// Hold for focus mode
+	if (is_alive) {
+		if (key == GLFW_KEY_LEFT_SHIFT &&
+			!pressed[key] &&
+			action == GLFW_PRESS &&
+			!focus_mode.in_focus_mode) {
+			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+			focus_mode.speed_constant = 0.5f;
+			Motion& motion = registry.motions.get(player);
+			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
+			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+			pressed[key] = true;
+		}
+		else if (key == GLFW_KEY_LEFT_SHIFT &&
+			pressed[key] &&
+			action == GLFW_RELEASE &&
+			focus_mode.in_focus_mode) {
+			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+			focus_mode.speed_constant = 1.0f;
+			while (registry.focusdots.entities.size() > 0)
+				registry.remove_all_components_of(registry.focusdots.entities.back());
+			pressed[key] = false;
+		}
 	}
 }
 
@@ -757,4 +790,23 @@ void WorldSystem::on_scroll(vec2 scroll_offset) {
 	renderer->camera.addZoom(scroll_offset.y);
 
 	(vec2)scroll_offset;
+}
+
+void WorldSystem::update_focus_dot() {
+	if (focus_mode.in_focus_mode) {
+		// Only reimu should have focus dot
+		for (Entity entity : registry.focusdots.entities) {
+			Motion& motion = registry.motions.get(entity);
+			Motion& player_motion = registry.motions.get(player);
+			CircleCollidable& player_circle_collidable = registry.circleCollidables.get(player);
+			motion.position = player_motion.position + player_circle_collidable.shift;
+		}
+
+		// This is for testing circleCollidable size if focus mode texture is not present
+		//for (Entity entity : registry.circleCollidables.entities) {
+		//	Motion& motion = registry.motions.get(entity);
+		//	CircleCollidable& circle_collidable = registry.circleCollidables.get(entity);
+		//	createEgg(motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+		//}
+	}
 }

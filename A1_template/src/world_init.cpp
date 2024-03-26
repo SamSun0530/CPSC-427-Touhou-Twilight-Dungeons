@@ -1,4 +1,4 @@
-                                                                                                                                                                                                                                      #include "world_init.hpp"
+#include "world_init.hpp"
 
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet)
 {
@@ -22,7 +22,7 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = abs(motion.scale);
+	collidable.size = abs(motion.scale / 2.f);
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
 		registry.playerBullets.emplace(entity);
@@ -133,7 +133,7 @@ Entity createHealth(RenderSystem* renderer, vec2 position)
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
-	vec2 dir = { 60* (number - 0.5), 50*(number_y) };
+	vec2 dir = { 60 * (number - 0.5), 50 * (number_y) };
 	BezierCurve curve;
 	curve.bezier_pts.push_back(position);
 	curve.bezier_pts.push_back(position + vec2(0, -20));
@@ -382,17 +382,20 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
-	kinematic.speed_base = 100.f;
-	kinematic.speed_modified = 3.f * kinematic.speed_base;
+	kinematic.speed_base = 300.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
 	kinematic.direction = { 0, 0 };
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = abs(motion.scale);
-
 	// Set player collision box at the feet of the player
 	collidable.size = { motion.scale.x / 32 * 24, motion.scale.y / 2.f };
 	collidable.shift = { 0, motion.scale.y / 4.f };
+
+	// Set the collision circle
+	auto& collidable_circle = registry.circleCollidables.emplace(entity);
+	collidable_circle.radius = 6.f;
+	collidable_circle.shift = { 0, motion.scale.y / 6.f };
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
@@ -413,6 +416,29 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	registry.bulletFireRates.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
+
+	return entity;
+}
+
+Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = size;
+
+	registry.focusdots.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::FOCUS_DOT, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }
@@ -495,6 +521,23 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 
 	registry.aitimers.emplace(entity);
 
+	return entity;
+}
+
+Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm) {
+	auto entity = Entity();
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.scale = scale;
+	registry.kinematics.emplace(entity);
+	if (is_perm) {
+		registry.textsPerm.emplace(entity).content = text_content;
+	}
+	else {
+		registry.texts.emplace(entity).content = text_content;
+	}
+	registry.colors.emplace(entity) = color;
 	return entity;
 }
 
@@ -851,7 +894,6 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
-// TEMPORARY EGG (remove/refactor later)
 Entity createEgg(vec2 pos, vec2 size)
 {
 	auto entity = Entity();
@@ -862,13 +904,13 @@ Entity createEgg(vec2 pos, vec2 size)
 	motion.angle = 0.f;
 	motion.scale = size;
 
-	registry.deadlys.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::EGG,
 			GEOMETRY_BUFFER_ID::EGG });
 
+	registry.debugComponents.emplace(entity);
 	return entity;
 }
 
