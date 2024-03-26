@@ -184,6 +184,14 @@ struct DeathTimer
 	float first_animation_frame = false;
 };
 
+
+struct BezierCurve
+{
+	float curve_counter_ms = 500;
+	float t = 0.0f;
+	std::vector<vec2> bezier_pts;
+};
+
 struct InvulnerableTimer {
 	float invulnerable_counter_ms = 1000;
 };

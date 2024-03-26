@@ -10,6 +10,16 @@ struct CollisionInfo {
 	float penetrationDepth = 0.0f;
 };
 
+vec2 get_bezier_point(std::vector<vec2> points, float t) {
+	int i = points.size() - 1;
+	while (i > 0) {
+		for (int k = 0; k < i; k++)
+			points[k] = vec2_lerp(points[k], points[k + 1], t);
+		i--;
+	}
+	return points[0];
+}
+
 // Collision test between AABB and AABB
 bool collides_AABB_AABB(const Motion& motion1, const Motion& motion2, const Collidable& collidable1, const Collidable& collidable2)
 {
@@ -168,6 +178,13 @@ void PhysicsSystem::step(float elapsed_ms)
 		motion.position += kinematic.velocity * step_seconds;
 
 		//motion.position += direction_normalized * kinematic.speed_modified * step_seconds;
+	}
+	for (uint i = 0; i < registry.bezierCurves.size(); i++) {
+		Entity& entity = registry.bezierCurves.entities[i];
+		BezierCurve& bezier_curve = registry.bezierCurves.components[i];
+		Motion& motion = registry.motions.get(entity);
+		bezier_curve.t += elapsed_ms / 500.f;
+		motion.position = get_bezier_point(bezier_curve.bezier_pts, bezier_curve.t);
 	}
 
 	// Check for collisions between all collidable entities

@@ -281,6 +281,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 		}
 	}
+	
+	for (Entity entity : registry.bezierCurves.entities) {
+
+		BezierCurve& curve_counter = registry.bezierCurves.get(entity);
+		curve_counter.curve_counter_ms -= elapsed_ms_since_last_update;
+
+		if (curve_counter.curve_counter_ms < 0) {
+			registry.bezierCurves.remove(entity);
+		}
+	}
 
 	if (is_alive && registry.hps.get(player).curr_hp <= 0) {
 		registry.bulletFireRates.get(player).is_firing = false;
@@ -296,35 +306,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (registry.players.has(entity)) continue;
 		HP& hp = registry.hps.get(entity);
 		if (hp.curr_hp <= 0.0f) {
-			if (registry.beeEnemies.has(entity)) {
-				registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
-				registry.hps.remove(entity);
-				registry.aitimers.remove(entity);
-				registry.followpaths.remove(entity);
-				registry.bulletFireRates.get(entity).is_firing = false;
-				registry.kinematics.get(entity).velocity = { 0,0 };
-				registry.kinematics.get(entity).direction = { 0,0 };
+			if (registry.deadlys.has(entity)) {
+				std::random_device rd;
+				std::mt19937 gen(rd());
+				std::uniform_real_distribution<> distrib(0, 1);
+				float number = distrib(gen);
+				if (number <= 0.9)
+					createHealth(renderer, registry.motions.get(entity).position);
 			}
-			else if (registry.wolfEnemies.has(entity)) {
-				registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
-				registry.hps.remove(entity);
-				registry.aitimers.remove(entity);
-				registry.followpaths.remove(entity);
-				registry.bulletFireRates.get(entity).is_firing = false;
-				registry.kinematics.get(entity).velocity = { 0,0 };
-				registry.kinematics.get(entity).direction = { 0,0 };
-			}
-			else if (registry.bomberEnemies.has(entity)) {
-				registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
-				registry.hps.remove(entity);
-				registry.aitimers.remove(entity);
-				registry.followpaths.remove(entity);
-				registry.kinematics.get(entity).velocity = { 0,0 };
-				registry.kinematics.get(entity).direction = { 0,0 };
-			}
-			else {
-				registry.remove_all_components_of(entity);
-			}
+			registry.remove_all_components_of(entity);
 		}
 	}
 	// reduce window brightness if any of the present players is dying
@@ -365,6 +355,7 @@ void WorldSystem::restart_game() {
 	player = createPlayer(renderer, { 0, 0 });
 	is_alive = true;
 	ui = createUI(renderer, registry.hps.get(player).max_hp);
+	combo_meter = 1;
 
 	renderer->camera.setPosition({ 0, 0 });
 }
@@ -387,16 +378,24 @@ void WorldSystem::handle_collisions() {
 					// player turn red and decrease hp
 					if (!registry.players.get(player).invulnerability) {
 						// should decrease HP but not yet implemented
-						if (registry.deadlys.has(entity_other) && !registry.realDeathTimers.has(entity_other)) {
+						if (!registry.realDeathTimers.has(entity_other)) {
 							registry.hitTimers.emplace(entity);
 							Mix_PlayChannel(-1, audio->damage_sound, 0);
 							registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
 							HP& player_hp = registry.hps.get(player);
 							player_hp.curr_hp -= registry.deadlys.get(entity_other).damage;
 							if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
-
+							combo_meter = 1;
 							if (registry.bomberEnemies.has(entity_other)) {
-								registry.hps.get(entity_other).curr_hp = 0;
+								registry.realDeathTimers.emplace(entity_other).death_counter_ms = 1000;
+								registry.hps.remove(entity_other);
+								registry.aitimers.remove(entity_other);
+								registry.followpaths.remove(entity_other);
+								if (registry.bulletFireRates.has(entity_other)) {
+									registry.bulletFireRates.get(entity_other).is_firing = false;
+								}
+								registry.kinematics.get(entity_other).velocity = { 0,0 };
+								registry.kinematics.get(entity_other).direction = { 0,0 };
 							}
 						}
 
@@ -413,7 +412,7 @@ void WorldSystem::handle_collisions() {
 						registry.hitTimers.emplace(entity);
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
-
+						combo_meter = 1;
 						registry.hps.get(player).curr_hp -= registry.enemyBullets.get(entity_other).damage;
 						registry.remove_all_components_of(entity_other);
 						registry.players.get(player).invulnerability = true;
@@ -440,7 +439,48 @@ void WorldSystem::handle_collisions() {
 
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
 					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+					HP& hp = registry.hps.get(entity);
+					if (hp.curr_hp <= 0.0f) {
+						combo_meter = min(combo_meter + 0.02f, COMBO_METER_MAX);
+						if (registry.beeEnemies.has(entity) || registry.wolfEnemies.has(entity) || registry.bomberEnemies.has(entity)) {
+							registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
+							registry.hps.remove(entity);
+							registry.aitimers.remove(entity);
+							registry.followpaths.remove(entity);
+							if (registry.bulletFireRates.has(entity)) {
+								registry.bulletFireRates.get(entity).is_firing = false;
+							}
+							registry.kinematics.get(entity).velocity = { 0,0 };
+							registry.kinematics.get(entity).direction = { 0,0 };
+						}
+					}
 					registry.remove_all_components_of(entity_other);
+				}
+			}
+			else if (registry.deadlys.has(entity_other)) {
+				Motion& motion1 = registry.motions.get(entity);
+				Motion& motion2 = registry.motions.get(entity_other);
+				Kinematic& kinematic = registry.kinematics.get(entity_other);
+				Collidable& collidable1 = registry.collidables.get(entity);
+				Collidable& collidable2 = registry.collidables.get(entity_other);
+				vec2 center1 = motion1.position + collidable1.shift;
+				vec2 center2 = motion2.position + collidable2.shift;
+
+				// Adapted from Minkowski Sum below
+				vec2 center_delta = center2 - center1;
+				vec2 center_delta_non_collide = collidable1.size / 2.f + collidable2.size / 2.f;
+				// Penetration depth from collision
+				// if center2 is to the right/below of center1, depth is positive, otherwise negative
+				// depth corresponds to the entity_other's velocity change.
+				// e.g. if entity collides on left of entity_other, depth.x is positive -> entity_other's velocity.x will increase
+				vec2 depth = { center_delta.x > 0 ? center_delta_non_collide.x - center_delta.x : -(center_delta_non_collide.x + center_delta.x),
+								center_delta.y > 0 ? center_delta_non_collide.y - center_delta.y : -(center_delta_non_collide.y + center_delta.y) };
+				// check how deep the collision between the two entities are, if passes threshold, apply delta velocity
+				float threshold = 10.f; // in pixels
+				float depth_size = length(depth);
+				if (depth_size > threshold) {
+					float strength = 0.5f;
+					kinematic.velocity += depth * strength;
 				}
 			}
 		}

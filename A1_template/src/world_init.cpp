@@ -1,4 +1,4 @@
-#include "world_init.hpp"
+                                                                                                                                                                                                                                      #include "world_init.hpp"
 
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet)
 {
@@ -23,7 +23,6 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = abs(motion.scale);
-
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
 		registry.playerBullets.emplace(entity);
@@ -99,13 +98,14 @@ Entity createHealth(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 	motion.angle = 0.f;
 	motion.scale = vec2({ HEALTH_WIDTH, HEALTH_HEIGHT });
-
+	registry.kinematics.emplace(entity);
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = abs(motion.scale);
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<> distrib(0, 1);
 	double number = distrib(gen);
+	double number_y = distrib(gen) / 2;
 	auto& pickupable = registry.pickupables.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
 	if (number <= 0.6) {
@@ -133,6 +133,12 @@ Entity createHealth(RenderSystem* renderer, vec2 position)
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
+	vec2 dir = { 60* (number - 0.5), 50*(number_y) };
+	BezierCurve curve;
+	curve.bezier_pts.push_back(position);
+	curve.bezier_pts.push_back(position + vec2(0, -20));
+	curve.bezier_pts.push_back(position + dir);
+	registry.bezierCurves.insert(entity, curve);
 	return entity;
 }
 
