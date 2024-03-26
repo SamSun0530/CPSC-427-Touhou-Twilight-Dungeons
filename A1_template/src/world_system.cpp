@@ -282,7 +282,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 5);
 				}
 
-				if (number <= 0.5)
+				if (number <= 0.1)
 					createHealth(renderer, registry.motions.get(entity).position);
 				registry.remove_all_components_of(entity);
 			}
@@ -316,14 +316,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (registry.players.has(entity)) continue;
 		HP& hp = registry.hps.get(entity);
 		if (hp.curr_hp <= 0.0f) {
-			if (registry.deadlys.has(entity)) {
-				std::random_device rd;
-				std::mt19937 gen(rd());
-				std::uniform_real_distribution<> distrib(0, 1);
-				float number = distrib(gen);
-				if (number <= 0.9)
-					createHealth(renderer, registry.motions.get(entity).position);
-			}
 			registry.remove_all_components_of(entity);
 		}
 	}

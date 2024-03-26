@@ -163,6 +163,12 @@ Entity createCoin(RenderSystem* renderer, vec2 position, int value)
 	kinematic.speed_modified = 1.f * kinematic.speed_base;
 	kinematic.direction = { 0, 1 };*/
 
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> distrib(0, 1);
+	double number = distrib(gen);
+	double number_y = distrib(gen) / 2;
+
 	// collidable
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = motion.scale / 2.f;
@@ -170,12 +176,27 @@ Entity createCoin(RenderSystem* renderer, vec2 position, int value)
 	// value
 	Coin& coin = registry.coins.emplace(entity);
 	coin.coin_amount = value;
-
+	vec2 dir = { 60 * (number - 0.5), 50 * (number_y) };
+	BezierCurve curve;
+	curve.bezier_pts.push_back(position);
+	curve.bezier_pts.push_back(position + vec2(0, -20));
+	curve.bezier_pts.push_back(position + dir);
+	registry.bezierCurves.insert(entity, curve);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::BULLET,
+		{ TEXTURE_ASSET_ID::COIN,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
+
+
+	EntityAnimation ani;
+	ani.isCursor = false;
+	ani.offset = 0;
+	ani.frame_rate_ms = 200;
+	ani.full_rate_ms = 200;
+	ani.spritesheet_scale = { 0.2, 1 };
+	ani.render_pos = { 0.2, 1 };
+	registry.alwaysplayAni.insert(entity, ani);
 
 	return entity;
 }
