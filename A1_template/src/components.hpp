@@ -243,6 +243,21 @@ struct Mesh
 	std::vector<vec3> ordered_vertices;
 };
 
+enum class KEYS {
+	A = 1,
+	D = A + 1,
+	ESC = D + 1,
+	F = ESC + 1,
+	S = F + 1,
+	SHIFT = S + 1,
+	W = SHIFT + 1,
+	MOUSE_1 = W + 1,
+	SCROLL = MOUSE_1 + 1,
+	R = SCROLL + 1,
+	SPACE = R + 1,
+	P = SPACE + 1,
+};
+
 
 // IDs for each tile type
 enum class TILE_TYPE {
@@ -307,7 +322,8 @@ enum class TEXTURE_ASSET_ID {
 	REGENERATE_HEALTH = HEALTH_2 + 1,
 	REIMU_BULLET_DISAPPEAR = REGENERATE_HEALTH + 1,
 	FOCUS_DOT = REIMU_BULLET_DISAPPEAR + 1,
-	TEXTURE_COUNT = FOCUS_DOT + 1
+	KEYS = FOCUS_DOT + 1,
+	TEXTURE_COUNT = KEYS + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

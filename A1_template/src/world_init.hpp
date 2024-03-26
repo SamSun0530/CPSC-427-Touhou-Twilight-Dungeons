@@ -8,6 +8,8 @@
 #include "world_system.hpp"
 #include <random>
 
+
+
 // These are ahrd coded to the dimensions of the entity texture
 const float BULLET_BB_WIDTH = 1.0f * 27.f;
 const float BULLET_BB_HEIGHT = 1.0f * 27.f;
@@ -28,6 +30,8 @@ Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float
 std::vector<Entity> createUI(RenderSystem*, int max_hp);
 
 Entity createHealth(RenderSystem* renderer, vec2 position);
+
+Entity createKey(vec2 pos, vec2 size, KEYS key);
 
 // focus mode dot
 Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);
