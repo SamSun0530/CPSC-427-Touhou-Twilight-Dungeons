@@ -258,14 +258,38 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		DeathTimer& death_counter = registry.realDeathTimers.get(entity);
 		death_counter.death_counter_ms -= elapsed_ms_since_last_update;
 
-		if (death_counter.death_counter_ms < min_death_time_ms) {
+		if (death_counter.death_counter_ms < min_death_time_ms && registry.players.has(entity)) {
 			min_death_time_ms = death_counter.death_counter_ms;
 		}
 
 		if (death_counter.death_counter_ms < 0) {
-			registry.realDeathTimers.remove(entity);
-			restart_game();
-			return true;
+			if (registry.players.has(entity)) {
+				registry.realDeathTimers.remove(entity);
+				restart_game();
+				return true;
+			}
+			else if (registry.deadlys.has(entity)) {
+				std::random_device rd;
+				std::mt19937 gen(rd());
+				std::uniform_real_distribution<> distrib(0, 1);
+				double number = distrib(gen);
+				if (number <= 0.5)
+					createHealth(renderer, registry.motions.get(entity).position);
+				registry.remove_all_components_of(entity);
+			}
+			else {
+				registry.remove_all_components_of(entity);
+			}
+		}
+	}
+
+	for (Entity entity : registry.bezierCurves.entities) {
+
+		BezierCurve& curve_counter = registry.bezierCurves.get(entity);
+		curve_counter.curve_counter_ms -= elapsed_ms_since_last_update;
+
+		if (curve_counter.curve_counter_ms < 0) {
+			registry.bezierCurves.remove(entity);
 		}
 	}
 
@@ -287,8 +311,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				std::random_device rd;
 				std::mt19937 gen(rd());
 				std::uniform_real_distribution<> distrib(0, 1);
-				double number = distrib(gen);
-				if (number <= 0.5)
+				float number = distrib(gen);
+				if (number <= 0.9)
 					createHealth(renderer, registry.motions.get(entity).position);
 			}
 			registry.remove_all_components_of(entity);
@@ -332,6 +356,7 @@ void WorldSystem::restart_game() {
 	player = createPlayer(renderer, { 0, 0 });
 	is_alive = true;
 	ui = createUI(renderer, registry.hps.get(player).max_hp);
+	combo_meter = 1;
 
 	renderer->camera.setPosition({ 0, 0 });
 
@@ -355,17 +380,25 @@ void WorldSystem::handle_collisions() {
 
 					// player turn red and decrease hp
 					if (!registry.players.get(player).invulnerability) {
-						registry.hitTimers.emplace(entity);
-						Mix_PlayChannel(-1, audio->damage_sound, 0);
-						registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
 						// should decrease HP but not yet implemented
-						if (registry.deadlys.has(entity_other)) {
+						if (!registry.realDeathTimers.has(entity_other)) {
+							registry.hitTimers.emplace(entity);
+							Mix_PlayChannel(-1, audio->damage_sound, 0);
+							registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
 							HP& player_hp = registry.hps.get(player);
 							player_hp.curr_hp -= registry.deadlys.get(entity_other).damage;
 							if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
-
+							combo_meter = 1;
 							if (registry.bomberEnemies.has(entity_other)) {
-								registry.hps.get(entity_other).curr_hp = 0;
+								registry.realDeathTimers.emplace(entity_other).death_counter_ms = 1000;
+								registry.hps.remove(entity_other);
+								registry.aitimers.remove(entity_other);
+								registry.followpaths.remove(entity_other);
+								if (registry.bulletFireRates.has(entity_other)) {
+									registry.bulletFireRates.get(entity_other).is_firing = false;
+								}
+								registry.kinematics.get(entity_other).velocity = { 0,0 };
+								registry.kinematics.get(entity_other).direction = { 0,0 };
 							}
 						}
 
@@ -382,7 +415,7 @@ void WorldSystem::handle_collisions() {
 						registry.hitTimers.emplace(entity);
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
-
+						combo_meter = 1;
 						registry.hps.get(player).curr_hp -= registry.enemyBullets.get(entity_other).damage;
 						registry.remove_all_components_of(entity_other);
 						registry.players.get(player).invulnerability = true;
@@ -402,13 +435,28 @@ void WorldSystem::handle_collisions() {
 		}
 		else if (registry.deadlys.has(entity)) {
 			if (registry.playerBullets.has(entity_other)) {
-				if (!registry.hitTimers.has(entity)) {
+				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
 					// enemy turn red and decrease hp, bullet disappear
 					registry.hitTimers.emplace(entity);
 					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
 					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+					HP& hp = registry.hps.get(entity);
+					if (hp.curr_hp <= 0.0f) {
+						combo_meter = min(combo_meter + 0.02f, COMBO_METER_MAX);
+						if (registry.beeEnemies.has(entity) || registry.wolfEnemies.has(entity) || registry.bomberEnemies.has(entity)) {
+							registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
+							registry.hps.remove(entity);
+							registry.aitimers.remove(entity);
+							registry.followpaths.remove(entity);
+							if (registry.bulletFireRates.has(entity)) {
+								registry.bulletFireRates.get(entity).is_firing = false;
+							}
+							registry.kinematics.get(entity).velocity = { 0,0 };
+							registry.kinematics.get(entity).direction = { 0,0 };
+						}
+					}
 					registry.remove_all_components_of(entity_other);
 				}
 			}
@@ -441,6 +489,10 @@ void WorldSystem::handle_collisions() {
 		}
 		else if (registry.walls.has(entity)) {
 			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
+				Motion& bullet_motion = registry.motions.get(entity_other);
+				if (registry.playerBullets.has(entity_other)) {
+					registry.realDeathTimers.emplace(createBulletDisappear(renderer, bullet_motion.position, bullet_motion.angle, true)).death_counter_ms = 200; ;
+				}
 				registry.remove_all_components_of(entity_other);
 			}
 			else if (registry.players.has(entity_other) || registry.deadlys.has(entity_other)) {
@@ -618,7 +670,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	// Fire bullets at mouse cursor (Also mouse1)
+	// Fire bullets at mouse cursor (Also mouse 1)
 	if (key == GLFW_KEY_SPACE) {
 		BulletFireRate& fireRate = registry.bulletFireRates.get(player);
 		if (action == GLFW_PRESS) {
@@ -648,7 +700,31 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Toggle tutorial display
 	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
 		getInstance().toggle_display_instruction();
+	}
 
+	// Hold for focus mode
+	if (is_alive) {
+		if (key == GLFW_KEY_LEFT_SHIFT &&
+			!pressed[key] &&
+			action == GLFW_PRESS &&
+			!focus_mode.in_focus_mode) {
+			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+			focus_mode.speed_constant = 0.5f;
+			Motion& motion = registry.motions.get(player);
+			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
+			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+			pressed[key] = true;
+		}
+		else if (key == GLFW_KEY_LEFT_SHIFT &&
+			pressed[key] &&
+			action == GLFW_RELEASE &&
+			focus_mode.in_focus_mode) {
+			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+			focus_mode.speed_constant = 1.0f;
+			while (registry.focusdots.entities.size() > 0)
+				registry.remove_all_components_of(registry.focusdots.entities.back());
+			pressed[key] = false;
+		}
 	}
 }
 
@@ -682,4 +758,23 @@ void WorldSystem::on_scroll(vec2 scroll_offset) {
 	renderer->camera.addZoom(scroll_offset.y);
 
 	(vec2)scroll_offset;
+}
+
+void WorldSystem::update_focus_dot() {
+	if (focus_mode.in_focus_mode) {
+		// Only reimu should have focus dot
+		for (Entity entity : registry.focusdots.entities) {
+			Motion& motion = registry.motions.get(entity);
+			Motion& player_motion = registry.motions.get(player);
+			CircleCollidable& player_circle_collidable = registry.circleCollidables.get(player);
+			motion.position = player_motion.position + player_circle_collidable.shift;
+		}
+
+		// This is for testing circleCollidable size if focus mode texture is not present
+		//for (Entity entity : registry.circleCollidables.entities) {
+		//	Motion& motion = registry.motions.get(entity);
+		//	CircleCollidable& circle_collidable = registry.circleCollidables.get(entity);
+		//	createEgg(motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+		//}
+	}
 }
