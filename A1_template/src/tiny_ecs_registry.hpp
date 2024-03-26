@@ -42,6 +42,7 @@ public:
 	ComponentContainer<BomberEnemy> bomberEnemies;
 	ComponentContainer<WolfEnemy> wolfEnemies;
 	ComponentContainer<SubmachineGunEnemy> submachineGunEnemies;
+	ComponentContainer<FollowFlowField> followFlowField;
 	ComponentContainer<CircleCollidable> circleCollidables;
 	ComponentContainer<EntityAnimation> alwaysplayAni;
 	ComponentContainer<BezierCurve> bezierCurves;
@@ -81,6 +82,7 @@ public:
 		registry_list.push_back(&bomberEnemies);
 		registry_list.push_back(&wolfEnemies);
 		registry_list.push_back(&submachineGunEnemies);
+		registry_list.push_back(&followFlowField);
 		registry_list.push_back(&circleCollidables);
 		registry_list.push_back(&alwaysplayAni);
 		registry_list.push_back(&bezierCurves);

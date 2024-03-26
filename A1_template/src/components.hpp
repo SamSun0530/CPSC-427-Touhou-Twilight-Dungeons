@@ -156,6 +156,15 @@ struct FollowPath
 	bool is_player_target = true;
 };
 
+// Entity follows flow field
+struct FollowFlowField
+{
+	coord next_grid_pos = { -1, -1 };
+	// whether to continue chasing or stop at grid
+	// set to true to prevent enemy from stopping early
+	bool is_player_target = true;
+};
+
 // Data structure for toggling debug mode
 struct Debug {
 	bool in_debug_mode = 0;
