@@ -31,6 +31,8 @@ Entity createHealth(RenderSystem* renderer, vec2 position);
 
 // focus mode dot
 Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);
+// key_a
+Entity createKey_A(RenderSystem* renderer, vec2 pos, vec2 size);
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the coin
