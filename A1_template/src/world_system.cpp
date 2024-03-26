@@ -376,10 +376,10 @@ void WorldSystem::handle_collisions() {
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
-				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(player)) {
-
+				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
+					Player& player_component = registry.players.get(entity);
 					// player turn red and decrease hp
-					if (!registry.players.get(player).invulnerability) {
+					if (!player_component.invulnerability) {
 						// should decrease HP but not yet implemented
 						if (!registry.realDeathTimers.has(entity_other)) {
 							registry.hitTimers.emplace(entity);
@@ -394,6 +394,7 @@ void WorldSystem::handle_collisions() {
 								registry.hps.remove(entity_other);
 								registry.aitimers.remove(entity_other);
 								registry.followpaths.remove(entity_other);
+								registry.followFlowField.remove(entity);
 								if (registry.bulletFireRates.has(entity_other)) {
 									registry.bulletFireRates.get(entity_other).is_firing = false;
 								}
@@ -402,7 +403,7 @@ void WorldSystem::handle_collisions() {
 							}
 						}
 
-						registry.players.get(player).invulnerability = true;
+						player_component.invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
 				}
@@ -450,6 +451,7 @@ void WorldSystem::handle_collisions() {
 							registry.hps.remove(entity);
 							registry.aitimers.remove(entity);
 							registry.followpaths.remove(entity);
+							registry.followFlowField.remove(entity);
 							if (registry.bulletFireRates.has(entity)) {
 								registry.bulletFireRates.get(entity).is_firing = false;
 							}
