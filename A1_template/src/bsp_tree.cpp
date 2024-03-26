@@ -107,6 +107,17 @@ void BSPTree::get_rooms(BSPNode* node, std::vector<Room2>& rooms) {
 	get_rooms(node->right_node, rooms);
 }
 
+BSPNode* BSPTree::get_random_leaf_node(BSPNode* node) {
+	if (!node) return nullptr;
+
+	if (!node->left_node && !node->right_node) {
+		return node;
+	}
+
+	std::uniform_real_distribution<> float_distrib(0, 1);
+	return float_distrib(gen) < 0.5 ? get_random_leaf_node(node->left_node) : get_random_leaf_node(node->right_node);
+}
+
 void BSPTree::print_tree(BSPNode* node) {
 	if (!node) return;
 

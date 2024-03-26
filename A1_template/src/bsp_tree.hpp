@@ -50,6 +50,7 @@ public:
 	void generate_corridors(BSPNode* node);
 	void print_tree(BSPNode* node); // for debugging
 	void get_rooms(BSPNode* node, std::vector<Room2>& rooms);
+	BSPNode* get_random_leaf_node(BSPNode* node);
 
 private:
 	// Utilities:
