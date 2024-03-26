@@ -25,7 +25,8 @@ std::vector<std::vector<int>> WorldSystem::world_map = std::vector<std::vector<i
 // Create the world
 WorldSystem::WorldSystem()
 	: points(0)
-	, next_enemy_spawn(0.f) {
+	, next_enemy_spawn(0.f)
+	, display_instruction(true){
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -146,6 +147,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		elapsedSinceLastFPSUpdate = 0.0f;
 	}
 
+	if (tutorial_timer > 0) {
+		tutorial_timer -= elapsedSinceLastFPSUpdate / 1000.0f;
+		if (tutorial_timer <= 0) {
+			getInstance().display_instruction = false;
+			//tutorial_timer = 120.0f;
+		}
+	}
 
 	// Updating window title with points
 	std::stringstream title_ss;
@@ -347,9 +355,15 @@ void WorldSystem::restart_game() {
 
 	// Generate map
 	// map->generateMap(1);
-	map->generateBasicMap();
+	//map->generateBasicMap();
+	if (map_level.level == MapLevel::TUTORIAL) {
+		map->generateTutMap();
+	}
+	else {
+		map->generateBasicMap();
+	}
 	world_map = map->world_map;
-	map->spawnEnemies();
+	//map->spawnEnemies();
 
 	createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
@@ -360,10 +374,21 @@ void WorldSystem::restart_game() {
 	combo_meter = 1;
 	focus_mode.in_focus_mode = false;
 	focus_mode.speed_constant = 1.0f;
-
+	createKey({ 0,0 }, { 100, 100 }, KEYS::MOUSE_1);
 	renderer->camera.setPosition({ 0, 0 });
 
 	ai->restart_flow_field_map();
+}
+
+void WorldSystem::toggle_tutorial() {
+	// Used for debugging
+	registry.list_all_components();
+	printf("Toggling Tutorial Mode\n");
+
+	// Reset keyboard presses
+	pressed = { 0 };
+
+	Mix_PlayMusic(audio->background_music, -1);
 }
 
 // Compute collisions between entities
@@ -592,6 +617,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
+		map_level.level = MapLevel::MAIN;
 		restart_game();
 	}
 
@@ -704,7 +730,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Toggle tutorial display
 	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
-		getInstance().toggle_display_instruction();
+
+		//getInstance().toggle_display_instruction();
+		map_level.level = MapLevel::TUTORIAL;
+		restart_game();
+
 	}
 
 	// Hold for focus mode
@@ -730,6 +760,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				registry.remove_all_components_of(registry.focusdots.entities.back());
 			pressed[key] = false;
 		}
+
 	}
 }
 
@@ -751,6 +782,7 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 		if (action == GLFW_PRESS) {
 			// Start firing
 			fireRate.is_firing = true;
+
 		}
 		else if (action == GLFW_RELEASE) {
 			// Stop firing

@@ -1,3 +1,4 @@
+
 // Adpated from: https://www.gamedeveloper.com/programming/procedural-dungeon-generation-algorithm#close-modal
 
 // internal
@@ -91,6 +92,27 @@ void MapSystem::generateBasicMap() {
 	//     }
 	//     std::cout << std::endl;
 	// }
+
+	MapSystem::generateAllEntityTiles(map);
+
+	world_map = map;
+}
+
+Room generateTutRoom(int x, int y);
+void MapSystem::generateTutMap() {
+	std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
+	rooms.clear();
+	int room_radius = room_size >> 1;
+	rooms.push_back(generateTutRoom(room_radius, room_radius));
+	rooms.push_back(generateTutRoom(room_size + 4 * room_radius, room_radius));
+	rooms.push_back(generateTutRoom(room_size + 4 * room_radius, room_size + 4 * room_radius));
+
+	for (Room& room : rooms) {
+		addRoomToMap(room, map);
+	}
+
+	addHallwayBetweenRoom(rooms[0], rooms[1], map);
+	addHallwayBetweenRoom(rooms[1], rooms[2], map);
 
 	MapSystem::generateAllEntityTiles(map);
 
@@ -203,6 +225,7 @@ void MapSystem::generateMap(int floor) {
 
 	//Triangulation: https://www.gorillasun.de/blog/bowyer-watson-algorithm-for-delaunay-triangulation/
 }
+
 
 void MapSystem::debug() {
 	// createLine({0,0},{100,100});
@@ -341,6 +364,33 @@ Room generateBasicRoom(int x, int y) {
 		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
 		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
 		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+	};
+	room.grid = grid;
+	return room;
+}
+
+Room generateTutRoom(int x, int y) {
+	Room room;
+	room.id = room_id++;
+	room.x = x;
+	room.y = y;
+
+	std::vector<std::vector<int>> grid = {
+		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
 	};
 	room.grid = grid;
 	return room;

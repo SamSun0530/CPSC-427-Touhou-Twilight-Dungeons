@@ -1,4 +1,5 @@
 #include "world_init.hpp"
+#include <iostream>
 
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet)
 {
@@ -43,6 +44,8 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 
 	return entity;
 }
+
+
 Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet)
 {
 	auto entity = Entity();
@@ -211,6 +214,32 @@ Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::FOCUS_DOT, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createKey(vec2 pos, vec2 size, KEYS key)
+{
+	auto entity = Entity();
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = size;
+
+	EntityAnimation key_ani;
+	key_ani.isCursor = false;
+	std::cout << static_cast<int>(key) << std::endl;
+	key_ani.spritesheet_scale = { 0.5, 1/12.0f };
+	key_ani.render_pos = { 0.5, 1 / 12.0f * static_cast<int>(key) };
+	key_ani.frame_rate_ms = 500.f;
+	key_ani.full_rate_ms = 500.f;
+	registry.alwaysplayAni.insert(entity, key_ani);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::KEYS, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
