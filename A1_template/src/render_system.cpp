@@ -300,6 +300,7 @@ void RenderSystem::draw()
 		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 			continue;
 		}
+		if (registry.focusdots.has(entity)) continue;
 
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
@@ -315,6 +316,12 @@ void RenderSystem::draw()
 	}
 	drawBulletsInstanced(enemy_bullets, projection_2D, view_2D);
 
+	// this will only have at most one focusdots
+	// it will always be in camera view, and has motion
+	for (Entity entity : registry.focusdots.entities) {
+		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+	}
+	
 	// Render foreground entities, these will be in front of things rendered before
 	for (Entity entity : registry.renderRequestsForeground.entities) {
 		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
