@@ -97,13 +97,14 @@ void MapSystem::generateBasicMap() {
 	world_map = map;
 }
 
+Room generateTutRoom(int x, int y);
 void MapSystem::generateTutMap() {
 	std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
 	rooms.clear();
 	int room_radius = room_size >> 1;
 	rooms.push_back(generateTutRoom(room_radius, room_radius));
-	rooms.push_back(generateTutRoom(room_size + 2 * room_radius, room_radius));
-	rooms.push_back(generateTutRoom(room_size + 2 * room_radius, room_size + 2 * room_radius));
+	rooms.push_back(generateTutRoom(room_size + 4 * room_radius, room_radius));
+	rooms.push_back(generateTutRoom(room_size + 4 * room_radius, room_size + 4 * room_radius));
 
 	for (Room& room : rooms) {
 		addRoomToMap(room, map);
@@ -224,18 +225,6 @@ void MapSystem::generateMap(int floor) {
 	//Triangulation: https://www.gorillasun.de/blog/bowyer-watson-algorithm-for-delaunay-triangulation/
 }
 
-void MapSystem::clearWorld() {
-	rooms.clear();
-	for (auto& row : world_map) {
-		std::fill(row.begin(), row.end(), 0); 
-	}
-	registry.walls.clear();
-	registry.floors.clear();
-	registry.bomberEnemies.clear();
-	registry.beeEnemies.clear();
-	registry.wolfEnemies.clear();
-	registry.enemyBullets.clear();
-}
 
 void MapSystem::debug() {
 	// createLine({0,0},{100,100});
@@ -379,27 +368,28 @@ Room generateBasicRoom(int x, int y) {
 	return room;
 }
 
-Room MapSystem::generateTutRoom(int x, int y) {
+Room generateTutRoom(int x, int y) {
 	Room room;
 	room.id = room_id++;
 	room.x = x;
 	room.y = y;
 
 	std::vector<std::vector<int>> grid = {
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
 	};
 	room.grid = grid;
 	return room;

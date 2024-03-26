@@ -774,6 +774,7 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 		if (action == GLFW_PRESS) {
 			// Start firing
 			fireRate.is_firing = true;
+
 		}
 		else if (action == GLFW_RELEASE) {
 			// Stop firing
