@@ -148,7 +148,10 @@ struct Boss {
 	int phase_index = 0;
 	// current BulletPhase id
 	// used in boss system to check if two bullet phase id are the same
+	// prevents choosing the same bullet phase
 	int current_bullet_phase_id = -1;
+	// between phase change time
+	float phase_change_time = -1;
 };
 
 // Player component
@@ -331,6 +334,11 @@ struct DebugComponent
 struct BulletLoop {
 	float index_to_loop = -1;
 	float amount_to_loop = -1;
+};
+
+// Start firing after specified amount of time
+struct BulletStartFiringTimer {
+	float counter_ms = -1;
 };
 
 // Used for bullet control - Halts bullet pattern by delay ms

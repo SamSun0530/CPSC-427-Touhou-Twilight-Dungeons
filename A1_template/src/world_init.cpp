@@ -42,6 +42,7 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 
 	return entity;
 }
+
 Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet)
 {
 	auto entity = Entity();
@@ -349,6 +350,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 	boss.health_phase_thresholds = { 100, 75, 50, 25, -1 }; // -1 for end of phase
 	boss.duration = 10000; // duration for each pattern
 	registry.colors.insert(entity, { 1,1,1 });
+	boss.phase_change_time = 1500;
 
 	// Boss health bar ui
 	Entity ui_entity = createBossHealthBarUI(renderer, entity);

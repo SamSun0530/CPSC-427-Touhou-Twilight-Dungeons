@@ -291,6 +291,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				// remove boss health bar ui
 				if (registry.bossHealthBarLink.has(entity)) {
 					registry.remove_all_components_of(registry.bossHealthBarLink.get(entity).other);
+
+					// remove all bullets when boss hp < 0
+					while (registry.enemyBullets.entities.size() > 0)
+						registry.remove_all_components_of(registry.enemyBullets.entities.back());
 				}
 			}
 			registry.remove_all_components_of(entity);
@@ -364,7 +368,7 @@ void WorldSystem::handle_collisions() {
 				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
 					// player turn red and decrease hp
 					if (!registry.invulnerableTimers.has(entity)) {
-						// should decrease HP but not yet implemented
+						// decrease HP
 						if (!registry.realDeathTimers.has(entity_other)) {
 							registry.hitTimers.emplace(entity);
 							Mix_PlayChannel(-1, audio->damage_sound, 0);
@@ -417,7 +421,7 @@ void WorldSystem::handle_collisions() {
 			}
 		}
 		else if (registry.deadlys.has(entity)) {
-			if (registry.playerBullets.has(entity_other)) {
+			if (registry.playerBullets.has(entity_other) && !registry.invulnerableTimers.has(entity)) {
 				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
 					// enemy turn red and decrease hp, bullet disappear
 					registry.hitTimers.emplace(entity);

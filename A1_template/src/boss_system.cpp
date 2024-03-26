@@ -8,12 +8,28 @@ void BossSystem::step(float elapsed_ms) {
 	for (Entity entity : registry.bosses.entities) {
 		Boss& boss = registry.bosses.get(entity);
 		HP& hp = registry.hps.get(entity);
+		// phase change
 		if (boss.phase_index < boss.health_phase_thresholds.size() && 
 			hp.curr_hp <= boss.health_phase_thresholds[boss.phase_index]) {
 			boss.phase_index++;
 			std::random_device ran;
 			std::mt19937 gen(ran());
 			set_random_phase(boss, gen, entity);
+
+			// ignore index 0 phase, as boss does not attack in phase 0. this can be changed if index 0 is firing bullets.
+			if (boss.phase_index - 1 > 0) {
+				// set invulnerable and stop firing after amount of time
+				// emplace with duplicates if a phase is close to each other, triggering phase change before time expires
+				InvulnerableTimer& invulnerable_timer = registry.invulnerableTimers.emplace_with_duplicates(entity);
+				invulnerable_timer.invulnerable_counter_ms = boss.phase_change_time;
+				BulletStartFiringTimer& bullet_start_firing_timer = registry.bulletStartFiringTimers.emplace_with_duplicates(entity);
+				BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
+				bullet_spawner.is_firing = false;
+				bullet_start_firing_timer.counter_ms = boss.phase_change_time;
+				// remove all bullets
+				while (registry.enemyBullets.entities.size() > 0)
+					registry.remove_all_components_of(registry.enemyBullets.entities.back());
+			}
 		}
 
 		if (boss.duration != -1) {

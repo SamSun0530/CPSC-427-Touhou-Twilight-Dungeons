@@ -233,6 +233,20 @@ void BulletSystem::step(float elapsed_ms)
 			registry.remove_all_components_of(bullet_death_container.entities[i]);
 		}
 	}
+
+	// Remove bullet firing timer
+	ComponentContainer<BulletStartFiringTimer>& bullet_stop_firing_container = registry.bulletStartFiringTimers;
+	int bullet_stop_firing_container_size = bullet_stop_firing_container.components.size();
+	for (int i = bullet_stop_firing_container_size - 1; i >= 0; --i) {
+		BulletStartFiringTimer& bullet_stop_firing_timer = bullet_stop_firing_container.components[i];
+		bullet_stop_firing_timer.counter_ms -= elapsed_ms;
+		if (bullet_stop_firing_timer.counter_ms < 0) {
+			Entity& entity = bullet_stop_firing_container.entities[i];
+			BulletSpawner& bs = registry.bulletSpawners.get(entity);
+			bs.is_firing = true;
+			registry.bulletStartFiringTimers.remove(entity);
+		}
+	}
 }
 
 void spawn_bullets(RenderSystem* renderer, std::vector<vec2>& initial_bullet_directions, float bullet_initial_speed, vec2 spawn_position, Kinematic& kinematic, bool is_player_bullet, BulletPattern* bullet_pattern)
