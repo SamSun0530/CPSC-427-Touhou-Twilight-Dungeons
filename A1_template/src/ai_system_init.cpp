@@ -200,7 +200,6 @@ void AISystem::init() {
 		for (Entity& player_entity : registry.players.entities) {
 			Motion& player_motion = registry.motions.get(player_entity);
 			vec2 dp = player_motion.position - motion.position;
-			printf("dot(dp,dp) = %f\n", dot(dp, dp));
 			if (dot(dp, dp) < minimum_range_to_check) return true;
 		}
 		return false;
