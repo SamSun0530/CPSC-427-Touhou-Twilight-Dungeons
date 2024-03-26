@@ -7,6 +7,7 @@ BossSystem::BossSystem() {
 void BossSystem::step(float elapsed_ms) {
 	for (Entity entity : registry.bosses.entities) {
 		Boss& boss = registry.bosses.get(entity);
+		if (!boss.is_active) continue;
 		HP& hp = registry.hps.get(entity);
 		// phase change
 		if (boss.phase_index < boss.health_phase_thresholds.size() && 

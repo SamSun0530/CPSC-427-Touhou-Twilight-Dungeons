@@ -303,18 +303,32 @@ void AISystem::init() {
 			registry.followFlowField.remove(entity);
 		}
 		};
-	void (*showBossHealthBar)(Entity & entity) = [](Entity& entity) {
+	// show/hide boss info based on boss & player distance:
+	// - boss is active -> process phase changes
+	// - bullet spawner -> firing
+	// - boss health bar ui
+	void (*showBossInfo)(Entity & entity) = [](Entity& entity) {
 		if (!registry.bosses.has(entity)) return;
+		Boss& boss = registry.bosses.get(entity);
+		boss.is_active = true;
 		BossHealthBarLink& link = registry.bossHealthBarLink.get(entity);
 		BossHealthBarUI& ui = registry.bossHealthBarUIs.get(link.other);
-		printf("show\n");
+		if (registry.bulletSpawners.has(entity)) {
+			BulletSpawner& bs = registry.bulletSpawners.get(entity);
+			bs.is_firing = true;
+		}
 		if (!ui.is_visible) ui.is_visible = true;
 		};
-	void (*hideBossHealthBar)(Entity& entity) = [](Entity& entity) {
+	void (*hideBossInfo)(Entity& entity) = [](Entity& entity) {
 		if (!registry.bosses.has(entity)) return;
+		Boss& boss = registry.bosses.get(entity);
+		boss.is_active = false;
 		BossHealthBarLink& link = registry.bossHealthBarLink.get(entity);
 		BossHealthBarUI& ui = registry.bossHealthBarUIs.get(link.other);
-		printf("hide\n");
+		if (registry.bulletSpawners.has(entity)) {
+			BulletSpawner& bs = registry.bulletSpawners.get(entity);
+			bs.is_firing = false;
+		}
 		if (ui.is_visible) ui.is_visible = false;
 		};
 
@@ -372,8 +386,8 @@ void AISystem::init() {
 		F -> hide boss health bar
 		T -> show boss health bar
 	*/
-	ActionNode* show_boss_health_bar_cirno = new ActionNode(showBossHealthBar);
-	ActionNode* hide_boss_health_bar_cirno = new ActionNode(hideBossHealthBar);
+	ActionNode* show_boss_health_bar_cirno = new ActionNode(showBossInfo);
+	ActionNode* hide_boss_health_bar_cirno = new ActionNode(hideBossInfo);
 	ConditionalNode* is_in_range_cirno = new ConditionalNode(show_boss_health_bar_cirno, hide_boss_health_bar_cirno, isInRange);
 	this->cirno_boss_tree.setRoot(is_in_range_cirno);
 

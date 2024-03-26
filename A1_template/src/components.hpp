@@ -135,6 +135,8 @@ struct BulletSpawner
 };
 
 struct Boss {
+	// determines if boss system should process state
+	bool is_active = false;
 	// current pattern to use during phase
 	BulletPattern bullet_pattern;
 	// duration of the pattern to change to next one
