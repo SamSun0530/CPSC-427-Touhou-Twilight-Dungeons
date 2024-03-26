@@ -237,6 +237,7 @@ Entity createKey(vec2 pos, vec2 size, KEYS key)
 	key_ani.frame_rate_ms = 500.f;
 	key_ani.full_rate_ms = 500.f;
 	registry.alwaysplayAni.insert(entity, key_ani);
+	registry.UIUX.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::KEYS, // TEXTURE_COUNT indicates that no txture is needed
@@ -246,7 +247,7 @@ Entity createKey(vec2 pos, vec2 size, KEYS key)
 	return entity;
 }
 
-std::vector<Entity> createUI(RenderSystem* renderer, int max_hp)
+std::vector<Entity> createHealth(RenderSystem* renderer, int max_hp)
 {
 	std::vector<Entity> hp_entities;
 	for (int i = 0; i < max_hp; i++) {
@@ -258,7 +259,7 @@ std::vector<Entity> createUI(RenderSystem* renderer, int max_hp)
 
 		// Setting initial motion values
 		Motion& motion = registry.motions.emplace(entity);
-
+		registry.UIUX.emplace(entity);
 		motion.scale = vec2({ -HP_BB_WIDTH, HP_BB_HEIGHT });
 		registry.renderRequests.insert(
 			entity,
