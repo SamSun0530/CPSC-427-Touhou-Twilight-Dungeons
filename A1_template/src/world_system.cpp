@@ -142,7 +142,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
 	if (elapsedSinceLastFPSUpdate >= 1000.0) {
 		// Calculate FPS
-		getInstance().fps = static_cast<int>(1000.0f / elapsed_ms_since_last_update);
+		getInstance().fps = static_cast<int>(1000.0f / (elapsed_ms_since_last_update / combo_meter));
 		elapsedSinceLastFPSUpdate = 0.0f;
 	}
 
@@ -357,6 +357,8 @@ void WorldSystem::restart_game() {
 	is_alive = true;
 	ui = createUI(renderer, registry.hps.get(player).max_hp);
 	combo_meter = 1;
+	focus_mode.in_focus_mode = false;
+	focus_mode.speed_constant = 1.0f;
 
 	renderer->camera.setPosition({ 0, 0 });
 

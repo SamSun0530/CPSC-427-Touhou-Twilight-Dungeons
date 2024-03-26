@@ -64,7 +64,7 @@ public:
 	// Fixes issue where dot lags behind player due to physics lerp step after setting position
 	void update_focus_dot();
 	// Combo meter
-	float combo_meter;
+	float combo_meter = 1.0f;
 	const float COMBO_METER_MAX = 1.5f;
 private:
 	// Input callback functions
