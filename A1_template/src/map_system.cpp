@@ -116,6 +116,18 @@ void MapSystem::generateTutMap() {
 	MapSystem::generateAllEntityTiles(map);
 
 	world_map = map;
+	createKey({ -200,-180 }, { 100, 100 }, KEYS::MOUSE_1);
+	createKey({ -200, -30 }, { 100, 100 }, KEYS::W);
+	createKey({ -200, 70 }, { 100, 100 }, KEYS::S);
+	createKey({ -100, 70 }, { 100, 100 }, KEYS::D);
+	createKey({ -300, 70 }, { 100, 100 }, KEYS::A);
+	createKey({ 350, -180 }, { 100, 100 }, KEYS::SCROLL);
+	createKey({ -200, 250 }, { 100, 100 }, KEYS::F);
+	createKey({ 350, 180 }, { 100, 100 }, KEYS::SPACE);
+	createKey({ 350, 300 }, { 100, 100 }, KEYS::P);
+	createKey({ 350, -50 }, { 100, 100 }, KEYS::SHIFT);
+	createKey({ 1500, 1600 }, { 100, 100 }, KEYS::R);
+	createKey({ 1500, 1800 }, { 100, 100 }, KEYS::ESC);
 }
 
 void MapSystem::generateMap(int floor) {

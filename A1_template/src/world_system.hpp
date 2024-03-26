@@ -101,7 +101,7 @@ private:
 	bool show_fps = false;
 	bool display_instruction;
 	float elapsedSinceLastFPSUpdate = 0.0f;
-	float tutorial_timer = 120.0f;
+	float tutorial_timer = 10000.0f;
 
 	// fonts seting
 	std::string font_filename = "..//..//..//data//fonts//OpenSans-Bold.ttf";

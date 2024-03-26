@@ -143,14 +143,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (elapsedSinceLastFPSUpdate >= 1000.0) {
 		// Calculate FPS
 		getInstance().fps = static_cast<int>(1000.0f / elapsed_ms_since_last_update);
-		elapsedSinceLastFPSUpdate = 0.0f;
-	}
-
-	if (tutorial_timer > 0) {
 		tutorial_timer -= elapsedSinceLastFPSUpdate / 1000.0f;
 		if (tutorial_timer <= 0) {
 			getInstance().display_instruction = false;
-			//tutorial_timer = 120.0f;
+			//tuimer = 120.0f;
 		}
 	}
 
@@ -359,9 +355,10 @@ void WorldSystem::restart_game() {
 	}
 	else {
 		map->generateBasicMap();
+		map->spawnEnemies();
 	}
 	world_map = map->world_map;
-	//map->spawnEnemies();
+	
 
 	createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
@@ -370,7 +367,7 @@ void WorldSystem::restart_game() {
 	is_alive = true;
 	ui = createUI(renderer, registry.hps.get(player).max_hp);
 	combo_meter = 1;
-	createKey({ 0,0 }, { 100, 100 }, KEYS::MOUSE_1);
+	//createKey({ 0,0 }, { 100, 100 }, KEYS::MOUSE_1);
 	renderer->camera.setPosition({ 0, 0 });
 }
 
@@ -723,7 +720,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Toggle tutorial display
 	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
 
-		//getInstance().toggle_display_instruction();
+		getInstance().display_instruction = false;
 		map_level.level = MapLevel::TUTORIAL;
 		restart_game();
 

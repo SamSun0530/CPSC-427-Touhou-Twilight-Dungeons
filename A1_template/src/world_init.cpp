@@ -240,7 +240,7 @@ Entity createKey(vec2 pos, vec2 size, KEYS key)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::KEYS, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::UI,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
