@@ -156,6 +156,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	while (registry.debugComponents.entities.size() > 0)
 		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
+	while (registry.texts.entities.size() > 0)
+		registry.remove_all_components_of(registry.texts.entities.back());
+	createText({ 0,100 }, { 1, 1 }, std::to_string(combo_meter), { 0, 1, 0 }, false);
+	// Removing out of screen entities
+
 	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
 	// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
 	// Adapted from: https://gamedev.stackexchange.com/questions/152465/smoothly-move-camera-to-follow-player
@@ -705,6 +710,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			Motion& motion = registry.motions.get(player);
 			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
 			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+			ComponentContainer<BulletSpawner>& fire_rate_container = registry.bulletSpawners;
+			int fire_rate_container_size = fire_rate_container.size();
+			for (int i = 0; i < fire_rate_container_size; ++i) {
+				fire_rate_container.components[i].fire_rate *= 2.f;
+			}
 			pressed[key] = true;
 		}
 		else if (key == GLFW_KEY_LEFT_SHIFT &&
@@ -713,6 +723,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			focus_mode.in_focus_mode) {
 			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
 			focus_mode.speed_constant = 1.0f;
+			ComponentContainer<BulletSpawner>& fire_rate_container = registry.bulletSpawners;
+			int fire_rate_container_size = fire_rate_container.size();
+			for (int i = 0; i < fire_rate_container_size; ++i) {
+				fire_rate_container.components[i].fire_rate /= 2.f;
+			}
 			while (registry.focusdots.entities.size() > 0)
 				registry.remove_all_components_of(registry.focusdots.entities.back());
 			pressed[key] = false;

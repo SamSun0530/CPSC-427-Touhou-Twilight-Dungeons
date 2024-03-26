@@ -370,6 +370,18 @@ void RenderSystem::draw()
 		renderText("FPS:", window_width_px - 250, window_height_px - 50, 2.0f, glm::vec3(1, 1, 1), trans);
 		renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px - 100, window_height_px - 50, 2.0f, glm::vec3(1, 1, 1), trans);
 	}
+	for (Entity entity : registry.texts.entities) {
+		Motion& text_motion = registry.motions.get(entity);
+		vec3 text_color = registry.colors.get(entity);
+		RenderText& text_cont = registry.texts.get(entity);
+		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans);
+	}
+	for (Entity entity : registry.textsPerm.entities) {
+		Motion& text_motion = registry.motions.get(entity);
+		vec3 text_color = registry.colors.get(entity);
+		RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
+		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans);
+	}
 	// Truely render to the screen
 	drawToScreen();
 

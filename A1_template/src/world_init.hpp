@@ -27,6 +27,7 @@ const float BOSS_HEALTH_BAR_HEIGHT = 0.6f * 116.f /*232.f*/;
 Entity createBullet(RenderSystem * renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern * bullet_pattern = nullptr);
 
 Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet);
+Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm);
 
 // HP related
 Entity createPlayerHeartUI(RenderSystem*);

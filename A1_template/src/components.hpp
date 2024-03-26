@@ -395,6 +395,14 @@ struct TexturedVertex
 	vec2 texcoord;
 };
 
+struct RenderText {
+	std::string content;
+};
+
+struct RenderTextPermanent {
+	std::string content;
+};
+
 // Mesh datastructure for storing vertex and index buffers
 struct Mesh
 {
