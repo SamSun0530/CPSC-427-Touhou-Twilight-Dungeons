@@ -222,7 +222,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (counter.invulnerable_counter_ms < 0) {
 			registry.invulnerableTimers.remove(entity);
-			registry.players.get(entity).invulnerability = false;
 			return true;
 		}
 	}
@@ -363,9 +362,8 @@ void WorldSystem::handle_collisions() {
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
 				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
-					Player& player_component = registry.players.get(entity);
 					// player turn red and decrease hp
-					if (!player_component.invulnerability) {
+					if (!registry.invulnerableTimers.has(entity)) {
 						// should decrease HP but not yet implemented
 						if (!registry.realDeathTimers.has(entity_other)) {
 							registry.hitTimers.emplace(entity);
@@ -389,7 +387,6 @@ void WorldSystem::handle_collisions() {
 							}
 						}
 
-						player_component.invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
 				}
@@ -398,14 +395,13 @@ void WorldSystem::handle_collisions() {
 			else if (registry.enemyBullets.has(entity_other)) {
 				if (!registry.hitTimers.has(entity)) {
 					// player turn red and decrease hp, bullet disappear
-					if (!registry.players.get(player).invulnerability) {
+					if (!registry.invulnerableTimers.has(entity)) {
 						registry.hitTimers.emplace(entity);
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 						combo_meter = 1;
 						registry.hps.get(player).curr_hp -= registry.enemyBullets.get(entity_other).damage;
 						registry.remove_all_components_of(entity_other);
-						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity);
 					}
 				}

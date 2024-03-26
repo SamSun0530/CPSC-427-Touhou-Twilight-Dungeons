@@ -154,7 +154,6 @@ struct Boss {
 // Player component
 struct Player
 {
-	bool invulnerability = false;
 };
 
 enum class State {
