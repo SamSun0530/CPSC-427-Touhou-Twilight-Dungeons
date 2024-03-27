@@ -45,6 +45,11 @@ void MapSystem::spawnEnemies() {
 	}
 }
 
+void MapSystem::spawnEnemiesInRoom(Room2 room) {
+	createBomberEnemy(renderer, convert_grid_to_world(room.top_left));
+	createBomberEnemy(renderer, convert_grid_to_world(room.bottom_left));
+}
+
 Room generateBasicRoom(int x, int y);
 void addRoomToMap(const Room& room, std::vector<std::vector<int>>& map);
 void addHallwayBetweenRoom(const Room& room1, const Room& room2, std::vector<std::vector<int>>& map);
@@ -86,21 +91,24 @@ void MapSystem::generateBasicMap() {
 }
 
 void MapSystem::generateRandomMap() {
+	// manually add special rooms
+	// Connect boss with last room
+
 	bsptree.init(vec2(room_size), vec2(world_width, world_height));
 	bsptree.generate_partitions(bsptree.root);
 	bsptree.generate_rooms_random(bsptree.root);
 	bsptree.generate_corridors(bsptree.root);
-	std::vector<Room2> room_test;
-	std::vector<Corridor> corridor_test;
-	bsptree.get_corridors(bsptree.root, corridor_test);
-	bsptree.get_rooms(bsptree.root, room_test);
+
+
+	bsptree.get_corridors(bsptree.root, bsptree.corridors);
+	bsptree.generate_rooms(bsptree.root, bsptree.rooms);
 	//bsptree.print_tree(bsptree.root);
 
 	std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
 
 	// Populates the map with floors
-	for (int i = 0; i < room_test.size(); i++) {
-		Room2& room2 = room_test[i];
+	for (int i = 0; i < bsptree.rooms.size(); i++) {
+		Room2& room2 = bsptree.rooms[i];
 		for (int i = room2.top_left.y; i < room2.bottom_left.y; i++) {
 			for (int j = room2.top_left.x; j < room2.bottom_left.x; j++) {
 				map[i][j] = (int)TILE_TYPE::FLOOR;
@@ -108,7 +116,7 @@ void MapSystem::generateRandomMap() {
 		}
 	}
 
-	bsptree.add_corridors_to_map(corridor_test, map);
+	bsptree.add_corridors_to_map(bsptree.corridors, map);
 	bsptree.set_map_walls(map);
 
 

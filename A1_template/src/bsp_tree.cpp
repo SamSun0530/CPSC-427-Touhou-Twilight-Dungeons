@@ -216,15 +216,15 @@ void BSPTree::get_corridors(BSPNode* node, std::vector<Corridor>& corridors) {
 	get_corridors(node->right_node, corridors);
 }
 
-void BSPTree::get_rooms(BSPNode* node, std::vector<Room2>& rooms) {
+void BSPTree::generate_rooms(BSPNode* node, std::vector<Room2>& rooms) {
 	if (!node) return;
 
 	if (!node->left_node && !node->right_node) {
 		rooms.push_back(*node->room);
 	}
 
-	get_rooms(node->left_node, rooms);
-	get_rooms(node->right_node, rooms);
+	generate_rooms(node->left_node, rooms);
+	generate_rooms(node->right_node, rooms);
 }
 
 BSPNode* BSPTree::get_random_leaf_node(BSPNode* node) {
