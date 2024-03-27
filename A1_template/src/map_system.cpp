@@ -63,7 +63,7 @@ void MapSystem::spawnEnemies() {
 	}
 }
 
-Entity MapSystem::spawnEnemiesInRoom() {
+void MapSystem::spawnEnemiesInRoom() {
 	Room2 room;
 
 	for (int room_num = 1; room_num < bsptree.rooms.size(); room_num++) {
@@ -92,7 +92,16 @@ Entity MapSystem::spawnEnemiesInRoom() {
 			createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_left) / 2.f));
 		}
 	}
-	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[0].top_left + bsptree.rooms[0].bottom_left) / 2.f));
+}
+
+Entity MapSystem::spawnPlayerInRoom(int room_number) {
+	if (room_number < 0 || room_number >= bsptree.rooms.size()) assert(false && "Room number out of bounds");
+	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_left) / 2.f));
+}
+
+// Getting out of map results? Consider that there is empty padding in the world map.
+Entity MapSystem::spawnPlayer(coord grid_coord) {
+	return createPlayer(renderer, convert_grid_to_world(grid_coord));
 }
 
 Room generateBasicRoom(int x, int y);
@@ -244,15 +253,15 @@ void MapSystem::generateRandomMap() {
 	bsptree.rooms.clear();
 	Room& boss_room = generateBossRoom();
 
-	// Connect boss with last room
 	bsptree.init(vec2(room_size), vec2(world_width - boss_room.size.x - 1, world_height));
 	bsptree.generate_partitions(bsptree.root);
 	bsptree.generate_rooms_random(bsptree.root);
 	bsptree.generate_corridors(bsptree.root);
 	bsptree.get_corridors(bsptree.root, bsptree.corridors);
-	bsptree.generate_rooms(bsptree.root, bsptree.rooms);
+	bsptree.get_rooms(bsptree.root, bsptree.rooms);
 	//bsptree.print_tree(bsptree.root);
 
+	// Connect boss with last room
 	assert(bsptree.rooms.size() > 0 && bsptree.corridors.size() > 0);
 	Corridor boss_corridor;
 	Room2 boss_room2;

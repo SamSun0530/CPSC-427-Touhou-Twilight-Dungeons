@@ -59,7 +59,7 @@ public:
 	void print_tree(BSPNode* node); // for debugging
 	void get_corridors(BSPNode* node, std::vector<Corridor>& corridors);
 
-	void generate_rooms(BSPNode* node, std::vector<Room2>& rooms);
+	void get_rooms(BSPNode* node, std::vector<Room2>& rooms);
 	BSPNode* get_random_leaf_node(BSPNode* node);
 
 	std::vector<Room2> rooms;

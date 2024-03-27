@@ -349,7 +349,7 @@ void WorldSystem::restart_game() {
 
 	if (map_level.level == MapLevel::TUTORIAL) {
 		map->generateTutMap();
-		player = createPlayer(renderer, { 0, 0 });
+		player = map->spawnPlayer(world_center);
 	}
 	else {
 		//map->generateBasicMap();
@@ -357,7 +357,8 @@ void WorldSystem::restart_game() {
 		//map->generateBossRoom();
 		map->generateRandomMap();
 		//map->spawnEnemies();
-		player = map->spawnEnemiesInRoom();
+		map->spawnEnemiesInRoom();
+		player = map->spawnPlayerInRoom(0);
 	}
 	world_map = map->world_map;
 
