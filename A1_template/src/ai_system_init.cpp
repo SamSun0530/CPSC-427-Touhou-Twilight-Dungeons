@@ -1,4 +1,5 @@
 #include "ai_system.hpp"
+#include "world_system.hpp"
 
 // checks if (x,y) on the map grid is valid, this is not world coordinates
 bool is_valid_cell(int x, int y) {
@@ -146,7 +147,7 @@ path astar(coord start, coord goal) {
 		if (current.second == goal) return reconstruct_path(came_from, current.second, start);
 		open_list.pop();
 		close_list.insert(current.second);
-		for (std::pair<float, coord> actioncost : astar_actioncosts()) {
+		for (std::pair<float, coord>& actioncost : astar_actioncosts()) {
 			vec2 candidate = current.second + actioncost.second;
 			if (close_list.count(candidate) || (!is_valid_cell(candidate.x, candidate.y))) continue;
 			// f_value = total_cost + heuristic, therefore total_cost = f_value - heuristic
@@ -174,31 +175,46 @@ void set_follow_path(Entity& entity, coord from, coord to) {
 }
 
 void AISystem::init() {
+	// Initialize flow field
+	restart_flow_field_map();
+
 	// A list of function pointers for conditionals and actions
 	// checks if entity is within range of player
-	bool (*isInRange)(Entity & entity) = [](Entity& entity) {
+	bool (*isInRangeRemoveFollow)(Entity & entity) = [](Entity& entity) {
 		float minimum_range_to_check = 360000; // sqrt(360000)=600 pixels
 		Motion& motion = registry.motions.get(entity);
-		// asusme there is only one player
+		// asume there is only one player
 		for (Entity& player_entity : registry.players.entities) {
 			Motion& player_motion = registry.motions.get(player_entity);
 			vec2 dp = player_motion.position - motion.position;
 			if (dot(dp, dp) < minimum_range_to_check) return true;
 		}
 		registry.followpaths.remove(entity);
+		registry.followFlowField.remove(entity);
 		return false;
 		};
-	// checks if entity can shoot, throws error if entity does not have bulletfirerate component
+	bool (*isInRange)(Entity & entity) = [](Entity& entity) {
+		float minimum_range_to_check = 850000; // sqrt(minimum_range_to_check) = x, where x = # of pixels
+		Motion& motion = registry.motions.get(entity);
+		// asume there is only one player
+		for (Entity& player_entity : registry.players.entities) {
+			Motion& player_motion = registry.motions.get(player_entity);
+			vec2 dp = player_motion.position - motion.position;
+			if (dot(dp, dp) < minimum_range_to_check) return true;
+		}
+		return false;
+		};
+	// checks if entity can shoot, throws error if entity does not have bullet spawner component
 	bool (*canShoot)(Entity & entity) = [](Entity& entity) {
 		float current_time = glfwGetTime();
-		BulletFireRate& fireRate = registry.bulletFireRates.get(entity);
-		return current_time - fireRate.last_time >= fireRate.fire_rate;
+		BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
+		return current_time - bullet_spawner.last_fire_time >= bullet_spawner.fire_rate;
 		};
 	// do nothing
 	void (*doNothing)(Entity & entity) = [](Entity& entity) {};
 	// handles random idle movement, if entity do not have idlemoveactions -> do nothing
 	void (*moveRandomDirection)(Entity & entity) = [](Entity& entity) {
-		if (registry.bulletFireRates.has(entity)) registry.bulletFireRates.get(entity).is_firing = false; // stop firing
+		if (registry.bulletSpawners.has(entity)) registry.bulletSpawners.get(entity).is_firing = false; // stop firing
 		if (!registry.idleMoveActions.has(entity)) return;
 		std::random_device ran;
 		std::mt19937 gen(ran());
@@ -222,19 +238,20 @@ void AISystem::init() {
 			}
 		}
 		};
-	// stops entity from firing, throws error if entity does not have bulletfirerate component
+	// stops entity from firing, throws error if entity does not have bullet spawner component
 	void (*stopFiring)(Entity & entity) = [](Entity& entity) {
-		registry.bulletFireRates.get(entity).is_firing = false;
+		registry.bulletSpawners.get(entity).is_firing = false;
 		};
 	// make entity fire at player and stop motion
 	void (*fireAtPlayer)(Entity & entity) = [](Entity& entity) {
-		registry.bulletFireRates.get(entity).is_firing = true;
+		registry.bulletSpawners.get(entity).is_firing = true;
 		registry.kinematics.get(entity).direction = { 0, 0 };
 		registry.followpaths.remove(entity);
+		registry.followFlowField.remove(entity);
 		};
 	// find player with a star and sets followpath component
-	void (*findPlayer)(Entity & entity) = [](Entity& entity) {
-		if (registry.bulletFireRates.has(entity)) registry.bulletFireRates.get(entity).is_firing = false;
+	void (*findPlayerAStar)(Entity & entity) = [](Entity& entity) {
+		if (registry.bulletSpawners.has(entity)) registry.bulletSpawners.get(entity).is_firing = false;
 		Entity& player = registry.players.entities[0];
 		Motion& player_motion = registry.motions.get(player);
 		Motion& entity_motion = registry.motions.get(entity);
@@ -243,7 +260,7 @@ void AISystem::init() {
 		set_follow_path(entity, entity_motion.position + entity_collidable.shift, player_motion.position + player_collidable.shift);
 		};
 	// find player with a star only if outside of range, otherwise stop motion
-	void (*findPlayerThreshold)(Entity & entity) = [](Entity& entity) {
+	void (*findPlayerThresholdAStar)(Entity & entity) = [](Entity& entity) {
 		// does not find player if within a threshold
 		Entity& player = registry.players.entities[0];
 		Motion& player_motion = registry.motions.get(player);
@@ -260,25 +277,100 @@ void AISystem::init() {
 			registry.followpaths.remove(entity);
 		}
 		};
+	// find player by following flow field
+	void (*followFlowField)(Entity & entity) = [](Entity& entity) {
+		if (registry.bulletSpawners.has(entity)) registry.bulletSpawners.get(entity).is_firing = false;
+		if (!registry.followFlowField.has(entity)) {
+			registry.followFlowField.emplace(entity);
+		}
+		};
+	// find player by following flow field if outside of range threshold
+	void (*followFlowFieldThreshold)(Entity & entity) = [](Entity& entity) {
+		if (registry.bulletSpawners.has(entity)) registry.bulletSpawners.get(entity).is_firing = false;
+		Entity& player = registry.players.entities[0];
+		Motion& player_motion = registry.motions.get(player);
+		Motion& entity_motion = registry.motions.get(entity);
+		float minimum_range_to_check = 90000; // sqrt(160000)=300 pixels
+		vec2 dp = player_motion.position - entity_motion.position;
+		if (dot(dp, dp) > minimum_range_to_check) {
+			if (!registry.followFlowField.has(entity)) {
+				registry.followFlowField.emplace(entity);
+			}
+		}
+		else {
+			registry.kinematics.get(entity).direction = { 0, 0 };
+			registry.followFlowField.remove(entity);
+		}
+		};
+	// show/hide boss info based on boss & player distance:
+	// - boss is active -> process phase changes
+	// - bullet spawner -> firing
+	// - boss health bar ui
+	void (*showBossInfo)(Entity & entity) = [](Entity& entity) {
+		if (!registry.bosses.has(entity)) return;
+		Boss& boss = registry.bosses.get(entity);
+		boss.is_active = true;
+		BossHealthBarLink& link = registry.bossHealthBarLink.get(entity);
+		BossHealthBarUI& ui = registry.bossHealthBarUIs.get(link.other);
+		if (registry.bulletSpawners.has(entity)) {
+			BulletSpawner& bs = registry.bulletSpawners.get(entity);
+			bs.is_firing = true;
+		}
+		if (!ui.is_visible) ui.is_visible = true;
+		};
+	void (*hideBossInfo)(Entity & entity) = [](Entity& entity) {
+		if (!registry.bosses.has(entity)) return;
+		Boss& boss = registry.bosses.get(entity);
+		boss.is_active = false;
+		BossHealthBarLink& link = registry.bossHealthBarLink.get(entity);
+		BossHealthBarUI& ui = registry.bossHealthBarUIs.get(link.other);
+		if (registry.bulletSpawners.has(entity)) {
+			BulletSpawner& bs = registry.bulletSpawners.get(entity);
+			bs.is_firing = false;
+		}
+		if (ui.is_visible) ui.is_visible = false;
+		};
 
 	ConditionalNode* can_see_player_bee = new ConditionalNode(canSeePlayer);
-	ConditionalNode* is_in_range_bee = new ConditionalNode(isInRange);
+	ConditionalNode* is_in_range_bee = new ConditionalNode(isInRangeRemoveFollow);
 	ConditionalNode* can_shoot_bee = new ConditionalNode(canShoot);
 
 	ActionNode* move_random_direction_bee = new ActionNode(moveRandomDirection);
-	ActionNode* stop_firing_bee = new ActionNode(stopFiring);
 	ActionNode* fire_at_player_bee = new ActionNode(fireAtPlayer);
-	ActionNode* find_player_bee = new ActionNode(findPlayer);
-	ActionNode* find_player_threshold_bee = new ActionNode(findPlayerThreshold);
+	ActionNode* find_player_bee = new ActionNode(findPlayerAStar);
+	ActionNode* follow_flow_field_threshold_bee = new ActionNode(followFlowFieldThreshold);
 
 	can_shoot_bee->setTrue(fire_at_player_bee);
-	can_shoot_bee->setFalse(find_player_threshold_bee);
+	can_shoot_bee->setFalse(follow_flow_field_threshold_bee);
 
 	can_see_player_bee->setTrue(can_shoot_bee);
 	can_see_player_bee->setFalse(find_player_bee);
 
 	is_in_range_bee->setTrue(can_see_player_bee);
 	is_in_range_bee->setFalse(move_random_direction_bee);
+
+	// Fixes memory leak issue where wolf points to bee's allocated nodes
+	// When deleting nodes in destructor, bee deletes first, then wolf tries to delete
+	// the same node, resulting in error
+	// IMPORTANT: for now it's a quick fix, do not reuse nodes
+	// TODO: use shared_ptr instead
+	ConditionalNode* can_see_player_wolf = new ConditionalNode(canSeePlayer);
+	ConditionalNode* is_in_range_wolf = new ConditionalNode(isInRange);
+	ConditionalNode* can_shoot_wolf = new ConditionalNode(canShoot);
+
+	ActionNode* move_random_direction_wolf = new ActionNode(moveRandomDirection);
+	ActionNode* fire_at_player_wolf = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_wolf = new ActionNode(findPlayerThresholdAStar);
+	ActionNode* find_player_threshold_wolf = new ActionNode(followFlowFieldThreshold);
+
+	can_shoot_wolf->setTrue(fire_at_player_wolf);
+	can_shoot_wolf->setFalse(find_player_threshold_wolf);
+
+	can_see_player_wolf->setTrue(can_shoot_wolf);
+	can_see_player_wolf->setFalse(find_player_wolf);
+
+	is_in_range_wolf->setTrue(can_see_player_wolf);
+	is_in_range_wolf->setFalse(move_random_direction_wolf);
 
 	/*
 	Wolf has same tree (temporary)
@@ -294,7 +386,7 @@ void AISystem::init() {
 				T -> stop and shoot
 	*/
 	this->bee_tree.setRoot(is_in_range_bee);
-	this->wolf_tree.setRoot(is_in_range_bee);
+	this->wolf_tree.setRoot(is_in_range_wolf);
 
 	/*
 	Bomber enemy decision tree
@@ -303,9 +395,64 @@ void AISystem::init() {
 		T -> find player with a star
 	*/
 	ActionNode* move_random_direction_bomber = new ActionNode(moveRandomDirection);
-	ActionNode* find_player_bomber = new ActionNode(findPlayer);
-	ConditionalNode* is_in_range_bomber = new ConditionalNode(find_player_bomber, move_random_direction_bomber, isInRange);
+	//ActionNode* find_player_bomber = new ActionNode(findPlayerAStar);
+	ActionNode* follow_flow_field_bomber = new ActionNode(followFlowField);
+	ConditionalNode* is_in_range_bomber = new ConditionalNode(follow_flow_field_bomber, move_random_direction_bomber, isInRangeRemoveFollow);
 	this->bomber_tree.setRoot(is_in_range_bomber);
 
+	/*
+	Cirno boss decision tree
+	COND in range global?
+		F -> hide boss health bar
+		T -> show boss health bar
+	*/
+	ActionNode* show_boss_health_bar_cirno = new ActionNode(showBossInfo);
+	ActionNode* hide_boss_health_bar_cirno = new ActionNode(hideBossInfo);
+	ConditionalNode* is_in_range_cirno = new ConditionalNode(show_boss_health_bar_cirno, hide_boss_health_bar_cirno, isInRange);
+	this->cirno_boss_tree.setRoot(is_in_range_cirno);
+
 	// TODO: create decision trees/condition/action functions here for different enemies
+}
+
+int AISystem::get_flow_field_value(vec2 grid_pos) {
+	return flow_field_map[grid_pos.y][grid_pos.x];
+}
+
+void AISystem::restart_flow_field_map()
+{
+	flow_field_map = std::vector<std::vector<int>>(world_height, std::vector<int>(world_width, -1));
+	//update_flow_field_map();
+	//for (int i = 0; i < flow_field_map.size(); i++) {
+	//	for (int j = 0; j < flow_field_map.size(); j++) {
+	//		printf("%d ", flow_field_map[i][j]);
+	//	}
+	//	printf("\n");
+	//}
+}
+
+void AISystem::update_flow_field_map()
+{
+	Entity& player = registry.players.entities[0];
+	coord start = convert_world_to_grid(registry.motions.get(player).position);
+	if (!is_valid_cell(start.x, start.y)) return;
+
+	std::queue<std::pair<coord, int>> open_list;
+	std::unordered_set<coord> close_list;
+
+	open_list.push(std::make_pair(start, 0));
+
+	while (!open_list.empty()) {
+		auto current = open_list.front();
+		open_list.pop();
+		close_list.insert(current.first);
+		flow_field_map[current.first.y][current.first.x] = current.second;
+		if (current.second + 1 <= flow_field.max_length) {
+			for (const coord& action : ACTIONS) {
+				coord candidate = current.first + action;
+				if (close_list.count(candidate) || (!is_valid_cell(candidate.x, candidate.y))) continue;
+				close_list.insert(candidate);
+				open_list.push(std::make_pair(candidate, current.second + 1));
+			}
+		}
+	}
 }

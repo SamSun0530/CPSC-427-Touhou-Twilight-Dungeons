@@ -14,9 +14,9 @@
 #include "bullet_system.hpp"
 #include "audio.hpp"
 #include "animation.hpp"
+#include "boss_system.hpp"
 
 // debug
-#include "time_debug.hpp"
 #include <iostream>
 
 using Clock = std::chrono::high_resolution_clock;
@@ -32,10 +32,10 @@ int main()
 	BulletSystem bullets;
 	MapSystem map;
 	Animation animation;
+	BossSystem boss_system;
 
 	// Global classes
 	Audio audio;
-	TimeDebug time_debug;
 
 	// Initializing window
 	GLFWwindow* window = world.create_window();
@@ -49,7 +49,7 @@ int main()
 
 	// initialize the main systems
 	renderer.init(window);
-	world.init(&renderer, &audio, &map);
+	world.init(&renderer, &audio, &map, &ai);
 	bullets.init(&renderer, window, &audio);
 	ai.init();
 	map.init(&renderer);
@@ -67,42 +67,19 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		//printf("=============\n");
 		elapsed_ms = world.combo_meter * elapsed_ms;
-		//time_debug.initTime();
 		world.step(elapsed_ms);
-		//time_debug.getTime("world");
-
-		//time_debug.initTime();
+		boss_system.step(elapsed_ms);
 		animation.step(elapsed_ms);
-		//time_debug.getTime("animation");
-
-		//time_debug.initTime();
 		physics.step(elapsed_ms);
-		//time_debug.getTime("physics");
-
 		world.update_focus_dot();
-
-		//time_debug.initTime();
 		ai.step(elapsed_ms);
-		//time_debug.getTime("ai");
-
-		//time_debug.initTime();
 		bullets.step(elapsed_ms);
-		//time_debug.getTime("bullets");
-
-		//time_debug.initTime();
 		world.handle_collisions();
-
-		//time_debug.getTime("handle_collisions");
 
 		// map.debug(); // Just to visualize the map
 
-		//time_debug.initTime();
 		renderer.draw();
-		//time_debug.getTime("renderer");
-
-		//printf("FPS: %f \n", 1000.f / elapsed_ms);
 	}
 
 	return EXIT_SUCCESS;

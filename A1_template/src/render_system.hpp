@@ -55,8 +55,8 @@ class RenderSystem {
 			textures_path("LeftBottomCorner.png"),
 			textures_path("RightTopCorner.png"),
 			textures_path("RightBottomCorner.png"),
-			textures_path("FullHeart.png"),
-			textures_path("HalfHeart.png"),
+			textures_path("Reimu_HealthBar.png"),
+			textures_path("Reimu_Head.png"),
 			textures_path("EmptyHeart.png"),
 			textures_path("BottomWall.png"),
 			textures_path("WallEdge.png"),
@@ -66,9 +66,18 @@ class RenderSystem {
 			textures_path("Health+1.png"),
 			textures_path("Health+2.png"),
 			textures_path("RegenerateHealth.png"),
+			textures_path("Cirno-Figure.png"),
+			textures_path("BossHealthBar.png"),
 			textures_path("Reimu-Bullet-Disappear.png"),
 			textures_path("FocusDot.png"),
-			textures_path("keyboard.png")
+			textures_path("keyboard.png"),
+			textures_path("Coins.png"),
+			textures_path("AttackDemage.png"),
+			textures_path("AttackSpeed.png"),
+			textures_path("CriticalChance.png"),
+			textures_path("CriticalDemage.png"),
+			textures_path("CriticalHitIcon.png"),
+			textures_path("InvulBar.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -80,7 +89,9 @@ class RenderSystem {
 		shader_path("textured"),
 		shader_path("wind"),
 		shader_path("ui"),
-		shader_path("font")
+		shader_path("font"),
+		shader_path("playerhealthbar"),
+		shader_path("bosshealthbar")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -122,14 +133,11 @@ public:
 	// font initialization
 	bool initFont(GLFWwindow* window, const std::string& font_filename, unsigned int font_default_size);
 
-	GLuint getDummyVAO() const {
-		return dummyVAO;
-	}
-
 	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);
+	void drawBulletsInstanced(const std::vector<Entity>& entities, const glm::mat3& projection, const glm::mat3& view);
 	void drawToScreen();
 
 	// Window handle
@@ -139,6 +147,12 @@ private:
 	GLuint frame_buffer;
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
+
+	// Enemy bullet instancing
+	void initializeEnemyBulletInstance();
+	GLuint enemy_bullet_instance_program;
+	GLuint enemy_bullet_instance_VAO;
+	GLuint enemy_bullet_instance_VBO;
 
 	// Fonts
 	std::map<char, Character> m_ftCharacters;

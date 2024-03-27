@@ -15,6 +15,7 @@
 #include "render_system.hpp"
 #include "audio.hpp"
 #include "map_system.hpp"
+#include "ai_system.hpp"
 #include <map>
 
 // Container for all our entities and game logic. Individual rendering / update is
@@ -35,10 +36,13 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer, Audio* audio, MapSystem* map);
+	void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai);
 
 	// Releases all associated resources
 	~WorldSystem();
+
+	// Ai system - for restarting flow field
+	AISystem* ai;
 
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
@@ -63,7 +67,7 @@ public:
 	// Fixes issue where dot lags behind player due to physics lerp step after setting position
 	void update_focus_dot();
 	// Combo meter
-	float combo_meter;
+	float combo_meter = 1.0f;
 	const float COMBO_METER_MAX = 1.5f;
 private:
 	// Input callback functions
@@ -81,9 +85,6 @@ private:
 
 	// restart level
 	void restart_game();
-
-	// toggle tutorial mode
-	void toggle_tutorial();
 
 	// OpenGL window handle
 	GLFWwindow* window;

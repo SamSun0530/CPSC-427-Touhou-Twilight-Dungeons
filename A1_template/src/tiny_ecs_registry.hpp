@@ -30,9 +30,8 @@ public:
 	ComponentContainer<HP> hps;
 	ComponentContainer<PlayerBullet> playerBullets;
 	ComponentContainer<IdleMoveAction> idleMoveActions;
-	ComponentContainer<BulletFireRate> bulletFireRates;
+	ComponentContainer<BulletSpawner> bulletSpawners;
 	ComponentContainer<DeathTimer> realDeathTimers;
-	ComponentContainer<RoomHitbox> roomHitbox;
 	ComponentContainer<Kinematic> kinematics;
 	ComponentContainer<Collidable> collidables;
 	ComponentContainer<AiTimer> aitimers;
@@ -42,15 +41,29 @@ public:
 	ComponentContainer<BomberEnemy> bomberEnemies;
 	ComponentContainer<WolfEnemy> wolfEnemies;
 	ComponentContainer<SubmachineGunEnemy> submachineGunEnemies;
+	ComponentContainer<Coin> coins;
+	ComponentContainer<Product> products;
+	ComponentContainer<MaxHPIncrease> maxhpIncreases;
+	ComponentContainer<AttackUp> attackUps;
+	ComponentContainer<Chest> chests;
+	ComponentContainer<Key> keys;
+	ComponentContainer<Boss> bosses;
+	ComponentContainer<BulletPattern> bulletPatterns;
+	ComponentContainer<BulletDelayTimer> bulletDelayTimers;
+	ComponentContainer<BulletDeathTimer> bulletDeathTimers;
+	ComponentContainer<BulletLoop> bulletLoops;
+	ComponentContainer<PlayerHeart> playerHearts;
+	ComponentContainer<BossHealthBarUI> bossHealthBarUIs;
+	ComponentContainer<BossHealthBarLink> bossHealthBarLink;
+	ComponentContainer<FollowFlowField> followFlowField;
 	ComponentContainer<CircleCollidable> circleCollidables;
 	ComponentContainer<EntityAnimation> alwaysplayAni;
 	ComponentContainer<BezierCurve> bezierCurves;
 	ComponentContainer<FocusDot> focusdots; // only for rendering dot for reimu
-
+	ComponentContainer<BulletStartFiringTimer> bulletStartFiringTimers;
 	ComponentContainer<RenderText> texts;
 	ComponentContainer<RenderTextPermanent> textsPerm;
 	ComponentContainer<UIUX> UIUX;
-
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -75,7 +88,7 @@ public:
 		registry_list.push_back(&hps);
 		registry_list.push_back(&playerBullets);
 		registry_list.push_back(&idleMoveActions);
-		registry_list.push_back(&bulletFireRates);
+		registry_list.push_back(&bulletSpawners);
 		registry_list.push_back(&realDeathTimers);
 		registry_list.push_back(&kinematics);
 		registry_list.push_back(&collidables);
@@ -86,16 +99,29 @@ public:
 		registry_list.push_back(&bomberEnemies);
 		registry_list.push_back(&wolfEnemies);
 		registry_list.push_back(&submachineGunEnemies);
+		registry_list.push_back(&coins);
+		registry_list.push_back(&products);
+		registry_list.push_back(&maxhpIncreases);
+		registry_list.push_back(&attackUps);
+		registry_list.push_back(&chests);
+		registry_list.push_back(&keys);
+		registry_list.push_back(&bosses);
+		registry_list.push_back(&bulletPatterns);
+		registry_list.push_back(&bulletDelayTimers);
+		registry_list.push_back(&bulletDeathTimers);
+		registry_list.push_back(&bulletLoops);
+		registry_list.push_back(&playerHearts);
+		registry_list.push_back(&bossHealthBarUIs);
+		registry_list.push_back(&bossHealthBarLink);
+		registry_list.push_back(&followFlowField);
 		registry_list.push_back(&circleCollidables);
 		registry_list.push_back(&alwaysplayAni);
 		registry_list.push_back(&bezierCurves);
 		registry_list.push_back(&focusdots);
-
+		registry_list.push_back(&bulletStartFiringTimers);
 		registry_list.push_back(&texts);
 		registry_list.push_back(&textsPerm);
-
 		registry_list.push_back(&UIUX);
-
 	}
 
 	void clear_all_components() {

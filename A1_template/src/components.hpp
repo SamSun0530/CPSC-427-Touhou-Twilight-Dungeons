@@ -7,11 +7,16 @@
 
 
 struct PlayerBullet {
-	int damage = 1;
+	int damage = 10;
 };
 
 struct UIUX {
 
+};
+
+struct EnemyBullet
+{
+	int damage = 1;
 };
 
 struct MapLevel {
@@ -22,21 +27,158 @@ struct MapLevel {
 };
 extern MapLevel map_level;
 
+/*
+Bullet actions:
+Floats:
+SPEED - float - change in velocity magnitude
+ROTATE - float - change in bullet direction
+DELAY - float - wait until executing next command
+DEL - float - bullet death timer to remove bullet
+
+Vec2s:
+LOOP - vec2 - loop back to specified index
+	- vec2[0] = number to loop (specify 1 - loops once)
+	- vec2[1] = 0-indexed to loop to (should be index >= 0 && index < commands.size)
+DIRECTION - vec2 - change direction to x,y
+
+Vec3s:
+SPLIT - vec3 - split one bullets into multiple bullets based on angle
+	- vec2[0] = number of bullets to split into (<= 1 - won't do anything)
+	- vec2[1] = angle for the bullet spread
+	- vec2[2] = initial bullet speed
+*/
+enum class BULLET_ACTION {
+	SPEED,
+	ROTATE,
+	DELAY,
+	LOOP,
+	DEL,
+	SPLIT,
+	DIRECTION
+};
+
+struct BulletCommand {
+	BULLET_ACTION action;
+	union {
+		vec2 value_vec2;
+		vec3 value_vec3;
+		float value;
+	};
+
+	BulletCommand(BULLET_ACTION a, float v) : action(a), value(v) {}
+	BulletCommand(BULLET_ACTION a, vec2 v) : action(a), value_vec2(v) {}
+	BulletCommand(BULLET_ACTION a, vec3 v) : action(a), value_vec3(v) {}
+};
+
+// Bullet follows pattern based on list of command
+struct BulletPattern {
+	// Adapted from https://redd.it/1490tat
+	std::vector<BulletCommand> commands;
+	int bc_index = 0; // current bullet command index
+};
+
 // Manages when entity is able to fire a bullet again
-struct BulletFireRate
+// Inspiration/Credit from: https://youtu.be/whrInb6Z7QI
+struct BulletSpawner
 {
-	// IMPORTANT: set this to -fire_rate so entity can fire immediately
-	float last_time = -0.2;
-	// fire rate is (fire_rate) second/shot or (fire_rate)^-1 shots/second
-	// e.g. fire_rate = 0.1 s/shot = 10 shots/s
-	float fire_rate = 0.2;
+	// determines if bullet can be fired
 	bool is_firing = false;
+	// set this to -1 so entity can fire immediately
+	float last_fire_time = -1.f;
+	// 1 is high fire rate, 10+ is slow fire rate
+	// fires every fire_rate * 100ms
+	float fire_rate = 1.f;
+	// number of rounds to fire, -1 for no cooldown
+	int number_to_fire = -1;
+	// number of current rounds already fired, set cooldown if number_fired == number_to_fire
+	int number_current_fired = 0;
+	// determines next set of bullets to fire, 
+	// set number_to_fire = -1 for no cooldown
+	// updates every cooldown_rate * 100ms
+	bool is_cooldown = false;
+	float last_cooldown = 30.f;
+	float cooldown_rate = 30.f;
+	// number of bullet arrays to spawn
+	// total_bullet_array separated by between spread
+	// bullets_per_array separated by within spread
+	int total_bullet_array = 1;
+	int bullets_per_array = 1;
+	float spread_between_array = 1.f; // in degrees
+	float spread_within_array = 1.f; // in degrees
+	// current angle to spawn
+	float start_angle = 0.f;
+	// adjust angle until max rate, delta increases/decreases rate
+	float spin_rate = 0.f;
+	float max_spin_rate = 1.f;
+	float spin_delta = 0.f;
+	// negate delta once hit max rate
+	bool invert = false;
+	// updates spin rate, needed for independence of fire rate
+	// updates every update_rate * 100ms
+	float last_update = -1.f;
+	float update_rate = 1.f;
+	float bullet_initial_speed = 100;
+
+	inline bool operator==(const BulletSpawner& o) {
+		return (is_firing == o.is_firing &&
+			last_fire_time == o.last_fire_time &&
+			fire_rate == o.fire_rate &&
+			number_current_fired == o.number_to_fire &&
+			number_current_fired == o.number_current_fired &&
+			is_cooldown == o.is_cooldown &&
+			last_cooldown == o.last_cooldown &&
+			cooldown_rate == o.cooldown_rate &&
+			total_bullet_array == o.total_bullet_array &&
+			bullets_per_array == o.bullets_per_array &&
+			spread_between_array == o.spread_between_array &&
+			spread_within_array == o.spread_within_array &&
+			start_angle == o.start_angle &&
+			spin_rate == o.spin_rate &&
+			max_spin_rate == o.max_spin_rate &&
+			spin_delta == o.spin_delta &&
+			invert == o.invert &&
+			last_update == o.last_update &&
+			update_rate == o.update_rate &&
+			bullet_initial_speed == o.bullet_initial_speed);
+	}
+	inline bool operator!=(const BulletSpawner& o) {
+		return !(*this == o);
+	}
+};
+
+struct Boss {
+	// determines if boss system should process state
+	bool is_active = false;
+	// current pattern to use during phase
+	BulletPattern bullet_pattern;
+	// duration of the pattern to change to next one
+	float duration = -1;
+	float current_duration = -1;
+	// phases determined by health thresholds
+	// e.g. 4 phases -> [75, 50, 25, -1] (from hp 0-25,26-50,51-75,76-?)
+	// if health lower than hp threshold, move on to next phase
+	std::vector<int> health_phase_thresholds;
+	// current boss phase index into health_phase_thresholds
+	int phase_index = 0;
+	// current BulletPhase id
+	// used in boss system to check if two bullet phase id are the same
+	// prevents choosing the same bullet phase
+	int current_bullet_phase_id = -1;
+	// between phase change time
+	float phase_change_time = -1;
 };
 
 // Player component
 struct Player
 {
 	bool invulnerability = false;
+	int bullet_damage = 10;
+	int coin_amount = 0;
+	int key_amount = 0;
+	float invulnerability_time_ms = 1000;
+	float fire_rate = 0.2;
+	float critical_hit = 0.05;
+	float critical_demage = 1.5;
 };
 
 enum class State {
@@ -91,18 +233,56 @@ struct HP {
 	int curr_hp = 6;
 };
 
+struct PlayerHeart {
+};
+
+struct Coin
+{
+	int coin_amount = 1;
+};
+
+struct Product
+{
+	int price = 0;
+};
+
+struct MaxHPIncrease
+{
+	int max_health_increase = 1;
+};
+
+struct Shield
+{
+	int defense = 5;
+};
+
+struct AttackUp
+{
+	int damageUp = 1;
+};
+
+struct Chest
+{
+
+};
+
+struct Key
+{
+};
+	
+struct BossHealthBarUI {
+	bool is_visible = false;
+};
+
+// keep track of which boss this ui belongs to
+struct BossHealthBarLink {
+	Entity other; 
+	BossHealthBarLink(Entity& other) { this->other = other; };
+};
+
 struct Pickupable
 {
 	int health_change = 1;
-};
-
-
-struct EnemyBullet
-{
-	int damage = 1;
-};
-
-struct RoomHitbox {
 };
 
 // A non interactable tile of the map
@@ -168,6 +348,15 @@ struct FollowPath
 	bool is_player_target = true;
 };
 
+// Entity follows flow field
+struct FollowFlowField
+{
+	coord next_grid_pos = { -1, -1 };
+	// whether to continue chasing or stop at grid
+	// set to true to prevent enemy from stopping early
+	bool is_player_target = true;
+};
+
 // Data structure for toggling debug mode
 struct Debug {
 	bool in_debug_mode = 0;
@@ -191,6 +380,23 @@ struct ScreenState
 struct DebugComponent
 {
 	// Note, an empty struct has size 1
+};
+
+// Used for bullet control - loop to specified index
+// This could potentially stall if amount to loop is large with no delays
+struct BulletLoop {
+	float index_to_loop = -1;
+	float amount_to_loop = -1;
+};
+
+// Start firing after specified amount of time
+struct BulletStartFiringTimer {
+	float counter_ms = -1;
+};
+
+// Used for bullet control - Halts bullet pattern by delay ms
+struct BulletDelayTimer {
+	float delay_counter_ms = -1;
 };
 
 // Update entity ai behavior tree after update ms
@@ -217,6 +423,11 @@ struct BezierCurve
 	float curve_counter_ms = 500;
 	float t = 0.0f;
 	std::vector<vec2> bezier_pts;
+};
+
+struct BulletDeathTimer
+{
+	float death_counter_ms = -1;
 };
 
 struct InvulnerableTimer {
@@ -321,9 +532,9 @@ enum class TEXTURE_ASSET_ID {
 	LEFT_BOTTOM_CORNER_WALL = LEFT_TOP_CORNER_WALL + 1,
 	RIGHT_TOP_CORNER_WALL = LEFT_BOTTOM_CORNER_WALL + 1,
 	RIGHT_BOTTOM_CORNER_WALL = RIGHT_TOP_CORNER_WALL + 1,
-	FULL_HEART = RIGHT_BOTTOM_CORNER_WALL + 1,
-	HALF_HEART = FULL_HEART + 1,
-	EMPTY_HEART = HALF_HEART + 1,
+	REIMU_HEALTH = RIGHT_BOTTOM_CORNER_WALL + 1,
+	REIMU_HEAD= REIMU_HEALTH + 1,
+	EMPTY_HEART = REIMU_HEAD + 1,
 	BOTTOM_WALL = EMPTY_HEART + 1,
 	WALL_EDGE = BOTTOM_WALL + 1,
 	WALL_SURFACE = WALL_EDGE + 1,
@@ -332,10 +543,19 @@ enum class TEXTURE_ASSET_ID {
 	HEALTH_1 = PILLAR_BOTTOM + 1,
 	HEALTH_2 = HEALTH_1 + 1,
 	REGENERATE_HEALTH = HEALTH_2 + 1,
-	REIMU_BULLET_DISAPPEAR = REGENERATE_HEALTH + 1,
+	BOSS = REGENERATE_HEALTH + 1,
+	BOSS_HEALTH_BAR = BOSS + 1,
+	REIMU_BULLET_DISAPPEAR = BOSS_HEALTH_BAR + 1,
 	FOCUS_DOT = REIMU_BULLET_DISAPPEAR + 1,
 	KEYS = FOCUS_DOT + 1,
-	TEXTURE_COUNT = KEYS + 1
+	COIN = KEYS + 1,
+	ATTACKDMG = COIN + 1,
+	ATTACKSPEED = ATTACKDMG + 1,
+	CRTCHANCE = ATTACKSPEED + 1,
+	CRTDMG = CRTCHANCE + 1,
+	CRTHITICON = CRTDMG + 1,
+	INVUL_BAR = CRTHITICON + 1,
+	TEXTURE_COUNT = INVUL_BAR + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -347,7 +567,9 @@ enum class EFFECT_ASSET_ID {
 	WIND = TEXTURED + 1,
 	UI = WIND + 1,
 	FONT = UI + 1,
-	EFFECT_COUNT = FONT + 1
+	PLAYER_HB = FONT + 1,
+	BOSSHEALTHBAR = PLAYER_HB + 1,
+	EFFECT_COUNT = BOSSHEALTHBAR + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

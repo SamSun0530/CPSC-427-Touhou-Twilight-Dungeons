@@ -122,10 +122,11 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map) {
+void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
 	this->map = map;
+	this->ai = ai;
 	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
 	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
@@ -142,12 +143,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
 	if (elapsedSinceLastFPSUpdate >= 1000.0) {
 		// Calculate FPS
-		getInstance().fps = static_cast<int>(1000.0f / elapsed_ms_since_last_update);
-		tutorial_timer -= elapsedSinceLastFPSUpdate / 1000.0f;
-		if (tutorial_timer <= 0) {
-			getInstance().display_instruction = false;
-			//tuimer = 120.0f;
-		}
+		getInstance().fps = static_cast<int>(1000.0f / (elapsed_ms_since_last_update / combo_meter));
+		elapsedSinceLastFPSUpdate = 0.0f;
+	}
+
+	tutorial_timer -= tutorial_timer <= 0 ? 0 : elapsed_ms_since_last_update;
+	if (tutorial_timer <= 0) {
+		getInstance().display_instruction = false;
 	}
 
 	// Updating window title with points
@@ -158,19 +160,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
 		registry.remove_all_components_of(registry.debugComponents.entities.back());
+
 	while (registry.texts.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
+
 	createText({ 1150,10 }, { 1, 1 }, std::to_string(combo_meter), { 0, 1, 0 }, false);
+
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
+	HP& player_hp = registry.hps.get(player);
+	createText({ 128 * 1.3 + 70 - 4, window_height_px - 77 }, { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
+	Player& player_att = registry.players.get(player);
+	std::string fire_rate = std::to_string(1/player_att.fire_rate);
+	std::string critical_hit = std::to_string(player_att.critical_hit*100);
+	std::string critical_dmg = std::to_string(player_att.critical_demage*100);
+	createText({ 70, window_height_px - 210 }, { 1,1 }, std::to_string(player_att.bullet_damage), vec3(0, 0, 0), false);
+	createText({ 70, window_height_px - 260 }, { 1,1 }, fire_rate.substr(0, fire_rate.find(".")+3), vec3(0, 0, 0), false);
+	createText({ 70, window_height_px - 310 }, { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(0, 0, 0), false);
+	createText({ 70, window_height_px - 360 }, { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(0, 0, 0), false);
 
 	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
 	// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
 	// Adapted from: https://gamedev.stackexchange.com/questions/152465/smoothly-move-camera-to-follow-player
 	float sharpness_factor_camera = 0.95f;
 	float K = 1.0f - pow(1.0f - sharpness_factor_camera, elapsed_ms_since_last_update / 1000.f);
-	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), motions_registry.get(player).position, K));
-	//renderer->ui.setPosition(motions_registry.get(player).position);
+
+	vec2 player_position = registry.motions.get(player).position;
+	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), player_position, K));
 
 	// Interpolate mouse-camera offset
 	// sharpness_factor_camera_offset possible values:
@@ -181,45 +197,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	float sharpness_factor_camera_offset = 10.0f;
 	renderer->camera.offset = vec2_lerp(renderer->camera.offset, renderer->camera.offset_target, elapsed_ms_since_last_update / 1000.f * sharpness_factor_camera_offset);
 
-	// User interface
-	vec2 ui_pos = { 50.f, 50.f };
-	for (int i = 0; i < ui.size(); i++) {
-		vec2 padding = { i * 60, 0 };
-		motions_registry.get(ui[i]).position = vec2(0,0) - window_px_half + ui_pos + padding;
+	// User interface TODO
+	for (Entity entity : registry.bossHealthBarUIs.entities) {
+		Motion& motion = registry.motions.get(entity);
+		vec2 padding = { 0, -60 };
+		motion.position = vec2(0, window_px_half.y) + padding;
 	}
-	for (int i = 0; i < registry.hps.get(player).curr_hp; i++) {
-		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::FULL_HEART;
-	}
-	for (int i = registry.hps.get(player).curr_hp; i < ui.size(); i++) {
-		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::EMPTY_HEART;
-	}
-
-	//// Spawning new enemies
-	//next_enemy_spawn -= elapsed_ms_since_last_update;
-	//if (registry.deadlys.components.size() < MAX_ENEMIES && next_enemy_spawn < 0.f) {
-	//	// Reset timer
-	//	next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
-	//	Motion& motion = registry.motions.get(player);
-	//	// Create enemy with random initial position
-	//	float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
-	//	float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
-	//	std::random_device ran;
-	//	std::mt19937 gen(ran());
-	//	std::uniform_real_distribution<> dis(0.0, 1.0);
-	//	float random_numer = dis(gen);
-	//	if (random_numer <= 0.33) {
-	//		createBeeEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	}
-	//	else if (random_numer <= 0.66) {
-	//		createWolfEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	}
-	//	else if (random_numer <= 0.99) {
-	//		createBomberEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	}
-	//	//createWolfEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	//createBomberEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	//createBeeEnemy(renderer, vec2(spawn_x, spawn_y));
-	//}
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -252,7 +235,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (counter.invulnerable_counter_ms < 0) {
 			registry.invulnerableTimers.remove(entity);
-			registry.players.get(entity).invulnerability = false;
 			return true;
 		}
 	}
@@ -278,7 +260,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				std::mt19937 gen(rd());
 				std::uniform_real_distribution<> distrib(0, 1);
 				double number = distrib(gen);
-				if (number <= 0.5)
+				if (registry.beeEnemies.has(entity)) {
+					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 1);
+				}
+				else if (registry.bomberEnemies.has(entity)) {
+					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 3);
+				}
+				else if (registry.wolfEnemies.has(entity)) {
+					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 5);
+				}
+
+				if (number <= 0.1)
 					createHealth(renderer, registry.motions.get(entity).position);
 				registry.remove_all_components_of(entity);
 			}
@@ -299,7 +291,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	if (is_alive && registry.hps.get(player).curr_hp <= 0) {
-		registry.bulletFireRates.get(player).is_firing = false;
+		registry.bulletSpawners.get(player).is_firing = false;
 		is_alive = false;
 		pressed = { 0 };
 		registry.kinematics.get(player).direction = { 0,0 };
@@ -313,12 +305,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		HP& hp = registry.hps.get(entity);
 		if (hp.curr_hp <= 0.0f) {
 			if (registry.deadlys.has(entity)) {
-				std::random_device rd;
-				std::mt19937 gen(rd());
-				std::uniform_real_distribution<> distrib(0, 1);
-				float number = distrib(gen);
-				if (number <= 0.9)
-					createHealth(renderer, registry.motions.get(entity).position);
+				// remove boss health bar ui
+				if (registry.bossHealthBarLink.has(entity)) {
+					registry.remove_all_components_of(registry.bossHealthBarLink.get(entity).other);
+
+					// remove all bullets when boss hp < 0
+					while (registry.enemyBullets.entities.size() > 0)
+						registry.remove_all_components_of(registry.enemyBullets.entities.back());
+				}
 			}
 			registry.remove_all_components_of(entity);
 		}
@@ -350,38 +344,36 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Generate map
-	// map->generateMap(1);
-	//map->generateBasicMap();
+
+	map->restart_map();
+
 	if (map_level.level == MapLevel::TUTORIAL) {
 		map->generateTutMap();
+		player = createPlayer(renderer, { 0, 0 });
 	}
 	else {
-		map->generateBasicMap();
-		map->spawnEnemies();
+		//map->generateBasicMap();
+		//map->spawnEnemies();
+		//map->generateBossRoom();
+		map->generateRandomMap();
+		//map->spawnEnemies();
+		player = map->spawnEnemiesInRoom();
 	}
 	world_map = map->world_map;
-	
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
 	// Create a new player
-	player = createPlayer(renderer, { 0, 0 });
+	//player = createPlayer(renderer, { 0, 0 });
 	is_alive = true;
-	ui = createHealthUI(renderer, registry.hps.get(player).max_hp);
+	createHealthUI(renderer);
+	createAttributeUI(renderer);
 	combo_meter = 1;
-	//createKey({ 0,0 }, { 100, 100 }, KEYS::MOUSE_1);
+	focus_mode.in_focus_mode = false;
+	focus_mode.speed_constant = 1.0f;
+	ai->restart_flow_field_map();
+
 	renderer->camera.setPosition({ 0, 0 });
-}
-
-void WorldSystem::toggle_tutorial() {
-	// Used for debugging
-	registry.list_all_components();
-	printf("Toggling Tutorial Mode\n");
-
-	// Reset keyboard presses
-	pressed = { 0 };
-
-	Mix_PlayMusic(audio->background_music, -1);
 }
 
 // Compute collisions between entities
@@ -397,11 +389,10 @@ void WorldSystem::handle_collisions() {
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
-				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(player)) {
-
+				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
 					// player turn red and decrease hp
-					if (!registry.players.get(player).invulnerability) {
-						// should decrease HP but not yet implemented
+					if (!registry.invulnerableTimers.has(entity)) {
+						// decrease HP
 						if (!registry.realDeathTimers.has(entity_other)) {
 							registry.hitTimers.emplace(entity);
 							Mix_PlayChannel(-1, audio->damage_sound, 0);
@@ -415,16 +406,17 @@ void WorldSystem::handle_collisions() {
 								registry.hps.remove(entity_other);
 								registry.aitimers.remove(entity_other);
 								registry.followpaths.remove(entity_other);
-								if (registry.bulletFireRates.has(entity_other)) {
-									registry.bulletFireRates.get(entity_other).is_firing = false;
+								registry.followFlowField.remove(entity);
+								if (registry.bulletSpawners.has(entity_other)) {
+									registry.bulletSpawners.get(entity_other).is_firing = false;
 								}
 								registry.kinematics.get(entity_other).velocity = { 0,0 };
 								registry.kinematics.get(entity_other).direction = { 0,0 };
 							}
 						}
-
+						
 						registry.players.get(player).invulnerability = true;
-						registry.invulnerableTimers.emplace(entity);
+						registry.invulnerableTimers.emplace(entity).invulnerable_counter_ms = registry.players.components[0].invulnerability_time_ms;
 					}
 				}
 			}
@@ -432,15 +424,18 @@ void WorldSystem::handle_collisions() {
 			else if (registry.enemyBullets.has(entity_other)) {
 				if (!registry.hitTimers.has(entity)) {
 					// player turn red and decrease hp, bullet disappear
-					if (!registry.players.get(player).invulnerability) {
+					if (!registry.invulnerableTimers.has(entity)) {
 						registry.hitTimers.emplace(entity);
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 						combo_meter = 1;
-						registry.hps.get(player).curr_hp -= registry.enemyBullets.get(entity_other).damage;
+						HP& player_hp = registry.hps.get(player);
+						player_hp.curr_hp -= registry.enemyBullets.get(entity_other).damage;
+						if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
 						registry.remove_all_components_of(entity_other);
+
 						registry.players.get(player).invulnerability = true;
-						registry.invulnerableTimers.emplace(entity);
+						registry.invulnerableTimers.emplace(entity).invulnerable_counter_ms = registry.players.components[0].invulnerability_time_ms;
 					}
 				}
 			}
@@ -453,16 +448,62 @@ void WorldSystem::handle_collisions() {
 					registry.remove_all_components_of(entity_other);
 				}
 			}
+			else if (registry.coins.has(entity_other)) {
+				if (!registry.realDeathTimers.has(entity)) {
+					registry.players.get(entity).coin_amount += registry.coins.get(entity_other).coin_amount;
+					registry.remove_all_components_of(entity_other);
+				}
+			}
+			else if (registry.maxhpIncreases.has(entity_other)) {
+				
+				registry.hps.get(entity).max_hp += registry.maxhpIncreases.get(entity_other).max_health_increase;
+				if (registry.hps.get(entity).max_hp > 12) {
+					registry.hps.get(entity).max_hp = 12;
+				}
+				registry.hps.get(entity).curr_hp += registry.maxhpIncreases.get(entity_other).max_health_increase;
+				registry.remove_all_components_of(entity_other);
+				
+			}
+			else if (registry.attackUps.has(entity_other)) {	
+				registry.players.get(entity).bullet_damage += 1;
+				registry.remove_all_components_of(entity_other);
+			}
+			else if (registry.keys.has(entity_other)) {
+				registry.players.get(entity).key_amount++;
+				registry.remove_all_components_of(entity_other);
+			}
 		}
 		else if (registry.deadlys.has(entity)) {
-			if (registry.playerBullets.has(entity_other)) {
+			if (registry.playerBullets.has(entity_other) && !registry.invulnerableTimers.has(entity)) {
 				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
 					// enemy turn red and decrease hp, bullet disappear
 					registry.hitTimers.emplace(entity);
 					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
-
+					Motion& deadly_motion = registry.motions.get(entity);
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
-					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+
+					std::random_device rd;
+					std::mt19937 gen(rd());
+					std::uniform_real_distribution<> distrib(0, 1);
+					double number = distrib(gen);
+					Player& player_att = registry.players.get(player);
+					if (number < player_att.critical_hit) {
+						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage*player_att.critical_demage;
+						registry.realDeathTimers.emplace(createCriHit(renderer, deadly_motion.position-vec2(30,0))).death_counter_ms = 300;
+					}
+					else {
+						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+					}
+
+					if (!registry.bosses.has(entity)) {
+						// Knockback
+						// TODO: knockback factor based on player items
+						float knockback_factor = 50.f;
+						Kinematic& bullet_kin = registry.kinematics.get(entity_other);
+						Kinematic& kin = registry.kinematics.get(entity);
+						kin.velocity += bullet_kin.direction * knockback_factor;
+					}
+
 					HP& hp = registry.hps.get(entity);
 					if (hp.curr_hp <= 0.0f) {
 						combo_meter = min(combo_meter + 0.02f, COMBO_METER_MAX);
@@ -471,8 +512,9 @@ void WorldSystem::handle_collisions() {
 							registry.hps.remove(entity);
 							registry.aitimers.remove(entity);
 							registry.followpaths.remove(entity);
-							if (registry.bulletFireRates.has(entity)) {
-								registry.bulletFireRates.get(entity).is_firing = false;
+							registry.followFlowField.remove(entity);
+							if (registry.bulletSpawners.has(entity)) {
+								registry.bulletSpawners.get(entity).is_firing = false;
 							}
 							registry.kinematics.get(entity).velocity = { 0,0 };
 							registry.kinematics.get(entity).direction = { 0,0 };
@@ -499,6 +541,12 @@ void WorldSystem::handle_collisions() {
 				// e.g. if entity collides on left of entity_other, depth.x is positive -> entity_other's velocity.x will increase
 				vec2 depth = { center_delta.x > 0 ? center_delta_non_collide.x - center_delta.x : -(center_delta_non_collide.x + center_delta.x),
 								center_delta.y > 0 ? center_delta_non_collide.y - center_delta.y : -(center_delta_non_collide.y + center_delta.y) };
+				
+				// Depth is 0 when both entities are perfectly on top of each other
+				if (depth.x == 0 && depth.y == 0) {
+					depth = { 0.01, 0.01 };
+				}
+
 				// check how deep the collision between the two entities are, if passes threshold, apply delta velocity
 				float threshold = 10.f; // in pixels
 				float depth_size = length(depth);
@@ -560,6 +608,11 @@ void WorldSystem::handle_collisions() {
 				}
 
 
+			}
+		}
+		else if (registry.enemyBullets.has(entity)) {
+			if (registry.walls.has(entity_other)) {
+				registry.remove_all_components_of(entity);
 			}
 		}
 	}
@@ -661,9 +714,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("mapsystem map:\n");
 		for (int i = 0; i < map->world_map.size(); i++) {
 			for (int j = 0; j < map->world_map[0].size(); j++) {
-				if (i == 30 && j == 23) {
-					printf("P");
-				}
 				printf("%d ", map->world_map[i][j]);
 			}
 			printf("\n");
@@ -672,9 +722,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("worldsystem map:\n");
 		for (int i = 0; i < world_map.size(); i++) {
 			for (int j = 0; j < world_map[0].size(); j++) {
-				if (i == 30 && j == 23) {
-					printf("P");
-				}
 				printf("%d ", world_map[i][j]);
 			}
 			printf("\n");
@@ -694,12 +741,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Fire bullets at mouse cursor (Also mouse 1)
 	if (key == GLFW_KEY_SPACE) {
-		BulletFireRate& fireRate = registry.bulletFireRates.get(player);
+		BulletSpawner& bullet_spawner = registry.bulletSpawners.get(player);
 		if (action == GLFW_PRESS) {
-			fireRate.is_firing = true;
+			bullet_spawner.is_firing = true;
 		}
 		else if (action == GLFW_RELEASE) {
-			fireRate.is_firing = false;
+			bullet_spawner.is_firing = false;
 		}
 	}
 
@@ -739,6 +786,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			Motion& motion = registry.motions.get(player);
 			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
 			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+			ComponentContainer<BulletSpawner>& fire_rate_container = registry.bulletSpawners;
+			int fire_rate_container_size = fire_rate_container.size();
+			for (int i = 0; i < fire_rate_container_size; ++i) {
+				fire_rate_container.components[i].fire_rate *= 2.f;
+			}
 			pressed[key] = true;
 		}
 		else if (key == GLFW_KEY_LEFT_SHIFT &&
@@ -747,6 +799,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			focus_mode.in_focus_mode) {
 			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
 			focus_mode.speed_constant = 1.0f;
+			ComponentContainer<BulletSpawner>& fire_rate_container = registry.bulletSpawners;
+			int fire_rate_container_size = fire_rate_container.size();
+			for (int i = 0; i < fire_rate_container_size; ++i) {
+				fire_rate_container.components[i].fire_rate /= 2.f;
+			}
 			while (registry.focusdots.entities.size() > 0)
 				registry.remove_all_components_of(registry.focusdots.entities.back());
 			pressed[key] = false;
@@ -769,15 +826,14 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 		return;
 	}
 	if (button == GLFW_MOUSE_BUTTON_LEFT) {
-		BulletFireRate& fireRate = registry.bulletFireRates.get(player);
+		BulletSpawner& bullet_spawner = registry.bulletSpawners.get(player);
 		if (action == GLFW_PRESS) {
 			// Start firing
-			fireRate.is_firing = true;
-
+			bullet_spawner.is_firing = true;
 		}
 		else if (action == GLFW_RELEASE) {
 			// Stop firing
-			fireRate.is_firing = false;
+			bullet_spawner.is_firing = false;
 		}
 	}
 }
