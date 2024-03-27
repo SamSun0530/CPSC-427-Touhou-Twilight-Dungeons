@@ -193,7 +193,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	for (Entity entity : registry.bossHealthBarUIs.entities) {
 		Motion& motion = registry.motions.get(entity);
 		vec2 padding = { 0, -60 };
-		motion.position = player_position + vec2(0, window_px_half.y) + padding;
+		motion.position = vec2(0, window_px_half.y) + padding;
 	}
 
 	// Processing the player state

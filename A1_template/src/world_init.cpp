@@ -610,7 +610,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 502;
+	hp.max_hp = 5020;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -631,7 +631,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 
 	Boss& boss = registry.bosses.emplace(entity);
 	// Boss bullet patterns
-	boss.health_phase_thresholds = { 500, 375, 250, 125, -1 }; // -1 for end of phase
+	boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
 	boss.duration = 10000; // duration for each pattern
 	registry.colors.insert(entity, { 1,1,1 });
 	boss.phase_change_time = 1500;
