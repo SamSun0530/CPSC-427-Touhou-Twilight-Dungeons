@@ -435,9 +435,14 @@ void WorldSystem::handle_collisions() {
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
 					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
 
-					//Kinematic& bullet_kin = registry.kinematics.get(entity_other);
-					//Kinematic& kin = registry.kinematics.get(entity);
-					//kin.velocity += bullet_kin.velocity * 10.f;
+					if (!registry.bosses.has(entity)) {
+						// Knockback
+						// TODO: knockback factor based on player items
+						float knockback_factor = 50.f;
+						Kinematic& bullet_kin = registry.kinematics.get(entity_other);
+						Kinematic& kin = registry.kinematics.get(entity);
+						kin.velocity += bullet_kin.direction * knockback_factor;
+					}
 
 					HP& hp = registry.hps.get(entity);
 					if (hp.curr_hp <= 0.0f) {
@@ -476,6 +481,12 @@ void WorldSystem::handle_collisions() {
 				// e.g. if entity collides on left of entity_other, depth.x is positive -> entity_other's velocity.x will increase
 				vec2 depth = { center_delta.x > 0 ? center_delta_non_collide.x - center_delta.x : -(center_delta_non_collide.x + center_delta.x),
 								center_delta.y > 0 ? center_delta_non_collide.y - center_delta.y : -(center_delta_non_collide.y + center_delta.y) };
+				
+				// Depth is 0 when both entities are perfectly on top of each other
+				if (depth.x == 0 && depth.y == 0) {
+					depth = { 0.01, 0.01 };
+				}
+
 				// check how deep the collision between the two entities are, if passes threshold, apply delta velocity
 				float threshold = 10.f; // in pixels
 				float depth_size = length(depth);
