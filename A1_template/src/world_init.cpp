@@ -1,6 +1,6 @@
 #include "world_init.hpp"
 
-Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet)
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern)
 {
 	auto entity = Entity();
 
@@ -16,7 +16,7 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
-	kinematic.speed_base = 200.f;
+	kinematic.speed_base = bullet_speed;
 	kinematic.speed_modified = 1.f * kinematic.speed_base + entity_speed; // bullet speed takes into account of entity's speed
 	kinematic.direction = direction;
 
@@ -34,15 +34,15 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	}
 	else {
 		registry.enemyBullets.emplace(entity);
-		registry.renderRequests.insert(
-			entity,
-			{ TEXTURE_ASSET_ID::ENEMY_BULLET,
-			 EFFECT_ASSET_ID::TEXTURED,
-			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+	if (bullet_pattern) {
+		registry.bulletPatterns.insert(entity, *bullet_pattern);
 	}
 
 	return entity;
 }
+
 Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet)
 {
 	auto entity = Entity();
@@ -188,7 +188,12 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
-	registry.bulletFireRates.emplace(entity);
+	BulletSpawner bs;
+	bs.fire_rate = 3;
+	bs.is_firing = false;
+	bs.bullet_initial_speed = 200;
+
+	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
 
 	return entity;
@@ -217,30 +222,51 @@ Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size)
 	return entity;
 }
 
-std::vector<Entity> createUI(RenderSystem* renderer, int max_hp)
+Entity createPlayerHeartUI(RenderSystem* renderer)
 {
-	std::vector<Entity> hp_entities;
-	for (int i = 0; i < max_hp; i++) {
-		auto entity = Entity();
+	auto entity = Entity();
 
-		// Store a reference to the potentially re-used mesh object
-		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-		registry.meshPtrs.emplace(entity, &mesh);
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
 
-		// Setting initial motion values
-		Motion& motion = registry.motions.emplace(entity);
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.scale = vec2({ HP_BB_WIDTH, HP_BB_HEIGHT });
 
-		motion.scale = vec2({ -HP_BB_WIDTH, HP_BB_HEIGHT });
-		registry.renderRequests.insert(
-			entity,
-			{ TEXTURE_ASSET_ID::FULL_HEART, // TEXTURE_COUNT indicates that no txture is needed
-				EFFECT_ASSET_ID::UI,
-				GEOMETRY_BUFFER_ID::SPRITE });
-		registry.colors.insert(entity, { 1,1,1 });
-		hp_entities.push_back(entity);
-	}
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::FULL_HEART,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.playerHearts.emplace(entity);
+	registry.colors.insert(entity, { 1,1,1 });
 
-	return hp_entities;
+	return entity;
+}
+
+Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.scale = vec2({ BOSS_HEALTH_BAR_WIDTH, BOSS_HEALTH_BAR_HEIGHT });
+
+	BossHealthBarUI& hb = registry.bossHealthBarUIs.emplace(entity);
+	hb.is_visible = false;
+	registry.bossHealthBarLink.emplace(entity, boss);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BOSS_HEALTH_BAR,
+			EFFECT_ASSET_ID::BOSSHEALTHBAR,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
 }
 
 Entity createCoin(RenderSystem* renderer, vec2 position)
@@ -270,6 +296,69 @@ Entity createCoin(RenderSystem* renderer, vec2 position)
 		{ TEXTURE_ASSET_ID::BULLET,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createBoss(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ ENEMY_BB_WIDTH / 1.2f, ENEMY_BB_HEIGHT / 1.2f });
+
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 100.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 0 };
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = abs(vec2(motion.scale.x / 1.4f, motion.scale.y / 1.2f));
+
+	// HP
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 502;
+	hp.curr_hp = hp.max_hp;
+
+	// Collision damage
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.damage = 1;
+
+	// Animation
+	EntityAnimation enemy_ani;
+	enemy_ani.spritesheet_scale = { 1.f / 4.f, 1.f / 4.f };
+	enemy_ani.render_pos = { 1.f / 4.f, 1.f / 4.f };
+	registry.animation.insert(entity, enemy_ani);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BOSS,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	Boss& boss = registry.bosses.emplace(entity);
+	// Boss bullet patterns
+	boss.health_phase_thresholds = { 500, 375, 250, 125, -1 }; // -1 for end of phase
+	boss.duration = 10000; // duration for each pattern
+	registry.colors.insert(entity, { 1,1,1 });
+	boss.phase_change_time = 1500;
+
+	// Boss health bar ui
+	Entity ui_entity = createBossHealthBarUI(renderer, entity);
+	registry.bossHealthBarLink.emplace(entity, ui_entity);
+
+	// Decision tree ai
+	AiTimer& ai_timer = registry.aitimers.emplace(entity);
+	ai_timer.update_base = 3000;
 
 	return entity;
 }
@@ -318,10 +407,13 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	registry.idleMoveActions.emplace(entity);
-	BulletFireRate enemy_bullet_rate;
-	enemy_bullet_rate.fire_rate = 3;
-	enemy_bullet_rate.is_firing = true;
-	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
+
+	BulletSpawner bs;
+	bs.fire_rate = 35;
+	bs.is_firing = true;
+	bs.bullet_initial_speed = 150;
+
+	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
 
 	registry.aitimers.emplace(entity);
@@ -445,10 +537,15 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	registry.idleMoveActions.emplace(entity);
-	BulletFireRate enemy_bullet_rate;
-	enemy_bullet_rate.fire_rate = 6;
-	enemy_bullet_rate.is_firing = true;
-	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
+
+	BulletSpawner bs;
+	bs.fire_rate = 60;
+	bs.is_firing = true;
+	bs.bullet_initial_speed = 150;
+	bs.bullets_per_array = 3;
+	bs.spread_within_array = 30;
+
+	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
 
 	AiTimer& aitimer = registry.aitimers.emplace(entity);
@@ -499,10 +596,10 @@ Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position)
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	registry.idleMoveActions.emplace(entity);
-	BulletFireRate enemy_bullet_rate;
+	BulletSpawner enemy_bullet_rate;
 	enemy_bullet_rate.fire_rate = 5;
 	enemy_bullet_rate.is_firing = true;
-	registry.bulletFireRates.insert(entity, enemy_bullet_rate);
+	registry.bulletSpawners.insert(entity, enemy_bullet_rate);
 	registry.colors.insert(entity, { 1,1,1 });
 
 	return entity;

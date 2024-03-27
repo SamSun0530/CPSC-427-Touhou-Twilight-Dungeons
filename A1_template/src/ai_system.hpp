@@ -30,6 +30,7 @@ private:
 	DecisionTree bee_tree;
 	DecisionTree bomber_tree;
 	DecisionTree wolf_tree;
+	DecisionTree cirno_boss_tree;
 
 	// Flow field for controlling crowd movement
 	std::vector<std::vector<int>> flow_field_map;
