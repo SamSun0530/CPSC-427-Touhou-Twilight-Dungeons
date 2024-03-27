@@ -30,3 +30,6 @@ Alan Huang <br />
 - https://craftpix.net/freebies/free-field-enemies-pixel-art-for-tower-defense/?num=1&count=335&sq=fields%20enemy&pos=11
 - https://toffeehazel.itch.io/japanese-food-sprites-32x32
 - https://penzilla.itch.io/basic-gui-bundle
+- Boss health bar - https://www.reddit.com/r/Roll20/comments/uim0v1/made_a_boss_health_bar_for_my_campaign/
+- Cirno/Reimu - http://revdot.web.fc2.com/dot_rpgvx_toho.html
+- Bullets - https://danmakufu.wiki.fc2.com/wiki/%E7%B4%A0%E6%9D%90%E3%83%AA%E3%83%B3%E3%82%AF#b52b3719

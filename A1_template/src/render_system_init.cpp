@@ -57,10 +57,6 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 
 	// We are not really using VAO's but without at least one bound we will crash in
 	// some systems.
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
 	glGenVertexArrays(1, &dummyVAO);
 	glBindVertexArray(dummyVAO);
 
@@ -71,7 +67,61 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
 
+	initializeEnemyBulletInstance();
+
 	return true;
+}
+
+// Adapted from: https://learnopengl.com/Advanced-OpenGL/Instancing
+void RenderSystem::initializeEnemyBulletInstance() {
+	enemy_bullet_instance_program = glCreateProgram();
+
+	// Load shaders
+	std::string path = shader_path("textured_instance");
+
+	const std::string vertex_shader_name = path + ".vs.glsl";
+	const std::string fragment_shader_name = path + ".fs.glsl";
+
+	bool is_valid = loadEffectFromFile(vertex_shader_name, fragment_shader_name, enemy_bullet_instance_program);
+	assert(is_valid && (GLuint)enemy_bullet_instance_program != 0);
+
+	glUseProgram(enemy_bullet_instance_program);
+	gl_has_errors();
+
+	glGenBuffers(1, &enemy_bullet_instance_VBO);
+	glGenVertexArrays(1, &enemy_bullet_instance_VAO);
+	gl_has_errors();
+
+	// Instance vbo
+	glBindBuffer(GL_ARRAY_BUFFER, enemy_bullet_instance_VBO);
+	gl_has_errors();
+
+	// Instance vao
+	glBindVertexArray(enemy_bullet_instance_VAO);
+	gl_has_errors();
+
+	int loc = glGetAttribLocation(enemy_bullet_instance_program, "in_transform");
+	assert(loc >= 0);
+	gl_has_errors();
+	int loc1 = loc;
+	int loc2 = loc + 1;
+	int loc3 = loc + 2;
+	glEnableVertexAttribArray(loc1);
+	glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_FALSE, sizeof(mat3), (void*)(0));
+	gl_has_errors();
+	glEnableVertexAttribArray(loc2);
+	glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_FALSE, sizeof(mat3), (void*)(sizeof(vec3)));
+	gl_has_errors();
+	glEnableVertexAttribArray(loc3);
+	glVertexAttribPointer(loc3, 3, GL_FLOAT, GL_FALSE, sizeof(mat3), (void*)(sizeof(vec3) * 2));
+	gl_has_errors();
+	glVertexAttribDivisor(loc1, 1);
+	glVertexAttribDivisor(loc2, 1);
+	glVertexAttribDivisor(loc3, 1);
+	gl_has_errors();
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void RenderSystem::initializeGlTextures()
@@ -529,7 +579,7 @@ bool loadEffectFromFile(
 	}
 	if (!gl_compile_shader(fragment))
 	{
-		fprintf(stderr, "Vertex compilation failed");
+		fprintf(stderr, "Fragment compilation failed");
 		assert(false);
 		return false;
 	}

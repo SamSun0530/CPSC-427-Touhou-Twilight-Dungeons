@@ -21,21 +21,21 @@ const float VP_BB_WIDTH = 1.3f * 86.f;
 const float VP_BB_HEIGHT = 1.3f * 21.f;
 const float HEALTH_WIDTH = 0.3f * 128.f;
 const float HEALTH_HEIGHT = 0.3f * 80.f;
+const float BOSS_HEALTH_BAR_WIDTH = 0.6f * 931.f;
+const float BOSS_HEALTH_BAR_HEIGHT = 0.6f * 116.f /*232.f*/;
 
 // the bullet, takes into account entity's speed and position
-Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, bool is_player_bullet = false);
+
+Entity createBullet(RenderSystem * renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern * bullet_pattern = nullptr);
 
 Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet);
-
 Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm);
 
 Entity createCriHit(RenderSystem* renderer, vec2 pos);
-
 std::vector<Entity> createAttributeUI(RenderSystem* renderer);
-
 Entity createHealthUI(RenderSystem*);
-
 Entity createHealth(RenderSystem* renderer, vec2 position);
+Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss);
 
 // focus mode dot
 Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);
@@ -59,6 +59,8 @@ Entity createBomberEnemy(RenderSystem* renderer, vec2 position);
 Entity createWolfEnemy(RenderSystem* renderer, vec2 position);
 // the grenade launcher enemy
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
+// boss enemy
+Entity createBoss(RenderSystem* renderer, vec2 position);
 // Non interactable tile
 std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 // Interactable Tile

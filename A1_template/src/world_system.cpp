@@ -155,8 +155,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
 		registry.remove_all_components_of(registry.debugComponents.entities.back());
+
 	while (registry.texts.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
+
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
 	HP& player_hp = registry.hps.get(player);
@@ -169,13 +171,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	createText({ 70, window_height_px - 260 }, { 1,1 }, fire_rate.substr(0, fire_rate.find(".")+3), vec3(0, 0, 0), false);
 	createText({ 70, window_height_px - 310 }, { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(0, 0, 0), false);
 	createText({ 70, window_height_px - 360 }, { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(0, 0, 0), false);
+
 	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
 	// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
 	// Adapted from: https://gamedev.stackexchange.com/questions/152465/smoothly-move-camera-to-follow-player
 	float sharpness_factor_camera = 0.95f;
 	float K = 1.0f - pow(1.0f - sharpness_factor_camera, elapsed_ms_since_last_update / 1000.f);
-	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), motions_registry.get(player).position, K));
-	//renderer->ui.setPosition(motions_registry.get(player).position);
+	vec2 player_position = registry.motions.get(player).position;
+	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), player_position, K));
 
 	// Interpolate mouse-camera offset
 	// sharpness_factor_camera_offset possible values:
@@ -186,34 +189,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	float sharpness_factor_camera_offset = 10.0f;
 	renderer->camera.offset = vec2_lerp(renderer->camera.offset, renderer->camera.offset_target, elapsed_ms_since_last_update / 1000.f * sharpness_factor_camera_offset);
 
-	// User interface
-
-	//// Spawning new enemies
-	//next_enemy_spawn -= elapsed_ms_since_last_update;
-	//if (registry.deadlys.components.size() < MAX_ENEMIES && next_enemy_spawn < 0.f) {
-	//	// Reset timer
-	//	next_enemy_spawn = (ENEMY_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (ENEMY_SPAWN_DELAY_MS / 2);
-	//	Motion& motion = registry.motions.get(player);
-	//	// Create enemy with random initial position
-	//	float spawn_x = (uniform_dist(rng) * (world_width - 3) * world_tile_size) - (world_width - 1) / 2.3 * world_tile_size;
-	//	float spawn_y = (uniform_dist(rng) * (world_height - 3) * world_tile_size) - (world_height - 1) / 2.3 * world_tile_size;
-	//	std::random_device ran;
-	//	std::mt19937 gen(ran());
-	//	std::uniform_real_distribution<> dis(0.0, 1.0);
-	//	float random_numer = dis(gen);
-	//	if (random_numer <= 0.33) {
-	//		createBeeEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	}
-	//	else if (random_numer <= 0.66) {
-	//		createWolfEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	}
-	//	else if (random_numer <= 0.99) {
-	//		createBomberEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	}
-	//	//createWolfEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	//createBomberEnemy(renderer, vec2(spawn_x, spawn_y));
-	//	//createBeeEnemy(renderer, vec2(spawn_x, spawn_y));
-	//}
+	// User interface TODO
+	for (Entity entity : registry.bossHealthBarUIs.entities) {
+		Motion& motion = registry.motions.get(entity);
+		vec2 padding = { 0, -60 };
+		motion.position = player_position + vec2(0, window_px_half.y) + padding;
+	}
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -246,7 +227,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (counter.invulnerable_counter_ms < 0) {
 			registry.invulnerableTimers.remove(entity);
-			registry.players.get(entity).invulnerability = false;
 			return true;
 		}
 	}
@@ -303,7 +283,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	if (is_alive && registry.hps.get(player).curr_hp <= 0) {
-		registry.bulletFireRates.get(player).is_firing = false;
+		registry.bulletSpawners.get(player).is_firing = false;
 		is_alive = false;
 		pressed = { 0 };
 		registry.kinematics.get(player).direction = { 0,0 };
@@ -316,6 +296,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (registry.players.has(entity)) continue;
 		HP& hp = registry.hps.get(entity);
 		if (hp.curr_hp <= 0.0f) {
+			if (registry.deadlys.has(entity)) {
+				// remove boss health bar ui
+				if (registry.bossHealthBarLink.has(entity)) {
+					registry.remove_all_components_of(registry.bossHealthBarLink.get(entity).other);
+
+					// remove all bullets when boss hp < 0
+					while (registry.enemyBullets.entities.size() > 0)
+						registry.remove_all_components_of(registry.enemyBullets.entities.back());
+				}
+			}
 			registry.remove_all_components_of(entity);
 		}
 	}
@@ -347,14 +337,18 @@ void WorldSystem::restart_game() {
 
 	// Generate map
 	// map->generateMap(1);
-	map->generateBasicMap();
+	//map->generateBasicMap();
+	//map->generateBossRoom();
+	map->restart_map();
+	map->generateRandomMap();
 	world_map = map->world_map;
-	map->spawnEnemies();
+	//map->spawnEnemies();
+	player = map->spawnEnemiesInRoom();
 
-	createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
+	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
 	// Create a new player
-	player = createPlayer(renderer, { 0, 0 });
+	//player = createPlayer(renderer, { 0, 0 });
 	is_alive = true;
 	createHealthUI(renderer);
 	createAttributeUI(renderer);
@@ -381,10 +375,9 @@ void WorldSystem::handle_collisions() {
 			if (registry.deadlys.has(entity_other)) {
 				// initiate death unless already dying
 				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
-					Player& player_component = registry.players.get(entity);
 					// player turn red and decrease hp
-					if (!player_component.invulnerability) {
-						// should decrease HP but not yet implemented
+					if (!registry.invulnerableTimers.has(entity)) {
+						// decrease HP
 						if (!registry.realDeathTimers.has(entity_other)) {
 							registry.hitTimers.emplace(entity);
 							Mix_PlayChannel(-1, audio->damage_sound, 0);
@@ -399,15 +392,15 @@ void WorldSystem::handle_collisions() {
 								registry.aitimers.remove(entity_other);
 								registry.followpaths.remove(entity_other);
 								registry.followFlowField.remove(entity);
-								if (registry.bulletFireRates.has(entity_other)) {
-									registry.bulletFireRates.get(entity_other).is_firing = false;
+								if (registry.bulletSpawners.has(entity_other)) {
+									registry.bulletSpawners.get(entity_other).is_firing = false;
 								}
 								registry.kinematics.get(entity_other).velocity = { 0,0 };
 								registry.kinematics.get(entity_other).direction = { 0,0 };
 							}
 						}
-
-						player_component.invulnerability = true;
+						
+						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity).invulnerable_counter_ms = registry.players.components[0].invulnerability_time_ms;
 					}
 				}
@@ -416,7 +409,7 @@ void WorldSystem::handle_collisions() {
 			else if (registry.enemyBullets.has(entity_other)) {
 				if (!registry.hitTimers.has(entity)) {
 					// player turn red and decrease hp, bullet disappear
-					if (!registry.players.get(player).invulnerability) {
+					if (!registry.invulnerableTimers.has(entity)) {
 						registry.hitTimers.emplace(entity);
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
@@ -425,6 +418,7 @@ void WorldSystem::handle_collisions() {
 						player_hp.curr_hp -= registry.enemyBullets.get(entity_other).damage;
 						if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
 						registry.remove_all_components_of(entity_other);
+
 						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity).invulnerable_counter_ms = registry.players.components[0].invulnerability_time_ms;
 					}
@@ -465,13 +459,14 @@ void WorldSystem::handle_collisions() {
 			}
 		}
 		else if (registry.deadlys.has(entity)) {
-			if (registry.playerBullets.has(entity_other)) {
+			if (registry.playerBullets.has(entity_other) && !registry.invulnerableTimers.has(entity)) {
 				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
 					// enemy turn red and decrease hp, bullet disappear
 					registry.hitTimers.emplace(entity);
 					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 					Motion& deadly_motion = registry.motions.get(entity);
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
+
 					std::random_device rd;
 					std::mt19937 gen(rd());
 					std::uniform_real_distribution<> distrib(0, 1);
@@ -484,6 +479,16 @@ void WorldSystem::handle_collisions() {
 					else {
 						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
 					}
+
+					if (!registry.bosses.has(entity)) {
+						// Knockback
+						// TODO: knockback factor based on player items
+						float knockback_factor = 50.f;
+						Kinematic& bullet_kin = registry.kinematics.get(entity_other);
+						Kinematic& kin = registry.kinematics.get(entity);
+						kin.velocity += bullet_kin.direction * knockback_factor;
+					}
+
 					HP& hp = registry.hps.get(entity);
 					if (hp.curr_hp <= 0.0f) {
 						combo_meter = min(combo_meter + 0.02f, COMBO_METER_MAX);
@@ -493,8 +498,8 @@ void WorldSystem::handle_collisions() {
 							registry.aitimers.remove(entity);
 							registry.followpaths.remove(entity);
 							registry.followFlowField.remove(entity);
-							if (registry.bulletFireRates.has(entity)) {
-								registry.bulletFireRates.get(entity).is_firing = false;
+							if (registry.bulletSpawners.has(entity)) {
+								registry.bulletSpawners.get(entity).is_firing = false;
 							}
 							registry.kinematics.get(entity).velocity = { 0,0 };
 							registry.kinematics.get(entity).direction = { 0,0 };
@@ -521,6 +526,12 @@ void WorldSystem::handle_collisions() {
 				// e.g. if entity collides on left of entity_other, depth.x is positive -> entity_other's velocity.x will increase
 				vec2 depth = { center_delta.x > 0 ? center_delta_non_collide.x - center_delta.x : -(center_delta_non_collide.x + center_delta.x),
 								center_delta.y > 0 ? center_delta_non_collide.y - center_delta.y : -(center_delta_non_collide.y + center_delta.y) };
+				
+				// Depth is 0 when both entities are perfectly on top of each other
+				if (depth.x == 0 && depth.y == 0) {
+					depth = { 0.01, 0.01 };
+				}
+
 				// check how deep the collision between the two entities are, if passes threshold, apply delta velocity
 				float threshold = 10.f; // in pixels
 				float depth_size = length(depth);
@@ -582,6 +593,11 @@ void WorldSystem::handle_collisions() {
 				}
 
 
+			}
+		}
+		else if (registry.enemyBullets.has(entity)) {
+			if (registry.walls.has(entity_other)) {
+				registry.remove_all_components_of(entity);
 			}
 		}
 	}
@@ -682,9 +698,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("mapsystem map:\n");
 		for (int i = 0; i < map->world_map.size(); i++) {
 			for (int j = 0; j < map->world_map[0].size(); j++) {
-				if (i == 30 && j == 23) {
-					printf("P");
-				}
 				printf("%d ", map->world_map[i][j]);
 			}
 			printf("\n");
@@ -693,9 +706,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("worldsystem map:\n");
 		for (int i = 0; i < world_map.size(); i++) {
 			for (int j = 0; j < world_map[0].size(); j++) {
-				if (i == 30 && j == 23) {
-					printf("P");
-				}
 				printf("%d ", world_map[i][j]);
 			}
 			printf("\n");
@@ -715,12 +725,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Fire bullets at mouse cursor (Also mouse 1)
 	if (key == GLFW_KEY_SPACE) {
-		BulletFireRate& fireRate = registry.bulletFireRates.get(player);
+		BulletSpawner& bullet_spawner = registry.bulletSpawners.get(player);
 		if (action == GLFW_PRESS) {
-			fireRate.is_firing = true;
+			bullet_spawner.is_firing = true;
 		}
 		else if (action == GLFW_RELEASE) {
-			fireRate.is_firing = false;
+			bullet_spawner.is_firing = false;
 		}
 	}
 
@@ -756,6 +766,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			Motion& motion = registry.motions.get(player);
 			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
 			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+			ComponentContainer<BulletSpawner>& fire_rate_container = registry.bulletSpawners;
+			int fire_rate_container_size = fire_rate_container.size();
+			for (int i = 0; i < fire_rate_container_size; ++i) {
+				fire_rate_container.components[i].fire_rate *= 2.f;
+			}
 			pressed[key] = true;
 		}
 		else if (key == GLFW_KEY_LEFT_SHIFT &&
@@ -764,6 +779,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			focus_mode.in_focus_mode) {
 			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
 			focus_mode.speed_constant = 1.0f;
+			ComponentContainer<BulletSpawner>& fire_rate_container = registry.bulletSpawners;
+			int fire_rate_container_size = fire_rate_container.size();
+			for (int i = 0; i < fire_rate_container_size; ++i) {
+				fire_rate_container.components[i].fire_rate /= 2.f;
+			}
 			while (registry.focusdots.entities.size() > 0)
 				registry.remove_all_components_of(registry.focusdots.entities.back());
 			pressed[key] = false;
@@ -785,14 +805,14 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 		return;
 	}
 	if (button == GLFW_MOUSE_BUTTON_LEFT) {
-		BulletFireRate& fireRate = registry.bulletFireRates.get(player);
+		BulletSpawner& bullet_spawner = registry.bulletSpawners.get(player);
 		if (action == GLFW_PRESS) {
 			// Start firing
-			fireRate.is_firing = true;
+			bullet_spawner.is_firing = true;
 		}
 		else if (action == GLFW_RELEASE) {
 			// Stop firing
-			fireRate.is_firing = false;
+			bullet_spawner.is_firing = false;
 		}
 	}
 }

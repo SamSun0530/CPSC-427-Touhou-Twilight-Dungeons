@@ -5,6 +5,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <random>
 
 // glfw (OpenGL)
 #define NOMINMAX
@@ -49,7 +50,7 @@ const int world_width = 60;
 const int world_height = 50;
 const int world_tile_size = 64; // In pixels
 // Shift POSITIVE x,y grid cells to center the map at (0,0)
-const vec2 world_center = { 11,11 };
+const vec2 world_center = { 9,9 };
 // Converts (x,y) in world coordinates to grid coordinates
 coord convert_world_to_grid(coord world_coord);
 // Converts (x,y) in grid coordinates to world coordinates
@@ -71,3 +72,15 @@ vec2 vec2_lerp(vec2 start, vec2 end, float t);
 
 // Checks if (x,y) on the map is valid, this is not world coordinates
 bool is_valid_cell(int x, int y);
+
+enum class ROOM_TYPE {
+	NORMAL,
+	BOSS
+};
+
+// TEMPORARY
+struct Room2 {
+	ROOM_TYPE type = ROOM_TYPE::NORMAL;
+	vec2 top_left;
+	vec2 bottom_left;
+};

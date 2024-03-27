@@ -66,6 +66,8 @@ class RenderSystem {
 			textures_path("Health+1.png"),
 			textures_path("Health+2.png"),
 			textures_path("RegenerateHealth.png"),
+			textures_path("Cirno-Figure.png"),
+			textures_path("BossHealthBar.png"),
 			textures_path("Reimu-Bullet-Disappear.png"),
 			textures_path("Coins.png"),
 			textures_path("FocusDot.png"),
@@ -87,7 +89,8 @@ class RenderSystem {
 		shader_path("wind"),
 		shader_path("ui"),
 		shader_path("font"),
-		shader_path("playerhealthbar")
+		shader_path("playerhealthbar"),
+		shader_path("bosshealthbar")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -129,14 +132,11 @@ public:
 	// font initialization
 	bool initFont(GLFWwindow* window, const std::string& font_filename, unsigned int font_default_size);
 
-	GLuint getDummyVAO() const {
-		return dummyVAO;
-	}
-
 	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);
+	void drawBulletsInstanced(const std::vector<Entity>& entities, const glm::mat3& projection, const glm::mat3& view);
 	void drawToScreen();
 
 	// Window handle
@@ -146,6 +146,12 @@ private:
 	GLuint frame_buffer;
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
+
+	// Enemy bullet instancing
+	void initializeEnemyBulletInstance();
+	GLuint enemy_bullet_instance_program;
+	GLuint enemy_bullet_instance_VAO;
+	GLuint enemy_bullet_instance_VBO;
 
 	// Fonts
 	std::map<char, Character> m_ftCharacters;

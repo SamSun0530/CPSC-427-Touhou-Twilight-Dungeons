@@ -162,7 +162,24 @@ void Animation::step(float elapsed_ms)
 			}
 		}
 	}
-
+	// for now, all bosses temporarily have cirno spritesheet
+	for (Entity& enemy : registry.bosses.entities) {
+		EntityAnimation& enemy_ani = registry.animation.get(enemy);
+		vec2 enemy_velocity = normalize(registry.kinematics.get(enemy).velocity);
+		float facing_degree = (-atan2(enemy_velocity.x, enemy_velocity.y) + M_PI) * (180.0 / M_PI);
+		if (facing_degree <= 45 || facing_degree >= 325) {
+			enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y;
+		}
+		else if (facing_degree <= 135) {
+			enemy_ani.render_pos.y = 3 * enemy_ani.spritesheet_scale.y;
+		}
+		else if (facing_degree <= 225) {
+			enemy_ani.render_pos.y = 1 * enemy_ani.spritesheet_scale.y;
+		}
+		else {
+			enemy_ani.render_pos.y = 2 * enemy_ani.spritesheet_scale.y;
+		}
+	}
 }
 
 void Animation::init(RenderSystem* renderer, GLFWwindow* window) {

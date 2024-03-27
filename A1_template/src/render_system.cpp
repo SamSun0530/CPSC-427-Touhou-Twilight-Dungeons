@@ -4,15 +4,13 @@
 #include <iostream>
 #include "tiny_ecs_registry.hpp"
 #include <glm/gtc/type_ptr.hpp>
-
 #include "world_system.hpp"
-#include <iostream>
+
 
 void RenderSystem::drawTexturedMesh(Entity entity,
 	const mat3& projection,
 	const mat3& view,
-	const mat3& view_ui)
-{
+	const mat3& view_ui) {
 	Motion& motion = registry.motions.get(entity);
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
@@ -48,13 +46,16 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	const GLuint ibo = index_buffers[(GLuint)(*render_request).used_geometry];
 
 	// Setting vertex and index buffers
-	glBindVertexArray(getDummyVAO());
+	glBindVertexArray(dummyVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	gl_has_errors();
 
 	// Input data location as in the vertex buffer
-	if ((*render_request).used_effect == EFFECT_ASSET_ID::TEXTURED || (*render_request).used_effect == EFFECT_ASSET_ID::UI || (*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB)
+	if ((*render_request).used_effect == EFFECT_ASSET_ID::TEXTURED ||
+		(*render_request).used_effect == EFFECT_ASSET_ID::UI ||
+		(*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR ||
+		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -90,7 +91,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			assert(false && "Entity not contained in ECS registry");
 		}
 
-
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
 		if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB && (*render_request).used_texture == TEXTURE_ASSET_ID::REIMU_HEALTH) {
@@ -101,10 +101,16 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			glUniform1f(health_uloc, health_percentage);
 			gl_has_errors();
 		}
-		if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB && (*render_request).used_texture == TEXTURE_ASSET_ID::INVUL_BAR) {
+		else if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB && (*render_request).used_texture == TEXTURE_ASSET_ID::INVUL_BAR) {
 			assert(registry.players.entities.size() == 1);
 			GLint health_uloc = glGetUniformLocation(program, "health_percentage");
 			float health_percentage = registry.invulnerableTimers.has(registry.players.entities[0]) ? (float)registry.invulnerableTimers.get(registry.players.entities[0]).invulnerable_counter_ms / registry.players.components[0].invulnerability_time_ms : 1.f;
+		}
+		else if ((*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR && registry.bossHealthBarUIs.has(entity)) {
+			BossHealthBarLink& link = registry.bossHealthBarLink.get(entity);
+			GLint health_uloc = glGetUniformLocation(program, "health_percentage");
+			const HP* boss_hp = registry.hps.has(link.other) ? &registry.hps.get(link.other) : nullptr;
+			float health_percentage = boss_hp ? (float)boss_hp->curr_hp / boss_hp->max_hp : 0.f;
 			glUniform1f(health_uloc, health_percentage);
 			gl_has_errors();
 		}
@@ -131,7 +137,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			GLint light_up_uloc = glGetUniformLocation(program, "light_up");
 			assert(light_up_uloc >= 0);
 
-			// !!! TODO A1: set the light_up shader variable using glUniform1i,
+			// !!! A1: set the light_up shader variable using glUniform1i,
 			// similar to the glUniform1f call below. The 1f or 1i specified the type, here a single int.
 			gl_has_errors();
 		}
@@ -219,7 +225,7 @@ void RenderSystem::drawToScreen()
 	glDisable(GL_DEPTH_TEST);
 
 	// Draw the screen texture on the quad geometry
-	glBindVertexArray(getDummyVAO());
+	glBindVertexArray(dummyVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
 	glBindBuffer(
 		GL_ELEMENT_ARRAY_BUFFER,
@@ -287,8 +293,13 @@ void RenderSystem::draw()
 	camera.setCameraAABB();
 
 	// Draw all textured meshes that have a position and size component
+	std::vector<Entity> boss_ui_entities;
 	for (Entity entity : registry.renderRequests.entities)
 	{
+		if (registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::BOSS_HEALTH_BAR) {
+			boss_ui_entities.push_back(entity);
+			continue;
+		}
 		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 			continue;
 		}
@@ -300,12 +311,22 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
 
+	// Render instance of visible enemy bullets
+	std::vector<Entity> enemy_bullets;
+	for (Entity entity : registry.enemyBullets.entities) {
+		if (registry.motions.has(entity) && camera.isInCameraView(registry.motions.get(entity).position)) {
+			enemy_bullets.push_back(entity);
+		}
+	}
+	drawBulletsInstanced(enemy_bullets, projection_2D, view_2D);
+
 	// this will only have at most one focusdots
 	// it will always be in camera view, and has motion
 	for (Entity entity : registry.focusdots.entities) {
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
-	
+
+	// Render foreground entities, these will be in front of things rendered before
 	for (Entity entity : registry.renderRequestsForeground.entities) {
 		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 			continue;
@@ -317,11 +338,14 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
 
+	for (Entity entity : boss_ui_entities) {
+		BossHealthBarUI& bhp = registry.bossHealthBarUIs.get(entity);
+		if (bhp.is_visible) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+	}
 
 	// Render user guide on screen
-	if (WorldSystem::getInstance().get_tutorial_counter() > 0) {
-		//renderText("Press T to show user guide", window_width_px / 2 - 200, window_height_px - 100, 1.0f, glm::vec3(1.0, 1.0, 1.0), trans);
-	}
 	if (WorldSystem::getInstance().get_display_instruction() == true) {
 
 		renderText("User Guide:", window_width_px / 30 - 25, window_height_px / 2 + 200, 0.8f, glm::vec3(0, 0, 0), trans);
@@ -454,3 +478,102 @@ mat3 RenderSystem::createProjectionMatrix()
 	return { {sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f} };
 }
 
+// Adapted from: https://learnopengl.com/Advanced-OpenGL/Instancing
+void RenderSystem::drawBulletsInstanced(const std::vector<Entity>& entities, const glm::mat3& projection, const glm::mat3& view)
+{
+	int amount = entities.size();
+
+	if (amount == 0) return; // nothing to draw
+
+	mat3* instance_transforms = new mat3[amount];
+	for (int i = 0; i < amount; ++i) {
+		Motion& motion = registry.motions.get(entities[i]);
+		Transform transform;
+		transform.translate(motion.position);
+		transform.rotate(motion.angle);
+		transform.scale(motion.scale);
+		instance_transforms[i] = transform.mat;
+	}
+
+	// Setting shaders
+	glUseProgram(enemy_bullet_instance_program);
+	gl_has_errors();
+
+	const GLuint vbo = vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SPRITE];
+	const GLuint ibo = index_buffers[(GLuint)GEOMETRY_BUFFER_ID::SPRITE];
+
+	// Setting vertex and index buffers
+	glBindVertexArray(enemy_bullet_instance_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+
+	// Input data location as in the vertex buffer
+	GLint in_position_loc = glGetAttribLocation(enemy_bullet_instance_program, "in_position");
+	GLint in_texcoord_loc = glGetAttribLocation(enemy_bullet_instance_program, "in_texcoord");
+	GLint in_transform_loc = glGetAttribLocation(enemy_bullet_instance_program, "in_transform");
+	gl_has_errors();
+	assert(in_position_loc >= 0);
+	assert(in_texcoord_loc >= 0);
+	assert(in_transform_loc >= 0);
+
+	glEnableVertexAttribArray(in_position_loc);
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)0);
+	gl_has_errors();
+
+	glEnableVertexAttribArray(in_texcoord_loc);
+	// note the stride to skip the preceeding vertex position
+	glVertexAttribPointer(in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)sizeof(vec3));
+
+	// Enabling and binding texture to slot 0
+	glActiveTexture(GL_TEXTURE0);
+	gl_has_errors();
+
+	GLuint texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::ENEMY_BULLET];
+
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+	gl_has_errors();
+
+	// Getting uniform locations for glUniform* calls
+	GLint color_uloc = glGetUniformLocation(enemy_bullet_instance_program, "fcolor");
+	//const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
+	const vec3 color = vec3(1);
+	glUniform3fv(color_uloc, 1, (float*)&color);
+	gl_has_errors();
+
+	GLint end_pos_uloc = glGetUniformLocation(enemy_bullet_instance_program, "end_pos");
+	//const vec2 end_pos = registry.animation.has(entity) ? registry.animation.get(entity).render_pos : vec2(1);
+	const vec3 end_pos = vec3(1);
+	glUniform2fv(end_pos_uloc, 1, (float*)&end_pos);
+	gl_has_errors();
+
+	GLint scale_uloc = glGetUniformLocation(enemy_bullet_instance_program, "scale");
+	//const vec2 ani_scale = registry.animation.has(entity) ? registry.animation.get(entity).spritesheet_scale : vec2(1);
+	const vec3 ani_scale = vec3(1);
+	glUniform2fv(scale_uloc, 1, (float*)&ani_scale);
+	gl_has_errors();
+
+	// Get number of indices from index buffer, which has elements uint16_t
+	GLint size = 0;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	gl_has_errors();
+
+	GLsizei num_indices = size / sizeof(uint16_t);
+	// GLsizei num_triangles = num_indices / 3;
+
+	GLint currProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&projection);
+	GLuint view_loc = glGetUniformLocation(currProgram, "view");
+	glUniformMatrix3fv(view_loc, 1, GL_FALSE, (float*)&view);
+	gl_has_errors();
+
+	glBindBuffer(GL_ARRAY_BUFFER, enemy_bullet_instance_VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(mat3) * amount, instance_transforms, GL_DYNAMIC_DRAW);
+	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, 0, amount);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	gl_has_errors();
+	delete[] instance_transforms;
+}
