@@ -240,13 +240,15 @@ BSPNode* BSPTree::get_random_leaf_node(BSPNode* node) {
 
 void BSPTree::set_map_walls(std::vector<std::vector<int>>& map) {
 	for (int row = 1; row < map.size()-1; row++) {
-		for (int col = 1; row < map[row].size()-1; row++) {
+		for (int col = 1; col < map[row].size()-1; col++) {
 			if(map[row][col] != (int)TILE_TYPE::EMPTY) {
 				continue; // Can't pull walls on floors
 			}
 
 			if (map[row][col + 1] == (int)TILE_TYPE::FLOOR || map[row][col - 1] == (int)TILE_TYPE::FLOOR ||
-				map[row + 1][col] == (int)TILE_TYPE::FLOOR || map[row - 1][col] == (int)TILE_TYPE::FLOOR) {
+				map[row + 1][col] == (int)TILE_TYPE::FLOOR || map[row - 1][col] == (int)TILE_TYPE::FLOOR ||
+				map[row + 1][col + 1] == (int)TILE_TYPE::FLOOR || map[row + 1][col - 1] == (int)TILE_TYPE::FLOOR ||
+				map[row - 1][col + 1] == (int)TILE_TYPE::FLOOR || map[row - 1][col - 1] == (int)TILE_TYPE::FLOOR) {
 				map[row][col] = (int)TILE_TYPE::WALL; // Adds wall to a tile adjacent to a floor
 			}
 		}

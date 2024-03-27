@@ -109,7 +109,7 @@ void MapSystem::generateRandomMap() {
 	}
 
 	bsptree.add_corridors_to_map(corridor_test, map);
-	//bsptree.set_map_walls(map);
+	bsptree.set_map_walls(map);
 
 
 	MapSystem::generateAllEntityTiles(map);
