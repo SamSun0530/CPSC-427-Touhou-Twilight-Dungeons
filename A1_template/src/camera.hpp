@@ -1,5 +1,6 @@
 #pragma once
 
+#include "global.hpp"
 #include "common.hpp"
 
 class Camera {

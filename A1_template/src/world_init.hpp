@@ -7,7 +7,7 @@
 #include <glm/trigonometric.hpp>
 #include "world_system.hpp"
 #include <random>
-
+#include "global.hpp"
 
 
 // These are ahrd coded to the dimensions of the entity texture
@@ -39,7 +39,7 @@ Entity createHealthUI(RenderSystem*);
 Entity createHealth(RenderSystem* renderer, vec2 position);
 Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss);
 
-Entity createKey(vec2 pos, vec2 size, KEYS key);
+Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true);
 
 // focus mode dot
 Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);

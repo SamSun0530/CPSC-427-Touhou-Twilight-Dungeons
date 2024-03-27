@@ -9,6 +9,7 @@
 #include "common.hpp"
 #include "physics_system.hpp"
 #include "bsp_tree.hpp"
+#include "global.hpp"
 
 // Grid coordinates: x, y, size
 struct Room {

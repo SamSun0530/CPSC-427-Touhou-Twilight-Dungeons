@@ -2,7 +2,7 @@
 
 // internal
 #include "common.hpp"
-
+#include "global.hpp"
 // stlib
 #include <vector>
 #include <random>

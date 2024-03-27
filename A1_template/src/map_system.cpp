@@ -168,45 +168,43 @@ Room generateTutRoom(int x, int y) {
 }
 
 void MapSystem::generateTutMap() {
-	std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
-	rooms.clear();
-	int room_radius = room_size >> 1;
-	rooms.push_back(generateTutRoom(room_radius, room_radius));
-	rooms.push_back(generateTutRoom(room_size + 4 * room_radius, room_radius));
-	rooms.push_back(generateTutRoom(room_size + 4 * room_radius, room_size + 4 * room_radius));
+	//rooms.clear();
+	//int room_radius = room_size >> 1;
+	//rooms.push_back(generateTutRoom(room_radius, room_radius));
+	//rooms.push_back(generateTutRoom(room_size + 4 * room_radius, room_radius));
+	//rooms.push_back(generateTutRoom(room_size + 4 * room_radius, room_size + 4 * room_radius));
 
-	for (Room& room : rooms) {
-		addRoomToMap(room, map);
-	}
+	//for (Room& room : rooms) {
+	//	addRoomToMap(room, world_map);
+	//}
 
-	addHallwayBetweenRoom(rooms[0], rooms[1], map);
-	addHallwayBetweenRoom(rooms[1], rooms[2], map);
+	//addHallwayBetweenRoom(rooms[0], rooms[1], world_map);
+	//addHallwayBetweenRoom(rooms[1], rooms[2], world_map);
 
-	MapSystem::generateAllEntityTiles(map);
+	//MapSystem::generateAllEntityTiles(world_map);
 
-	world_map = map;
-	createText({ 0, 610 }, { 1,1 }, "Hold to shoot", { 0,0,0 }, true);
-	createText({ 65,  570 }, { 1,1 }, "or", { 0,0,0 }, true);
-	createKey({ -500, -220 }, { 90, 90 }, KEYS::SPACE);
-	createKey({ -600,-220 }, { 50, 50 }, KEYS::MOUSE_1);
-	createText({ 0, 540 }, { 1,1 }, "Move", { 0,0,0 }, true);
-	createKey({ -600, -150 }, { 50, 50 }, KEYS::W);
-	createKey({ -560, -150 }, { 50, 50 }, KEYS::A);
-	createKey({ -520, -150 }, { 50, 50 }, KEYS::S);
-	createKey({ -480, -150 }, { 50, 50 }, KEYS::D);
-	createText({ 0, 460 }, { 1,1 }, "Zoom in/out", { 0,0,0 }, true);
-	createKey({ -600, -70 }, { 50, 50 }, KEYS::SCROLL);
-	createText({ 0, 385 }, { 1,1 }, "Focus Mode", { 0,0,0 }, true);
-	createKey({ -590, 10 }, { 80, 80 }, KEYS::SHIFT);
-	createText({ 0, 300 }, { 1,1 }, "Show FPS", { 0,0,0 }, true);
-	createKey({ -600, 90 }, { 50, 50 }, KEYS::F);
-	createText({ 0, 220 }, { 1,1 }, "Camera", { 0,0,0 }, true);
-	createKey({ -600, 170 }, { 50, 50 }, KEYS::P);
-	createText({ 0, 140 }, { 1,1 }, "Restart", { 0,0,0 }, true);
-	createKey({ -600, 250 }, { 50, 50 }, KEYS::R);
-	createText({ 0, 60 }, { 1,1 }, "Quit", { 0,0,0 }, true);
-	createKey({ -600, 330 }, { 50, 50 }, KEYS::ESC);
-	createText({ 1110, 40 }, { 1,1 }, "Combo Meter", { 0,0,0 }, true);
+	//createText({ 0, 610 }, { 1,1 }, "Hold to shoot", { 0,0,0 }, true);
+	//createText({ 65,  570 }, { 1,1 }, "or", { 0,0,0 }, true);
+	//createKey({ -500, -220 }, { 90, 90 }, KEYS::SPACE);
+	//createKey({ -600,-220 }, { 50, 50 }, KEYS::MOUSE_1);
+	//createText({ 0, 540 }, { 1,1 }, "Move", { 0,0,0 }, true);
+	//createKey({ -600, -150 }, { 50, 50 }, KEYS::W);
+	//createKey({ -560, -150 }, { 50, 50 }, KEYS::A);
+	//createKey({ -520, -150 }, { 50, 50 }, KEYS::S);
+	//createKey({ -480, -150 }, { 50, 50 }, KEYS::D);
+	//createText({ 0, 460 }, { 1,1 }, "Zoom in/out", { 0,0,0 }, true);
+	//createKey({ -600, -70 }, { 50, 50 }, KEYS::SCROLL);
+	//createText({ 0, 385 }, { 1,1 }, "Focus Mode", { 0,0,0 }, true);
+	//createKey({ -590, 10 }, { 80, 80 }, KEYS::SHIFT);
+	//createText({ 0, 300 }, { 1,1 }, "Show FPS", { 0,0,0 }, true);
+	//createKey({ -600, 90 }, { 50, 50 }, KEYS::F);
+	//createText({ 0, 220 }, { 1,1 }, "Camera", { 0,0,0 }, true);
+	//createKey({ -600, 170 }, { 50, 50 }, KEYS::P);
+	//createText({ 0, 140 }, { 1,1 }, "Restart", { 0,0,0 }, true);
+	//createKey({ -600, 250 }, { 50, 50 }, KEYS::R);
+	//createText({ 0, 60 }, { 1,1 }, "Quit", { 0,0,0 }, true);
+	//createKey({ -600, 330 }, { 50, 50 }, KEYS::ESC);
+	//createText({ 1110, 40 }, { 1,1 }, "Combo Meter", { 0,0,0 }, true);
 }
 
 Room& MapSystem::generateBossRoom() {

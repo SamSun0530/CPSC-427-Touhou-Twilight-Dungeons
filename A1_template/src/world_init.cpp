@@ -449,7 +449,7 @@ Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size)
 	return entity;
 }
 
-Entity createKey(vec2 pos, vec2 size, KEYS key)
+Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui)
 {
 	auto entity = Entity();
 
@@ -461,7 +461,7 @@ Entity createKey(vec2 pos, vec2 size, KEYS key)
 	EntityAnimation key_ani;
 	key_ani.isCursor = false;
 	//std::cout << static_cast<int>(key) << std::endl;
-	key_ani.spritesheet_scale = { 0.5, 1/12.0f };
+	key_ani.spritesheet_scale = { 0.5, 1 / 12.0f };
 	key_ani.render_pos = { 0.5, 1 / 12.0f * static_cast<int>(key) };
 	key_ani.frame_rate_ms = 500.f;
 	key_ani.full_rate_ms = 500.f;
@@ -470,7 +470,7 @@ Entity createKey(vec2 pos, vec2 size, KEYS key)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::KEYS, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::UI,
+			is_on_ui ? EFFECT_ASSET_ID::UI : EFFECT_ASSET_ID::TEXTURED,
 					GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
