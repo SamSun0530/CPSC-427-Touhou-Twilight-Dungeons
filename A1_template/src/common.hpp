@@ -46,9 +46,9 @@ const int window_height_px = 720;
 const vec2 window_px_half = { window_width_px / 2, window_height_px / 2 };
 
 // World Map Data
-const int world_width = 25;
-const int world_height = 25;
-const int world_tile_size = 64; // In pixels
+const int world_width = 60;
+const int world_height = 50;
+const int world_tile_size = 4; // In pixels
 // Shift POSITIVE x,y grid cells to center the map at (0,0)
 const vec2 world_center = { 25 / 2 , 25 / 2 };
 // Converts (x,y) in world coordinates to grid coordinates
@@ -72,3 +72,9 @@ vec2 vec2_lerp(vec2 start, vec2 end, float t);
 
 // Checks if (x,y) on the map is valid, this is not world coordinates
 bool is_valid_cell(int x, int y);
+
+// TEMPORARY
+struct Room2 {
+	vec2 top_left;
+	vec2 bottom_left;
+};
