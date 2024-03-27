@@ -51,7 +51,7 @@ const int world_width = 60;
 const int world_height = 50;
 const int world_tile_size = 32; // In pixels
 // Shift POSITIVE x,y grid cells to center the map at (0,0)
-const vec2 world_center = { 11,11 };
+const vec2 world_center = { 9,9 };
 // Converts (x,y) in world coordinates to grid coordinates
 coord convert_world_to_grid(coord world_coord);
 // Converts (x,y) in grid coordinates to world coordinates

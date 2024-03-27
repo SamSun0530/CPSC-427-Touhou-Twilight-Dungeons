@@ -36,6 +36,10 @@ private:
 	// Maximum room size
 	vec2 max_room_size;
 
+
+	// C++ random number generator
+	std::default_random_engine rng;
+	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 public:
 	BSPNode* root = nullptr;
 	~BSPTree();

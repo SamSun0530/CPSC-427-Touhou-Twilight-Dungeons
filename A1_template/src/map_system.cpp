@@ -243,70 +243,70 @@ std::vector<TEXTURE_ASSET_ID> MapSystem::getTileAssetID(int row, int col, std::v
 	}
 
 	// Top Right corner
-	if (map[row - 1][col] == (int)TILE_TYPE::EMPTY && map[row][col + 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
-		return textures;
-	}
-
-	// Top Wall
-	if (map[row - 1][col] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::WALL_SURFACE);
-		textures.push_back(TEXTURE_ASSET_ID::TOP_WALL);
-		return textures;
-	}
-
-	// Bot left corner
-	if (map[row + 1][col] == (int)TILE_TYPE::EMPTY && map[row][col - 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
-		return textures;
-	}
-
-	// Bot right corner
-	if (map[row + 1][col] == (int)TILE_TYPE::EMPTY && map[row][col + 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
-		return textures;
-	}
-
-	// Left wall
-	if (map[row][col - 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
-		return textures;
-	}
-
-	// Right wall
-	if (map[row][col + 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
-		return textures;
-	}
-
-	// Bot wall
-	if (map[row + 1][col] == (int)TILE_TYPE::EMPTY) {
-		// textures.push_back((uniform_dist(rng) > 0.5) ? TEXTURE_ASSET_ID::TILE_1 : TEXTURE_ASSET_ID::TILE_2);
-		textures.push_back(TEXTURE_ASSET_ID::BOTTOM_WALL);
-		return textures;
-	}
-
-	// Inner top left
-	if (map[row - 1][col] == (int)TILE_TYPE::WALL && map[row][col - 1] == (int)TILE_TYPE::WALL) {
-		textures.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
-		return textures;
-	}
-
-	// Inner top right
-	if (map[row - 1][col] == (int)TILE_TYPE::WALL && map[row][col + 1] == (int)TILE_TYPE::WALL) {
-		textures.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
-		return textures;
-	}
-
-	// Inner bot left
 	if (map[row + 1][col] == (int)TILE_TYPE::WALL && map[row][col - 1] == (int)TILE_TYPE::WALL) {
 		textures.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
 		return textures;
 	}
 
+	// Bot left corner
+	if (map[row - 1][col] == (int)TILE_TYPE::WALL && map[row][col + 1] == (int)TILE_TYPE::WALL) {
+		textures.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
+		return textures;
+	}
+
+	// Bot right corner
+	if (map[row - 1][col] == (int)TILE_TYPE::WALL && map[row][col - 1] == (int)TILE_TYPE::WALL) {
+		textures.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
+		return textures;
+	}
+
+	// Inner top left
+	if (map[row + 1][col] == (int)TILE_TYPE::FLOOR && map[row][col + 1] == (int)TILE_TYPE::FLOOR) {
+		textures.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
+		return textures;
+	}
+
+	// Inner top right
+	if (map[row + 1][col] == (int)TILE_TYPE::FLOOR && map[row][col - 1] == (int)TILE_TYPE::FLOOR) {
+		textures.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
+		return textures;
+	}
+
+	// Inner bot left
+	if (map[row - 1][col] == (int)TILE_TYPE::FLOOR && map[row][col + 1] == (int)TILE_TYPE::FLOOR) {
+		textures.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
+		return textures;
+	}
+
 	// Inner bot right
-	if (map[row + 1][col] == (int)TILE_TYPE::WALL && map[row][col + 1] == (int)TILE_TYPE::WALL) {
+	if (map[row - 1][col] == (int)TILE_TYPE::FLOOR && map[row][col - 1] == (int)TILE_TYPE::FLOOR) {
 		textures.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
+		return textures;
+	}
+
+	// Top Wall
+	if (map[row + 1][col] == (int)TILE_TYPE::FLOOR) {
+		textures.push_back(TEXTURE_ASSET_ID::WALL_SURFACE);
+		textures.push_back(TEXTURE_ASSET_ID::TOP_WALL);
+		return textures;
+	}
+
+	// Left wall
+	if (map[row][col + 1] == (int)TILE_TYPE::FLOOR) {
+		textures.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
+		return textures;
+	}
+
+	// Right wall
+	if (map[row][col - 1] == (int)TILE_TYPE::FLOOR) {
+		textures.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
+		return textures;
+	}
+
+	// Bot wall
+	if (map[row - 1][col] == (int)TILE_TYPE::FLOOR) {
+		// textures.push_back((uniform_dist(rng) > 0.5) ? TEXTURE_ASSET_ID::TILE_1 : TEXTURE_ASSET_ID::TILE_2);
+		textures.push_back(TEXTURE_ASSET_ID::BOTTOM_WALL);
 		return textures;
 	}
 

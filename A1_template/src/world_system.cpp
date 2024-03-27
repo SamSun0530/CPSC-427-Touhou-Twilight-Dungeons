@@ -353,7 +353,7 @@ void WorldSystem::restart_game() {
 	//map->spawnEnemies();
 	map->spawnEnemiesInRoom();
 
-	createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
+	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
 	// Create a new player
 	player = createPlayer(renderer, { 0, 0 });
