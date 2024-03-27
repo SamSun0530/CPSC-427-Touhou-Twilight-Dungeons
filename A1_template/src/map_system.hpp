@@ -44,7 +44,8 @@ public:
 	void init(RenderSystem* renderer);
 	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
 	void generateBasicMap();
-	void generateBossRoom();
+	Room& generateBossRoom();
 	void generateRandomMap();
 	void spawnEnemies();
+	void printMap();
 };

@@ -6,6 +6,7 @@ BSPNode::~BSPNode() {
 	delete left_node;
 	delete right_node;
 	delete room;
+	delete corridor;
 }
 BSPTree::~BSPTree() { delete root; }
 

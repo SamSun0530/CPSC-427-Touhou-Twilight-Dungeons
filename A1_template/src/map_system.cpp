@@ -98,13 +98,9 @@ void MapSystem::generateBasicMap() {
 	generateAllEntityTiles(world_map);
 }
 
-void MapSystem::generateBossRoom() {
+Room& MapSystem::generateBossRoom() {
 	rooms.clear();
 	Room room;
-	room.id = 0;
-	room.x = 1;
-	room.y = 1;
-
 	room.grid = {
 		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
 		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
@@ -131,13 +127,19 @@ void MapSystem::generateBossRoom() {
 		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}
 	};
 	room.size = { room.grid[0].size(), room.grid.size() };
+	room.x = world_width - room.size.x - 1;
+	room.y = world_height / 2 - room.size.y / 2 - 1;
+
 	rooms.push_back(room);
 	addRoomToMap(room, world_map);
-	generateAllEntityTiles(world_map);
+	//generateAllEntityTiles(world_map);
+	return room;
 }
 
 void MapSystem::generateRandomMap() {
-	bsptree.init(vec2(room_size), vec2(world_width, world_height));
+	Room& boss_room = generateBossRoom();
+
+	bsptree.init(vec2(room_size), vec2(world_width - boss_room.size.x - 1, world_height));
 	bsptree.generate_partitions(bsptree.root);
 	bsptree.generate_rooms_random(bsptree.root);
 	bsptree.generate_corridors(bsptree.root);
@@ -146,6 +148,17 @@ void MapSystem::generateRandomMap() {
 	bsptree.get_corridors(bsptree.root, corridor_test);
 	bsptree.get_rooms(bsptree.root, room_test);
 	//bsptree.print_tree(bsptree.root);
+
+	assert(room_test.size() > 0 && corridor_test.size() > 0);
+	Corridor boss_corridor;
+	Room2 boss_room2;
+	boss_room2.top_left = vec2(boss_room.x, boss_room.y);
+	boss_room2.bottom_left = boss_room2.top_left + boss_room.size - 1.f; // round issues probably
+	boss_corridor.start = (room_test[room_test.size() - 1].bottom_left +
+		room_test[room_test.size() - 1].top_left) / 2.f;
+	boss_corridor.end = (boss_room2.top_left + boss_room2.bottom_left) / 2.f;
+	corridor_test.push_back(boss_corridor);
+	room_test.push_back(boss_room2);
 
 	// Populates the map with floors
 	for (int i = 0; i < room_test.size(); i++) {
@@ -353,5 +366,14 @@ void MapSystem::generateAllEntityTiles(std::vector<std::vector<int>>& map) {
 			std::vector<TEXTURE_ASSET_ID> textureIDs;
 			addTile(row, col, textureIDs, map);
 		}
+	}
+}
+
+void MapSystem::printMap() {
+	for (int i = 0; i < world_map.size(); i++) {
+		for (int j = 0; j < world_map[0].size(); j++) {
+			printf("%d ", world_map[i][j]);
+		}
+		printf("\n");
 	}
 }
