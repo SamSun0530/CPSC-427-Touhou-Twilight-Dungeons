@@ -47,7 +47,7 @@ public:
 	void generateBasicMap();
 	Room& generateBossRoom();
 	void generateRandomMap();
-	void generateTutMap();
+	void generateTutorialMap();
 	void spawnEnemies();
 	void printMap();
 	void spawnEnemiesInRoom();

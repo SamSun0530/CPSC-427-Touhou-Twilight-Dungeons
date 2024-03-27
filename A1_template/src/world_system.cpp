@@ -197,12 +197,26 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	float sharpness_factor_camera_offset = 10.0f;
 	renderer->camera.offset = vec2_lerp(renderer->camera.offset, renderer->camera.offset_target, elapsed_ms_since_last_update / 1000.f * sharpness_factor_camera_offset);
 
-	// User interface TODO
+	// User interface
 	for (Entity entity : registry.bossHealthBarUIs.entities) {
 		Motion& motion = registry.motions.get(entity);
 		vec2 padding = { 0, -60 };
 		motion.position = vec2(0, window_px_half.y) + padding;
 	}
+
+	// Tutorial dummy spawner
+	if (map_level.level == MapLevel::TUTORIAL) {
+		for (Entity entity : registry.dummyenemyspawners.entities) {
+			Motion& motion = registry.motions.get(entity);
+			DummyEnemySpawner& spawner = registry.dummyenemyspawners.get(entity);
+			if (spawner.number_spawned < spawner.max_spawn) {
+				Entity dummy_enemy = createDummyEnemy(renderer, motion.position);
+				registry.dummyEnemyLink.emplace(dummy_enemy, entity);
+				spawner.number_spawned++;
+			}
+		}
+	}
+
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -268,6 +282,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				}
 				else if (registry.wolfEnemies.has(entity)) {
 					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 5);
+				}
+				else if (registry.dummyenemies.has(entity)) {
+					DummyEnemyLink& link = registry.dummyEnemyLink.get(entity);
+					DummyEnemySpawner& spawner = registry.dummyenemyspawners.get(link.other);
+					spawner.number_spawned--;
+					registry.dummyEnemyLink.remove(entity);
 				}
 
 				if (number <= 0.1)
@@ -348,7 +368,7 @@ void WorldSystem::restart_game() {
 	map->restart_map();
 
 	if (map_level.level == MapLevel::TUTORIAL) {
-		map->generateTutMap();
+		map->generateTutorialMap();
 		player = map->spawnPlayer(world_center);
 	}
 	else {
@@ -508,7 +528,7 @@ void WorldSystem::handle_collisions() {
 					HP& hp = registry.hps.get(entity);
 					if (hp.curr_hp <= 0.0f) {
 						combo_meter = min(combo_meter + 0.02f, COMBO_METER_MAX);
-						if (registry.beeEnemies.has(entity) || registry.wolfEnemies.has(entity) || registry.bomberEnemies.has(entity)) {
+						if (registry.beeEnemies.has(entity) || registry.wolfEnemies.has(entity) || registry.bomberEnemies.has(entity) || registry.dummyenemies.has(entity)) {
 							registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
 							registry.hps.remove(entity);
 							registry.aitimers.remove(entity);
@@ -545,7 +565,12 @@ void WorldSystem::handle_collisions() {
 				
 				// Depth is 0 when both entities are perfectly on top of each other
 				if (depth.x == 0 && depth.y == 0) {
-					depth = { 0.01, 0.01 };
+					std::random_device ran;
+					std::mt19937 gen(ran());
+					std::uniform_real_distribution<> dis(0, 1);
+					float x_sign = dis(gen) < 0.5 ? 1 : -1;
+					float y_sign = dis(gen) < 0.5 ? 1 : -1;
+					depth = { 0.01 * x_sign, 0.01 * y_sign };
 				}
 
 				// check how deep the collision between the two entities are, if passes threshold, apply delta velocity

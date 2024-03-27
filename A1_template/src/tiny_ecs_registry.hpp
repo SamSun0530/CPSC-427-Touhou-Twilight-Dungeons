@@ -64,6 +64,9 @@ public:
 	ComponentContainer<RenderText> texts;
 	ComponentContainer<RenderTextPermanent> textsPerm;
 	ComponentContainer<UIUX> UIUX;
+	ComponentContainer<DummyEnemy> dummyenemies;
+	ComponentContainer<DummyEnemySpawner> dummyenemyspawners;
+	ComponentContainer<DummyEnemyLink> dummyEnemyLink;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -122,6 +125,9 @@ public:
 		registry_list.push_back(&texts);
 		registry_list.push_back(&textsPerm);
 		registry_list.push_back(&UIUX);
+		registry_list.push_back(&dummyenemies);
+		registry_list.push_back(&dummyenemyspawners);
+		registry_list.push_back(&dummyEnemyLink);
 	}
 
 	void clear_all_components() {

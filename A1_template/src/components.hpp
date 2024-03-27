@@ -205,6 +205,21 @@ struct EntityAnimation {
 	bool is_active = true;
 };
 
+struct DummyEnemySpawner {
+	int max_spawn = 5;
+	int number_spawned = 0;
+};
+
+struct DummyEnemy {
+
+};
+
+// Link between dummy enemy and spawner
+struct DummyEnemyLink {
+	Entity other;
+	DummyEnemyLink(Entity& other) { this->other = other; };
+};
+
 struct Deadly
 {
 	int damage = 1;

@@ -39,7 +39,7 @@ Entity createHealthUI(RenderSystem*);
 Entity createHealth(RenderSystem* renderer, vec2 position);
 Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss);
 
-Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true, bool is_active = true);
+Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true, bool is_active = true, float frame_rate = 500.f);
 
 // focus mode dot
 Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);
@@ -65,6 +65,9 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position);
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
 // boss enemy
 Entity createBoss(RenderSystem* renderer, vec2 position);
+// dummy enemy for tutorial
+Entity createDummyEnemy(RenderSystem* renderer, vec2 position);
+Entity createDummyEnemySpawner(RenderSystem* renderer, vec2 position);
 // Non interactable tile
 std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 // Interactable Tile

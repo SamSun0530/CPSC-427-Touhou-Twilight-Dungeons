@@ -169,6 +169,39 @@ void Animation::step(float elapsed_ms)
 			}
 		}
 	}
+	// TODO: DUMMY ENEMY HAS THE SAME ANIMATION AS WOLF FOR NOW
+	for (Entity& enemy : registry.dummyenemies.entities) {
+		EntityAnimation& enemy_ani = registry.animation.get(enemy);
+		if (!enemy_ani.is_active) continue;
+		if (registry.realDeathTimers.has(enemy)) {
+			if (registry.realDeathTimers.get(enemy).first_animation_frame == false) {
+				float offset_death = 8;
+				if (enemy_ani.render_pos.y > 4 * enemy_ani.spritesheet_scale.y) {
+					offset_death /= 2;
+				}
+				enemy_ani.render_pos.y = offset_death * enemy_ani.spritesheet_scale.y + enemy_ani.render_pos.y;
+				enemy_ani.render_pos.x = enemy_ani.spritesheet_scale.x;
+				registry.realDeathTimers.get(enemy).first_animation_frame = true;
+			}
+		}
+		else {
+			vec2 enemy_velocity = normalize(registry.kinematics.get(enemy).velocity);
+			float facing_degree = (-atan2(enemy_velocity.x, enemy_velocity.y) + M_PI) * (180.0 / M_PI);
+			if (facing_degree <= 45 || facing_degree >= 325) {
+				enemy_ani.render_pos.y = (4 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+			}
+			else if (facing_degree <= 135) {
+				enemy_ani.render_pos.y = (3 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+			}
+			else if (facing_degree <= 225) {
+				enemy_ani.render_pos.y = (1 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+			}
+			else {
+				enemy_ani.render_pos.y = (2 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+			}
+		}
+	}
+
 	// for now, all bosses temporarily have cirno spritesheet
 	for (Entity& enemy : registry.bosses.entities) {
 		EntityAnimation& enemy_ani = registry.animation.get(enemy);
