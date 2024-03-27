@@ -15,8 +15,10 @@ const float PLAYER_BB_WIDTH = 0.5f * 128.f;
 const float PLAYER_BB_HEIGHT = 0.5f * 128.f;
 const float ENEMY_BB_WIDTH = 1.f * 80.f;
 const float ENEMY_BB_HEIGHT = 1.f * 90.f;
-const float HP_BB_WIDTH = 0.2f * 283.f;
-const float HP_BB_HEIGHT = 0.2f * 244.f;
+const float HP_BB_WIDTH = 1.3f * 194.f;
+const float HP_BB_HEIGHT = 1.3f * 36.f;
+const float VP_BB_WIDTH = 1.3f * 86.f;
+const float VP_BB_HEIGHT = 1.3f * 21.f;
 const float HEALTH_WIDTH = 0.3f * 128.f;
 const float HEALTH_HEIGHT = 0.3f * 80.f;
 
@@ -27,7 +29,11 @@ Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float
 
 Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm);
 
-std::vector<Entity> createHealthUI(RenderSystem*, int max_hp);
+Entity createCriHit(RenderSystem* renderer, vec2 pos);
+
+std::vector<Entity> createAttributeUI(RenderSystem* renderer);
+
+Entity createHealthUI(RenderSystem*);
 
 Entity createHealth(RenderSystem* renderer, vec2 position);
 

@@ -54,7 +54,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 
 	// Input data location as in the vertex buffer
-	if ((*render_request).used_effect == EFFECT_ASSET_ID::TEXTURED || (*render_request).used_effect == EFFECT_ASSET_ID::UI)
+	if ((*render_request).used_effect == EFFECT_ASSET_ID::TEXTURED || (*render_request).used_effect == EFFECT_ASSET_ID::UI || (*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -93,6 +93,21 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
+		if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB && (*render_request).used_texture == TEXTURE_ASSET_ID::REIMU_HEALTH) {
+			assert(registry.players.entities.size() == 1);
+			GLint health_uloc = glGetUniformLocation(program, "health_percentage");
+			const HP& player_hp = registry.hps.get(registry.players.entities[0]);
+			float health_percentage = (float)player_hp.curr_hp / player_hp.max_hp;
+			glUniform1f(health_uloc, health_percentage);
+			gl_has_errors();
+		}
+		if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB && (*render_request).used_texture == TEXTURE_ASSET_ID::INVUL_BAR) {
+			assert(registry.players.entities.size() == 1);
+			GLint health_uloc = glGetUniformLocation(program, "health_percentage");
+			float health_percentage = registry.invulnerableTimers.has(registry.players.entities[0]) ? (float)registry.invulnerableTimers.get(registry.players.entities[0]).invulnerable_counter_ms / registry.players.components[0].invulnerability_time_ms : 1.f;
+			glUniform1f(health_uloc, health_percentage);
+			gl_has_errors();
+		}
 	}
 	else if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER || (*render_request).used_effect == EFFECT_ASSET_ID::EGG)
 	{

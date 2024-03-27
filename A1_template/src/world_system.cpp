@@ -157,10 +157,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.remove_all_components_of(registry.debugComponents.entities.back());
 	while (registry.texts.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
-	createText({ 0,100 }, { 1, 1 }, std::to_string(combo_meter), { 0, 1, 0 }, false);
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
-
+	HP& player_hp = registry.hps.get(player);
+	createText({ 128 * 1.3 + 70 - 4, window_height_px - 77 }, { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
+	Player& player_att = registry.players.get(player);
+	std::string fire_rate = std::to_string(1/player_att.fire_rate);
+	std::string critical_hit = std::to_string(player_att.critical_hit*100);
+	std::string critical_dmg = std::to_string(player_att.critical_demage*100);
+	createText({ 70, window_height_px - 210 }, { 1,1 }, std::to_string(player_att.bullet_damage), vec3(0, 0, 0), false);
+	createText({ 70, window_height_px - 260 }, { 1,1 }, fire_rate.substr(0, fire_rate.find(".")+3), vec3(0, 0, 0), false);
+	createText({ 70, window_height_px - 310 }, { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(0, 0, 0), false);
+	createText({ 70, window_height_px - 360 }, { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(0, 0, 0), false);
 	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
 	// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
 	// Adapted from: https://gamedev.stackexchange.com/questions/152465/smoothly-move-camera-to-follow-player
@@ -179,17 +187,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	renderer->camera.offset = vec2_lerp(renderer->camera.offset, renderer->camera.offset_target, elapsed_ms_since_last_update / 1000.f * sharpness_factor_camera_offset);
 
 	// User interface
-	vec2 ui_pos = { 50.f, 50.f };
-	for (int i = 0; i < ui.size(); i++) {
-		vec2 padding = { i * 60, 0 };
-		motions_registry.get(ui[i]).position = vec2(0, 0) - window_px_half + ui_pos + padding;
-	}
-	for (int i = 0; i < registry.hps.get(player).curr_hp; i++) {
-		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::FULL_HEART;
-	}
-	for (int i = registry.hps.get(player).curr_hp; i < ui.size(); i++) {
-		registry.renderRequests.get(ui[i]).used_texture = TEXTURE_ASSET_ID::EMPTY_HEART;
-	}
 
 	//// Spawning new enemies
 	//next_enemy_spawn -= elapsed_ms_since_last_update;
@@ -359,7 +356,8 @@ void WorldSystem::restart_game() {
 	// Create a new player
 	player = createPlayer(renderer, { 0, 0 });
 	is_alive = true;
-	ui = createHealthUI(renderer, registry.hps.get(player).max_hp);
+	createHealthUI(renderer);
+	createAttributeUI(renderer);
 	combo_meter = 1;
 	focus_mode.in_focus_mode = false;
 	focus_mode.speed_constant = 1.0f;
@@ -410,7 +408,7 @@ void WorldSystem::handle_collisions() {
 						}
 
 						player_component.invulnerability = true;
-						registry.invulnerableTimers.emplace(entity);
+						registry.invulnerableTimers.emplace(entity).invulnerable_counter_ms = registry.players.components[0].invulnerability_time_ms;
 					}
 				}
 			}
@@ -423,10 +421,12 @@ void WorldSystem::handle_collisions() {
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 						combo_meter = 1;
-						registry.hps.get(player).curr_hp -= registry.enemyBullets.get(entity_other).damage;
+						HP& player_hp = registry.hps.get(player);
+						player_hp.curr_hp -= registry.enemyBullets.get(entity_other).damage;
+						if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
 						registry.remove_all_components_of(entity_other);
 						registry.players.get(player).invulnerability = true;
-						registry.invulnerableTimers.emplace(entity);
+						registry.invulnerableTimers.emplace(entity).invulnerable_counter_ms = registry.players.components[0].invulnerability_time_ms;
 					}
 				}
 			}
@@ -470,9 +470,20 @@ void WorldSystem::handle_collisions() {
 					// enemy turn red and decrease hp, bullet disappear
 					registry.hitTimers.emplace(entity);
 					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
-
+					Motion& deadly_motion = registry.motions.get(entity);
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
-					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+					std::random_device rd;
+					std::mt19937 gen(rd());
+					std::uniform_real_distribution<> distrib(0, 1);
+					double number = distrib(gen);
+					Player& player_att = registry.players.get(player);
+					if (number < player_att.critical_hit) {
+						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage*player_att.critical_demage;
+						registry.realDeathTimers.emplace(createCriHit(renderer, deadly_motion.position-vec2(30,0))).death_counter_ms = 300;
+					}
+					else {
+						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+					}
 					HP& hp = registry.hps.get(entity);
 					if (hp.curr_hp <= 0.0f) {
 						combo_meter = min(combo_meter + 0.02f, COMBO_METER_MAX);

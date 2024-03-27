@@ -443,10 +443,96 @@ Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size)
 	return entity;
 }
 
-std::vector<Entity> createHealthUI(RenderSystem* renderer, int max_hp)
+Entity createCriHit(RenderSystem* renderer, vec2 pos)
 {
-	std::vector<Entity> hp_entities;
-	for (int i = 0; i < max_hp; i++) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = M_PI;
+	motion.scale = { 128 * 0.4, 128 * 0.4 };
+
+	Kinematic& kin = registry.kinematics.emplace(entity);
+	kin.velocity = { 0, -300 };
+	kin.direction = { 0,-1 };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::CRTHITICON, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createHealthUI(RenderSystem* renderer)
+{
+	auto entity_head = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh_head = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity_head, &mesh_head);
+
+	// Setting initial motion values
+	Motion& motion_head = registry.motions.emplace(entity_head);
+	motion_head.position = vec2(0,0) - window_px_half + vec2(70,70);
+	motion_head.scale = vec2({ 128*1.3, 128*1.3});
+	registry.UIUX.emplace(entity_head);
+	registry.renderRequests.insert(
+		entity_head,
+		{ TEXTURE_ASSET_ID::REIMU_HEAD, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.colors.insert(entity_head, { 1,1,1 });
+
+
+	auto entity_inv = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh_inv = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity_inv, &mesh_inv);
+
+	// Setting initial motion values
+	Motion& motion_inv = registry.motions.emplace(entity_inv);
+	motion_inv.position = vec2(0, 0) - window_px_half + vec2(128 * 1.3 + 20, 100);
+	motion_inv.scale = vec2({ VP_BB_WIDTH, VP_BB_HEIGHT});
+	registry.UIUX.emplace(entity_inv);
+	registry.renderRequests.insert(
+		entity_inv,
+		{ TEXTURE_ASSET_ID::INVUL_BAR, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::PLAYER_HB,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.colors.insert(entity_inv, { 1,1,1 });
+
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = vec2(0,0) - window_px_half + vec2(128*1.3+70+20,70);
+	motion.scale = vec2({ HP_BB_WIDTH, HP_BB_HEIGHT });
+	registry.UIUX.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::REIMU_HEALTH, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::PLAYER_HB,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.colors.insert(entity, { 1,1,1 });
+	return entity;
+}
+
+std::vector<Entity> createAttributeUI(RenderSystem* renderer)
+{
+	std::vector<Entity> entity_array;
+	for (int i = 0; i < 4; i++) {
 		auto entity = Entity();
 
 		// Store a reference to the potentially re-used mesh object
@@ -455,19 +541,18 @@ std::vector<Entity> createHealthUI(RenderSystem* renderer, int max_hp)
 
 		// Setting initial motion values
 		Motion& motion = registry.motions.emplace(entity);
-
-		motion.scale = vec2({ -HP_BB_WIDTH, HP_BB_HEIGHT });
+		motion.position = vec2(0, 0) - window_px_half + vec2(30, 200 +50*i);
+		motion.scale = vec2({ 128 * 0.2, 128 * 0.2 });
 		registry.UIUX.emplace(entity);
 		registry.renderRequests.insert(
 			entity,
-			{ TEXTURE_ASSET_ID::FULL_HEART, // TEXTURE_COUNT indicates that no txture is needed
+			{ static_cast<TEXTURE_ASSET_ID>(32+i), // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::UI,
 				GEOMETRY_BUFFER_ID::SPRITE });
 		registry.colors.insert(entity, { 1,1,1 });
-		hp_entities.push_back(entity);
+		entity_array.push_back(entity);
 	}
-
-	return hp_entities;
+	return entity_array;
 }
 
 Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
@@ -496,7 +581,7 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 6;
+	hp.max_hp = 60;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -568,7 +653,7 @@ Entity createBomberEnemy(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 2;
+	hp.max_hp = 20;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -622,7 +707,7 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 3;
+	hp.max_hp = 30;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
