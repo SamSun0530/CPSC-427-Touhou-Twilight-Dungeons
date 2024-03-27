@@ -556,22 +556,22 @@ void WorldSystem::handle_collisions() {
 				// Adapted from Minkowski Sum below
 				vec2 center_delta = center2 - center1;
 				vec2 center_delta_non_collide = collidable1.size / 2.f + collidable2.size / 2.f;
+
+				// Handle case when both entities are perfectly on top of each other
+				if (length(center_delta) < 0.001) {
+					std::random_device ran;
+					std::mt19937 gen(ran());
+					std::uniform_real_distribution<> dis(0, 1);
+					float x_sign = dis(gen) < 0.5 ? 1 : -1;
+					float y_sign = dis(gen) < 0.5 ? 1 : -1;
+					center_delta = { 0.5 * x_sign, 0.5 * y_sign };
+				}
 				// Penetration depth from collision
 				// if center2 is to the right/below of center1, depth is positive, otherwise negative
 				// depth corresponds to the entity_other's velocity change.
 				// e.g. if entity collides on left of entity_other, depth.x is positive -> entity_other's velocity.x will increase
 				vec2 depth = { center_delta.x > 0 ? center_delta_non_collide.x - center_delta.x : -(center_delta_non_collide.x + center_delta.x),
 								center_delta.y > 0 ? center_delta_non_collide.y - center_delta.y : -(center_delta_non_collide.y + center_delta.y) };
-				
-				// Depth is 0 when both entities are perfectly on top of each other
-				if (depth.x == 0 && depth.y == 0) {
-					std::random_device ran;
-					std::mt19937 gen(ran());
-					std::uniform_real_distribution<> dis(0, 1);
-					float x_sign = dis(gen) < 0.5 ? 1 : -1;
-					float y_sign = dis(gen) < 0.5 ? 1 : -1;
-					depth = { 0.01 * x_sign, 0.01 * y_sign };
-				}
 
 				// check how deep the collision between the two entities are, if passes threshold, apply delta velocity
 				float threshold = 10.f; // in pixels

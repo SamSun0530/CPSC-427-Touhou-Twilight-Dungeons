@@ -196,12 +196,12 @@ void MapSystem::generateTutorialMap() {
 		{2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2}
 	};
 
-	// temporarily disable walls to test placement of entities
-	for (int y = 0; y < grid.size(); ++y) {
-		for (int x = 0; x < grid[y].size(); ++x) {
-			if (grid[y][x] == 2) grid[y][x] = 1;
-		}
-	}
+	//// temporarily disable walls to test placement of entities
+	//for (int y = 0; y < grid.size(); ++y) {
+	//	for (int x = 0; x < grid[y].size(); ++x) {
+	//		if (grid[y][x] == 2) grid[y][x] = 1;
+	//	}
+	//}
 
 	// get max width of grid
 	size_t max_width = 0;
@@ -223,10 +223,10 @@ void MapSystem::generateTutorialMap() {
 
 	create_wasd(KEYS::D, convert_grid_to_world({ 12, 16 }), 60);
 	create_wasd(KEYS::S, convert_grid_to_world({ 14.5, 20 }), 60);
-	create_wasd(KEYS::A, convert_grid_to_world({ 11, 23 }), 60);
+	create_wasd(KEYS::A, convert_grid_to_world({ 9, 23 }), 60);
 	create_wasd(KEYS::W, convert_grid_to_world({ 2.5, 20 }), 60);
 
-	createKey(convert_grid_to_world({ 4, 6 }), vec2(150), KEYS::SHIFT, false);
+	createKey(convert_grid_to_world({ 4, 6 }), vec2(150), KEYS::SHIFT, false, true, 1300);
 
 	// hardcoded bullet for this specific grid only
 	for (int i = 0; i < 7; ++i) {
@@ -239,9 +239,15 @@ void MapSystem::generateTutorialMap() {
 	createKey(convert_grid_to_world({ 22, 6 }), vec2(90), KEYS::MOUSE_1, false, true, 1500);
 
 	// hardcoded dummy enemy spawn
-	Entity entity = createDummyEnemySpawner(renderer, convert_grid_to_world({ 27, 6 }));
-	DummyEnemySpawner& spawner = registry.dummyenemyspawners.get(entity);
-	spawner.max_spawn = 7;
+	Entity entity1 = createDummyEnemySpawner(renderer, convert_grid_to_world({ 30, 6 }));
+	DummyEnemySpawner& spawner1 = registry.dummyenemyspawners.get(entity1);
+	spawner1.max_spawn = 6;
+
+	// remaining buttons
+	createKey(convert_grid_to_world({ 38, 17 }), vec2(120), KEYS::SCROLL, false, true);
+	createKey(convert_grid_to_world({ 43, 17 }), vec2(120), KEYS::P, false, true);
+	createKey(convert_grid_to_world({ 48, 17 }), vec2(120), KEYS::F, false, true);
+	createKey(convert_grid_to_world({ 59, 17 }), vec2(120), KEYS::R, false, true);
 
 	// Add grid to map
 	for (int y = 0; y < grid.size(); ++y) {
