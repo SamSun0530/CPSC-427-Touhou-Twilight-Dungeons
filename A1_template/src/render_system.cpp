@@ -105,6 +105,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			assert(registry.players.entities.size() == 1);
 			GLint health_uloc = glGetUniformLocation(program, "health_percentage");
 			float health_percentage = registry.invulnerableTimers.has(registry.players.entities[0]) ? (float)registry.invulnerableTimers.get(registry.players.entities[0]).invulnerable_counter_ms / registry.players.components[0].invulnerability_time_ms : 1.f;
+			glUniform1f(health_uloc, health_percentage);
+			gl_has_errors();
 		}
 		else if ((*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR && registry.bossHealthBarUIs.has(entity)) {
 			BossHealthBarLink& link = registry.bossHealthBarLink.get(entity);
