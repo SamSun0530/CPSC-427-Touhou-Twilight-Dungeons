@@ -344,7 +344,7 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Generate map
-
+	reset_world_default();
 	map->restart_map();
 
 	if (map_level.level == MapLevel::TUTORIAL) {

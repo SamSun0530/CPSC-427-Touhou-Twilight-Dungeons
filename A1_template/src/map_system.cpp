@@ -168,6 +168,17 @@ Room generateTutRoom(int x, int y) {
 }
 
 void MapSystem::generateTutMap() {
+
+
+
+
+	createKey({ 0, 0 }, { 90, 90 }, KEYS::SPACE, false);
+
+
+
+
+
+
 	//rooms.clear();
 	//int room_radius = room_size >> 1;
 	//rooms.push_back(generateTutRoom(room_radius, room_radius));

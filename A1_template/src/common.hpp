@@ -45,6 +45,21 @@ const int window_width_px = 1280;
 const int window_height_px = 720;
 const vec2 window_px_half = { window_width_px / 2, window_height_px / 2 };
 
+const vec2 WORLD_CENTER_DEFAULT = { 9, 9 };
+const int WORLD_WIDTH_DEFAULT = 60;
+const int WORLD_HEIGHT_DEFAULT = 50;
+const int WORLD_TILE_SIZE_DEFAULT = 64;
+
+
+
+
+
+// IF YOU ARE LOOKING FOR MAP STUFF -> GO TO GLOBALS.CPP/HPP
+
+
+
+
+
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
 // We recomment making all components non-copyable by derving from ComponentNonCopyable

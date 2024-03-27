@@ -12,3 +12,5 @@ extern vec2 world_center;
 coord convert_world_to_grid(coord world_coord);
 // Converts (x,y) in grid coordinates to world coordinates
 coord convert_grid_to_world(coord grid_coord);
+// Reset all world attributes to default specified in common.hpp
+void reset_world_default();
