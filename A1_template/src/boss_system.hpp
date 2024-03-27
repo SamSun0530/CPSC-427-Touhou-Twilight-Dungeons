@@ -2,6 +2,7 @@
 
 #include "tiny_ecs_registry.hpp"
 #include "common.hpp"
+#include "global.hpp"
 
 static int bullet_phase_id_count = 0;
 

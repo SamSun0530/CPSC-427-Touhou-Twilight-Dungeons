@@ -7,6 +7,8 @@
 #include <glm/trigonometric.hpp>
 #include "world_system.hpp"
 #include <random>
+#include "global.hpp"
+
 
 // These are ahrd coded to the dimensions of the entity texture
 const float BULLET_BB_WIDTH = 1.0f * 27.f;
@@ -27,8 +29,8 @@ const float BOSS_HEALTH_BAR_HEIGHT = 0.6f * 116.f /*232.f*/;
 // the bullet, takes into account entity's speed and position
 
 Entity createBullet(RenderSystem * renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern * bullet_pattern = nullptr);
-
 Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet);
+
 Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm);
 
 Entity createCriHit(RenderSystem* renderer, vec2 pos);
@@ -36,6 +38,8 @@ std::vector<Entity> createAttributeUI(RenderSystem* renderer);
 Entity createHealthUI(RenderSystem*);
 Entity createHealth(RenderSystem* renderer, vec2 position);
 Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss);
+
+Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true, bool is_active = true, float frame_rate = 500.f);
 
 // focus mode dot
 Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);
@@ -61,6 +65,9 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position);
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
 // boss enemy
 Entity createBoss(RenderSystem* renderer, vec2 position);
+// dummy enemy for tutorial
+Entity createDummyEnemy(RenderSystem* renderer, vec2 position);
+Entity createDummyEnemySpawner(RenderSystem* renderer, vec2 position);
 // Non interactable tile
 std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 // Interactable Tile

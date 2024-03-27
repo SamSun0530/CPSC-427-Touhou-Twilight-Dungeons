@@ -8,6 +8,7 @@
 #include <glm/gtx/hash.hpp>
 #include <limits>
 
+#include "global.hpp"
 #include "tiny_ecs_registry.hpp"
 #include "common.hpp"
 #include "decision_tree.hpp"

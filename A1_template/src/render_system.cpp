@@ -349,8 +349,8 @@ void RenderSystem::draw()
 
 	// Render user guide on screen
 	if (WorldSystem::getInstance().get_display_instruction() == true) {
-
-		renderText("User Guide:", window_width_px / 30 - 25, window_height_px / 2 + 200, 0.8f, glm::vec3(0, 0, 0), trans);
+		renderText("Press 'T' for tutorial", window_width_px / 2 + window_width_px / 4 + 50, window_height_px - 50, 0.9f, glm::vec3(0, 0, 0), trans);
+		/*renderText("User Guide:", window_width_px / 30 - 25, window_height_px / 2 + 200, 0.8f, glm::vec3(0, 0, 0), trans);
 
 		renderText("R -", window_width_px / 30 - 25, window_height_px / 2 + 160, 0.6f, glm::vec3(0, 0, 0), trans);
 		renderText("Reset Game", window_width_px / 30 - 25, window_height_px / 2 + 140, 0.6f, glm::vec3(0, 0, 0), trans);
@@ -368,7 +368,7 @@ void RenderSystem::draw()
 		renderText("Firing bullets", window_width_px / 30 - 25, window_height_px / 2 - 100, 0.6f, glm::vec3(0, 0, 0), trans);
 
 		renderText("Scroll wheel -", window_width_px / 30 - 25, window_height_px / 2 - 140, 0.6f, glm::vec3(0, 0, 0), trans);
-		renderText("Zooming in/out", window_width_px / 30 - 25, window_height_px / 2 - 160, 0.6f, glm::vec3(0, 0, 0), trans);
+		renderText("Zooming in/out", window_width_px / 30 - 25, window_height_px / 2 - 160, 0.6f, glm::vec3(0, 0, 0), trans);*/
 	}
 
 

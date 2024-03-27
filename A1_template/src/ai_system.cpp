@@ -181,8 +181,8 @@ coord AISystem::get_best_grid_pos(coord& grid_pos, int current_dist, int& retFla
 			break;
 		}
 	}
-	if (best_grid_pos.x == -1 || best_grid_pos.y == -1) { 
-		retFlag = 3; 
+	if (best_grid_pos.x == -1 || best_grid_pos.y == -1) {
+		retFlag = 3;
 	};
 	return best_grid_pos;
 }

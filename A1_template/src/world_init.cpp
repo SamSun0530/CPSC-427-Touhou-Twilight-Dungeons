@@ -1,4 +1,5 @@
 #include "world_init.hpp"
+#include <iostream>
 
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern)
 {
@@ -448,6 +449,34 @@ Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size)
 	return entity;
 }
 
+Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui, bool is_active, float frame_rate)
+{
+	auto entity = Entity();
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = size;
+
+	EntityAnimation key_ani;
+	key_ani.isCursor = false;
+	//std::cout << static_cast<int>(key) << std::endl;
+	key_ani.spritesheet_scale = { 0.5, 1 / 12.0f };
+	key_ani.render_pos = { 0.0, 1 / 12.0f * static_cast<int>(key) };
+	key_ani.frame_rate_ms = frame_rate;
+	key_ani.full_rate_ms = frame_rate;
+	key_ani.is_active = is_active;
+	registry.alwaysplayAni.insert(entity, key_ani);
+	registry.UIUX.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::KEYS, // TEXTURE_COUNT indicates that no txture is needed
+			is_on_ui ? EFFECT_ASSET_ID::UI : EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createCriHit(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
@@ -575,13 +604,69 @@ std::vector<Entity> createAttributeUI(RenderSystem* renderer)
 		registry.UIUX.emplace(entity);
 		registry.renderRequests.insert(
 			entity,
-			{ static_cast<TEXTURE_ASSET_ID>(34 + i), // TEXTURE_COUNT indicates that no txture is needed
+			{ static_cast<TEXTURE_ASSET_ID>(35 + i), // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::UI,
 				GEOMETRY_BUFFER_ID::SPRITE });
 		registry.colors.insert(entity, { 1,1,1 });
 		entity_array.push_back(entity);
 	}
 	return entity_array;
+}
+
+Entity createDummyEnemySpawner(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	registry.dummyenemyspawners.emplace(entity);
+	return entity;
+}
+
+Entity createDummyEnemy(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ ENEMY_BB_WIDTH * 2.f, ENEMY_BB_HEIGHT * 2.f});
+
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 100.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 0 };
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale / 2.f;
+
+	// HP
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 100;
+	hp.curr_hp = hp.max_hp;
+
+	// Collision damage
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.damage = 1;
+
+	registry.dummyenemies.emplace(entity);
+	EntityAnimation enemy_ani;
+	enemy_ani.spritesheet_scale = { 1.f / 6.f, 1.f / 12.f };
+	enemy_ani.render_pos = { 1.f / 6.f, 5.f / 12.f };
+	registry.animation.insert(entity, enemy_ani);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMY_WOLF,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	registry.colors.insert(entity, { 1,1,1 });
+
+	return entity;
 }
 
 Entity createBoss(RenderSystem* renderer, vec2 position)

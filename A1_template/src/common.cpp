@@ -63,11 +63,3 @@ vec2 vec2_lerp(vec2 start, vec2 end, float t) {
 	// same as: start * (1 - t) + end * t;
 	return start + t * (end - start);
 }
-
-coord convert_world_to_grid(coord world_coord) {
-	return round((world_coord / (float)world_tile_size) + world_center);
-}
-
-coord convert_grid_to_world(coord grid_coord) {
-	return (grid_coord - world_center) * (float)world_tile_size;
-}

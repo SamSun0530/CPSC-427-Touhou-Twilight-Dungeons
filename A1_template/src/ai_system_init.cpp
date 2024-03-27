@@ -318,7 +318,7 @@ void AISystem::init() {
 		}
 		if (!ui.is_visible) ui.is_visible = true;
 		};
-	void (*hideBossInfo)(Entity& entity) = [](Entity& entity) {
+	void (*hideBossInfo)(Entity & entity) = [](Entity& entity) {
 		if (!registry.bosses.has(entity)) return;
 		Boss& boss = registry.bosses.get(entity);
 		boss.is_active = false;

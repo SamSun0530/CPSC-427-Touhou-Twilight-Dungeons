@@ -19,6 +19,14 @@ struct EnemyBullet
 	int damage = 1;
 };
 
+struct MapLevel {
+	enum LEVEL {
+		TUTORIAL,
+		MAIN
+	} level = LEVEL::MAIN;
+};
+extern MapLevel map_level;
+
 /*
 Bullet actions:
 Floats:
@@ -194,6 +202,22 @@ struct EntityAnimation {
 	vec2 render_pos = { 0, 0 };
 	bool isCursor = false;
 	float offset = 0;
+	bool is_active = true;
+};
+
+struct DummyEnemySpawner {
+	int max_spawn = 5;
+	int number_spawned = 0;
+};
+
+struct DummyEnemy {
+
+};
+
+// Link between dummy enemy and spawner
+struct DummyEnemyLink {
+	Entity other;
+	DummyEnemyLink(Entity& other) { this->other = other; };
 };
 
 struct Deadly
@@ -458,6 +482,21 @@ struct Mesh
 	std::vector<vec3> ordered_vertices;
 };
 
+enum class KEYS {
+	A = 1,
+	D = A + 1,
+	ESC = D + 1,
+	F = ESC + 1,
+	S = F + 1,
+	SHIFT = S + 1,
+	W = SHIFT + 1,
+	MOUSE_1 = W + 1,
+	SCROLL = MOUSE_1 + 1,
+	R = SCROLL + 1,
+	SPACE = R + 1,
+	P = SPACE + 1,
+};
+
 
 // IDs for each tile type
 enum class TILE_TYPE {
@@ -523,9 +562,10 @@ enum class TEXTURE_ASSET_ID {
 	BOSS = REGENERATE_HEALTH + 1,
 	BOSS_HEALTH_BAR = BOSS + 1,
 	REIMU_BULLET_DISAPPEAR = BOSS_HEALTH_BAR + 1,
-	COIN = REIMU_BULLET_DISAPPEAR + 1,
-	FOCUS_DOT = COIN + 1,
-	ATTACKDMG = FOCUS_DOT + 1,
+	FOCUS_DOT = REIMU_BULLET_DISAPPEAR + 1,
+	KEYS = FOCUS_DOT + 1,
+	COIN = KEYS + 1,
+	ATTACKDMG = COIN + 1,
 	ATTACKSPEED = ATTACKDMG + 1,
 	CRTCHANCE = ATTACKSPEED + 1,
 	CRTDMG = CRTCHANCE + 1,

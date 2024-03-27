@@ -25,7 +25,8 @@ std::vector<std::vector<int>> WorldSystem::world_map = std::vector<std::vector<i
 // Create the world
 WorldSystem::WorldSystem()
 	: points(0)
-	, next_enemy_spawn(0.f) {
+	, next_enemy_spawn(0.f)
+	, display_instruction(true){
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -146,6 +147,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		elapsedSinceLastFPSUpdate = 0.0f;
 	}
 
+	tutorial_timer -= tutorial_timer <= 0 ? 0 : elapsed_ms_since_last_update;
+	if (tutorial_timer <= 0) {
+		getInstance().display_instruction = false;
+	}
 
 	// Updating window title with points
 	std::stringstream title_ss;
@@ -158,6 +163,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	while (registry.texts.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
+
+	createText({ 1150,10 }, { 1, 1 }, std::to_string(combo_meter), { 0, 1, 0 }, false);
 
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
@@ -177,6 +184,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Adapted from: https://gamedev.stackexchange.com/questions/152465/smoothly-move-camera-to-follow-player
 	float sharpness_factor_camera = 0.95f;
 	float K = 1.0f - pow(1.0f - sharpness_factor_camera, elapsed_ms_since_last_update / 1000.f);
+
 	vec2 player_position = registry.motions.get(player).position;
 	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), player_position, K));
 
@@ -189,12 +197,26 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	float sharpness_factor_camera_offset = 10.0f;
 	renderer->camera.offset = vec2_lerp(renderer->camera.offset, renderer->camera.offset_target, elapsed_ms_since_last_update / 1000.f * sharpness_factor_camera_offset);
 
-	// User interface TODO
+	// User interface
 	for (Entity entity : registry.bossHealthBarUIs.entities) {
 		Motion& motion = registry.motions.get(entity);
 		vec2 padding = { 0, -60 };
 		motion.position = vec2(0, window_px_half.y) + padding;
 	}
+
+	// Tutorial dummy spawner
+	if (map_level.level == MapLevel::TUTORIAL) {
+		for (Entity entity : registry.dummyenemyspawners.entities) {
+			Motion& motion = registry.motions.get(entity);
+			DummyEnemySpawner& spawner = registry.dummyenemyspawners.get(entity);
+			if (spawner.number_spawned < spawner.max_spawn) {
+				Entity dummy_enemy = createDummyEnemy(renderer, motion.position);
+				registry.dummyEnemyLink.emplace(dummy_enemy, entity);
+				spawner.number_spawned++;
+			}
+		}
+	}
+
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -260,6 +282,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				}
 				else if (registry.wolfEnemies.has(entity)) {
 					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 5);
+				}
+				else if (registry.dummyenemies.has(entity)) {
+					DummyEnemyLink& link = registry.dummyEnemyLink.get(entity);
+					DummyEnemySpawner& spawner = registry.dummyenemyspawners.get(link.other);
+					spawner.number_spawned--;
+					registry.dummyEnemyLink.remove(entity);
 				}
 
 				if (number <= 0.1)
@@ -336,14 +364,23 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Generate map
-	// map->generateMap(1);
-	//map->generateBasicMap();
-	//map->generateBossRoom();
+	reset_world_default();
 	map->restart_map();
-	map->generateRandomMap();
+
+	if (map_level.level == MapLevel::TUTORIAL) {
+		map->generateTutorialMap();
+		player = map->spawnPlayer(world_center);
+	}
+	else {
+		//map->generateBasicMap();
+		//map->spawnEnemies();
+		//map->generateBossRoom();
+		map->generateRandomMap();
+		//map->spawnEnemies();
+		map->spawnEnemiesInRoom();
+		player = map->spawnPlayerInRoom(0);
+	}
 	world_map = map->world_map;
-	//map->spawnEnemies();
-	player = map->spawnEnemiesInRoom();
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
@@ -355,10 +392,9 @@ void WorldSystem::restart_game() {
 	combo_meter = 1;
 	focus_mode.in_focus_mode = false;
 	focus_mode.speed_constant = 1.0f;
+	ai->restart_flow_field_map();
 
 	renderer->camera.setPosition({ 0, 0 });
-
-	ai->restart_flow_field_map();
 }
 
 // Compute collisions between entities
@@ -492,7 +528,7 @@ void WorldSystem::handle_collisions() {
 					HP& hp = registry.hps.get(entity);
 					if (hp.curr_hp <= 0.0f) {
 						combo_meter = min(combo_meter + 0.02f, COMBO_METER_MAX);
-						if (registry.beeEnemies.has(entity) || registry.wolfEnemies.has(entity) || registry.bomberEnemies.has(entity)) {
+						if (registry.beeEnemies.has(entity) || registry.wolfEnemies.has(entity) || registry.bomberEnemies.has(entity) || registry.dummyenemies.has(entity)) {
 							registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
 							registry.hps.remove(entity);
 							registry.aitimers.remove(entity);
@@ -520,17 +556,22 @@ void WorldSystem::handle_collisions() {
 				// Adapted from Minkowski Sum below
 				vec2 center_delta = center2 - center1;
 				vec2 center_delta_non_collide = collidable1.size / 2.f + collidable2.size / 2.f;
+
+				// Handle case when both entities are perfectly on top of each other
+				if (length(center_delta) < 0.001) {
+					std::random_device ran;
+					std::mt19937 gen(ran());
+					std::uniform_real_distribution<> dis(0, 1);
+					float x_sign = dis(gen) < 0.5 ? 1 : -1;
+					float y_sign = dis(gen) < 0.5 ? 1 : -1;
+					center_delta = { 0.5 * x_sign, 0.5 * y_sign };
+				}
 				// Penetration depth from collision
 				// if center2 is to the right/below of center1, depth is positive, otherwise negative
 				// depth corresponds to the entity_other's velocity change.
 				// e.g. if entity collides on left of entity_other, depth.x is positive -> entity_other's velocity.x will increase
 				vec2 depth = { center_delta.x > 0 ? center_delta_non_collide.x - center_delta.x : -(center_delta_non_collide.x + center_delta.x),
 								center_delta.y > 0 ? center_delta_non_collide.y - center_delta.y : -(center_delta_non_collide.y + center_delta.y) };
-				
-				// Depth is 0 when both entities are perfectly on top of each other
-				if (depth.x == 0 && depth.y == 0) {
-					depth = { 0.01, 0.01 };
-				}
 
 				// check how deep the collision between the two entities are, if passes threshold, apply delta velocity
 				float threshold = 10.f; // in pixels
@@ -646,6 +687,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
+		map_level.level = MapLevel::MAIN;
 		restart_game();
 	}
 
@@ -752,7 +794,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Toggle tutorial display
 	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
-		getInstance().toggle_display_instruction();
+
+		getInstance().display_instruction = false;
+		map_level.level = MapLevel::TUTORIAL;
+		restart_game();
+
 	}
 
 	// Hold for focus mode
@@ -788,6 +834,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				registry.remove_all_components_of(registry.focusdots.entities.back());
 			pressed[key] = false;
 		}
+
 	}
 }
 

@@ -2,7 +2,7 @@
 
 // internal
 #include "common.hpp"
-
+#include "global.hpp"
 // stlib
 #include <vector>
 #include <random>
@@ -36,10 +36,13 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer, Audio* audio, MapSystem* map, AISystem* ai);
+	void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai);
 
 	// Releases all associated resources
 	~WorldSystem();
+
+	// Ai system - for restarting flow field
+	AISystem* ai;
 
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
@@ -97,11 +100,12 @@ private:
 	int tutorial_counter = 10;
 	int fps;
 	bool show_fps = false;
-	bool display_instruction = false;
+	bool display_instruction;
 	float elapsedSinceLastFPSUpdate = 0.0f;
+	float tutorial_timer = 10000.0f;
 
 	// fonts seting
-	std::string font_filename = "..//..//..//data//fonts//Kenney_Future_Narrow.ttf";
+	std::string font_filename = "..//..//..//data//fonts//OpenSans-Bold.ttf";
 	unsigned int font_default_size = 25;
 
 	// Player state
@@ -110,9 +114,6 @@ private:
 	
 	// World Map
 	MapSystem* map;
-
-	// Ai system - for restarting flow field
-	AISystem* ai;
 
 	// C++ random number generator
 	std::default_random_engine rng;

@@ -45,16 +45,20 @@ const int window_width_px = 1280;
 const int window_height_px = 720;
 const vec2 window_px_half = { window_width_px / 2, window_height_px / 2 };
 
-// World Map Data
-const int world_width = 60;
-const int world_height = 50;
-const int world_tile_size = 64; // In pixels
-// Shift POSITIVE x,y grid cells to center the map at (0,0)
-const vec2 world_center = { 9,9 };
-// Converts (x,y) in world coordinates to grid coordinates
-coord convert_world_to_grid(coord world_coord);
-// Converts (x,y) in grid coordinates to world coordinates
-coord convert_grid_to_world(coord grid_coord);
+const vec2 WORLD_CENTER_DEFAULT = { 9, 9 };
+const int WORLD_WIDTH_DEFAULT = 60;
+const int WORLD_HEIGHT_DEFAULT = 50;
+const int WORLD_TILE_SIZE_DEFAULT = 64;
+
+
+
+
+
+// IF YOU ARE LOOKING FOR MAP STUFF -> GO TO GLOBALS.CPP/HPP
+
+
+
+
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)

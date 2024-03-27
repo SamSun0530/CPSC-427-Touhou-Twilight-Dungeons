@@ -63,7 +63,7 @@ void MapSystem::spawnEnemies() {
 	}
 }
 
-Entity MapSystem::spawnEnemiesInRoom() {
+void MapSystem::spawnEnemiesInRoom() {
 	Room2 room;
 
 	for (int room_num = 1; room_num < bsptree.rooms.size(); room_num++) {
@@ -92,7 +92,16 @@ Entity MapSystem::spawnEnemiesInRoom() {
 			createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_left) / 2.f));
 		}
 	}
-	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[0].top_left + bsptree.rooms[0].bottom_left) / 2.f));
+}
+
+Entity MapSystem::spawnPlayerInRoom(int room_number) {
+	if (room_number < 0 || room_number >= bsptree.rooms.size()) assert(false && "Room number out of bounds");
+	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_left) / 2.f));
+}
+
+// Getting out of map results? Consider that there is empty padding in the world map.
+Entity MapSystem::spawnPlayer(coord grid_coord) {
+	return createPlayer(renderer, convert_grid_to_world(grid_coord));
 }
 
 Room generateBasicRoom(int x, int y);
@@ -129,6 +138,163 @@ void MapSystem::generateBasicMap() {
 	// }
 
 	generateAllEntityTiles(world_map);
+}
+
+Room generateTutRoom(int x, int y) {
+	Room room;
+	room.id = room_id++;
+	room.x = x;
+	room.y = y;
+
+	std::vector<std::vector<int>> grid = {
+		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
+		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+	};
+	room.grid = grid;
+	return room;
+}
+
+void MapSystem::generateTutorialMap() {
+
+	std::vector<std::vector<int>> grid = {
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,1,1,1,1,2},
+		{2,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,2},
+		{2,1,1,2,0,0,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2},
+		{2,1,1,2,0,0,2,1,1,1,1,1,1,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,2,0,0,2,1,1,1,1,1,1,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,2,0,0,2,1,1,1,1,1,1,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,2,0,0,2,2,2,2,2,2,2,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,2,0,0,0,0,0,0,0,0,2,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,2,0,0,0,0,0,0,0,0,2,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2},
+		{2,1,1,2,2,2,2,2,2,2,2,2,2,1,1,2},
+		{2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
+		{2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2}
+	};
+
+	//// temporarily disable walls to test placement of entities
+	//for (int y = 0; y < grid.size(); ++y) {
+	//	for (int x = 0; x < grid[y].size(); ++x) {
+	//		if (grid[y][x] == 2) grid[y][x] = 1;
+	//	}
+	//}
+
+	// get max width of grid
+	size_t max_width = 0;
+	for (int y = 0; y < grid.size(); ++y) {
+		max_width = max(max_width, grid[y].size());
+	}
+	// manually restart world map (with edge padding of 1 cell)
+	world_map = std::vector<std::vector<int>>(grid.size() + 2, std::vector<int>(max_width + 2, 0));
+	// adjust world map attributes
+	world_center = { 9, 16 };
+
+	// place entities relative to grid
+	auto create_wasd = [](KEYS key, vec2 pos, int key_size) {
+		createKey(vec2(0, -key_size + key_size / 4.f) + pos, { key_size, key_size }, KEYS::W, false, key == KEYS::W ? true : false);
+		createKey(vec2(-key_size + key_size / 4.f, 0) + pos, { key_size, key_size }, KEYS::A, false, key == KEYS::A ? true : false);
+		createKey(vec2(0, 0) + pos, { key_size, key_size }, KEYS::S, false, key == KEYS::S ? true : false);
+		createKey(vec2(key_size - key_size / 4.f, 0) + pos, { key_size, key_size }, KEYS::D, false, key == KEYS::D ? true : false);
+		};
+
+	create_wasd(KEYS::D, convert_grid_to_world({ 12, 16 }), 60);
+	create_wasd(KEYS::S, convert_grid_to_world({ 14.5, 20 }), 60);
+	create_wasd(KEYS::A, convert_grid_to_world({ 9, 23 }), 60);
+	create_wasd(KEYS::W, convert_grid_to_world({ 2.5, 20 }), 60);
+
+	createKey(convert_grid_to_world({ 4, 6 }), vec2(150), KEYS::SHIFT, false, true, 1300);
+
+	// hardcoded bullet for this specific grid only
+	for (int i = 0; i < 7; ++i) {
+		for (int j = 0; j < 10; ++j) {
+			createBullet(renderer, 0, convert_grid_to_world({ 5 + i * 2 + 1, 3 + j / 2.f + 1 }), 0, vec2(0), 0, false, nullptr);
+		}
+	}
+
+	createKey(convert_grid_to_world({ 24, 6 }), vec2(150), KEYS::SPACE, false, true, 1300);
+	createKey(convert_grid_to_world({ 22, 6 }), vec2(90), KEYS::MOUSE_1, false, true, 1500);
+
+	// hardcoded dummy enemy spawn
+	Entity entity1 = createDummyEnemySpawner(renderer, convert_grid_to_world({ 30, 6 }));
+	DummyEnemySpawner& spawner1 = registry.dummyenemyspawners.get(entity1);
+	spawner1.max_spawn = 6;
+
+	// remaining buttons
+	createKey(convert_grid_to_world({ 38, 17 }), vec2(120), KEYS::SCROLL, false, true);
+	createKey(convert_grid_to_world({ 43, 17 }), vec2(120), KEYS::P, false, true);
+	createKey(convert_grid_to_world({ 48, 17 }), vec2(120), KEYS::F, false, true);
+	createKey(convert_grid_to_world({ 59, 17 }), vec2(120), KEYS::R, false, true);
+
+	// Add grid to map
+	for (int y = 0; y < grid.size(); ++y) {
+		for (int x = 0; x < grid[y].size(); ++x) {
+			world_map[y + 1][x + 1] = grid[y][x];
+		}
+	}
+	generateAllEntityTiles(world_map);
+
+
+	//rooms.clear();
+	//int room_radius = room_size >> 1;
+	//rooms.push_back(generateTutRoom(room_radius, room_radius));
+	//rooms.push_back(generateTutRoom(room_size + 4 * room_radius, room_radius));
+	//rooms.push_back(generateTutRoom(room_size + 4 * room_radius, room_size + 4 * room_radius));
+
+	//for (Room& room : rooms) {
+	//	addRoomToMap(room, world_map);
+	//}
+
+	//addHallwayBetweenRoom(rooms[0], rooms[1], world_map);
+	//addHallwayBetweenRoom(rooms[1], rooms[2], world_map);
+
+	//MapSystem::generateAllEntityTiles(world_map);
+
+	//createText({ 0, 610 }, { 1,1 }, "Hold to shoot", { 0,0,0 }, true);
+	//createText({ 65,  570 }, { 1,1 }, "or", { 0,0,0 }, true);
+	//createKey({ -500, -220 }, { 90, 90 }, KEYS::SPACE);
+	//createKey({ -600,-220 }, { 50, 50 }, KEYS::MOUSE_1);
+	//createText({ 0, 540 }, { 1,1 }, "Move", { 0,0,0 }, true);
+	//createKey({ -600, -150 }, { 50, 50 }, KEYS::W);
+	//createKey({ -560, -150 }, { 50, 50 }, KEYS::A);
+	//createKey({ -520, -150 }, { 50, 50 }, KEYS::S);
+	//createKey({ -480, -150 }, { 50, 50 }, KEYS::D);
+	//createText({ 0, 460 }, { 1,1 }, "Zoom in/out", { 0,0,0 }, true);
+	//createKey({ -600, -70 }, { 50, 50 }, KEYS::SCROLL);
+	//createText({ 0, 385 }, { 1,1 }, "Focus Mode", { 0,0,0 }, true);
+	//createKey({ -590, 10 }, { 80, 80 }, KEYS::SHIFT);
+	//createText({ 0, 300 }, { 1,1 }, "Show FPS", { 0,0,0 }, true);
+	//createKey({ -600, 90 }, { 50, 50 }, KEYS::F);
+	//createText({ 0, 220 }, { 1,1 }, "Camera", { 0,0,0 }, true);
+	//createKey({ -600, 170 }, { 50, 50 }, KEYS::P);
+	//createText({ 0, 140 }, { 1,1 }, "Restart", { 0,0,0 }, true);
+	//createKey({ -600, 250 }, { 50, 50 }, KEYS::R);
+	//createText({ 0, 60 }, { 1,1 }, "Quit", { 0,0,0 }, true);
+	//createKey({ -600, 330 }, { 50, 50 }, KEYS::ESC);
+	//createText({ 1110, 40 }, { 1,1 }, "Combo Meter", { 0,0,0 }, true);
 }
 
 Room& MapSystem::generateBossRoom() {
@@ -175,15 +341,15 @@ void MapSystem::generateRandomMap() {
 	bsptree.rooms.clear();
 	Room& boss_room = generateBossRoom();
 
-	// Connect boss with last room
 	bsptree.init(vec2(room_size), vec2(world_width - boss_room.size.x - 1, world_height));
 	bsptree.generate_partitions(bsptree.root);
 	bsptree.generate_rooms_random(bsptree.root);
 	bsptree.generate_corridors(bsptree.root);
 	bsptree.get_corridors(bsptree.root, bsptree.corridors);
-	bsptree.generate_rooms(bsptree.root, bsptree.rooms);
+	bsptree.get_rooms(bsptree.root, bsptree.rooms);
 	//bsptree.print_tree(bsptree.root);
 
+	// Connect boss with last room
 	assert(bsptree.rooms.size() > 0 && bsptree.corridors.size() > 0);
 	Corridor boss_corridor;
 	Room2 boss_room2;

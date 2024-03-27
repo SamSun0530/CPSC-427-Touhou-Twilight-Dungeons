@@ -5,6 +5,7 @@
 #include "world_init.hpp"
 #include "world_system.hpp"
 #include "audio.hpp"
+#include "global.hpp"
 
 #include <glm/trigonometric.hpp> // for glm::radians
 #include <glm/glm.hpp>
