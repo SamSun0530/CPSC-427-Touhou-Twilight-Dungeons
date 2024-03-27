@@ -116,18 +116,28 @@ void MapSystem::generateTutMap() {
 	MapSystem::generateAllEntityTiles(map);
 
 	world_map = map;
-	createKey({ -200,-180 }, { 100, 100 }, KEYS::MOUSE_1);
-	createKey({ -200, -30 }, { 100, 100 }, KEYS::W);
-	createKey({ -200, 70 }, { 100, 100 }, KEYS::S);
-	createKey({ -100, 70 }, { 100, 100 }, KEYS::D);
-	createKey({ -300, 70 }, { 100, 100 }, KEYS::A);
-	createKey({ 350, -180 }, { 100, 100 }, KEYS::SCROLL);
-	createKey({ -200, 250 }, { 100, 100 }, KEYS::F);
-	createKey({ 350, 180 }, { 100, 100 }, KEYS::SPACE);
-	createKey({ 350, 300 }, { 100, 100 }, KEYS::P);
-	createKey({ 350, -50 }, { 100, 100 }, KEYS::SHIFT);
-	createKey({ 1500, 1600 }, { 100, 100 }, KEYS::R);
-	createKey({ 1500, 1800 }, { 100, 100 }, KEYS::ESC);
+	createText({ 0, 610}, { 1,1 }, "Hold to shoot", { 0,0,0 }, true);
+	createText({ 65,  570}, { 1,1 }, "or", { 0,0,0 }, true);
+	createKey({ -500, -220 }, { 90, 90 }, KEYS::SPACE);
+	createKey({ -600,-220 }, { 50, 50 }, KEYS::MOUSE_1);
+	createText({ 0, 540 }, { 1,1 }, "Move", { 0,0,0 }, true);
+	createKey({ -600, -150 }, { 50, 50 }, KEYS::W);
+	createKey({ -560, -150 }, { 50, 50 }, KEYS::A);
+	createKey({ -520, -150}, { 50, 50 }, KEYS::S);
+	createKey({ -480, -150 }, { 50, 50 }, KEYS::D);
+	createText({ 0, 460 }, { 1,1 }, "Zoom in/out", { 0,0,0 }, true);
+	createKey({ -600, -70 }, { 50, 50 }, KEYS::SCROLL);
+	createText({ 0, 385 }, { 1,1 }, "Focus Mode", { 0,0,0 }, true);
+	createKey({ -590, 10 }, { 80, 80 }, KEYS::SHIFT);
+	createText({ 0, 300 }, { 1,1 }, "Show FPS", { 0,0,0 }, true);
+	createKey({ -600, 90 }, { 50, 50 }, KEYS::F);
+	createText({ 0, 220 }, { 1,1 }, "Camera", { 0,0,0 }, true);
+	createKey({ -600, 170 }, { 50, 50 }, KEYS::P);
+	createText({ 0, 140 }, { 1,1 }, "Restart", { 0,0,0 }, true);
+	createKey({ -600, 250}, { 50, 50 }, KEYS::R);
+	createText({ 0, 60 }, { 1,1 }, "Quit", { 0,0,0 }, true);
+	createKey({ -600, 330}, { 50, 50 }, KEYS::ESC);
+	createText({ 1110, 40 }, { 1,1 }, "Combo Meter", { 0,0,0 }, true);
 }
 
 void MapSystem::generateMap(int floor) {

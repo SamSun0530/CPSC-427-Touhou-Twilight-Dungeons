@@ -160,7 +160,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.remove_all_components_of(registry.debugComponents.entities.back());
 	while (registry.texts.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
-	createText({ 0,100 }, { 1, 1 }, std::to_string(combo_meter), { 0, 1, 0 }, false);
+	createText({ 1150,10 }, { 1, 1 }, std::to_string(combo_meter), { 0, 1, 0 }, false);
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
 
@@ -367,7 +367,7 @@ void WorldSystem::restart_game() {
 	// Create a new player
 	player = createPlayer(renderer, { 0, 0 });
 	is_alive = true;
-	ui = createHealth(renderer, registry.hps.get(player).max_hp);
+	ui = createHealthUI(renderer, registry.hps.get(player).max_hp);
 	combo_meter = 1;
 	//createKey({ 0,0 }, { 100, 100 }, KEYS::MOUSE_1);
 	renderer->camera.setPosition({ 0, 0 });
