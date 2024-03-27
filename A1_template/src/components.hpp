@@ -202,6 +202,7 @@ struct EntityAnimation {
 	vec2 render_pos = { 0, 0 };
 	bool isCursor = false;
 	float offset = 0;
+	bool is_active = true;
 };
 
 struct Deadly

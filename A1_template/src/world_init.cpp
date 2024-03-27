@@ -449,7 +449,7 @@ Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size)
 	return entity;
 }
 
-Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui)
+Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui, bool is_active)
 {
 	auto entity = Entity();
 
@@ -462,9 +462,10 @@ Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui)
 	key_ani.isCursor = false;
 	//std::cout << static_cast<int>(key) << std::endl;
 	key_ani.spritesheet_scale = { 0.5, 1 / 12.0f };
-	key_ani.render_pos = { 0.5, 1 / 12.0f * static_cast<int>(key) };
+	key_ani.render_pos = { 0.0, 1 / 12.0f * static_cast<int>(key) };
 	key_ani.frame_rate_ms = 500.f;
 	key_ani.full_rate_ms = 500.f;
+	key_ani.is_active = is_active;
 	registry.alwaysplayAni.insert(entity, key_ani);
 	registry.UIUX.emplace(entity);
 	registry.renderRequests.insert(

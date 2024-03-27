@@ -7,6 +7,7 @@ void Animation::step(float elapsed_ms)
 	float animation_frame_rate = 200.f;
 	for (Entity& animation_entity : registry.animation.entities) {
 		EntityAnimation& animation = registry.animation.get(animation_entity);
+		if (!animation.is_active) continue;
 		Kinematic& kin = registry.kinematics.get(animation_entity);
 		if (kin.direction != vec2(0)) {
 			animation.state = State::MOVE;
@@ -31,6 +32,8 @@ void Animation::step(float elapsed_ms)
 		}
 	}
 	for (EntityAnimation& animation : registry.alwaysplayAni.components) {
+		if (!animation.is_active) continue;
+
 		animation.frame_rate_ms -= elapsed_ms;
 
 		if (animation.frame_rate_ms < animation_frame_rate) {
@@ -50,12 +53,13 @@ void Animation::step(float elapsed_ms)
 	glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
 	Motion player_motion;
 	for (Entity& player : registry.players.entities) {
+		EntityAnimation& player_ani = registry.animation.get(player);
+		if (!player_ani.is_active) continue;
 		Motion& motion = registry.motions.get(player);
 		vec2 last_mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + motion.position;
 		float x = last_mouse_position.x - motion.position.x;
 		float y = last_mouse_position.y - motion.position.y;
 		float mouse_angle_degree = (-atan2(x, y) + M_PI) * (180.0 / M_PI);
-		EntityAnimation& player_ani = registry.animation.get(player);
 		if (mouse_angle_degree <= 45 || mouse_angle_degree >= 325) {
 			Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::REIMU_FRONT);
 			registry.meshPtrs.get(player) = &mesh;
@@ -80,6 +84,7 @@ void Animation::step(float elapsed_ms)
 	}
 	for (Entity& enemy : registry.beeEnemies.entities) {
 		EntityAnimation& enemy_ani = registry.animation.get(enemy);
+		if (!enemy_ani.is_active) continue;
 		if (registry.realDeathTimers.has(enemy)) {
 			if (registry.realDeathTimers.get(enemy).first_animation_frame == false) {
 				enemy_ani.render_pos.y = 4*enemy_ani.spritesheet_scale.y + enemy_ani.render_pos.y;
@@ -108,6 +113,7 @@ void Animation::step(float elapsed_ms)
 	}
 	for (Entity& enemy : registry.bomberEnemies.entities) {
 		EntityAnimation& enemy_ani = registry.animation.get(enemy);
+		if (!enemy_ani.is_active) continue;
 		if (registry.realDeathTimers.has(enemy)) {
 			if (registry.realDeathTimers.get(enemy).first_animation_frame == false) {
 				enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y + enemy_ani.render_pos.y;
@@ -134,6 +140,7 @@ void Animation::step(float elapsed_ms)
 	}
 	for (Entity& enemy : registry.wolfEnemies.entities) {
 		EntityAnimation& enemy_ani = registry.animation.get(enemy);
+		if (!enemy_ani.is_active) continue;
 		if (registry.realDeathTimers.has(enemy)) {
 			if (registry.realDeathTimers.get(enemy).first_animation_frame == false) {
 				float offset_death = 8;
@@ -165,6 +172,7 @@ void Animation::step(float elapsed_ms)
 	// for now, all bosses temporarily have cirno spritesheet
 	for (Entity& enemy : registry.bosses.entities) {
 		EntityAnimation& enemy_ani = registry.animation.get(enemy);
+		if (!enemy_ani.is_active) continue;
 		vec2 enemy_velocity = normalize(registry.kinematics.get(enemy).velocity);
 		float facing_degree = (-atan2(enemy_velocity.x, enemy_velocity.y) + M_PI) * (180.0 / M_PI);
 		if (facing_degree <= 45 || facing_degree >= 325) {

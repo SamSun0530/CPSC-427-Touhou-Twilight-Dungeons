@@ -39,7 +39,7 @@ Entity createHealthUI(RenderSystem*);
 Entity createHealth(RenderSystem* renderer, vec2 position);
 Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss);
 
-Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true);
+Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true, bool is_active = true);
 
 // focus mode dot
 Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);

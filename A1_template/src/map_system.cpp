@@ -168,15 +168,57 @@ Room generateTutRoom(int x, int y) {
 }
 
 void MapSystem::generateTutMap() {
+	// manually restart world map (with edge padding of 1 cell)
+	world_map = std::vector<std::vector<int>>(world_height + 2, std::vector<int>(world_width + 2, 0));
 
+	std::vector<std::vector<int>> grid = {
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 2, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 2, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 2, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 2, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 2, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 2, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 2, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 2, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 2, 1, 1, 2, 2, 2, 2, 2, 1, 1, 0 ,0, 0},
+		{0, 0, 2, 1, 1, 2, 1, 1, 1, 2, 2, 2, 0, 0, 0},
+		{0, 0, 2, 1, 1, 2, 1, 1, 1, 1, 1, 2, 0, 0, 0},
+		{0, 0, 2, 1, 1, 2, 1, 1, 1, 1, 1, 2, 0, 0, 0},
+		{0, 0, 2, 1, 1, 2, 2, 2, 2, 1, 1, 2, 0, 0, 0},
+		{0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0},
+		{0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0},
+		{0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	};
 
+	auto create_wasd = [](KEYS key, vec2 pos, int key_size) {
+		createKey(vec2(0, -key_size + key_size / 4.f) + pos, { key_size, key_size }, KEYS::W, false, key == KEYS::W ? true : false);
+		createKey(vec2(-key_size + key_size / 4.f, 0) + pos, { key_size, key_size }, KEYS::A, false, key == KEYS::A ? true : false);
+		createKey(vec2(0, 0) + pos, { key_size, key_size }, KEYS::S, false, key == KEYS::S ? true : false);
+		createKey(vec2(key_size - key_size / 4.f, 0) + pos, { key_size, key_size }, KEYS::D, false, key == KEYS::D ? true : false);
+		};
 
+	create_wasd(KEYS::D, { 0, 0 }, 60);
 
-	createKey({ 0, 0 }, { 90, 90 }, KEYS::SPACE, false);
-
-
-
-
+	// Add grid to map
+	for (int y = 0; y < grid.size(); ++y) {
+		for (int x = 0; x < grid[y].size(); ++x) {
+			world_map[y + 1][x + 1] = grid[y][x];
+		}
+	}
+	generateAllEntityTiles(world_map);
 
 
 	//rooms.clear();
