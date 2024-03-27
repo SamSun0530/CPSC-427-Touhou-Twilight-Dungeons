@@ -89,25 +89,31 @@ void MapSystem::generateRandomMap() {
 	bsptree.init(vec2(room_size), vec2(world_width, world_height));
 	bsptree.generate_partitions(bsptree.root);
 	bsptree.generate_rooms_random(bsptree.root);
+	bsptree.generate_corridors(bsptree.root);
 	std::vector<Room2> room_test;
+	std::vector<Corridor> corridor_test;
+	bsptree.get_corridors(bsptree.root, corridor_test);
 	bsptree.get_rooms(bsptree.root, room_test);
 	//bsptree.print_tree(bsptree.root);
 
 	std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
 
+	// Populates the map with floors
 	for (int i = 0; i < room_test.size(); i++) {
 		Room2& room2 = room_test[i];
 		for (int i = room2.top_left.y; i < room2.bottom_left.y; i++) {
 			for (int j = room2.top_left.x; j < room2.bottom_left.x; j++) {
-				map[i][j] = 1;
+				map[i][j] = (int)TILE_TYPE::FLOOR;
 			}
 		}
 	}
+
+	bsptree.add_corridors_to_map(corridor_test, map);
+	//bsptree.set_map_walls(map);
+
+
 	MapSystem::generateAllEntityTiles(map);
 	world_map = map;
-}
-
-void MapSystem::generateMap(int floor) {
 }
 
 Room generateBasicRoom(int x, int y) {
@@ -148,6 +154,7 @@ void addRoomToMap(const Room& room, std::vector<std::vector<int>>& map) {
 	}
 }
 
+
 void addHallwayBetweenRoom(const Room& room1, const Room& room2, std::vector<std::vector<int>>& map) {
 	int room1_half_height = room1.grid.size() >> 1;
 	int room1_half_width = room1.grid[0].size() >> 1;
@@ -186,63 +193,6 @@ std::vector<TEXTURE_ASSET_ID> MapSystem::getTileAssetID(int row, int col, std::v
 	// Floor Tile
 	if (map[row][col] == (int)TILE_TYPE::FLOOR) {
 		textures.push_back((uniform_dist(rng) > 0.5) ? TEXTURE_ASSET_ID::TILE_1 : TEXTURE_ASSET_ID::TILE_2);
-		return textures;
-	}
-
-	// map permimeter
-	if (row * col == 0 || row * col == map.size() * map[0].size()) {
-		return textures;
-		// The current tile is on the edge of the map
-	}
-
-	// TODO: Inefficent case by case checks. Optimize with a map if it takes too much time
-	// Top left corner
-	if (map[row - 1][col] == (int)TILE_TYPE::EMPTY && map[row][col - 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
-		return textures;
-	}
-
-	// Top Right corner
-	if (map[row - 1][col] == (int)TILE_TYPE::EMPTY && map[row][col + 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
-		return textures;
-	}
-
-	// Top Wall
-	if (map[row - 1][col] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::WALL_SURFACE);
-		textures.push_back(TEXTURE_ASSET_ID::TOP_WALL);
-		return textures;
-	}
-
-	// Bot left corner
-	if (map[row + 1][col] == (int)TILE_TYPE::EMPTY && map[row][col - 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
-		return textures;
-	}
-
-	// Bot right corner
-	if (map[row + 1][col] == (int)TILE_TYPE::EMPTY && map[row][col + 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
-		return textures;
-	}
-
-	// Left wall
-	if (map[row][col - 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
-		return textures;
-	}
-
-	// Right wall
-	if (map[row][col + 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
-		return textures;
-	}
-
-	// Bot wall
-	if (map[row + 1][col] == (int)TILE_TYPE::EMPTY) {
-		// textures.push_back((uniform_dist(rng) > 0.5) ? TEXTURE_ASSET_ID::TILE_1 : TEXTURE_ASSET_ID::TILE_2);
-		textures.push_back(TEXTURE_ASSET_ID::BOTTOM_WALL);
 		return textures;
 	}
 

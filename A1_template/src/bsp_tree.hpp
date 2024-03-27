@@ -3,6 +3,7 @@
 #include <stack>
 
 #include "common.hpp"
+#include "components.hpp"
 
 struct Corridor {
 	vec2 start;
@@ -48,7 +49,11 @@ public:
 	BSPNode* generate_partitions(BSPNode* node);
 	void generate_rooms_random(BSPNode* node);
 	void generate_corridors(BSPNode* node);
+	void add_corridors_to_map(std::vector<Corridor> corridors, std::vector<std::vector<int>>& map);
+	void set_map_walls(std::vector<std::vector<int>>& map);
 	void print_tree(BSPNode* node); // for debugging
+	void get_corridors(BSPNode* node, std::vector<Corridor>& corridors);
+
 	void get_rooms(BSPNode* node, std::vector<Room2>& rooms);
 	BSPNode* get_random_leaf_node(BSPNode* node);
 
