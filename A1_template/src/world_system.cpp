@@ -339,12 +339,12 @@ void WorldSystem::restart_game() {
 	map->generateRandomMap();
 	world_map = map->world_map;
 	//map->spawnEnemies();
-	map->spawnEnemiesInRoom();
+	player = map->spawnEnemiesInRoom();
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
 	// Create a new player
-	player = createPlayer(renderer, { 0, 0 });
+	//player = createPlayer(renderer, { 0, 0 });
 	is_alive = true;
 	//ui = createPlayerHeartUI(renderer, registry.hps.get(player).max_hp);
 	HP& player_hp = registry.hps.get(player);
