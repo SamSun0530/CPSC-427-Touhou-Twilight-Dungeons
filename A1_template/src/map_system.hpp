@@ -40,9 +40,9 @@ private:
 	BSPTree bsptree;
 public:
 	MapSystem();
+	void restart_map();
 	void init(RenderSystem* renderer);
 	std::vector<std::vector<int>> world_map; // world_map[Row][Col]
-	void generateMap(int floor);
 	void generateBasicMap();
 	void generateBossRoom();
 	void generateRandomMap();

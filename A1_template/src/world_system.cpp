@@ -335,6 +335,7 @@ void WorldSystem::restart_game() {
 	// map->generateMap(1);
 	//map->generateBasicMap();
 	//map->generateBossRoom();
+	map->restart_map();
 	map->generateRandomMap();
 	world_map = map->world_map;
 	//map->spawnEnemies();

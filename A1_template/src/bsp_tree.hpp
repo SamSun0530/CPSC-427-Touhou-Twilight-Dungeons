@@ -4,6 +4,7 @@
 
 #include "common.hpp"
 #include "components.hpp"
+#include <iostream>
 
 struct Corridor {
 	vec2 start;

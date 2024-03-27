@@ -18,6 +18,10 @@ void MapSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 }
 
+void MapSystem::restart_map() {
+	world_map = std::vector<std::vector<int>>(world_height, std::vector<int>(world_width, 0));
+}
+
 void MapSystem::spawnEnemies() {
 	// testing boss enemy
 	//for (Room& room : rooms) {
@@ -62,8 +66,6 @@ Room generateBasicRoom(int x, int y);
 void addRoomToMap(const Room& room, std::vector<std::vector<int>>& map);
 void addHallwayBetweenRoom(const Room& room1, const Room& room2, std::vector<std::vector<int>>& map);
 void MapSystem::generateBasicMap() {
-
-	std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
 	rooms.clear();
 
 	int room_radius = room_size >> 1;
@@ -75,31 +77,28 @@ void MapSystem::generateBasicMap() {
 	rooms.push_back(generateBasicRoom(3 * (room_size + room_radius), room_size + 2 * room_radius));
 
 	for (Room& room : rooms) {
-		addRoomToMap(room, map);
+		addRoomToMap(room, world_map);
 	}
 
-	addHallwayBetweenRoom(rooms[0], rooms[3], map);
-	addHallwayBetweenRoom(rooms[0], rooms[1], map);
-	addHallwayBetweenRoom(rooms[1], rooms[2], map);
-	addHallwayBetweenRoom(rooms[2], rooms[3], map);
-	addHallwayBetweenRoom(rooms[2], rooms[5], map);
-	addHallwayBetweenRoom(rooms[4], rooms[5], map);
+	addHallwayBetweenRoom(rooms[0], rooms[3], world_map);
+	addHallwayBetweenRoom(rooms[0], rooms[1], world_map);
+	addHallwayBetweenRoom(rooms[1], rooms[2], world_map);
+	addHallwayBetweenRoom(rooms[2], rooms[3], world_map);
+	addHallwayBetweenRoom(rooms[2], rooms[5], world_map);
+	addHallwayBetweenRoom(rooms[4], rooms[5], world_map);
 
 	// // Print the initialized array
-	// for (int i = 0; i < map.size(); ++i) {
-	//     for (int j = 0; j < map[i].size(); ++j) {
-	//         std::cout << map[i][j] << " ";
+	// for (int i = 0; i < world_map.size(); ++i) {
+	//     for (int j = 0; j < world_map[i].size(); ++j) {
+	//         std::cout << world_map[i][j] << " ";
 	//     }
 	//     std::cout << std::endl;
 	// }
 
-	generateAllEntityTiles(map);
-
-	world_map = map;
+	generateAllEntityTiles(world_map);
 }
 
 void MapSystem::generateBossRoom() {
-	std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
 	rooms.clear();
 	Room room;
 	room.id = 0;
@@ -133,9 +132,8 @@ void MapSystem::generateBossRoom() {
 	};
 	room.size = { room.grid[0].size(), room.grid.size() };
 	rooms.push_back(room);
-	addRoomToMap(room, map);
-	generateAllEntityTiles(map);
-	world_map = map;
+	addRoomToMap(room, world_map);
+	generateAllEntityTiles(world_map);
 }
 
 void MapSystem::generateRandomMap() {
@@ -149,23 +147,20 @@ void MapSystem::generateRandomMap() {
 	bsptree.get_rooms(bsptree.root, room_test);
 	//bsptree.print_tree(bsptree.root);
 
-	std::vector<std::vector<int>> map(world_height, std::vector<int>(world_width, 0));
-
 	// Populates the map with floors
 	for (int i = 0; i < room_test.size(); i++) {
 		Room2& room2 = room_test[i];
 		for (int i = room2.top_left.y; i < room2.bottom_left.y; i++) {
 			for (int j = room2.top_left.x; j < room2.bottom_left.x; j++) {
-				map[i][j] = (int)TILE_TYPE::FLOOR;
+				world_map[i][j] = (int)TILE_TYPE::FLOOR;
 			}
 		}
 	}
 
-	bsptree.add_corridors_to_map(corridor_test, map);
-	bsptree.set_map_walls(map);
+	bsptree.add_corridors_to_map(corridor_test, world_map);
+	bsptree.set_map_walls(world_map);
 
-	MapSystem::generateAllEntityTiles(map);
-	world_map = map;
+	generateAllEntityTiles(world_map);
 }
 
 Room generateBasicRoom(int x, int y) {

@@ -74,8 +74,8 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 
 		// randomly generate top left corner
 		// will only generate within partition bounds to fit room
-		std::uniform_int_distribution<> int_distrib_x(min_temp.x, max_temp.x - room_size.x - 1);
-		std::uniform_int_distribution<> int_distrib_y(min_temp.y, max_temp.y - room_size.y - 1);
+		std::uniform_int_distribution<> int_distrib_x(min_temp.x, max_temp.x - room_size.x);
+		std::uniform_int_distribution<> int_distrib_y(min_temp.y, max_temp.y - room_size.y);
 		node->room->top_left.x = int_distrib_x(gen);
 		node->room->top_left.y = int_distrib_y(gen);
 		node->room->bottom_left = node->room->top_left + room_size;
