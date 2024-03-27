@@ -174,6 +174,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	std::string fire_rate = std::to_string(1/player_att.fire_rate);
 	std::string critical_hit = std::to_string(player_att.critical_hit*100);
 	std::string critical_dmg = std::to_string(player_att.critical_demage*100);
+	createText({ 70, window_height_px - 160 }, { 1,1 }, std::to_string(player_att.coin_amount), vec3(0, 0, 0), false);
 	createText({ 70, window_height_px - 210 }, { 1,1 }, std::to_string(player_att.bullet_damage), vec3(0, 0, 0), false);
 	createText({ 70, window_height_px - 260 }, { 1,1 }, fire_rate.substr(0, fire_rate.find(".")+3), vec3(0, 0, 0), false);
 	createText({ 70, window_height_px - 310 }, { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(0, 0, 0), false);
@@ -274,16 +275,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				std::mt19937 gen(rd());
 				std::uniform_real_distribution<> distrib(0, 1);
 				double number = distrib(gen);
-				if (registry.beeEnemies.has(entity)) {
-					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 1);
-				}
-				else if (registry.bomberEnemies.has(entity)) {
-					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 3);
-				}
-				else if (registry.wolfEnemies.has(entity)) {
-					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 5);
-				}
-				else if (registry.dummyenemies.has(entity)) {
+				createCoin(renderer, registry.motions.get(entity).position, 1);
+				if (registry.dummyenemies.has(entity)) {
 					DummyEnemyLink& link = registry.dummyEnemyLink.get(entity);
 					DummyEnemySpawner& spawner = registry.dummyenemyspawners.get(link.other);
 					spawner.number_spawned--;

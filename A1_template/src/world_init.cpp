@@ -589,7 +589,24 @@ Entity createHealthUI(RenderSystem* renderer)
 
 std::vector<Entity> createAttributeUI(RenderSystem* renderer)
 {
+	
 	std::vector<Entity> entity_array;
+	auto entity_coin = Entity();
+	Mesh& mesh_coin = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity_coin, &mesh_coin);
+	Motion& motion_coin = registry.motions.emplace(entity_coin);
+	motion_coin.position = vec2(0, 0) - window_px_half + vec2(30, 200-50);
+	motion_coin.scale = vec2({ 128 * 0.2, 128 * 0.2 });
+	registry.UIUX.emplace(entity_coin);
+	registry.renderRequests.insert(
+		entity_coin,
+		{ TEXTURE_ASSET_ID::COIN_STATIC, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.colors.insert(entity_coin, { 1,1,1 });
+	entity_array.push_back(entity_coin);
+
+
 	for (int i = 0; i < 4; i++) {
 		auto entity = Entity();
 
