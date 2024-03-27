@@ -62,8 +62,9 @@ void MapSystem::spawnEnemies() {
 	}
 }
 
-void MapSystem::spawnEnemiesInRoom() {
+Entity MapSystem::spawnEnemiesInRoom() {
 	Room2 room;
+
 	for (int room_num = 1; room_num < bsptree.rooms.size(); room_num++) {
 		room = bsptree.rooms[room_num];
 		if (bsptree.rooms[room_num].type == ROOM_TYPE::NORMAL) {
@@ -90,6 +91,7 @@ void MapSystem::spawnEnemiesInRoom() {
 			createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_left) / 2.f));
 		}
 	}
+	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[0].top_left + bsptree.rooms[0].bottom_left) / 2.f));
 }
 
 Room generateBasicRoom(int x, int y);
