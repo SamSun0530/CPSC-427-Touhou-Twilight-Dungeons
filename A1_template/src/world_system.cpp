@@ -158,8 +158,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	while (registry.texts.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
-	createText({ 0,100 }, { 1, 1 }, std::to_string(combo_meter), { 0, 1, 0 }, false);
+
 	// Removing out of screen entities
+	auto& motions_registry = registry.motions;
+	HP& player_hp = registry.hps.get(player);
+	createText({ 128 * 1.3 + 70 - 4, window_height_px - 77 }, { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
+	Player& player_att = registry.players.get(player);
+	std::string fire_rate = std::to_string(1/player_att.fire_rate);
+	std::string critical_hit = std::to_string(player_att.critical_hit*100);
+	std::string critical_dmg = std::to_string(player_att.critical_demage*100);
+	createText({ 70, window_height_px - 210 }, { 1,1 }, std::to_string(player_att.bullet_damage), vec3(0, 0, 0), false);
+	createText({ 70, window_height_px - 260 }, { 1,1 }, fire_rate.substr(0, fire_rate.find(".")+3), vec3(0, 0, 0), false);
+	createText({ 70, window_height_px - 310 }, { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(0, 0, 0), false);
+	createText({ 70, window_height_px - 360 }, { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(0, 0, 0), false);
 
 	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
 	// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
@@ -168,7 +179,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	float K = 1.0f - pow(1.0f - sharpness_factor_camera, elapsed_ms_since_last_update / 1000.f);
 	vec2 player_position = registry.motions.get(player).position;
 	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), player_position, K));
-	renderer->ui.setPosition(player_position);
 
 	// Interpolate mouse-camera offset
 	// sharpness_factor_camera_offset possible values:
@@ -179,21 +189,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	float sharpness_factor_camera_offset = 10.0f;
 	renderer->camera.offset = vec2_lerp(renderer->camera.offset, renderer->camera.offset_target, elapsed_ms_since_last_update / 1000.f * sharpness_factor_camera_offset);
 
-	// User interface
-	vec2 ui_pos = { 50.f, 50.f };
-	ComponentContainer<PlayerHeart> playerheart_container = registry.playerHearts;
-	for (int i = 0; i < playerheart_container.entities.size(); ++i) {
-		Motion& motion = registry.motions.get(playerheart_container.entities[i]);
-		vec2 padding = { i * 60, 0 };
-		motion.position = player_position - window_px_half + ui_pos + padding;
-		RenderRequest& render_request = registry.renderRequests.get(playerheart_container.entities[i]);
-		HP& player_hp = registry.hps.get(player);
-		render_request.used_texture = i < player_hp.curr_hp ? TEXTURE_ASSET_ID::FULL_HEART : TEXTURE_ASSET_ID::EMPTY_HEART;
-	}
+	// User interface TODO
 	for (Entity entity : registry.bossHealthBarUIs.entities) {
 		Motion& motion = registry.motions.get(entity);
 		vec2 padding = { 0, -60 };
-		motion.position = player_position + vec2(0, window_px_half.y) + padding;
+		motion.position = vec2(0, window_px_half.y) + padding;
 	}
 
 	// Processing the player state
@@ -252,7 +252,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				std::mt19937 gen(rd());
 				std::uniform_real_distribution<> distrib(0, 1);
 				double number = distrib(gen);
-				if (number <= 0.5)
+				if (registry.beeEnemies.has(entity)) {
+					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 1);
+				}
+				else if (registry.bomberEnemies.has(entity)) {
+					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 3);
+				}
+				else if (registry.wolfEnemies.has(entity)) {
+					createCoin(renderer, registry.motions.get(entity).position, rand() % 3 + 5);
+				}
+
+				if (number <= 0.1)
 					createHealth(renderer, registry.motions.get(entity).position);
 				registry.remove_all_components_of(entity);
 			}
@@ -287,12 +297,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		HP& hp = registry.hps.get(entity);
 		if (hp.curr_hp <= 0.0f) {
 			if (registry.deadlys.has(entity)) {
-				std::random_device rd;
-				std::mt19937 gen(rd());
-				std::uniform_real_distribution<> distrib(0, 1);
-				float number = distrib(gen);
-				if (number <= 0.9)
-					createHealth(renderer, registry.motions.get(entity).position);
 				// remove boss health bar ui
 				if (registry.bossHealthBarLink.has(entity)) {
 					registry.remove_all_components_of(registry.bossHealthBarLink.get(entity).other);
@@ -346,11 +350,8 @@ void WorldSystem::restart_game() {
 	// Create a new player
 	//player = createPlayer(renderer, { 0, 0 });
 	is_alive = true;
-	//ui = createPlayerHeartUI(renderer, registry.hps.get(player).max_hp);
-	HP& player_hp = registry.hps.get(player);
-	for (int i = 0; i < player_hp.max_hp; ++i) {
-		createPlayerHeartUI(renderer);
-	}
+	createHealthUI(renderer);
+	createAttributeUI(renderer);
 	combo_meter = 1;
 	focus_mode.in_focus_mode = false;
 	focus_mode.speed_constant = 1.0f;
@@ -398,8 +399,9 @@ void WorldSystem::handle_collisions() {
 								registry.kinematics.get(entity_other).direction = { 0,0 };
 							}
 						}
-
-						registry.invulnerableTimers.emplace(entity);
+						
+						registry.players.get(player).invulnerability = true;
+						registry.invulnerableTimers.emplace(entity).invulnerable_counter_ms = registry.players.components[0].invulnerability_time_ms;
 					}
 				}
 			}
@@ -412,9 +414,13 @@ void WorldSystem::handle_collisions() {
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
 						combo_meter = 1;
-						registry.hps.get(player).curr_hp -= registry.enemyBullets.get(entity_other).damage;
+						HP& player_hp = registry.hps.get(player);
+						player_hp.curr_hp -= registry.enemyBullets.get(entity_other).damage;
+						if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
 						registry.remove_all_components_of(entity_other);
-						registry.invulnerableTimers.emplace(entity);
+
+						registry.players.get(player).invulnerability = true;
+						registry.invulnerableTimers.emplace(entity).invulnerable_counter_ms = registry.players.components[0].invulnerability_time_ms;
 					}
 				}
 			}
@@ -427,6 +433,30 @@ void WorldSystem::handle_collisions() {
 					registry.remove_all_components_of(entity_other);
 				}
 			}
+			else if (registry.coins.has(entity_other)) {
+				if (!registry.realDeathTimers.has(entity)) {
+					registry.players.get(entity).coin_amount += registry.coins.get(entity_other).coin_amount;
+					registry.remove_all_components_of(entity_other);
+				}
+			}
+			else if (registry.maxhpIncreases.has(entity_other)) {
+				
+				registry.hps.get(entity).max_hp += registry.maxhpIncreases.get(entity_other).max_health_increase;
+				if (registry.hps.get(entity).max_hp > 12) {
+					registry.hps.get(entity).max_hp = 12;
+				}
+				registry.hps.get(entity).curr_hp += registry.maxhpIncreases.get(entity_other).max_health_increase;
+				registry.remove_all_components_of(entity_other);
+				
+			}
+			else if (registry.attackUps.has(entity_other)) {	
+				registry.players.get(entity).bullet_damage += 1;
+				registry.remove_all_components_of(entity_other);
+			}
+			else if (registry.keys.has(entity_other)) {
+				registry.players.get(entity).key_amount++;
+				registry.remove_all_components_of(entity_other);
+			}
 		}
 		else if (registry.deadlys.has(entity)) {
 			if (registry.playerBullets.has(entity_other) && !registry.invulnerableTimers.has(entity)) {
@@ -434,9 +464,21 @@ void WorldSystem::handle_collisions() {
 					// enemy turn red and decrease hp, bullet disappear
 					registry.hitTimers.emplace(entity);
 					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
-
+					Motion& deadly_motion = registry.motions.get(entity);
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
-					registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+
+					std::random_device rd;
+					std::mt19937 gen(rd());
+					std::uniform_real_distribution<> distrib(0, 1);
+					double number = distrib(gen);
+					Player& player_att = registry.players.get(player);
+					if (number < player_att.critical_hit) {
+						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage*player_att.critical_demage;
+						registry.realDeathTimers.emplace(createCriHit(renderer, deadly_motion.position-vec2(30,0))).death_counter_ms = 300;
+					}
+					else {
+						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+					}
 
 					if (!registry.bosses.has(entity)) {
 						// Knockback

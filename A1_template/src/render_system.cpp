@@ -4,15 +4,13 @@
 #include <iostream>
 #include "tiny_ecs_registry.hpp"
 #include <glm/gtc/type_ptr.hpp>
-
 #include "world_system.hpp"
-#include <iostream>
+
 
 void RenderSystem::drawTexturedMesh(Entity entity,
 	const mat3& projection,
 	const mat3& view,
-	const mat3& view_ui)
-{
+	const mat3& view_ui) {
 	Motion& motion = registry.motions.get(entity);
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
@@ -54,9 +52,10 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 
 	// Input data location as in the vertex buffer
-	if ((*render_request).used_effect == EFFECT_ASSET_ID::TEXTURED || 
+	if ((*render_request).used_effect == EFFECT_ASSET_ID::TEXTURED ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::UI ||
-		(*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR)
+		(*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR ||
+		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -94,13 +93,24 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
-
-		if ((*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR && registry.bossHealthBarUIs.has(entity)) {
+		if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB && (*render_request).used_texture == TEXTURE_ASSET_ID::REIMU_HEALTH) {
+			assert(registry.players.entities.size() == 1);
+			GLint health_uloc = glGetUniformLocation(program, "health_percentage");
+			const HP& player_hp = registry.hps.get(registry.players.entities[0]);
+			float health_percentage = (float)player_hp.curr_hp / player_hp.max_hp;
+			glUniform1f(health_uloc, health_percentage);
+			gl_has_errors();
+		}
+		else if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB && (*render_request).used_texture == TEXTURE_ASSET_ID::INVUL_BAR) {
+			assert(registry.players.entities.size() == 1);
+			GLint health_uloc = glGetUniformLocation(program, "health_percentage");
+			float health_percentage = registry.invulnerableTimers.has(registry.players.entities[0]) ? (float)registry.invulnerableTimers.get(registry.players.entities[0]).invulnerable_counter_ms / registry.players.components[0].invulnerability_time_ms : 1.f;
+		}
+		else if ((*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR && registry.bossHealthBarUIs.has(entity)) {
 			BossHealthBarLink& link = registry.bossHealthBarLink.get(entity);
 			GLint health_uloc = glGetUniformLocation(program, "health_percentage");
 			const HP* boss_hp = registry.hps.has(link.other) ? &registry.hps.get(link.other) : nullptr;
-			float health_percentage = boss_hp ? (float) boss_hp->curr_hp / boss_hp->max_hp : 0.f;
-			//printf("percent: %f\n", health_percent);
+			float health_percentage = boss_hp ? (float)boss_hp->curr_hp / boss_hp->max_hp : 0.f;
 			glUniform1f(health_uloc, health_percentage);
 			gl_has_errors();
 		}
@@ -283,17 +293,10 @@ void RenderSystem::draw()
 	camera.setCameraAABB();
 
 	// Draw all textured meshes that have a position and size component
-	std::vector<Entity> ui_entities;
 	std::vector<Entity> boss_ui_entities;
 	for (Entity entity : registry.renderRequests.entities)
 	{
-		TEXTURE_ASSET_ID texture_id = registry.renderRequests.get(entity).used_texture;
-		if (texture_id == TEXTURE_ASSET_ID::EMPTY_HEART || texture_id == TEXTURE_ASSET_ID::FULL_HEART)
-		{
-			ui_entities.push_back(entity);
-			continue;
-		}
-		else if (texture_id == TEXTURE_ASSET_ID::BOSS_HEALTH_BAR) {
+		if (registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::BOSS_HEALTH_BAR) {
 			boss_ui_entities.push_back(entity);
 			continue;
 		}
@@ -301,6 +304,7 @@ void RenderSystem::draw()
 			continue;
 		}
 		if (registry.focusdots.has(entity)) continue;
+		if (registry.UIUX.has(entity)) continue;
 
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
@@ -321,7 +325,7 @@ void RenderSystem::draw()
 	for (Entity entity : registry.focusdots.entities) {
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
-	
+
 	// Render foreground entities, these will be in front of things rendered before
 	for (Entity entity : registry.renderRequestsForeground.entities) {
 		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
@@ -330,7 +334,7 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
 
-	for (Entity entity : ui_entities) {
+	for (Entity entity : registry.UIUX.entities) {
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
 

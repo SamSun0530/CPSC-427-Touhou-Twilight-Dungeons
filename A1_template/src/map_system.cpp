@@ -7,6 +7,7 @@
 #include "common.hpp"
 #include <iostream>
 
+
 int room_size = 11;
 
 MapSystem::MapSystem() {

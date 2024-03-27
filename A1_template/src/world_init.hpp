@@ -15,8 +15,10 @@ const float PLAYER_BB_WIDTH = 0.5f * 128.f;
 const float PLAYER_BB_HEIGHT = 0.5f * 128.f;
 const float ENEMY_BB_WIDTH = 1.f * 80.f;
 const float ENEMY_BB_HEIGHT = 1.f * 90.f;
-const float HP_BB_WIDTH = 0.2f * 283.f;
-const float HP_BB_HEIGHT = 0.2f * 244.f;
+const float HP_BB_WIDTH = 1.3f * 194.f;
+const float HP_BB_HEIGHT = 1.3f * 36.f;
+const float VP_BB_WIDTH = 1.3f * 86.f;
+const float VP_BB_HEIGHT = 1.3f * 21.f;
 const float HEALTH_WIDTH = 0.3f * 128.f;
 const float HEALTH_HEIGHT = 0.3f * 80.f;
 const float BOSS_HEALTH_BAR_WIDTH = 0.6f * 931.f;
@@ -29,8 +31,9 @@ Entity createBullet(RenderSystem * renderer, float entity_speed, vec2 entity_pos
 Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet);
 Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm);
 
-// HP related
-Entity createPlayerHeartUI(RenderSystem*);
+Entity createCriHit(RenderSystem* renderer, vec2 pos);
+std::vector<Entity> createAttributeUI(RenderSystem* renderer);
+Entity createHealthUI(RenderSystem*);
 Entity createHealth(RenderSystem* renderer, vec2 position);
 Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss);
 
@@ -39,7 +42,15 @@ Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the coin
-Entity createCoin(RenderSystem* renderer, vec2 position);
+Entity createCoin(RenderSystem* renderer, vec2 position, int value);
+// max hp increase
+Entity createMaxHPIncrease(RenderSystem* renderer, vec2 position);
+// the attack up
+Entity createAttackUp(RenderSystem* renderer, vec2 position);
+// the chest
+Entity createChest(RenderSystem* renderer, vec2 position);
+// the key
+Entity createKey(RenderSystem* renderer, vec2 position);
 // the enemy
 Entity createBeeEnemy(RenderSystem* renderer, vec2 position);
 // the suicide enemy

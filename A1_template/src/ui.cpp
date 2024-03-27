@@ -10,7 +10,7 @@ mat3 UI::createViewMatrix()
 	0 0 1
 	*/
 	Transform transform;
-	transform.translate(-position);
+	//transform.translate(-position);
 	transform.translate(origin_offset);
 	return transform.mat;
 }

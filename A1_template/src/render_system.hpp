@@ -55,8 +55,8 @@ class RenderSystem {
 			textures_path("LeftBottomCorner.png"),
 			textures_path("RightTopCorner.png"),
 			textures_path("RightBottomCorner.png"),
-			textures_path("FullHeart.png"),
-			textures_path("HalfHeart.png"),
+			textures_path("Reimu_HealthBar.png"),
+			textures_path("Reimu_Head.png"),
 			textures_path("EmptyHeart.png"),
 			textures_path("BottomWall.png"),
 			textures_path("WallEdge.png"),
@@ -69,7 +69,14 @@ class RenderSystem {
 			textures_path("Cirno-Figure.png"),
 			textures_path("BossHealthBar.png"),
 			textures_path("Reimu-Bullet-Disappear.png"),
-			textures_path("FocusDot.png")
+			textures_path("Coins.png"),
+			textures_path("FocusDot.png"),
+			textures_path("AttackDemage.png"),
+			textures_path("AttackSpeed.png"),
+			textures_path("CriticalChance.png"),
+			textures_path("CriticalDemage.png"),
+			textures_path("CriticalHitIcon.png"),
+			textures_path("InvulBar.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -82,6 +89,7 @@ class RenderSystem {
 		shader_path("wind"),
 		shader_path("ui"),
 		shader_path("font"),
+		shader_path("playerhealthbar"),
 		shader_path("bosshealthbar")
 	};
 

@@ -7,7 +7,11 @@
 
 
 struct PlayerBullet {
-	int damage = 1;
+	int damage = 10;
+};
+
+struct UIUX {
+
 };
 
 struct EnemyBullet
@@ -159,6 +163,14 @@ struct Boss {
 // Player component
 struct Player
 {
+	bool invulnerability = false;
+	int bullet_damage = 10;
+	int coin_amount = 0;
+	int key_amount = 0;
+	float invulnerability_time_ms = 1000;
+	float fire_rate = 0.2;
+	float critical_hit = 0.05;
+	float critical_demage = 1.5;
 };
 
 enum class State {
@@ -216,6 +228,40 @@ struct HP {
 struct PlayerHeart {
 };
 
+struct Coin
+{
+	int coin_amount = 1;
+};
+
+struct Product
+{
+	int price = 0;
+};
+
+struct MaxHPIncrease
+{
+	int max_health_increase = 1;
+};
+
+struct Shield
+{
+	int defense = 5;
+};
+
+struct AttackUp
+{
+	int damageUp = 1;
+};
+
+struct Chest
+{
+
+};
+
+struct Key
+{
+};
+	
 struct BossHealthBarUI {
 	bool is_visible = false;
 };
@@ -463,9 +509,9 @@ enum class TEXTURE_ASSET_ID {
 	LEFT_BOTTOM_CORNER_WALL = LEFT_TOP_CORNER_WALL + 1,
 	RIGHT_TOP_CORNER_WALL = LEFT_BOTTOM_CORNER_WALL + 1,
 	RIGHT_BOTTOM_CORNER_WALL = RIGHT_TOP_CORNER_WALL + 1,
-	FULL_HEART = RIGHT_BOTTOM_CORNER_WALL + 1,
-	HALF_HEART = FULL_HEART + 1,
-	EMPTY_HEART = HALF_HEART + 1,
+	REIMU_HEALTH = RIGHT_BOTTOM_CORNER_WALL + 1,
+	REIMU_HEAD= REIMU_HEALTH + 1,
+	EMPTY_HEART = REIMU_HEAD + 1,
 	BOTTOM_WALL = EMPTY_HEART + 1,
 	WALL_EDGE = BOTTOM_WALL + 1,
 	WALL_SURFACE = WALL_EDGE + 1,
@@ -477,8 +523,15 @@ enum class TEXTURE_ASSET_ID {
 	BOSS = REGENERATE_HEALTH + 1,
 	BOSS_HEALTH_BAR = BOSS + 1,
 	REIMU_BULLET_DISAPPEAR = BOSS_HEALTH_BAR + 1,
-	FOCUS_DOT = REIMU_BULLET_DISAPPEAR + 1,
-	TEXTURE_COUNT = FOCUS_DOT + 1
+	COIN = REIMU_BULLET_DISAPPEAR + 1,
+	FOCUS_DOT = COIN + 1,
+	ATTACKDMG = FOCUS_DOT + 1,
+	ATTACKSPEED = ATTACKDMG + 1,
+	CRTCHANCE = ATTACKSPEED + 1,
+	CRTDMG = CRTCHANCE + 1,
+	CRTHITICON = CRTDMG + 1,
+	INVUL_BAR = CRTHITICON + 1,
+	TEXTURE_COUNT = INVUL_BAR + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -490,7 +543,8 @@ enum class EFFECT_ASSET_ID {
 	WIND = TEXTURED + 1,
 	UI = WIND + 1,
 	FONT = UI + 1,
-	BOSSHEALTHBAR = FONT + 1,
+	PLAYER_HB = FONT + 1,
+	BOSSHEALTHBAR = PLAYER_HB + 1,
 	EFFECT_COUNT = BOSSHEALTHBAR + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;

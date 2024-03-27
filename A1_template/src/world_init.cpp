@@ -142,6 +142,231 @@ Entity createHealth(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
+Entity createCoin(RenderSystem* renderer, vec2 position, int value)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+
+	/*auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 50.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 1 };*/
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> distrib(0, 1);
+	double number = distrib(gen);
+	double number_y = distrib(gen) / 2;
+
+	// collidable
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale / 2.f;
+
+	// value
+	Coin& coin = registry.coins.emplace(entity);
+	coin.coin_amount = value;
+	vec2 dir = { 60 * (number - 0.5), 50 * (number_y) };
+	BezierCurve curve;
+	curve.bezier_pts.push_back(position);
+	curve.bezier_pts.push_back(position + vec2(0, -20));
+	curve.bezier_pts.push_back(position + dir);
+	registry.bezierCurves.insert(entity, curve);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::COIN,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+
+	EntityAnimation ani;
+	ani.isCursor = false;
+	ani.offset = 0;
+	ani.frame_rate_ms = 200;
+	ani.full_rate_ms = 200;
+	ani.spritesheet_scale = { 0.2, 1 };
+	ani.render_pos = { 0.2, 1 };
+	registry.alwaysplayAni.insert(entity, ani);
+
+	return entity;
+}
+
+Entity createMaxHPIncrease(RenderSystem* renderer, vec2 position)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+
+	/*need new scale*/
+	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+
+	/*auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 50.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 1 };*/
+
+	// collidable
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale / 2.f;
+
+	MaxHPIncrease& maxhpIncrease = registry.maxhpIncreases.emplace(entity);
+	maxhpIncrease.max_health_increase = 1;
+
+	// value
+	Product& price = registry.products.emplace(entity);
+	price.price = 60;
+
+	/*need new texture*/
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BULLET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createAttackUp(RenderSystem* renderer, vec2 position)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+
+	/*need new scale*/
+	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+
+	/*auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 50.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 1 };*/
+
+	// collidable
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale / 2.f;
+
+	AttackUp& attackUp = registry.attackUps.emplace(entity);
+	attackUp.damageUp = 1;
+
+	// value
+	Product& price = registry.products.emplace(entity);
+	price.price = 40;
+
+	/*need new texture*/
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BULLET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createChest(RenderSystem* renderer, vec2 position)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+
+	/*need new scale*/
+	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+
+	/*auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 50.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 1 };*/
+
+	// collidable
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale / 2.f;
+
+	Chest& chest = registry.chests.emplace(entity);
+
+	/*need new texture*/
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BULLET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createKey(RenderSystem* renderer, vec2 position)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+
+	/*need new scale*/
+	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+
+	/*auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 50.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 1 };*/
+
+	// collidable
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale / 2.f;
+
+	Key& key = registry.keys.emplace(entity);
+
+	/*need new texture*/
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BULLET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
@@ -172,6 +397,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	collidable_circle.radius = 6.f;
 	collidable_circle.shift = { 0, motion.scale.y / 6.f };
 
+	// HP
 	HP& hp = registry.hps.emplace(entity);
 	hp.max_hp = 6;
 	hp.curr_hp = hp.max_hp;
@@ -222,25 +448,29 @@ Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size)
 	return entity;
 }
 
-Entity createPlayerHeartUI(RenderSystem* renderer)
+Entity createCriHit(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
-	motion.scale = vec2({ HP_BB_WIDTH, HP_BB_HEIGHT });
+	motion.position = pos;
+	motion.angle = M_PI;
+	motion.scale = { 128 * 0.4, 128 * 0.4 };
+
+	Kinematic& kin = registry.kinematics.emplace(entity);
+	kin.velocity = { 0, -300 };
+	kin.direction = { 0,-1 };
 
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::FULL_HEART,
-			EFFECT_ASSET_ID::UI,
+		{ TEXTURE_ASSET_ID::CRTHITICON, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
-	registry.playerHearts.emplace(entity);
-	registry.colors.insert(entity, { 1,1,1 });
 
 	return entity;
 }
@@ -269,35 +499,89 @@ Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss) {
 	return entity;
 }
 
-Entity createCoin(RenderSystem* renderer, vec2 position)
+Entity createHealthUI(RenderSystem* renderer)
 {
-	// Reserve en entity
+	auto entity_head = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh_head = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity_head, &mesh_head);
+
+	// Setting initial motion values
+	Motion& motion_head = registry.motions.emplace(entity_head);
+	motion_head.position = vec2(0, 0) - window_px_half + vec2(70, 70);
+	motion_head.scale = vec2({ 128 * 1.3, 128 * 1.3 });
+	registry.UIUX.emplace(entity_head);
+	registry.renderRequests.insert(
+		entity_head,
+		{ TEXTURE_ASSET_ID::REIMU_HEAD, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.colors.insert(entity_head, { 1,1,1 });
+
+
+	auto entity_inv = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh_inv = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity_inv, &mesh_inv);
+
+	// Setting initial motion values
+	Motion& motion_inv = registry.motions.emplace(entity_inv);
+	motion_inv.position = vec2(0, 0) - window_px_half + vec2(128 * 1.3 + 20, 100);
+	motion_inv.scale = vec2({ VP_BB_WIDTH, VP_BB_HEIGHT });
+	registry.UIUX.emplace(entity_inv);
+	registry.renderRequests.insert(
+		entity_inv,
+		{ TEXTURE_ASSET_ID::INVUL_BAR, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::PLAYER_HB,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.colors.insert(entity_inv, { 1,1,1 });
+
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
-	// Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.position = position;
-	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
-
-	auto& kinematic = registry.kinematics.emplace(entity);
-	kinematic.speed_base = 50.f;
-	kinematic.speed_modified = 1.f * kinematic.speed_base;
-	kinematic.direction = { 0, 1 };
-
-	registry.pickupables.emplace(entity);
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = vec2(0, 0) - window_px_half + vec2(128 * 1.3 + 70 + 20, 70);
+	motion.scale = vec2({ HP_BB_WIDTH, HP_BB_HEIGHT });
+	registry.UIUX.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::BULLET,
-			EFFECT_ASSET_ID::TEXTURED,
+		{ TEXTURE_ASSET_ID::REIMU_HEALTH, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::PLAYER_HB,
 			GEOMETRY_BUFFER_ID::SPRITE });
-
+	registry.colors.insert(entity, { 1,1,1 });
 	return entity;
+}
+
+std::vector<Entity> createAttributeUI(RenderSystem* renderer)
+{
+	std::vector<Entity> entity_array;
+	for (int i = 0; i < 4; i++) {
+		auto entity = Entity();
+
+		// Store a reference to the potentially re-used mesh object
+		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(entity, &mesh);
+
+		// Setting initial motion values
+		Motion& motion = registry.motions.emplace(entity);
+		motion.position = vec2(0, 0) - window_px_half + vec2(30, 200 + 50 * i);
+		motion.scale = vec2({ 128 * 0.2, 128 * 0.2 });
+		registry.UIUX.emplace(entity);
+		registry.renderRequests.insert(
+			entity,
+			{ static_cast<TEXTURE_ASSET_ID>(34 + i), // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::UI,
+				GEOMETRY_BUFFER_ID::SPRITE });
+		registry.colors.insert(entity, { 1,1,1 });
+		entity_array.push_back(entity);
+	}
+	return entity_array;
 }
 
 Entity createBoss(RenderSystem* renderer, vec2 position)
@@ -326,7 +610,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 502;
+	hp.max_hp = 5020;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -347,7 +631,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 
 	Boss& boss = registry.bosses.emplace(entity);
 	// Boss bullet patterns
-	boss.health_phase_thresholds = { 500, 375, 250, 125, -1 }; // -1 for end of phase
+	boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
 	boss.duration = 10000; // duration for each pattern
 	registry.colors.insert(entity, { 1,1,1 });
 	boss.phase_change_time = 1500;
@@ -389,7 +673,7 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 6;
+	hp.max_hp = 60;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -454,7 +738,7 @@ Entity createBomberEnemy(RenderSystem* renderer, vec2 position)
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
-	kinematic.speed_base = 100.f;
+	kinematic.speed_base = 180.f;
 	kinematic.speed_modified = 1.f * kinematic.speed_base;
 	kinematic.direction = { 0, 0 };
 
@@ -464,7 +748,7 @@ Entity createBomberEnemy(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 2;
+	hp.max_hp = 20;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -518,7 +802,7 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 3;
+	hp.max_hp = 30;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
