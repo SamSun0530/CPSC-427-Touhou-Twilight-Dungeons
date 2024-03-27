@@ -49,7 +49,7 @@ int main()
 
 	// initialize the main systems
 	renderer.init(window);
-	world.init(&renderer, &audio, &map);
+	world.init(&renderer, &audio, &map, &ai);
 	bullets.init(&renderer, window, &audio);
 	ai.init();
 	map.init(&renderer);
@@ -68,7 +68,7 @@ int main()
 		t = now;
 
 		//printf("=============\n");
-
+		elapsed_ms = world.combo_meter * elapsed_ms;
 		//time_debug.initTime();
 		world.step(elapsed_ms);
 		//time_debug.getTime("world");
@@ -80,6 +80,8 @@ int main()
 		//time_debug.initTime();
 		physics.step(elapsed_ms);
 		//time_debug.getTime("physics");
+
+		world.update_focus_dot();
 
 		//time_debug.initTime();
 		ai.step(elapsed_ms);

@@ -133,12 +133,25 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 
 	GLint end_pos_uloc = glGetUniformLocation(program, "end_pos");
-	const vec2 end_pos = registry.animation.has(entity) ? registry.animation.get(entity).render_pos : vec2(1);
+	vec2 end_pos = vec2(1);
+	if (registry.animation.has(entity)) {
+		end_pos = registry.animation.get(entity).render_pos;
+	}
+	else if (registry.alwaysplayAni.has(entity)) {
+		end_pos = registry.alwaysplayAni.get(entity).render_pos;
+	}
 	glUniform2fv(end_pos_uloc, 1, (float*)&end_pos);
 	gl_has_errors();
 
 	GLint scale_uloc = glGetUniformLocation(program, "scale");
-	const vec2 ani_scale = registry.animation.has(entity) ? registry.animation.get(entity).spritesheet_scale : vec2(1);
+
+	vec2 ani_scale = vec2(1);
+	if (registry.animation.has(entity)) {
+		ani_scale = registry.animation.get(entity).spritesheet_scale;
+	}
+	else if (registry.alwaysplayAni.has(entity)) {
+		ani_scale = registry.alwaysplayAni.get(entity).spritesheet_scale;
+	}
 	glUniform2fv(scale_uloc, 1, (float*)&ani_scale);
 	gl_has_errors();
 
@@ -271,12 +284,19 @@ void RenderSystem::draw()
 		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 			continue;
 		}
+		if (registry.focusdots.has(entity)) continue;
 
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
 
+	// this will only have at most one focusdots
+	// it will always be in camera view, and has motion
+	for (Entity entity : registry.focusdots.entities) {
+		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+	}
+	
 	for (Entity entity : registry.renderRequestsForeground.entities) {
 		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 			continue;
@@ -320,6 +340,18 @@ void RenderSystem::draw()
 	if (WorldSystem::getInstance().get_show_fps() == true) {
 		renderText("FPS:", window_width_px - 250, window_height_px - 50, 2.0f, glm::vec3(1, 1, 1), trans);
 		renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px - 100, window_height_px - 50, 2.0f, glm::vec3(1, 1, 1), trans);
+	}
+	for (Entity entity : registry.texts.entities) {
+		Motion& text_motion = registry.motions.get(entity);
+		vec3 text_color = registry.colors.get(entity);
+		RenderText& text_cont = registry.texts.get(entity);
+		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans);
+	}
+	for (Entity entity : registry.textsPerm.entities) {
+		Motion& text_motion = registry.motions.get(entity);
+		vec3 text_color = registry.colors.get(entity);
+		RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
+		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans);
 	}
 	// Truely render to the screen
 	drawToScreen();
