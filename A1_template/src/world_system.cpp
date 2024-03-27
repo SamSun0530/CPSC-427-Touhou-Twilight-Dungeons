@@ -351,7 +351,7 @@ void WorldSystem::restart_game() {
 	map->generateRandomMap();
 	world_map = map->world_map;
 	//map->spawnEnemies();
-	//map->spawnEnemiesInRoom();
+	map->spawnEnemiesInRoom();
 
 	createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 

@@ -45,9 +45,30 @@ void MapSystem::spawnEnemies() {
 	}
 }
 
-void MapSystem::spawnEnemiesInRoom(Room2 room) {
-	createBomberEnemy(renderer, convert_grid_to_world(room.top_left));
-	createBomberEnemy(renderer, convert_grid_to_world(room.bottom_left));
+void MapSystem::spawnEnemiesInRoom() {
+	Room2 room;
+	for (int room_num = 1; room_num < bsptree.rooms.size(); room_num++) {
+		room = bsptree.rooms[room_num];
+		std::vector<vec2> spawn_points;
+		spawn_points.push_back(convert_grid_to_world(room.top_left + 1.f));
+		spawn_points.push_back(convert_grid_to_world(room.bottom_left - 1.f));
+		spawn_points.push_back(convert_grid_to_world(vec2(room.bottom_left.x-1.f,room.top_left.y+1.f)));
+		spawn_points.push_back(convert_grid_to_world(vec2(room.top_left.x + 1.f, room.bottom_left.y - 1.f)));
+
+		
+		for (vec2 point : spawn_points) {
+			float random_numer = uniform_dist(rng);
+			if (random_numer <= 0.50) {
+				createBeeEnemy(renderer, point);
+			}
+			else if (random_numer <= 0.75) {
+				createWolfEnemy(renderer, point);
+			}
+			else if (random_numer <= 0.99) {
+				createBomberEnemy(renderer, point);
+			}
+		}
+	}
 }
 
 Room generateBasicRoom(int x, int y);
@@ -91,6 +112,10 @@ void MapSystem::generateBasicMap() {
 }
 
 void MapSystem::generateRandomMap() {
+	// Resets the map
+	bsptree.corridors.clear();
+	bsptree.rooms.clear();
+
 	// manually add special rooms
 	// Connect boss with last room
 

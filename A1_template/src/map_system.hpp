@@ -44,5 +44,5 @@ public:
 	void generateBasicMap();
 	void generateRandomMap();
 	void spawnEnemies();
-	void spawnEnemiesInRoom(Room2 room);
+	void spawnEnemiesInRoom();
 };
