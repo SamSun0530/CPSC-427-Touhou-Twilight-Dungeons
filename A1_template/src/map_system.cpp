@@ -62,6 +62,36 @@ void MapSystem::spawnEnemies() {
 	}
 }
 
+void MapSystem::spawnEnemiesInRoom() {
+	Room2 room;
+	for (int room_num = 1; room_num < bsptree.rooms.size(); room_num++) {
+		room = bsptree.rooms[room_num];
+		if (bsptree.rooms[room_num].type == ROOM_TYPE::NORMAL) {
+			std::vector<vec2> spawn_points;
+			spawn_points.push_back(convert_grid_to_world(room.top_left + 1.f));
+			spawn_points.push_back(convert_grid_to_world(room.bottom_left - 1.f));
+			spawn_points.push_back(convert_grid_to_world(vec2(room.bottom_left.x - 1.f, room.top_left.y + 1.f)));
+			spawn_points.push_back(convert_grid_to_world(vec2(room.top_left.x + 1.f, room.bottom_left.y - 1.f)));
+
+			for (vec2 point : spawn_points) {
+				float random_numer = uniform_dist(rng);
+				if (random_numer <= 0.50) {
+					createBeeEnemy(renderer, point);
+				}
+				else if (random_numer <= 0.75) {
+					createWolfEnemy(renderer, point);
+				}
+				else if (random_numer <= 0.99) {
+					createBomberEnemy(renderer, point);
+				}
+			}
+		}
+		else if (bsptree.rooms[room_num].type == ROOM_TYPE::BOSS) {
+			createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_left) / 2.f));
+		}
+	}
+}
+
 Room generateBasicRoom(int x, int y);
 void addRoomToMap(const Room& room, std::vector<std::vector<int>>& map);
 void addHallwayBetweenRoom(const Room& room1, const Room& room2, std::vector<std::vector<int>>& map);
@@ -137,32 +167,35 @@ Room& MapSystem::generateBossRoom() {
 }
 
 void MapSystem::generateRandomMap() {
+	// Resets the map
+	bsptree.corridors.clear();
+	bsptree.rooms.clear();
 	Room& boss_room = generateBossRoom();
 
+	// Connect boss with last room
 	bsptree.init(vec2(room_size), vec2(world_width - boss_room.size.x - 1, world_height));
 	bsptree.generate_partitions(bsptree.root);
 	bsptree.generate_rooms_random(bsptree.root);
 	bsptree.generate_corridors(bsptree.root);
-	std::vector<Room2> room_test;
-	std::vector<Corridor> corridor_test;
-	bsptree.get_corridors(bsptree.root, corridor_test);
-	bsptree.get_rooms(bsptree.root, room_test);
+	bsptree.get_corridors(bsptree.root, bsptree.corridors);
+	bsptree.generate_rooms(bsptree.root, bsptree.rooms);
 	//bsptree.print_tree(bsptree.root);
 
-	assert(room_test.size() > 0 && corridor_test.size() > 0);
+	assert(bsptree.rooms.size() > 0 && bsptree.corridors.size() > 0);
 	Corridor boss_corridor;
 	Room2 boss_room2;
 	boss_room2.top_left = vec2(boss_room.x, boss_room.y);
 	boss_room2.bottom_left = boss_room2.top_left + boss_room.size - 1.f; // round issues probably
-	boss_corridor.start = (room_test[room_test.size() - 1].bottom_left +
-		room_test[room_test.size() - 1].top_left) / 2.f;
+	boss_room2.type = ROOM_TYPE::BOSS;
+	boss_corridor.start = (bsptree.rooms[bsptree.rooms.size() - 1].bottom_left +
+		bsptree.rooms[bsptree.rooms.size() - 1].top_left) / 2.f;
 	boss_corridor.end = (boss_room2.top_left + boss_room2.bottom_left) / 2.f;
-	corridor_test.push_back(boss_corridor);
-	room_test.push_back(boss_room2);
+	bsptree.corridors.push_back(boss_corridor);
+	bsptree.rooms.push_back(boss_room2);
 
 	// Populates the map with floors
-	for (int i = 0; i < room_test.size(); i++) {
-		Room2& room2 = room_test[i];
+	for (int i = 0; i < bsptree.rooms.size(); i++) {
+		Room2& room2 = bsptree.rooms[i];
 		for (int i = room2.top_left.y; i < room2.bottom_left.y; i++) {
 			for (int j = room2.top_left.x; j < room2.bottom_left.x; j++) {
 				world_map[i][j] = (int)TILE_TYPE::FLOOR;
@@ -170,7 +203,7 @@ void MapSystem::generateRandomMap() {
 		}
 	}
 
-	bsptree.add_corridors_to_map(corridor_test, world_map);
+	bsptree.add_corridors_to_map(bsptree.corridors, world_map);
 	bsptree.set_map_walls(world_map);
 
 	generateAllEntityTiles(world_map);
@@ -269,70 +302,70 @@ std::vector<TEXTURE_ASSET_ID> MapSystem::getTileAssetID(int row, int col, std::v
 	}
 
 	// Top Right corner
-	if (map[row - 1][col] == (int)TILE_TYPE::EMPTY && map[row][col + 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
-		return textures;
-	}
-
-	// Top Wall
-	if (map[row - 1][col] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::WALL_SURFACE);
-		textures.push_back(TEXTURE_ASSET_ID::TOP_WALL);
-		return textures;
-	}
-
-	// Bot left corner
-	if (map[row + 1][col] == (int)TILE_TYPE::EMPTY && map[row][col - 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
-		return textures;
-	}
-
-	// Bot right corner
-	if (map[row + 1][col] == (int)TILE_TYPE::EMPTY && map[row][col + 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
-		return textures;
-	}
-
-	// Left wall
-	if (map[row][col - 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
-		return textures;
-	}
-
-	// Right wall
-	if (map[row][col + 1] == (int)TILE_TYPE::EMPTY) {
-		textures.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
-		return textures;
-	}
-
-	// Bot wall
-	if (map[row + 1][col] == (int)TILE_TYPE::EMPTY) {
-		// textures.push_back((uniform_dist(rng) > 0.5) ? TEXTURE_ASSET_ID::TILE_1 : TEXTURE_ASSET_ID::TILE_2);
-		textures.push_back(TEXTURE_ASSET_ID::BOTTOM_WALL);
-		return textures;
-	}
-
-	// Inner top left
-	if (map[row - 1][col] == (int)TILE_TYPE::WALL && map[row][col - 1] == (int)TILE_TYPE::WALL) {
-		textures.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
-		return textures;
-	}
-
-	// Inner top right
-	if (map[row - 1][col] == (int)TILE_TYPE::WALL && map[row][col + 1] == (int)TILE_TYPE::WALL) {
-		textures.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
-		return textures;
-	}
-
-	// Inner bot left
 	if (map[row + 1][col] == (int)TILE_TYPE::WALL && map[row][col - 1] == (int)TILE_TYPE::WALL) {
 		textures.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
 		return textures;
 	}
 
+	// Bot left corner
+	if (map[row - 1][col] == (int)TILE_TYPE::WALL && map[row][col + 1] == (int)TILE_TYPE::WALL) {
+		textures.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
+		return textures;
+	}
+
+	// Bot right corner
+	if (map[row - 1][col] == (int)TILE_TYPE::WALL && map[row][col - 1] == (int)TILE_TYPE::WALL) {
+		textures.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
+		return textures;
+	}
+
+	// Inner top left
+	if (map[row + 1][col] == (int)TILE_TYPE::FLOOR && map[row][col + 1] == (int)TILE_TYPE::FLOOR) {
+		textures.push_back(TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL);
+		return textures;
+	}
+
+	// Inner top right
+	if (map[row + 1][col] == (int)TILE_TYPE::FLOOR && map[row][col - 1] == (int)TILE_TYPE::FLOOR) {
+		textures.push_back(TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL);
+		return textures;
+	}
+
+	// Inner bot left
+	if (map[row - 1][col] == (int)TILE_TYPE::FLOOR && map[row][col + 1] == (int)TILE_TYPE::FLOOR) {
+		textures.push_back(TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL);
+		return textures;
+	}
+
 	// Inner bot right
-	if (map[row + 1][col] == (int)TILE_TYPE::WALL && map[row][col + 1] == (int)TILE_TYPE::WALL) {
+	if (map[row - 1][col] == (int)TILE_TYPE::FLOOR && map[row][col - 1] == (int)TILE_TYPE::FLOOR) {
 		textures.push_back(TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL);
+		return textures;
+	}
+
+	// Top Wall
+	if (map[row + 1][col] == (int)TILE_TYPE::FLOOR) {
+		textures.push_back(TEXTURE_ASSET_ID::WALL_SURFACE);
+		textures.push_back(TEXTURE_ASSET_ID::TOP_WALL);
+		return textures;
+	}
+
+	// Left wall
+	if (map[row][col + 1] == (int)TILE_TYPE::FLOOR) {
+		textures.push_back(TEXTURE_ASSET_ID::LEFT_WALL);
+		return textures;
+	}
+
+	// Right wall
+	if (map[row][col - 1] == (int)TILE_TYPE::FLOOR) {
+		textures.push_back(TEXTURE_ASSET_ID::RIGHT_WALL);
+		return textures;
+	}
+
+	// Bot wall
+	if (map[row - 1][col] == (int)TILE_TYPE::FLOOR) {
+		// textures.push_back((uniform_dist(rng) > 0.5) ? TEXTURE_ASSET_ID::TILE_1 : TEXTURE_ASSET_ID::TILE_2);
+		textures.push_back(TEXTURE_ASSET_ID::BOTTOM_WALL);
 		return textures;
 	}
 

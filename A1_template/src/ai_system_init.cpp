@@ -194,7 +194,7 @@ void AISystem::init() {
 		return false;
 		};
 	bool (*isInRange)(Entity & entity) = [](Entity& entity) {
-		float minimum_range_to_check = 1300000; // sqrt(minimum_range_to_check) = x, where x = # of pixels
+		float minimum_range_to_check = 850000; // sqrt(minimum_range_to_check) = x, where x = # of pixels
 		Motion& motion = registry.motions.get(entity);
 		// asume there is only one player
 		for (Entity& player_entity : registry.players.entities) {

@@ -37,6 +37,10 @@ private:
 	// Maximum room size
 	vec2 max_room_size;
 
+
+	// C++ random number generator
+	std::default_random_engine rng;
+	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 public:
 	BSPNode* root = nullptr;
 	~BSPTree();
@@ -55,8 +59,11 @@ public:
 	void print_tree(BSPNode* node); // for debugging
 	void get_corridors(BSPNode* node, std::vector<Corridor>& corridors);
 
-	void get_rooms(BSPNode* node, std::vector<Room2>& rooms);
+	void generate_rooms(BSPNode* node, std::vector<Room2>& rooms);
 	BSPNode* get_random_leaf_node(BSPNode* node);
+
+	std::vector<Room2> rooms;
+	std::vector<Corridor> corridors;
 
 private:
 	// Utilities:
