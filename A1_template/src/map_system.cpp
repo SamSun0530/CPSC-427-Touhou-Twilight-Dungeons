@@ -229,9 +229,9 @@ void MapSystem::generateTutorialMap() {
 	createKey(convert_grid_to_world({ 4, 6 }), vec2(150), KEYS::SHIFT, false, true, 1300);
 
 	// hardcoded bullet for this specific grid only
-	for (int i = 0; i < 7; ++i) {
-		for (int j = 0; j < 10; ++j) {
-			createBullet(renderer, 0, convert_grid_to_world({ 5 + i * 2 + 1, 3 + j / 2.f + 1 }), 0, vec2(0), 0, false, nullptr);
+	for (int i = 0; i < 5; ++i) {
+		for (int j = 0; j < 8; ++j) {
+			createBullet(renderer, 0, convert_grid_to_world({ 5 + i * 3 + 1, 2.6 + j / 1.5f + 1 }), 0, vec2(0), 0, false, nullptr);
 		}
 	}
 
