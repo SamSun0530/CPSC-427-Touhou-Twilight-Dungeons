@@ -412,7 +412,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::PLAYER,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	BulletSpawner bs;

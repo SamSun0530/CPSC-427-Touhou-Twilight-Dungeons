@@ -55,7 +55,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	if ((*render_request).used_effect == EFFECT_ASSET_ID::TEXTURED ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::UI ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR ||
-		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB)
+		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB ||
+		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -116,8 +117,16 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			glUniform1f(health_uloc, health_percentage);
 			gl_has_errors();
 		}
+		else if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER)
+		{
+			GLint focus_uloc = glGetUniformLocation(program, "focus_mode_alpha");
+			// there will only be one focus dot
+			float focus_mode_alpha = registry.focusdots.entities.size() > 0 ? 0.5f : 1.0f;
+			glUniform1f(focus_uloc, focus_mode_alpha);
+			gl_has_errors();
+		}
 	}
-	else if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER || (*render_request).used_effect == EFFECT_ASSET_ID::EGG)
+	else if ((*render_request).used_effect == EFFECT_ASSET_ID::EGG)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_color_loc = glGetAttribLocation(program, "in_color");
@@ -132,17 +141,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
 			sizeof(ColoredVertex), (void*)sizeof(vec3));
 		gl_has_errors();
-
-		if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER)
-		{
-			// Light up?
-			GLint light_up_uloc = glGetUniformLocation(program, "light_up");
-			assert(light_up_uloc >= 0);
-
-			// !!! A1: set the light_up shader variable using glUniform1i,
-			// similar to the glUniform1f call below. The 1f or 1i specified the type, here a single int.
-			gl_has_errors();
-		}
 	}
 	else
 	{
