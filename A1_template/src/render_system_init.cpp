@@ -424,11 +424,10 @@ bool RenderSystem::initFont(GLFWwindow* window, const std::string& font_filename
 	glUseProgram(m_font_shaderProgram);
 
 	// apply projection matrix for font
-	glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(window_width_px), 0.0f, static_cast<float>(window_height_px));
+	glm::mat3 projection = createProjectionMatrix();
 	GLint project_location = glGetUniformLocation(m_font_shaderProgram, "projection");
 	assert(project_location > -1);
-	std::cout << "project_location: " << project_location << std::endl;
-	glUniformMatrix4fv(project_location, 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix3fv(project_location, 1, GL_FALSE, glm::value_ptr(projection));
 
 	// init FreeType fonts
 	FT_Library ft;
