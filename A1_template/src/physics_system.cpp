@@ -167,6 +167,9 @@ bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& m
 
 void PhysicsSystem::step(float elapsed_ms)
 {
+	// Assume there exists a player
+	Entity player = registry.players.entities[0];
+
 	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
 	auto& kinematic_registry = registry.kinematics;
@@ -187,9 +190,10 @@ void PhysicsSystem::step(float elapsed_ms)
 		// Linear interpolation of velocity
 		// K factor (0,30] = ~0 (not zero, slippery, ice) -> 10-20 (quick start up/slow down, natural) -> 30 (instant velocity, jittery)
 		float K = 10.f;
-		kinematic.velocity = vec2_lerp(kinematic.velocity, direction_normalized * kinematic.speed_modified * focus_mode.speed_constant, step_seconds * K);
+		kinematic.velocity = vec2_lerp(kinematic.velocity, direction_normalized * kinematic.speed_modified * (entity == player ? focus_mode.speed_constant : 1.0f), step_seconds * K);
 		motion.position += kinematic.velocity * step_seconds;
 	}
+
 	for (uint i = 0; i < registry.bezierCurves.size(); i++) {
 		Entity& entity = registry.bezierCurves.entities[i];
 		BezierCurve& bezier_curve = registry.bezierCurves.components[i];
