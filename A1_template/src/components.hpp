@@ -466,10 +466,12 @@ struct TexturedVertex
 
 struct RenderText {
 	std::string content;
+	bool in_world;
 };
 
 struct RenderTextPermanent {
 	std::string content;
+	bool in_world;
 };
 
 // Mesh datastructure for storing vertex and index buffers
