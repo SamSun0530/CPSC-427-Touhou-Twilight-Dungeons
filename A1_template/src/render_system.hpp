@@ -134,8 +134,8 @@ public:
 	// font initialization
 	bool initFont(GLFWwindow* window, const std::string& font_filename, unsigned int font_default_size);
 
-	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans);
-	void renderTextWorld(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans);
+	// extra parameter in_world specifies whether or not text should be world or screen coordinate
+	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world = false);
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);

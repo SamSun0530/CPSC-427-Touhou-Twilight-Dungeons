@@ -345,8 +345,13 @@ void RenderSystem::draw()
 		}
 	}
 
-	renderTextWorld("444444444444444444444444444444444444444444444444444444444444444444444444", 0, 0, 1.0f, glm::vec3(0, 0, 0), trans);
-	renderText("444444444444444444444444444444444444444444444444444444444444444444444444", 0, 0, 1.0f, glm::vec3(0, 0, 0), trans);
+	// test text rendering position
+	Transform t;
+	t.translate(vec2(-100, -100));
+
+	//renderText("444444444444444444444444444444444444444444444444444444444444444444444444", 0, 0, 1.0f, glm::vec3(0, 0, 0), t.mat, true);
+	renderText("444444444444444444444444444444444444444444444444444444444444444444444444", -100, -100, 1.0f, glm::vec3(0, 0, 0), trans, true);
+	renderText("444444444444444444444444444444444444444444444444444444444444444444444444", 0, 0, 1.0f, glm::vec3(0, 0, 0), t.mat);
 
 	// Render user guide on screen
 	if (WorldSystem::getInstance().get_display_instruction() == true) {
@@ -400,7 +405,7 @@ void RenderSystem::draw()
 }
 
 // This adapted from lecture material (Wednesday Feb 28th 2024)
-void RenderSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans) {
+void RenderSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world) {
 	// activate the shaders!
 	glUseProgram(m_font_shaderProgram);
 
@@ -412,90 +417,19 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
 	assert(textColor_location >= 0);
 	glUniform3f(textColor_location, color.x, color.y, color.z);
 
-	auto transform_location = glGetUniformLocation(
-		m_font_shaderProgram,
-		"transform"
-	);
-	assert(transform_location > -1);
-	glUniformMatrix3fv(transform_location, 1, GL_FALSE, glm::value_ptr(trans));
-
-	// apply view matrix
+	// flip both y axis so translations will match opengl
+	y = -1 * y;
 	Transform t;
-	t.scale({ 1, -1 }); // Why?
-	glm::mat3 view = ui.createViewMatrix() * t.mat;
-	GLint view_location = glGetUniformLocation(m_font_shaderProgram, "view");
-	assert(view_location > -1);
-	glUniformMatrix3fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
+	t.mat = trans;
+	t.scale({ 1, -1 });
 
-	glBindVertexArray(m_font_VAO);
-
-	// iterate through all characters
-	std::string::const_iterator c;
-	for (c = text.begin(); c != text.end(); c++)
-	{
-		Character ch = m_ftCharacters[*c];
-
-		float xpos = x + ch.Bearing.x * scale;
-		float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
-
-		float w = ch.Size.x * scale;
-		float h = ch.Size.y * scale;
-
-		// update VBO for each character
-		float vertices[6][4] = {
-			{ xpos,     ypos + h,   0.0f, 0.0f },
-			{ xpos,     ypos,       0.0f, 1.0f },
-			{ xpos + w, ypos,       1.0f, 1.0f },
-
-			{ xpos,     ypos + h,   0.0f, 0.0f },
-			{ xpos + w, ypos,       1.0f, 1.0f },
-			{ xpos + w, ypos + h,   1.0f, 0.0f }
-		};
-
-		// render glyph texture over quad
-		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
-		// std::cout << "binding texture: " << ch.character << " = " << ch.TextureID << std::endl;
-
-		// update content of VBO memory
-		glBindBuffer(GL_ARRAY_BUFFER, m_font_VBO);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		// render quad
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-		x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
-	}
-
-	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-// This adapted from lecture material (Wednesday Feb 28th 2024)
-void RenderSystem::renderTextWorld(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans) {
-	// activate the shaders!
-	glUseProgram(m_font_shaderProgram);
-
-	unsigned int textColor_location =
-		glGetUniformLocation(
-			m_font_shaderProgram,
-			"textColor"
-		);
-	assert(textColor_location >= 0);
-	glUniform3f(textColor_location, color.x, color.y, color.z);
-
-	auto transform_location = glGetUniformLocation(
-		m_font_shaderProgram,
-		"transform"
-	);
+	auto transform_location = glGetUniformLocation(m_font_shaderProgram, "transform");
 	assert(transform_location > -1);
-	glUniformMatrix3fv(transform_location, 1, GL_FALSE, glm::value_ptr(trans));
+	glUniformMatrix3fv(transform_location, 1, GL_FALSE, glm::value_ptr(t.mat));
 
-	// apply view matrix
-	Transform t;
-	t.scale({ 1, -1 }); // Why?
-	glm::mat3 view = camera.createViewMatrix() * t.mat;
+	// apply view matrix, origin is now center of the screen
+	// e.g. passing in x=0, y=0 will automatically translate to world_center
+	glm::mat3 view = in_world ? camera.createViewMatrix() : ui.createViewMatrix();
 	GLint view_location = glGetUniformLocation(m_font_shaderProgram, "view");
 	assert(view_location > -1);
 	glUniformMatrix3fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
