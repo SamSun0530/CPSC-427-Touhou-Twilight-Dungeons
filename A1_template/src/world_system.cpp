@@ -207,6 +207,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		motion.position = vec2(0, window_px_half.y) + padding;
 	}
 
+	// Focus mode ui
+	if (focus_mode.in_focus_mode) {
+		float counter_ms_temp = focus_mode.counter_ms - elapsed_ms_since_last_update;
+		focus_mode.counter_ms = counter_ms_temp <= 0.f ? 0.f : counter_ms_temp;
+		if (focus_mode.counter_ms <= 0.f) {
+			// disable focus mode
+			focus_mode.speed_constant = 1.0f;
+			while (registry.focusdots.entities.size() > 0)
+				registry.remove_all_components_of(registry.focusdots.entities.back());
+			pressed[GLFW_KEY_LEFT_SHIFT] = false;
+			focus_mode.in_focus_mode = false;
+		}
+	}
+	else if (focus_mode.counter_ms + elapsed_ms_since_last_update < focus_mode.max_counter_ms) {
+		focus_mode.counter_ms = min(focus_mode.counter_ms + elapsed_ms_since_last_update, focus_mode.max_counter_ms);
+	}
+
 	// Tutorial dummy spawner
 	if (map_level.level == MapLevel::TUTORIAL) {
 		for (Entity entity : registry.dummyenemyspawners.entities) {

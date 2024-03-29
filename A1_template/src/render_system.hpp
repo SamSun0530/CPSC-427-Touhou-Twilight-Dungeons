@@ -77,7 +77,7 @@ class RenderSystem {
 			textures_path("CriticalChance.png"),
 			textures_path("CriticalDemage.png"),
 			textures_path("CriticalHitIcon.png"),
-			textures_path("InvulBar.png"),
+			textures_path("FocusBar.png"),
 			textures_path("Coins-Static.png")
 	};
 

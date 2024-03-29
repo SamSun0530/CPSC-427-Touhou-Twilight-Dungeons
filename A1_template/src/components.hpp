@@ -383,6 +383,9 @@ extern Debug debugging;
 struct FocusMode {
 	bool in_focus_mode = 0;
 	float speed_constant = 1.0f;
+	// limit usage of focus mode through time
+	float counter_ms = 10000;
+	float max_counter_ms = 10000; // 10 seconds
 };
 extern FocusMode focus_mode;
 
@@ -572,8 +575,8 @@ enum class TEXTURE_ASSET_ID {
 	CRTCHANCE = ATTACKSPEED + 1,
 	CRTDMG = CRTCHANCE + 1,
 	CRTHITICON = CRTDMG + 1,
-	INVUL_BAR = CRTHITICON + 1,
-	COIN_STATIC = INVUL_BAR + 1,
+	FOCUS_BAR = CRTHITICON + 1,
+	COIN_STATIC = FOCUS_BAR + 1,
 	TEXTURE_COUNT = COIN_STATIC + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
