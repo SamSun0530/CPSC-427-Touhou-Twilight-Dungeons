@@ -404,6 +404,7 @@ void WorldSystem::restart_game() {
 	combo_meter = 1;
 	focus_mode.in_focus_mode = false;
 	focus_mode.speed_constant = 1.0f;
+	focus_mode.counter_ms = focus_mode.max_counter_ms;
 	ai->restart_flow_field_map();
 
 	renderer->camera.setPosition({ 0, 0 });

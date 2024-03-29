@@ -557,7 +557,7 @@ Entity createHealthUI(RenderSystem* renderer)
 
 	// Setting initial motion values
 	Motion& motion_inv = registry.motions.emplace(entity_inv);
-	motion_inv.position = vec2(0, 0) - window_px_half + vec2(128 * 1.3 + 90 + 20, 100);
+	motion_inv.position = vec2(0, 0) - window_px_half + vec2(128 * 1.3 + 110 + 20, 105);
 	motion_inv.scale = vec2({ VP_BB_WIDTH, VP_BB_HEIGHT });
 	registry.UIUX.emplace(entity_inv);
 	registry.renderRequests.insert(
