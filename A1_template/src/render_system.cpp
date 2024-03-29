@@ -346,16 +346,15 @@ void RenderSystem::draw()
 	}
 
 	// test text rendering position
-	Transform t;
-	t.translate(vec2(-100, -100));
-
+	//Transform t;
+	//t.translate(vec2(-100, -100));
 	//renderText("444444444444444444444444444444444444444444444444444444444444444444444444", 0, 0, 1.0f, glm::vec3(0, 0, 0), t.mat, true);
-	renderText("444444444444444444444444444444444444444444444444444444444444444444444444", -100, -100, 1.0f, glm::vec3(0, 0, 0), trans, true);
-	renderText("444444444444444444444444444444444444444444444444444444444444444444444444", 0, 0, 1.0f, glm::vec3(0, 0, 0), t.mat);
+	//renderText("444444444444444444444444444444444444444444444444444444444444444444444444", -100, -100, 1.0f, glm::vec3(0, 0, 0), trans, true);
+	//renderText("444444444444444444444444444444444444444444444444444444444444444444444444", 0, 0, 1.0f, glm::vec3(0, 0, 0), t.mat);
 
 	// Render user guide on screen
 	if (WorldSystem::getInstance().get_display_instruction() == true) {
-		renderText("Press 'T' for tutorial", window_width_px / 2 + window_width_px / 4 + 50, window_height_px - 50, 0.9f, glm::vec3(0, 0, 0), trans);
+		renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.6f, 0.9f, glm::vec3(0, 0, 0), trans);
 		/*renderText("User Guide:", window_width_px / 30 - 25, window_height_px / 2 + 200, 0.8f, glm::vec3(0, 0, 0), trans);
 
 		renderText("R -", window_width_px / 30 - 25, window_height_px / 2 + 160, 0.6f, glm::vec3(0, 0, 0), trans);
@@ -377,18 +376,15 @@ void RenderSystem::draw()
 		renderText("Zooming in/out", window_width_px / 30 - 25, window_height_px / 2 - 160, 0.6f, glm::vec3(0, 0, 0), trans);*/
 	}
 
-
 	if (WorldSystem::getInstance().get_show_fps() == true) {
-		renderText("FPS:", window_width_px - 250, window_height_px - 50, 2.0f, glm::vec3(1, 1, 1), trans);
-		renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px - 100, window_height_px - 50, 2.0f, glm::vec3(1, 1, 1), trans);
+		renderText("FPS:", window_width_px / 2.45f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans);
+		renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px / 2.2f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans);
 	}
 	for (Entity entity : registry.texts.entities) {
 		Motion& text_motion = registry.motions.get(entity);
 		vec3 text_color = registry.colors.get(entity);
 		RenderText& text_cont = registry.texts.get(entity);
-		//renderText("enrkjnerkjnrkjnerkjrnekrjne", 0, 0, 1.0f, glm::vec3(0, 0, 0), trans);
-		// TODO: Maybe adapt this so window_px_half is not needed
-		renderText(text_cont.content, text_motion.position.x - window_px_half.x, text_motion.position.y - window_px_half.y, text_motion.scale.x, text_color, trans);
+		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans);
 	}
 	for (Entity entity : registry.textsPerm.entities) {
 		Motion& text_motion = registry.motions.get(entity);
