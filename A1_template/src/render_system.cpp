@@ -384,13 +384,13 @@ void RenderSystem::draw()
 		Motion& text_motion = registry.motions.get(entity);
 		vec3 text_color = registry.colors.get(entity);
 		RenderText& text_cont = registry.texts.get(entity);
-		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans);
+		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, text_cont.in_world);
 	}
 	for (Entity entity : registry.textsPerm.entities) {
 		Motion& text_motion = registry.motions.get(entity);
 		vec3 text_color = registry.colors.get(entity);
 		RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
-		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans);
+		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, text_cont.in_world);
 	}
 	// Truely render to the screen
 	drawToScreen();

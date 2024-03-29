@@ -630,6 +630,14 @@ std::vector<Entity> createAttributeUI(RenderSystem* renderer)
 	return entity_array;
 }
 
+Entity createInvisible(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	registry.kinematics.emplace(entity);
+	return entity;
+}
+
 Entity createDummyEnemySpawner(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 	auto& motion = registry.motions.emplace(entity);
@@ -807,18 +815,22 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
-Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm) {
+Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm, bool in_world) {
 	auto entity = Entity();
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.scale = scale;
-	registry.kinematics.emplace(entity);
+	//registry.kinematics.emplace(entity);
 	if (is_perm) {
-		registry.textsPerm.emplace(entity).content = text_content;
+		RenderTextPermanent& text = registry.textsPerm.emplace(entity);
+		text.content = text_content;
+		text.in_world = in_world;
 	}
 	else {
-		registry.texts.emplace(entity).content = text_content;
+		RenderText& text = registry.texts.emplace(entity);
+		text.content = text_content;
+		text.in_world = in_world;
 	}
 	registry.colors.emplace(entity) = color;
 	return entity;
