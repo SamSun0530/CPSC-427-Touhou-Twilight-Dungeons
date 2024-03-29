@@ -124,6 +124,12 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			float focus_mode_alpha = registry.focusdots.entities.size() > 0 ? 0.5f : 1.0f;
 			glUniform1f(focus_uloc, focus_mode_alpha);
 			gl_has_errors();
+
+			// allow hit timer to change color before being transparent
+			GLint invul_uloc = glGetUniformLocation(program, "invul_timer");
+			float invul_timer = !registry.hitTimers.has(entity) && registry.invulnerableTimers.has(entity) ? registry.invulnerableTimers.get(entity).invulnerable_counter_ms : 0.f;
+			glUniform1f(invul_uloc, invul_timer);
+			gl_has_errors();
 		}
 	}
 	else if ((*render_request).used_effect == EFFECT_ASSET_ID::EGG)

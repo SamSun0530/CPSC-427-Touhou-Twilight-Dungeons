@@ -412,7 +412,7 @@ void WorldSystem::handle_collisions() {
 						if (!registry.realDeathTimers.has(entity_other)) {
 							registry.hitTimers.emplace(entity);
 							Mix_PlayChannel(-1, audio->damage_sound, 0);
-							registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
+							registry.colors.get(player) = vec3(-1.f);
 							HP& player_hp = registry.hps.get(player);
 							player_hp.curr_hp -= registry.deadlys.get(entity_other).damage;
 							if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
@@ -443,7 +443,7 @@ void WorldSystem::handle_collisions() {
 					if (!registry.invulnerableTimers.has(entity)) {
 						registry.hitTimers.emplace(entity);
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
-						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
+						registry.colors.get(entity) = vec3(-1.f);
 						combo_meter = 1;
 						HP& player_hp = registry.hps.get(player);
 						player_hp.curr_hp -= registry.enemyBullets.get(entity_other).damage;
@@ -494,7 +494,7 @@ void WorldSystem::handle_collisions() {
 				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
 					// enemy turn red and decrease hp, bullet disappear
 					registry.hitTimers.emplace(entity);
-					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
+					registry.colors.get(entity) = vec3(-1.f);
 					Motion& deadly_motion = registry.motions.get(entity);
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
 
@@ -851,8 +851,6 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 
 void WorldSystem::on_scroll(vec2 scroll_offset) {
 	renderer->camera.addZoom(scroll_offset.y);
-
-	(vec2)scroll_offset;
 }
 
 void WorldSystem::update_focus_dot() {

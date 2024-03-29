@@ -424,7 +424,7 @@ struct AiTimer {
 // A timer that will be associated to dying chicken
 struct HitTimer
 {
-	float counter_ms = 50;
+	float counter_ms = 80;
 };
 
 struct DeathTimer
