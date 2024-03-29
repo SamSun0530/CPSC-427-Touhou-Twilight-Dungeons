@@ -345,9 +345,16 @@ void RenderSystem::draw()
 		}
 	}
 
+	// test text rendering position
+	//Transform t;
+	//t.translate(vec2(-100, -100));
+	//renderText("444444444444444444444444444444444444444444444444444444444444444444444444", 0, 0, 1.0f, glm::vec3(0, 0, 0), t.mat, true);
+	//renderText("444444444444444444444444444444444444444444444444444444444444444444444444", -100, -100, 1.0f, glm::vec3(0, 0, 0), trans, true);
+	//renderText("444444444444444444444444444444444444444444444444444444444444444444444444", 0, 0, 1.0f, glm::vec3(0, 0, 0), t.mat);
+
 	// Render user guide on screen
 	if (WorldSystem::getInstance().get_display_instruction() == true) {
-		renderText("Press 'T' for tutorial", window_width_px / 2 + window_width_px / 4 + 50, window_height_px - 50, 0.9f, glm::vec3(0, 0, 0), trans);
+		renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.6f, 0.9f, glm::vec3(0, 0, 0), trans);
 		/*renderText("User Guide:", window_width_px / 30 - 25, window_height_px / 2 + 200, 0.8f, glm::vec3(0, 0, 0), trans);
 
 		renderText("R -", window_width_px / 30 - 25, window_height_px / 2 + 160, 0.6f, glm::vec3(0, 0, 0), trans);
@@ -369,10 +376,9 @@ void RenderSystem::draw()
 		renderText("Zooming in/out", window_width_px / 30 - 25, window_height_px / 2 - 160, 0.6f, glm::vec3(0, 0, 0), trans);*/
 	}
 
-
 	if (WorldSystem::getInstance().get_show_fps() == true) {
-		renderText("FPS:", window_width_px - 250, window_height_px - 50, 2.0f, glm::vec3(1, 1, 1), trans);
-		renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px - 100, window_height_px - 50, 2.0f, glm::vec3(1, 1, 1), trans);
+		renderText("FPS:", window_width_px / 2.45f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans);
+		renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px / 2.2f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans);
 	}
 	for (Entity entity : registry.texts.entities) {
 		Motion& text_motion = registry.motions.get(entity);
@@ -395,7 +401,7 @@ void RenderSystem::draw()
 }
 
 // This adapted from lecture material (Wednesday Feb 28th 2024)
-void RenderSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans) {
+void RenderSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world) {
 	// activate the shaders!
 	glUseProgram(m_font_shaderProgram);
 
@@ -407,12 +413,22 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
 	assert(textColor_location >= 0);
 	glUniform3f(textColor_location, color.x, color.y, color.z);
 
-	auto transform_location = glGetUniformLocation(
-		m_font_shaderProgram,
-		"transform"
-	);
+	// flip both y axis so translations will match opengl
+	y = -1 * y;
+	Transform t;
+	t.mat = trans;
+	t.scale({ 1, -1 });
+
+	auto transform_location = glGetUniformLocation(m_font_shaderProgram, "transform");
 	assert(transform_location > -1);
-	glUniformMatrix4fv(transform_location, 1, GL_FALSE, glm::value_ptr(trans));
+	glUniformMatrix3fv(transform_location, 1, GL_FALSE, glm::value_ptr(t.mat));
+
+	// apply view matrix, origin is now center of the screen
+	// e.g. passing in x=0, y=0 will automatically translate to world_center
+	glm::mat3 view = in_world ? camera.createViewMatrix() : ui.createViewMatrix();
+	GLint view_location = glGetUniformLocation(m_font_shaderProgram, "view");
+	assert(view_location > -1);
+	glUniformMatrix3fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
 
 	glBindVertexArray(m_font_VAO);
 
@@ -457,7 +473,6 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
 
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
-
 }
 
 
