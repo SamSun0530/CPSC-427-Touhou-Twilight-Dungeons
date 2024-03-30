@@ -2,15 +2,17 @@
 
 #include <array>
 #include <utility>
+#include <iostream>
+#include <map>
+#include <glm/gtc/type_ptr.hpp>
+#include <sstream>
 
 #include "common.hpp"
 #include "components.hpp"
 #include "tiny_ecs.hpp"
 #include "camera.hpp"
 #include "ui.hpp"
-//#include "world_system.hpp"
-#
-#include <map>
+#include "tiny_ecs_registry.hpp"
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -195,6 +197,10 @@ private:
 		"}\0";
 
 	Entity screen_state_entity;
+
+	// Utilities/Helper functions
+	void get_strings_delim(const std::string& input, char delim, std::vector<std::string>& output);
+	void render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world);
 };
 
 bool loadEffectFromFile(

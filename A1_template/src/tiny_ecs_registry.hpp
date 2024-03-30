@@ -62,8 +62,11 @@ public:
 	ComponentContainer<FocusDot> focusdots; // only for rendering dot for reimu
 	ComponentContainer<BulletStartFiringTimer> bulletStartFiringTimers;
 	ComponentContainer<RenderText> texts;
-	ComponentContainer<RenderTextPermanent> textsPerm;
+	ComponentContainer<RenderTextPermanent> textsPerm;	
+	ComponentContainer<RenderTextWorld> textsWorld;
+	ComponentContainer<RenderTextPermanentWorld> textsPermWorld;
 	ComponentContainer<UIUX> UIUX;
+	ComponentContainer<UIUXWorld> UIUXWorld;
 	ComponentContainer<DummyEnemy> dummyenemies;
 	ComponentContainer<DummyEnemySpawner> dummyenemyspawners;
 	ComponentContainer<DummyEnemyLink> dummyEnemyLink;
@@ -123,8 +126,11 @@ public:
 		registry_list.push_back(&focusdots);
 		registry_list.push_back(&bulletStartFiringTimers);
 		registry_list.push_back(&texts);
-		registry_list.push_back(&textsPerm);
+		registry_list.push_back(&textsPerm);		
+		registry_list.push_back(&textsWorld);
+		registry_list.push_back(&textsPermWorld);
 		registry_list.push_back(&UIUX);
+		registry_list.push_back(&UIUXWorld);
 		registry_list.push_back(&dummyenemies);
 		registry_list.push_back(&dummyenemyspawners);
 		registry_list.push_back(&dummyEnemyLink);

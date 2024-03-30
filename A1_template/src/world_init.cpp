@@ -467,7 +467,7 @@ Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui, bool is_active, f
 	key_ani.full_rate_ms = frame_rate;
 	key_ani.is_active = is_active;
 	registry.alwaysplayAni.insert(entity, key_ani);
-	registry.UIUX.emplace(entity);
+	if (is_on_ui) registry.UIUX.emplace(entity); else registry.UIUXWorld.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::KEYS, // TEXTURE_COUNT indicates that no txture is needed
@@ -820,17 +820,23 @@ Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bo
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
-	motion.scale = scale;
+	motion.scale = scale; // Only x is used for scaling both x & y
 	//registry.kinematics.emplace(entity);
 	if (is_perm) {
-		RenderTextPermanent& text = registry.textsPerm.emplace(entity);
-		text.content = text_content;
-		text.in_world = in_world;
+		if (in_world) {
+			registry.textsPermWorld.emplace(entity).content = text_content;
+		}
+		else {
+			registry.textsPerm.emplace(entity).content = text_content;
+		}
 	}
 	else {
-		RenderText& text = registry.texts.emplace(entity);
-		text.content = text_content;
-		text.in_world = in_world;
+		if (in_world) {
+			registry.textsWorld.emplace(entity).content = text_content;
+		}
+		else {
+			registry.texts.emplace(entity).content = text_content;
+		}
 	}
 	registry.colors.emplace(entity) = color;
 	return entity;

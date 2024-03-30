@@ -14,6 +14,10 @@ struct UIUX {
 
 };
 
+struct UIUXWorld {
+
+};
+
 struct EnemyBullet
 {
 	int damage = 1;
@@ -469,12 +473,18 @@ struct TexturedVertex
 
 struct RenderText {
 	std::string content;
-	bool in_world;
 };
 
 struct RenderTextPermanent {
 	std::string content;
-	bool in_world;
+};
+
+struct RenderTextWorld {
+	std::string content;
+};
+
+struct RenderTextPermanentWorld {
+	std::string content;
 };
 
 // Mesh datastructure for storing vertex and index buffers

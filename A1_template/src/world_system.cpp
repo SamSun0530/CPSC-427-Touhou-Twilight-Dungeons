@@ -162,7 +162,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	while (registry.debugComponents.entities.size() > 0)
 		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
+	// Remove texts in ui and world that are not permanent
 	while (registry.texts.entities.size() > 0)
+		registry.remove_all_components_of(registry.texts.entities.back());	
+	while (registry.textsWorld.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
 
 	// Create combo meter ui

@@ -188,8 +188,8 @@ void MapSystem::generateTutorialMap() {
 		{2,1,1,2,0,0,2,1,1,1,1,1,1,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
 		{2,1,1,2,0,0,2,1,1,1,1,1,1,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
 		{2,1,1,2,0,0,2,2,2,2,2,2,2,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
-		{2,1,1,2,0,0,0,0,0,0,0,0,2,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
 		{2,1,1,2,0,0,0,0,0,0,0,0,2,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2},
+		{2,1,1,2,0,0,0,0,0,0,0,0,2,1,1,2},
 		{2,1,1,2,2,2,2,2,2,2,2,2,2,1,1,2},
 		{2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
 		{2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2},
@@ -228,6 +228,7 @@ void MapSystem::generateTutorialMap() {
 
 	// shift key focus mode
 	createKey(convert_grid_to_world({ 3.5, 8.5 }), vec2(150), KEYS::SHIFT, false, true, 1300);
+	createText(convert_grid_to_world({ 1.6, 9.5 }), vec3(0.8), "Hold for Focus Mode\nReduces hitbox to dot\nSlows down movement", vec3(1, 1, 1), true, true);
 
 	// hardcoded bullet for this specific grid only
 	for (int j = 0; j < 7; ++j) {
@@ -239,9 +240,10 @@ void MapSystem::generateTutorialMap() {
 	}
 
 	// space/mouse 1 key attack
-	createKey(convert_grid_to_world({ 23, 10.5 }), vec2(150), KEYS::SPACE, false, true, 1300);
-	createKey(convert_grid_to_world({ 25, 10.5 }), vec2(90), KEYS::MOUSE_1, false, true, 1500);
-	createText(convert_grid_to_world({ 24, 10.9 }), vec3(3), "/", vec3(1, 1, 1), true, true);
+	createKey(convert_grid_to_world({ 23.f, 10.f }), vec2(150), KEYS::SPACE, false, true, 1300);
+	createText(convert_grid_to_world({ 24.f, 10.4f }), vec3(3), "/", vec3(1, 1, 1), true, true);
+	createKey(convert_grid_to_world({ 25.f, 10.f }), vec2(90), KEYS::MOUSE_1, false, true, 1500);
+	createText(convert_grid_to_world({ 22.5f, 11.f }), vec3(1.f), "Hold to shoot", vec3(1, 1, 1), true, true);
 
 	// hardcoded dummy enemy spawn
 	Entity entity1 = createDummyEnemySpawner(renderer, convert_grid_to_world({ 29, 5 }));
@@ -249,10 +251,17 @@ void MapSystem::generateTutorialMap() {
 	spawner1.max_spawn = 5;
 
 	// remaining buttons
-	createKey(convert_grid_to_world({ 38, 17 }), vec2(120), KEYS::SCROLL, false, true);
-	createKey(convert_grid_to_world({ 43, 17 }), vec2(120), KEYS::P, false, true);
-	createKey(convert_grid_to_world({ 48, 17 }), vec2(120), KEYS::F, false, true);
-	createKey(convert_grid_to_world({ 59, 17 }), vec2(120), KEYS::R, false, true);
+	createKey(convert_grid_to_world({ 38, 16 }), vec2(120), KEYS::SCROLL, false, true);
+	createText(convert_grid_to_world({ 36.f, 17.5f }), vec3(1.f), "Zoom camera in/out", vec3(1, 1, 1), true, true);
+
+	createKey(convert_grid_to_world({ 43, 16 }), vec2(120), KEYS::P, false, true);
+	createText(convert_grid_to_world({ 41.f, 17.5f }), vec3(1.f), "Toggle camera offset", vec3(1, 1, 1), true, true);
+
+	createKey(convert_grid_to_world({ 48, 16 }), vec2(120), KEYS::F, false, true);
+	createText(convert_grid_to_world({ 47.f, 17.5f }), vec3(1.f), "Show fps" , vec3(1, 1, 1), true, true);
+
+	createKey(convert_grid_to_world({ 59, 16 }), vec2(120), KEYS::R, false, true);
+	createText(convert_grid_to_world({ 57.f, 17.5f }), vec3(1.f), "Return to main world" , vec3(1, 1, 1), true, true);
 
 	// Add grid to map
 	for (int y = 0; y < grid.size(); ++y) {
@@ -261,45 +270,6 @@ void MapSystem::generateTutorialMap() {
 		}
 	}
 	generateAllEntityTiles(world_map);
-
-
-	//rooms.clear();
-	//int room_radius = room_size >> 1;
-	//rooms.push_back(generateTutRoom(room_radius, room_radius));
-	//rooms.push_back(generateTutRoom(room_size + 4 * room_radius, room_radius));
-	//rooms.push_back(generateTutRoom(room_size + 4 * room_radius, room_size + 4 * room_radius));
-
-	//for (Room& room : rooms) {
-	//	addRoomToMap(room, world_map);
-	//}
-
-	//addHallwayBetweenRoom(rooms[0], rooms[1], world_map);
-	//addHallwayBetweenRoom(rooms[1], rooms[2], world_map);
-
-	//MapSystem::generateAllEntityTiles(world_map);
-
-	//createText({ 0, 610 }, { 1,1 }, "Hold to shoot", { 0,0,0 }, true);
-	//createText({ 65,  570 }, { 1,1 }, "or", { 0,0,0 }, true);
-	//createKey({ -500, -220 }, { 90, 90 }, KEYS::SPACE);
-	//createKey({ -600,-220 }, { 50, 50 }, KEYS::MOUSE_1);
-	//createText({ 0, 540 }, { 1,1 }, "Move", { 0,0,0 }, true);
-	//createKey({ -600, -150 }, { 50, 50 }, KEYS::W);
-	//createKey({ -560, -150 }, { 50, 50 }, KEYS::A);
-	//createKey({ -520, -150 }, { 50, 50 }, KEYS::S);
-	//createKey({ -480, -150 }, { 50, 50 }, KEYS::D);
-	//createText({ 0, 460 }, { 1,1 }, "Zoom in/out", { 0,0,0 }, true);
-	//createKey({ -600, -70 }, { 50, 50 }, KEYS::SCROLL);
-	//createText({ 0, 385 }, { 1,1 }, "Focus Mode", { 0,0,0 }, true);
-	//createKey({ -590, 10 }, { 80, 80 }, KEYS::SHIFT);
-	//createText({ 0, 300 }, { 1,1 }, "Show FPS", { 0,0,0 }, true);
-	//createKey({ -600, 90 }, { 50, 50 }, KEYS::F);
-	//createText({ 0, 220 }, { 1,1 }, "Camera", { 0,0,0 }, true);
-	//createKey({ -600, 170 }, { 50, 50 }, KEYS::P);
-	//createText({ 0, 140 }, { 1,1 }, "Restart", { 0,0,0 }, true);
-	//createKey({ -600, 250 }, { 50, 50 }, KEYS::R);
-	//createText({ 0, 60 }, { 1,1 }, "Quit", { 0,0,0 }, true);
-	//createKey({ -600, 330 }, { 50, 50 }, KEYS::ESC);
-	//createText({ 1110, 40 }, { 1,1 }, "Combo Meter", { 0,0,0 }, true);
 }
 
 Room& MapSystem::generateBossRoom() {
