@@ -392,7 +392,7 @@ void WorldSystem::restart_game() {
 		//map->generateBossRoom();
 		map->generateRandomMap();
 		//map->spawnEnemies();
-		map->spawnEnemiesInRoom();
+		//map->spawnEnemiesInRoom();
 		player = map->spawnPlayerInRoom(0);
 	}
 	world_map = map->world_map;

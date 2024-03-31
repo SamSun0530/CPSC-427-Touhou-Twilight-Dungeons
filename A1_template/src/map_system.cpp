@@ -1,5 +1,3 @@
-// Adpated from: https://www.gamedeveloper.com/programming/procedural-dungeon-generation-algorithm#close-modal
-
 // internal
 #include "map_system.hpp"
 #include "map_system.hpp"
@@ -24,19 +22,6 @@ void MapSystem::restart_map() {
 }
 
 void MapSystem::spawnEnemies() {
-	// testing boss enemy
-	//for (Room& room : rooms) {
-	//	coord world_coord = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 5));		
-	//	//coord world_coord2 = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 4));		
-	//	//coord world_coord3 = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 3));
-	//	//coord world_coord4 = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 2));
-	//	createBoss(renderer, world_coord);
-	//	//createBeeEnemy(renderer, world_coord);
-	//	//createBeeEnemy(renderer, world_coord2);
-	//	//createWolfEnemy(renderer, world_coord3);
-	//	//createBomberEnemy(renderer, world_coord4);
-	//}
-
 	for (Room room : rooms) {
 		std::vector<vec2> spawn_points;
 		spawn_points.push_back(vec2(room.x + 2, room.y + 2));
@@ -129,42 +114,7 @@ void MapSystem::generateBasicMap() {
 	addHallwayBetweenRoom(rooms[2], rooms[5], world_map);
 	addHallwayBetweenRoom(rooms[4], rooms[5], world_map);
 
-	// // Print the initialized array
-	// for (int i = 0; i < world_map.size(); ++i) {
-	//     for (int j = 0; j < world_map[i].size(); ++j) {
-	//         std::cout << world_map[i][j] << " ";
-	//     }
-	//     std::cout << std::endl;
-	// }
-
 	generateAllEntityTiles(world_map);
-}
-
-Room generateTutRoom(int x, int y) {
-	Room room;
-	room.id = room_id++;
-	room.x = x;
-	room.y = y;
-
-	std::vector<std::vector<int>> grid = {
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
-	};
-	room.grid = grid;
-	return room;
 }
 
 void MapSystem::generateTutorialMap() {
@@ -381,11 +331,6 @@ void addRoomToMap(const Room& room, std::vector<std::vector<int>>& map) {
 	for (int row = room.y; row < room_height + room.y; row++) {
 		int room_width = room.grid[row - room.y].size();
 		for (int col = room.x; col < room_width + room.x; col++) {
-			// int max = room.grid[row-room.y].size() + room.x;
-			// int shiftedY = row-room.y;
-			// int shiftedX = col-room.x;
-			// int roomVal = room.grid[row-room.y][col-room.x];
-
 			map[row][col] = room.grid[row - room.y][col - room.x];
 		}
 	}

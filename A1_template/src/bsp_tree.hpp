@@ -54,7 +54,7 @@ public:
 	BSPNode* generate_partitions(BSPNode* node);
 	void generate_rooms_random(BSPNode* node);
 	void generate_corridors(BSPNode* node);
-	void add_corridors_to_map(std::vector<Corridor> corridors, std::vector<std::vector<int>>& map);
+	void add_corridors_to_map(std::vector<Corridor>& corridors, std::vector<std::vector<int>>& map);
 	void set_map_walls(std::vector<std::vector<int>>& map);
 	void print_tree(BSPNode* node); // for debugging
 	void get_corridors(BSPNode* node, std::vector<Corridor>& corridors);

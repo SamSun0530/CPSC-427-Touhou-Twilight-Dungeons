@@ -96,115 +96,75 @@ void BSPTree::generate_corridors(BSPNode* node) {
 		BSPNode* rNode = get_random_leaf_node(node->right_node);
 		BSPNode* lNode = get_random_leaf_node(node->left_node);
 
-		node->corridor = new Corridor{ vec2((rNode->room->bottom_left + rNode->room->top_left) / vec2(2,2)),
-							  vec2((lNode->room->bottom_left + lNode->room->top_left) / vec2(2,2)) };
+		node->corridor = new Corridor{ vec2((rNode->room->bottom_left + rNode->room->top_left) / 2.f),
+			vec2((lNode->room->bottom_left + lNode->room->top_left) / 2.f) };
 	}
 }
 
-	
-void BSPTree::add_corridors_to_map(std::vector<Corridor> corridors, std::vector<std::vector<int>>& map) {
+
+void BSPTree::add_corridors_to_map(std::vector<Corridor>& corridors, std::vector<std::vector<int>>& map) {
 	for (Corridor& corridor : corridors) {
 		int start_x = corridor.start.x;
 		int start_y = corridor.start.y;
 		int end_x = corridor.end.x;
 		int end_y = corridor.end.y;
 
+		// ensure that start is always left of end
 		if (start_x > end_x) {
+			std::swap(start_x, end_x);
+			std::swap(start_y, end_y);
+		}
+
+		if (start_x != end_x) {
 			if (start_y > end_y) {
-				// Start is bot right of end
-				for (int col = end_x; col <= start_x; col++) {
-					map[end_y][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-					map[end_y+1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-
+				// end is top right
+				for (int x = start_x; x <= end_x; x++) {
+					map[start_y][x] = (int)TILE_TYPE::FLOOR;
+					map[start_y + 1][x] = (int)TILE_TYPE::FLOOR;
 				}
-				for (int row = end_y; row <= start_y; row++) {
-					map[row][start_x] = (int)TILE_TYPE::FLOOR;
-					map[row][start_x+1] = (int)TILE_TYPE::FLOOR;
-
+				for (int y = end_y; y <= start_y; y++) {
+					map[y][end_x] = (int)TILE_TYPE::FLOOR;
+					map[y][end_x - 1] = (int)TILE_TYPE::FLOOR;
 				}
 			}
 			else if (start_y < end_y) {
-				// Start is top right of end
-				for (int col = end_x; col <= start_x; col++) {
-					map[end_y][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-					map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-
+				// end is bottom right
+				for (int x = start_x; x <= end_x; x++) {
+					map[start_y][x] = (int)TILE_TYPE::FLOOR;
+					map[start_y + 1][x] = (int)TILE_TYPE::FLOOR;
 				}
-				for (int row = end_y; row >= start_y; row--) {
-					map[row][start_x] = (int)TILE_TYPE::FLOOR;
-					map[row][start_x + 1] = (int)TILE_TYPE::FLOOR;
-
+				for (int y = end_y; y >= start_y; y--) {
+					map[y][start_x] = (int)TILE_TYPE::FLOOR;
+					map[y][start_x - 1] = (int)TILE_TYPE::FLOOR;
 				}
 			}
-			else { // start_y == end_y
-				// Start is directly right of end
-				for (int col = end_x; col <= start_x; col++) {
-					map[end_y][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-					map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-
+			else if (start_y == end_y) {
+				// start is left of end
+				for (int x = start_x; x <= end_x; x++) {
+					map[start_y][x] = (int)TILE_TYPE::FLOOR;
+					map[start_y + 1][x] = (int)TILE_TYPE::FLOOR;
 				}
 			}
 		}
-		else if(start_x < end_x)
-		{
+		else {
+			// ensure that start is below end
 			if (start_y > end_y) {
-				// Start is bot left of end
-				for (int col = end_x; col >= start_x; col--) {
-					map[end_y][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-					map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-
-				}
-				for (int row = end_y; row <= start_y; row++) {
-					map[row][start_x] = (int)TILE_TYPE::FLOOR;
-					map[row][start_x - 1] = (int)TILE_TYPE::FLOOR;
-
-				}
+				std::swap(start_y, end_y);
 			}
-			else if (start_y < end_y) {
-				// Start is top left of end
-				for (int col = end_x; col >= start_x; col--) {
-					map[end_y][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-					map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-
-				}
-				for (int row = end_y; row >= start_y; row--) {
-					map[row][start_x] = (int)TILE_TYPE::FLOOR;
-					map[row][start_x - 1] = (int)TILE_TYPE::FLOOR;
-
-				}
-			}
-			else { // start_y == end_y
-				// Start is directly left of end
-				for (int col = end_x; col >= start_x; col--) {
-					map[end_y][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-					map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-
-				}
-			}
-		}
-		else { // start_x == end_x
-			if (start_y > end_y) {
-				// Start is bot of end
-				for (int row = end_y; row <= start_y; row++) {
-					map[row][start_x] = (int)TILE_TYPE::FLOOR;
-					map[row][start_x - 1] = (int)TILE_TYPE::FLOOR;
-
-				}
-			}
-			else if (start_y < end_y) {
-				// Start is top of end
-				for (int row = end_y; row >= start_y; row--) {
-					map[row][start_x] = (int)TILE_TYPE::FLOOR;
-					map[row][start_x - 1] = (int)TILE_TYPE::FLOOR;
-
-				}
-			}
-			else { // start_y == end_y
-				// Start is directly on top of end
-				// This is bad
+			// start is below end
+			for (int y = start_y; y <= end_y; y++) {
+				map[y][start_x] = (int)TILE_TYPE::FLOOR;
+				map[y][start_x - 1] = (int)TILE_TYPE::FLOOR;
 			}
 		}
 	}
+
+	//for (int i = 0; i < map.size(); i++) {
+	//	for (int j = 0; j < map[0].size(); j++) {
+	//		printf("%d ", map[i][j]);
+	//	}
+	//	printf("\n");
+	//}
 }
 
 void BSPTree::get_corridors(BSPNode* node, std::vector<Corridor>& corridors) {
@@ -240,9 +200,9 @@ BSPNode* BSPTree::get_random_leaf_node(BSPNode* node) {
 }
 
 void BSPTree::set_map_walls(std::vector<std::vector<int>>& map) {
-	for (int row = 1; row < map.size()-1; row++) {
-		for (int col = 1; col < map[row].size()-1; col++) {
-			if(map[row][col] != (int)TILE_TYPE::EMPTY) {
+	for (int row = 1; row < map.size() - 1; row++) {
+		for (int col = 1; col < map[row].size() - 1; col++) {
+			if (map[row][col] != (int)TILE_TYPE::EMPTY) {
 				continue; // Can't pull walls on floors
 			}
 
