@@ -314,6 +314,34 @@ struct Floor
 struct Wall {
 };
 
+struct TileInstanceData {
+
+};
+
+// Tile set names specifically to Sandstone Dungeon
+enum class TILE_NAME_SANDSTONE {
+	AZTEC_FLOOR, // 0,1
+	ROCK_FLOOR, // 0,2
+	BONE_FLOOR, // 0,3
+	CHOCOLATE_FLOOR, // 1,0
+	BRICK_FLOOR, // 1,1
+	CANDY_FLOOR, // 1,2
+	CHECKER_FLOOR, // 1,3
+	LEFT_WALL, // 2,0
+	TOP_WALL, // 2,1 - Corridors included
+	RIGHT_WALL, // 2,2
+	CORRIDOR_BOTTOM_RIGHT, // 5,0
+	CORRIDOR_BOTTOM_LEFT, // 5,2
+	BOTTOM_LEFT, // 6,0
+	BOTTOM_WALL, // 6,1
+	BOTTOM_RIGHT, // 6,2
+	CORRIDOR_BOTTOM_RIGHT_LIGHT, // 3,0
+	CORRIDOR_BOTTOM_LEFT_LIGHT, // 3,2
+	BOTTOM_LEFT_LIGHT, // 4,0
+	// BOTTOM_WALL_LIGHT -> use TOP_WALL
+	BOTTOM_RIGHT_LIGHT, // 4,2
+};
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };

@@ -434,7 +434,6 @@ std::vector<TEXTURE_ASSET_ID> MapSystem::getTileAssetID(int row, int col, std::v
 
 	// Top Wall
 	if (map[row + 1][col] == (int)TILE_TYPE::FLOOR) {
-		textures.push_back(TEXTURE_ASSET_ID::WALL_SURFACE);
 		textures.push_back(TEXTURE_ASSET_ID::TOP_WALL);
 		return textures;
 	}

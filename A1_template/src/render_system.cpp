@@ -656,3 +656,13 @@ void RenderSystem::drawBulletsInstanced(const std::vector<Entity>& entities, con
 	gl_has_errors();
 	delete[] instance_transforms;
 }
+
+vec2 RenderSystem::get_texcoord_sandstone(TILE_NAME_SANDSTONE tile_name) {
+	vec2 texcoord = { 0, 0 };
+	switch (tile_name) {
+	
+	default:
+		break;
+	}
+	return texcoord;
+}

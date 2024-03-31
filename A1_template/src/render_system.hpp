@@ -201,6 +201,7 @@ private:
 	// Utilities/Helper functions
 	void get_strings_delim(const std::string& input, char delim, std::vector<std::string>& output);
 	void render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world);
+	vec2 get_texcoord_sandstone(TILE_NAME_SANDSTONE tile_name);
 };
 
 bool loadEffectFromFile(
