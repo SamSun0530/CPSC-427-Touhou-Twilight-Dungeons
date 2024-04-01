@@ -1,11 +1,39 @@
 // internal
 #include "render_system.hpp"
-#include <SDL.h>
-#include <iostream>
-#include "tiny_ecs_registry.hpp"
-#include <glm/gtc/type_ptr.hpp>
 #include "world_system.hpp"
+#include <SDL.h>
 
+// Helper function to get vector of strings separated by delimiter of input string
+// Adapted from: https://stackoverflow.com/a/10058725
+void RenderSystem::get_strings_delim(const std::string& input, char delim, std::vector<std::string>& output) {
+	std::stringstream ss(input);
+	std::string segment;
+	while (std::getline(ss, segment, delim))
+	{
+		output.push_back(segment);
+	}
+}
+
+// Helper function to render text with new lines
+void RenderSystem::render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world) {
+	// Prevent having to split string if there are no new lines
+	if (text.find('\n') == std::string::npos) {
+		renderText(text, x, y, scale, color, trans, in_world);
+		return;
+	}
+	std::vector<std::string> segments;
+	get_strings_delim(text, '\n', segments);
+	float padding_y = 25.f;
+	// Either use x, y OR Transform t. t.mat will not work together with x, y
+	//Transform t;
+	//t.mat = trans;
+	//vec2 t_translate = { 0, scale * padding_y };
+	int segments_size = segments.size();
+	for (int i = 0; i < segments_size; ++i) {
+		renderText(segments[i], x, y + i * scale * padding_y, scale, color, trans, in_world);
+		//t.translate(t_translate);
+	}
+}
 
 void RenderSystem::drawTexturedMesh(Entity entity,
 	const mat3& projection,
@@ -55,7 +83,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	if ((*render_request).used_effect == EFFECT_ASSET_ID::TEXTURED ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::UI ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR ||
-		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB)
+		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB ||
+		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -101,10 +130,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			glUniform1f(health_uloc, health_percentage);
 			gl_has_errors();
 		}
-		else if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB && (*render_request).used_texture == TEXTURE_ASSET_ID::INVUL_BAR) {
+		else if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB && (*render_request).used_texture == TEXTURE_ASSET_ID::FOCUS_BAR) {
 			assert(registry.players.entities.size() == 1);
 			GLint health_uloc = glGetUniformLocation(program, "health_percentage");
-			float health_percentage = registry.invulnerableTimers.has(registry.players.entities[0]) ? (float)registry.invulnerableTimers.get(registry.players.entities[0]).invulnerable_counter_ms / registry.players.components[0].invulnerability_time_ms : 1.f;
+			//float health_percentage = registry.invulnerableTimers.has(registry.players.entities[0]) ? (float)registry.invulnerableTimers.get(registry.players.entities[0]).invulnerable_counter_ms / registry.players.components[0].invulnerability_time_ms : 1.f;
+			float health_percentage = (float)focus_mode.counter_ms / focus_mode.max_counter_ms;
 			glUniform1f(health_uloc, health_percentage);
 			gl_has_errors();
 		}
@@ -116,8 +146,22 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			glUniform1f(health_uloc, health_percentage);
 			gl_has_errors();
 		}
+		else if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER)
+		{
+			GLint focus_uloc = glGetUniformLocation(program, "focus_mode_alpha");
+			// there will only be one focus dot
+			float focus_mode_alpha = registry.focusdots.entities.size() > 0 ? 0.5f : 1.0f;
+			glUniform1f(focus_uloc, focus_mode_alpha);
+			gl_has_errors();
+
+			// allow hit timer to change color before being transparent
+			GLint invul_uloc = glGetUniformLocation(program, "invul_timer");
+			float invul_timer = !registry.hitTimers.has(entity) && registry.invulnerableTimers.has(entity) ? registry.invulnerableTimers.get(entity).invulnerable_counter_ms : 0.f;
+			glUniform1f(invul_uloc, invul_timer);
+			gl_has_errors();
+		}
 	}
-	else if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER || (*render_request).used_effect == EFFECT_ASSET_ID::EGG)
+	else if ((*render_request).used_effect == EFFECT_ASSET_ID::EGG)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_color_loc = glGetAttribLocation(program, "in_color");
@@ -132,17 +176,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
 			sizeof(ColoredVertex), (void*)sizeof(vec3));
 		gl_has_errors();
-
-		if ((*render_request).used_effect == EFFECT_ASSET_ID::PLAYER)
-		{
-			// Light up?
-			GLint light_up_uloc = glGetUniformLocation(program, "light_up");
-			assert(light_up_uloc >= 0);
-
-			// !!! A1: set the light_up shader variable using glUniform1i,
-			// similar to the glUniform1f call below. The 1f or 1i specified the type, here a single int.
-			gl_has_errors();
-		}
 	}
 	else
 	{
@@ -296,6 +329,7 @@ void RenderSystem::draw()
 
 	// Draw all textured meshes that have a position and size component
 	std::vector<Entity> boss_ui_entities;
+	std::vector<Entity> uiux_world_entities;
 	for (Entity entity : registry.renderRequests.entities)
 	{
 		if (registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::BOSS_HEALTH_BAR) {
@@ -305,11 +339,42 @@ void RenderSystem::draw()
 		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 			continue;
 		}
+		if (registry.UIUXWorld.has(entity)) {
+			uiux_world_entities.push_back(entity);
+			continue;
+		}
 		if (registry.focusdots.has(entity)) continue;
 		if (registry.UIUX.has(entity)) continue;
+		if (registry.players.has(entity)) continue;
 
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
+		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+	}
+
+	// UIUX entities that in the world (e.g. tutorial keys that is before player)
+	for (Entity entity : uiux_world_entities) {
+		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+	}
+
+	// World texts:
+	for (Entity entity : registry.textsWorld.entities) {
+		Motion& text_motion = registry.motions.get(entity);
+		if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
+		vec3 text_color = registry.colors.get(entity);
+		RenderTextWorld& text_cont = registry.textsWorld.get(entity);
+		render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true);
+	}
+	for (Entity entity : registry.textsPermWorld.entities) {
+		Motion& text_motion = registry.motions.get(entity);
+		if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
+		vec3 text_color = registry.colors.get(entity);
+		RenderTextPermanentWorld& text_cont = registry.textsPermWorld.get(entity);
+		render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true);
+	}
+
+	// Render player
+	for (Entity entity : registry.players.entities) {
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 	}
 
@@ -347,10 +412,12 @@ void RenderSystem::draw()
 		}
 	}
 
+
 	// Render user guide on screen
 	if (WorldSystem::getInstance().get_display_instruction() == true) {
-		renderText("Press 'T' for tutorial", window_width_px / 2 + window_width_px / 4 + 50, window_height_px - 50, 0.9f, glm::vec3(0, 0, 0), trans);
-		/*renderText("User Guide:", window_width_px / 30 - 25, window_height_px / 2 + 200, 0.8f, glm::vec3(0, 0, 0), trans);
+		renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.6f, 0.9f, glm::vec3(0, 0, 0), trans);
+		/*
+		renderText("User Guide:", window_width_px / 30 - 25, window_height_px / 2 + 200, 0.8f, glm::vec3(0, 0, 0), trans);
 
 		renderText("R -", window_width_px / 30 - 25, window_height_px / 2 + 160, 0.6f, glm::vec3(0, 0, 0), trans);
 		renderText("Reset Game", window_width_px / 30 - 25, window_height_px / 2 + 140, 0.6f, glm::vec3(0, 0, 0), trans);
@@ -368,25 +435,26 @@ void RenderSystem::draw()
 		renderText("Firing bullets", window_width_px / 30 - 25, window_height_px / 2 - 100, 0.6f, glm::vec3(0, 0, 0), trans);
 
 		renderText("Scroll wheel -", window_width_px / 30 - 25, window_height_px / 2 - 140, 0.6f, glm::vec3(0, 0, 0), trans);
-		renderText("Zooming in/out", window_width_px / 30 - 25, window_height_px / 2 - 160, 0.6f, glm::vec3(0, 0, 0), trans);*/
+		renderText("Zooming in/out", window_width_px / 30 - 25, window_height_px / 2 - 160, 0.6f, glm::vec3(0, 0, 0), trans);
+		*/
 	}
-
 
 	if (WorldSystem::getInstance().get_show_fps() == true) {
-		renderText("FPS:", window_width_px - 250, window_height_px - 50, 2.0f, glm::vec3(1, 1, 1), trans);
-		renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px - 100, window_height_px - 50, 2.0f, glm::vec3(1, 1, 1), trans);
+		renderText("FPS:", window_width_px / 2.45f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans);
+		renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px / 2.2f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans);
 	}
+	// On screen/ui texts:
 	for (Entity entity : registry.texts.entities) {
 		Motion& text_motion = registry.motions.get(entity);
 		vec3 text_color = registry.colors.get(entity);
 		RenderText& text_cont = registry.texts.get(entity);
-		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans);
+		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
 	}
 	for (Entity entity : registry.textsPerm.entities) {
 		Motion& text_motion = registry.motions.get(entity);
 		vec3 text_color = registry.colors.get(entity);
 		RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
-		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans);
+		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
 	}
 	// Truely render to the screen
 	drawToScreen();
@@ -397,7 +465,7 @@ void RenderSystem::draw()
 }
 
 // This adapted from lecture material (Wednesday Feb 28th 2024)
-void RenderSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans) {
+void RenderSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world) {
 	// activate the shaders!
 	glUseProgram(m_font_shaderProgram);
 
@@ -409,12 +477,22 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
 	assert(textColor_location >= 0);
 	glUniform3f(textColor_location, color.x, color.y, color.z);
 
-	auto transform_location = glGetUniformLocation(
-		m_font_shaderProgram,
-		"transform"
-	);
+	// flip both y axis so translations will match opengl
+	y = -1 * y;
+	Transform t;
+	t.mat = trans;
+	t.scale({ 1, -1 });
+
+	auto transform_location = glGetUniformLocation(m_font_shaderProgram, "transform");
 	assert(transform_location > -1);
-	glUniformMatrix4fv(transform_location, 1, GL_FALSE, glm::value_ptr(trans));
+	glUniformMatrix3fv(transform_location, 1, GL_FALSE, glm::value_ptr(t.mat));
+
+	// apply view matrix, origin is now center of the screen
+	// e.g. passing in x=0, y=0 will automatically translate to world_center
+	glm::mat3 view = in_world ? camera.createViewMatrix() : ui.createViewMatrix();
+	GLint view_location = glGetUniformLocation(m_font_shaderProgram, "view");
+	assert(view_location > -1);
+	glUniformMatrix3fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
 
 	glBindVertexArray(m_font_VAO);
 
@@ -459,7 +537,6 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
 
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
-
 }
 
 

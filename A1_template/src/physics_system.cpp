@@ -167,6 +167,9 @@ bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& m
 
 void PhysicsSystem::step(float elapsed_ms)
 {
+	// Assume there exists a player
+	Entity player = registry.players.entities[0];
+
 	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
 	auto& kinematic_registry = registry.kinematics;
@@ -187,9 +190,10 @@ void PhysicsSystem::step(float elapsed_ms)
 		// Linear interpolation of velocity
 		// K factor (0,30] = ~0 (not zero, slippery, ice) -> 10-20 (quick start up/slow down, natural) -> 30 (instant velocity, jittery)
 		float K = 10.f;
-		kinematic.velocity = vec2_lerp(kinematic.velocity, direction_normalized * kinematic.speed_modified * focus_mode.speed_constant, step_seconds * K);
+		kinematic.velocity = vec2_lerp(kinematic.velocity, direction_normalized * kinematic.speed_modified * (entity == player ? focus_mode.speed_constant : 1.0f), step_seconds * K);
 		motion.position += kinematic.velocity * step_seconds;
 	}
+
 	for (uint i = 0; i < registry.bezierCurves.size(); i++) {
 		Entity& entity = registry.bezierCurves.entities[i];
 		BezierCurve& bezier_curve = registry.bezierCurves.components[i];
@@ -260,14 +264,16 @@ void PhysicsSystem::step(float elapsed_ms)
 				//registry.collisions.emplace(bullet_entity, wall_entity); // causes bullet to go through walls
 				registry.remove_all_components_of(bullet_entity);
 			}
-			if (focus_mode.in_focus_mode) {
+			else if (focus_mode.in_focus_mode) {
 				if (collides_circle_AABB(player_motion, playerCircleCollidable, motion, collidable)) {
 					registry.collisions.emplace_with_duplicates(player_entity, bullet_entity);
 					registry.collisions.emplace_with_duplicates(bullet_entity, player_entity);
 				}
 			}
-			else if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable) &&
-				collides_mesh_AABB(player_entity, player_motion, motion, collidable)) {
+			// TODO: Mesh not working as expected (aabb collidable box is lower half, won't be checked)
+			//else if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable) &&
+			//	collides_mesh_AABB(player_entity, player_motion, motion, collidable)) {
+			else if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
 				registry.collisions.emplace_with_duplicates(player_entity, bullet_entity);
 			}
 		}

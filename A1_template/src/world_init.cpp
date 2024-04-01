@@ -412,7 +412,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::PLAYER,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	BulletSpawner bs;
@@ -467,7 +467,7 @@ Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui, bool is_active, f
 	key_ani.full_rate_ms = frame_rate;
 	key_ani.is_active = is_active;
 	registry.alwaysplayAni.insert(entity, key_ani);
-	registry.UIUX.emplace(entity);
+	if (is_on_ui) registry.UIUX.emplace(entity); else registry.UIUXWorld.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::KEYS, // TEXTURE_COUNT indicates that no txture is needed
@@ -557,12 +557,12 @@ Entity createHealthUI(RenderSystem* renderer)
 
 	// Setting initial motion values
 	Motion& motion_inv = registry.motions.emplace(entity_inv);
-	motion_inv.position = vec2(0, 0) - window_px_half + vec2(128 * 1.3 + 20, 100);
+	motion_inv.position = vec2(0, 0) - window_px_half + vec2(128 * 1.3 + 110 + 20, 105);
 	motion_inv.scale = vec2({ VP_BB_WIDTH, VP_BB_HEIGHT });
 	registry.UIUX.emplace(entity_inv);
 	registry.renderRequests.insert(
 		entity_inv,
-		{ TEXTURE_ASSET_ID::INVUL_BAR, // TEXTURE_COUNT indicates that no txture is needed
+		{ TEXTURE_ASSET_ID::FOCUS_BAR, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::PLAYER_HB,
 			GEOMETRY_BUFFER_ID::SPRITE });
 	registry.colors.insert(entity_inv, { 1,1,1 });
@@ -628,6 +628,14 @@ std::vector<Entity> createAttributeUI(RenderSystem* renderer)
 		entity_array.push_back(entity);
 	}
 	return entity_array;
+}
+
+Entity createInvisible(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	registry.kinematics.emplace(entity);
+	return entity;
 }
 
 Entity createDummyEnemySpawner(RenderSystem* renderer, vec2 position) {
@@ -807,18 +815,28 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
-Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm) {
+Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm, bool in_world) {
 	auto entity = Entity();
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
-	motion.scale = scale;
-	registry.kinematics.emplace(entity);
+	motion.scale = scale; // Only x is used for scaling both x & y
+	//registry.kinematics.emplace(entity);
 	if (is_perm) {
-		registry.textsPerm.emplace(entity).content = text_content;
+		if (in_world) {
+			registry.textsPermWorld.emplace(entity).content = text_content;
+		}
+		else {
+			registry.textsPerm.emplace(entity).content = text_content;
+		}
 	}
 	else {
-		registry.texts.emplace(entity).content = text_content;
+		if (in_world) {
+			registry.textsWorld.emplace(entity).content = text_content;
+		}
+		else {
+			registry.texts.emplace(entity).content = text_content;
+		}
 	}
 	registry.colors.emplace(entity) = color;
 	return entity;

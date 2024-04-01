@@ -2,15 +2,17 @@
 
 #include <array>
 #include <utility>
+#include <iostream>
+#include <map>
+#include <glm/gtc/type_ptr.hpp>
+#include <sstream>
 
 #include "common.hpp"
 #include "components.hpp"
 #include "tiny_ecs.hpp"
 #include "camera.hpp"
 #include "ui.hpp"
-//#include "world_system.hpp"
-#
-#include <map>
+#include "tiny_ecs_registry.hpp"
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -77,7 +79,7 @@ class RenderSystem {
 			textures_path("CriticalChance.png"),
 			textures_path("CriticalDemage.png"),
 			textures_path("CriticalHitIcon.png"),
-			textures_path("InvulBar.png"),
+			textures_path("FocusBar.png"),
 			textures_path("Coins-Static.png")
 	};
 
@@ -134,7 +136,8 @@ public:
 	// font initialization
 	bool initFont(GLFWwindow* window, const std::string& font_filename, unsigned int font_default_size);
 
-	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
+	// extra parameter in_world specifies whether or not text should be world or screen coordinate
+	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world = false);
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);
@@ -169,12 +172,13 @@ private:
 		"layout(location = 0) in vec4 vertex; // <vec2 pos, vec2 tex>\n"
 		"out vec2 TexCoords; \n"
 		"\n"
-		"uniform mat4 projection; \n"
-		"uniform mat4 transform;\n"
+		"uniform mat3 projection; \n"
+		"uniform mat3 transform;\n"
+		"uniform mat3 view;\n"
 		"\n"
 		"void main()\n"
 		"{\n"
-		"    gl_Position = projection * transform * vec4(vertex.xy, 0.0, 1.0); \n"
+		"    gl_Position = vec4(projection * view * transform * vec3(vertex.xy, 1.0), 1.0); \n"
 		"    TexCoords = vertex.zw; \n"
 		"}\0";
 
@@ -193,6 +197,10 @@ private:
 		"}\0";
 
 	Entity screen_state_entity;
+
+	// Utilities/Helper functions
+	void get_strings_delim(const std::string& input, char delim, std::vector<std::string>& output);
+	void render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world);
 };
 
 bool loadEffectFromFile(

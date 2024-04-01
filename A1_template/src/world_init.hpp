@@ -19,28 +19,26 @@ const float ENEMY_BB_WIDTH = 1.f * 80.f;
 const float ENEMY_BB_HEIGHT = 1.f * 90.f;
 const float HP_BB_WIDTH = 1.3f * 194.f;
 const float HP_BB_HEIGHT = 1.3f * 36.f;
-const float VP_BB_WIDTH = 1.3f * 86.f;
-const float VP_BB_HEIGHT = 1.3f * 21.f;
+const float VP_BB_WIDTH = 1.5f * 218.f;
+const float VP_BB_HEIGHT = 1.5f * 16.f;
 const float HEALTH_WIDTH = 0.3f * 128.f;
 const float HEALTH_HEIGHT = 0.3f * 80.f;
 const float BOSS_HEALTH_BAR_WIDTH = 0.6f * 931.f;
 const float BOSS_HEALTH_BAR_HEIGHT = 0.6f * 116.f /*232.f*/;
 
 // the bullet, takes into account entity's speed and position
-
 Entity createBullet(RenderSystem * renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern * bullet_pattern = nullptr);
 Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet);
 
-Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm);
+Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm, bool in_world = false);
 
 Entity createCriHit(RenderSystem* renderer, vec2 pos);
 std::vector<Entity> createAttributeUI(RenderSystem* renderer);
 Entity createHealthUI(RenderSystem*);
 Entity createHealth(RenderSystem* renderer, vec2 position);
 Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss);
-
+// ui key
 Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true, bool is_active = true, float frame_rate = 500.f);
-
 // focus mode dot
 Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);
 // the player
@@ -68,6 +66,8 @@ Entity createBoss(RenderSystem* renderer, vec2 position);
 // dummy enemy for tutorial
 Entity createDummyEnemy(RenderSystem* renderer, vec2 position);
 Entity createDummyEnemySpawner(RenderSystem* renderer, vec2 position);
+// invisible entity with only position
+Entity createInvisible(RenderSystem* renderer, vec2 position);
 // Non interactable tile
 std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 // Interactable Tile

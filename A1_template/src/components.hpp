@@ -14,6 +14,10 @@ struct UIUX {
 
 };
 
+struct UIUXWorld {
+
+};
+
 struct EnemyBullet
 {
 	int damage = 1;
@@ -383,6 +387,9 @@ extern Debug debugging;
 struct FocusMode {
 	bool in_focus_mode = 0;
 	float speed_constant = 1.0f;
+	// limit usage of focus mode through time
+	float counter_ms = 10000;
+	float max_counter_ms = 10000; // 10 seconds
 };
 extern FocusMode focus_mode;
 
@@ -424,7 +431,7 @@ struct AiTimer {
 // A timer that will be associated to dying chicken
 struct HitTimer
 {
-	float counter_ms = 50;
+	float counter_ms = 80;
 };
 
 struct DeathTimer
@@ -469,6 +476,14 @@ struct RenderText {
 };
 
 struct RenderTextPermanent {
+	std::string content;
+};
+
+struct RenderTextWorld {
+	std::string content;
+};
+
+struct RenderTextPermanentWorld {
 	std::string content;
 };
 
@@ -570,8 +585,8 @@ enum class TEXTURE_ASSET_ID {
 	CRTCHANCE = ATTACKSPEED + 1,
 	CRTDMG = CRTCHANCE + 1,
 	CRTHITICON = CRTDMG + 1,
-	INVUL_BAR = CRTHITICON + 1,
-	COIN_STATIC = INVUL_BAR + 1,
+	FOCUS_BAR = CRTHITICON + 1,
+	COIN_STATIC = FOCUS_BAR + 1,
 	TEXTURE_COUNT = COIN_STATIC + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

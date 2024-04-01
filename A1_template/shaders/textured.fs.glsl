@@ -23,5 +23,10 @@ void main()
     vec2 constrainedTexcoord = vec2(texcoord.x * scale.x + offsetX, texcoord.y * scale.y + offsetY);
 
     // Sample the texture with constrained coordinates
-    color = vec4(fcolor, 1.0) * texture(sampler0, constrainedTexcoord);
+    if (fcolor.x < 0.0 && fcolor.y < 0.0 && fcolor.z < 0.0) {
+        // white color
+        color = vec4(1.0, 1.0, 1.0, texture(sampler0, constrainedTexcoord).a);
+    } else {
+        color = vec4(fcolor, 1.0) * texture(sampler0, constrainedTexcoord);
+    }
 }

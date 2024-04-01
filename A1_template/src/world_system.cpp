@@ -154,31 +154,36 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Updating window title with points
 	std::stringstream title_ss;
-	title_ss << "Points: " << points;
+	//title_ss << "Points: " << points;
+	title_ss << "Touhou: Twilight Dungeon";
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
 		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
+	// Remove texts in ui and world that are not permanent
 	while (registry.texts.entities.size() > 0)
+		registry.remove_all_components_of(registry.texts.entities.back());	
+	while (registry.textsWorld.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
 
-	createText({ 1150,10 }, { 1, 1 }, std::to_string(combo_meter), { 0, 1, 0 }, false);
+	// Create combo meter ui
+	createText({ window_width_px / 2.5f , window_height_px / 2.1f }, { 1, 1 }, std::to_string(combo_meter), { 0, 1, 0 }, false);
 
-	// Removing out of screen entities
-	auto& motions_registry = registry.motions;
+	// Create on screen player attributes ui
 	HP& player_hp = registry.hps.get(player);
-	createText({ 128 * 1.3 + 70 - 4, window_height_px - 77 }, { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
+	//createText({ 128 * 1.3 + 70 - 4, window_height_px - 77 }, { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
+	createText(-window_px_half + vec2(230, 77), { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
 	Player& player_att = registry.players.get(player);
 	std::string fire_rate = std::to_string(1/player_att.fire_rate);
 	std::string critical_hit = std::to_string(player_att.critical_hit*100);
 	std::string critical_dmg = std::to_string(player_att.critical_demage*100);
-	createText({ 70, window_height_px - 160 }, { 1,1 }, std::to_string(player_att.coin_amount), vec3(0, 0, 0), false);
-	createText({ 70, window_height_px - 210 }, { 1,1 }, std::to_string(player_att.bullet_damage), vec3(0, 0, 0), false);
-	createText({ 70, window_height_px - 260 }, { 1,1 }, fire_rate.substr(0, fire_rate.find(".")+3), vec3(0, 0, 0), false);
-	createText({ 70, window_height_px - 310 }, { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(0, 0, 0), false);
-	createText({ 70, window_height_px - 360 }, { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(0, 0, 0), false);
+	createText(-window_px_half + vec2(70, 160), { 1,1 }, std::to_string(player_att.coin_amount), vec3(0, 0, 0), false);
+	createText(-window_px_half + vec2(70, 210), { 1,1 }, std::to_string(player_att.bullet_damage), vec3(0, 0, 0), false);
+	createText(-window_px_half + vec2(70, 260), { 1,1 }, fire_rate.substr(0, fire_rate.find(".")+3), vec3(0, 0, 0), false);
+	createText(-window_px_half + vec2(70, 310), { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(0, 0, 0), false);
+	createText(-window_px_half + vec2(70, 360), { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(0, 0, 0), false);
 
 	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
 	// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
@@ -203,6 +208,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Motion& motion = registry.motions.get(entity);
 		vec2 padding = { 0, -60 };
 		motion.position = vec2(0, window_px_half.y) + padding;
+	}
+
+	// Focus mode ui
+	if (focus_mode.in_focus_mode) {
+		float counter_ms_temp = focus_mode.counter_ms - elapsed_ms_since_last_update;
+		focus_mode.counter_ms = counter_ms_temp <= 0.f ? 0.f : counter_ms_temp;
+		if (focus_mode.counter_ms <= 0.f) {
+			// disable focus mode
+			focus_mode.speed_constant = 1.0f;
+			while (registry.focusdots.entities.size() > 0)
+				registry.remove_all_components_of(registry.focusdots.entities.back());
+			pressed[GLFW_KEY_LEFT_SHIFT] = false;
+			focus_mode.in_focus_mode = false;
+		}
+	}
+	else if (focus_mode.counter_ms + elapsed_ms_since_last_update < focus_mode.max_counter_ms) {
+		focus_mode.counter_ms = min(focus_mode.counter_ms + elapsed_ms_since_last_update, focus_mode.max_counter_ms);
 	}
 
 	// Tutorial dummy spawner
@@ -385,6 +407,7 @@ void WorldSystem::restart_game() {
 	combo_meter = 1;
 	focus_mode.in_focus_mode = false;
 	focus_mode.speed_constant = 1.0f;
+	focus_mode.counter_ms = focus_mode.max_counter_ms;
 	ai->restart_flow_field_map();
 
 	renderer->camera.setPosition({ 0, 0 });
@@ -410,7 +433,7 @@ void WorldSystem::handle_collisions() {
 						if (!registry.realDeathTimers.has(entity_other)) {
 							registry.hitTimers.emplace(entity);
 							Mix_PlayChannel(-1, audio->damage_sound, 0);
-							registry.colors.get(player) = vec3(1.0f, 0.0f, 0.0f);
+							registry.colors.get(player) = vec3(-1.f);
 							HP& player_hp = registry.hps.get(player);
 							player_hp.curr_hp -= registry.deadlys.get(entity_other).damage;
 							if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
@@ -441,7 +464,7 @@ void WorldSystem::handle_collisions() {
 					if (!registry.invulnerableTimers.has(entity)) {
 						registry.hitTimers.emplace(entity);
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
-						registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
+						registry.colors.get(entity) = vec3(-1.f);
 						combo_meter = 1;
 						HP& player_hp = registry.hps.get(player);
 						player_hp.curr_hp -= registry.enemyBullets.get(entity_other).damage;
@@ -492,7 +515,7 @@ void WorldSystem::handle_collisions() {
 				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
 					// enemy turn red and decrease hp, bullet disappear
 					registry.hitTimers.emplace(entity);
-					registry.colors.get(entity) = vec3(1.0f, 0.0f, 0.0f);
+					registry.colors.get(entity) = vec3(-1.f);
 					Motion& deadly_motion = registry.motions.get(entity);
 					Mix_PlayChannel(-1, audio->hit_spell, 0);
 
@@ -805,11 +828,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			Motion& motion = registry.motions.get(player);
 			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
 			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
-			ComponentContainer<BulletSpawner>& fire_rate_container = registry.bulletSpawners;
-			int fire_rate_container_size = fire_rate_container.size();
-			for (int i = 0; i < fire_rate_container_size; ++i) {
-				fire_rate_container.components[i].fire_rate *= 2.f;
-			}
 			pressed[key] = true;
 		}
 		else if (key == GLFW_KEY_LEFT_SHIFT &&
@@ -818,11 +836,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			focus_mode.in_focus_mode) {
 			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
 			focus_mode.speed_constant = 1.0f;
-			ComponentContainer<BulletSpawner>& fire_rate_container = registry.bulletSpawners;
-			int fire_rate_container_size = fire_rate_container.size();
-			for (int i = 0; i < fire_rate_container_size; ++i) {
-				fire_rate_container.components[i].fire_rate /= 2.f;
-			}
 			while (registry.focusdots.entities.size() > 0)
 				registry.remove_all_components_of(registry.focusdots.entities.back());
 			pressed[key] = false;
@@ -859,8 +872,6 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 
 void WorldSystem::on_scroll(vec2 scroll_offset) {
 	renderer->camera.addZoom(scroll_offset.y);
-
-	(vec2)scroll_offset;
 }
 
 void WorldSystem::update_focus_dot() {
