@@ -387,6 +387,8 @@ void RenderSystem::draw()
 	}
 	drawBulletsInstanced(enemy_bullets, projection_2D, view_2D);
 
+	drawTilesInstanced(enemy_bullets, projection_2D, view_2D);
+
 	// this will only have at most one focusdots
 	// it will always be in camera view, and has motion
 	for (Entity entity : registry.focusdots.entities) {
@@ -652,17 +654,169 @@ void RenderSystem::drawBulletsInstanced(const std::vector<Entity>& entities, con
 	glBufferData(GL_ARRAY_BUFFER, sizeof(mat3) * amount, instance_transforms, GL_DYNAMIC_DRAW);
 	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, 0, amount);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	gl_has_errors();
 	delete[] instance_transforms;
 }
 
-vec2 RenderSystem::get_texcoord_sandstone(TILE_NAME_SANDSTONE tile_name) {
-	vec2 texcoord = { 0, 0 };
+vec4 RenderSystem::get_spriteloc_sandstone(TILE_NAME_SANDSTONE tile_name) {
+	// Adapted from: https://gamedev.stackexchange.com/a/86356
+	// spriteloc = { offset_x, offset_y, sprite_width, sprite_height }
+	// Note:
+	// spriteloc will be scaled by (x,y)=(sprite_width/atlas_width, sprite_height/atlas_height)
+	// e.g. (1.f/2.f, 1.f/3.f) is the same as (32.f/64.f, 32.f/96.f) assuming each texture is 32x32. Also works for any texture size in atlas
+	// then shifted by (x,y)=(offset_x/atlas_width, offset_y/atlas_height), works the same with above example
+	const float ATLAS_WIDTH = 9.f;
+	const float ATLAS_HEIGHT = 7.f;
+	const vec4 DIVISOR = vec4(ATLAS_WIDTH, ATLAS_HEIGHT, ATLAS_WIDTH, ATLAS_HEIGHT);
+	vec4 spriteloc = { -1.f, -1.f, -1.f, -1.f };
+	// switch is faster than unordered_map in this case, no need to hash
 	switch (tile_name) {
-	
+	case TILE_NAME_SANDSTONE::AZTEC_FLOOR:
+		spriteloc = { 1.f, 0.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::ROCK_FLOOR:
+		spriteloc = { 2.f, 0.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::BONE_FLOOR:
+		spriteloc = { 3.f, 0.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::CHOCOLATE_FLOOR:
+		spriteloc = { 0.f, 1.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::BRICK_FLOOR:
+		spriteloc = { 1.f, 1.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::CANDY_FLOOR:
+		spriteloc = { 2.f, 1.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::CHECKER_FLOOR:
+		spriteloc = { 3.f, 1.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::LEFT_WALL:
+		spriteloc = { 0.f, 2.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::TOP_WALL:
+		spriteloc = { 1.f, 2.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::RIGHT_WALL:
+		spriteloc = { 2.f, 2.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_RIGHT:
+		spriteloc = { 0.f, 5.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_LEFT:
+		spriteloc = { 2.f, 5.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::BOTTOM_LEFT:
+		spriteloc = { 0.f, 6.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::BOTTOM_WALL:
+		spriteloc = { 1.f, 6.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::BOTTOM_RIGHT:
+		spriteloc = { 2.f, 6.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_RIGHT_LIGHT:
+		spriteloc = { 0.f, 3.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_LEFT_LIGHT:
+		spriteloc = { 2.f, 3.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::BOTTOM_LEFT_LIGHT:
+		spriteloc = { 0.f, 4.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME_SANDSTONE::BOTTOM_RIGHT_LIGHT:
+		spriteloc = { 2.f, 4.f, 1.0, 1.0 };
+		break;
 	default:
 		break;
 	}
-	return texcoord;
+	//assert(spriteloc.x != -1.f && spriteloc.y != -1.f && spriteloc.z != -1.f && spriteloc.w != -1.f && "Tile name not found");
+	return spriteloc / DIVISOR;
+}
+
+void RenderSystem::set_tiles_instance_buffer() {
+
+	//mat3* instance_transforms = new mat3[1];
+	//for (int i = 0; i < 1; ++i) {
+	//	//Motion& motion = registry.motions.get(entities[i]);
+	//	Transform transform;
+	//	//transform.translate(motion.position);
+	//	//transform.rotate(motion.angle);
+	//	//transform.scale(motion.scale);
+	//	instance_transforms[i] = transform.mat;
+	//}
+
+	//vec2* tile_texcoords = new vec2[1];
+	//tile_texcoords[0] = get_spriteloc_sandstone(TILE_NAME_SANDSTONE::AZTEC_FLOOR);
+	// 
+	//// for testing
+	//Transform t;
+	//coord world_coord = convert_grid_to_world({ 0, 0 });
+	//t.translate(world_coord);
+	//t.scale(vec2(world_tile_size, world_tile_size));
+
+	//TileInstanceData* data = new TileInstanceData[1];
+	//data[0] = {
+	//	get_spriteloc_sandstone(TILE_NAME_SANDSTONE::AZTEC_FLOOR),
+	//	t.mat
+	//};
+
+	glUseProgram(tile_instance_program);
+	glBindVertexArray(tiles_instance_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, tiles_instance_VBO);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(TileInstanceData) * 1, data, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(TileInstanceData) * registry.tileInstanceData.size(), registry.tileInstanceData.components.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
+
+void RenderSystem::drawTilesInstanced(const std::vector<Entity>& entities, const glm::mat3& projection, const glm::mat3& view)
+{
+	const GLuint ibo = index_buffers[(GLuint)GEOMETRY_BUFFER_ID::SPRITE];
+
+	// Setting vertex and index buffers
+	glUseProgram(tile_instance_program);
+	glBindVertexArray(tiles_instance_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, tiles_instance_VBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+
+	// Enabling and binding texture to slot 0
+	glActiveTexture(GL_TEXTURE0);
+	gl_has_errors();
+
+	GLuint texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::TILES_ATLAS_SANDSTONE];
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+	gl_has_errors();
+
+	// Getting uniform locations for glUniform* calls
+	GLint color_uloc = glGetUniformLocation(tile_instance_program, "fcolor");
+	//const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
+	const vec3 color = vec3(1);
+	glUniform3fv(color_uloc, 1, (float*)&color);
+	gl_has_errors();
+
+	// Get number of indices from index buffer, which has elements uint16_t
+	GLint size = 0;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	gl_has_errors();
+	GLsizei num_indices = size / sizeof(uint16_t);
+
+	GLint currProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&projection);
+	GLuint view_loc = glGetUniformLocation(currProgram, "view");
+	glUniformMatrix3fv(view_loc, 1, GL_FALSE, (float*)&view);
+	gl_has_errors();
+
+	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, 0, registry.tileInstanceData.size());
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	gl_has_errors();
 }

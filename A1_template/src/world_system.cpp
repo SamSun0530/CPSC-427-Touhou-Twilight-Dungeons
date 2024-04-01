@@ -26,7 +26,7 @@ std::vector<std::vector<int>> WorldSystem::world_map = std::vector<std::vector<i
 WorldSystem::WorldSystem()
 	: points(0)
 	, next_enemy_spawn(0.f)
-	, display_instruction(true){
+	, display_instruction(true) {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -164,7 +164,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Remove texts in ui and world that are not permanent
 	while (registry.texts.entities.size() > 0)
-		registry.remove_all_components_of(registry.texts.entities.back());	
+		registry.remove_all_components_of(registry.texts.entities.back());
 	while (registry.textsWorld.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
 
@@ -176,12 +176,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	//createText({ 128 * 1.3 + 70 - 4, window_height_px - 77 }, { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
 	createText(-window_px_half + vec2(230, 77), { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
 	Player& player_att = registry.players.get(player);
-	std::string fire_rate = std::to_string(1/player_att.fire_rate);
-	std::string critical_hit = std::to_string(player_att.critical_hit*100);
-	std::string critical_dmg = std::to_string(player_att.critical_demage*100);
+	std::string fire_rate = std::to_string(1 / player_att.fire_rate);
+	std::string critical_hit = std::to_string(player_att.critical_hit * 100);
+	std::string critical_dmg = std::to_string(player_att.critical_demage * 100);
 	createText(-window_px_half + vec2(70, 160), { 1,1 }, std::to_string(player_att.coin_amount), vec3(0, 0, 0), false);
 	createText(-window_px_half + vec2(70, 210), { 1,1 }, std::to_string(player_att.bullet_damage), vec3(0, 0, 0), false);
-	createText(-window_px_half + vec2(70, 260), { 1,1 }, fire_rate.substr(0, fire_rate.find(".")+3), vec3(0, 0, 0), false);
+	createText(-window_px_half + vec2(70, 260), { 1,1 }, fire_rate.substr(0, fire_rate.find(".") + 3), vec3(0, 0, 0), false);
 	createText(-window_px_half + vec2(70, 310), { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(0, 0, 0), false);
 	createText(-window_px_half + vec2(70, 360), { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(0, 0, 0), false);
 
@@ -390,10 +390,12 @@ void WorldSystem::restart_game() {
 		//map->generateBasicMap();
 		//map->spawnEnemies();
 		//map->generateBossRoom();
-		map->generateRandomMap();
+		//map->generateRandomMap();
 		//map->spawnEnemies();
 		//map->spawnEnemiesInRoom();
-		player = map->spawnPlayerInRoom(0);
+		//player = map->spawnPlayerInRoom(0);
+		player = map->spawnPlayer(world_center);
+		//renderer->set_tiles_instance_buffer();
 	}
 	world_map = map->world_map;
 
@@ -451,7 +453,7 @@ void WorldSystem::handle_collisions() {
 								registry.kinematics.get(entity_other).direction = { 0,0 };
 							}
 						}
-						
+
 						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity).invulnerable_counter_ms = registry.players.components[0].invulnerability_time_ms;
 					}
@@ -492,16 +494,16 @@ void WorldSystem::handle_collisions() {
 				}
 			}
 			else if (registry.maxhpIncreases.has(entity_other)) {
-				
+
 				registry.hps.get(entity).max_hp += registry.maxhpIncreases.get(entity_other).max_health_increase;
 				if (registry.hps.get(entity).max_hp > 12) {
 					registry.hps.get(entity).max_hp = 12;
 				}
 				registry.hps.get(entity).curr_hp += registry.maxhpIncreases.get(entity_other).max_health_increase;
 				registry.remove_all_components_of(entity_other);
-				
+
 			}
-			else if (registry.attackUps.has(entity_other)) {	
+			else if (registry.attackUps.has(entity_other)) {
 				registry.players.get(entity).bullet_damage += 1;
 				registry.remove_all_components_of(entity_other);
 			}
@@ -525,8 +527,8 @@ void WorldSystem::handle_collisions() {
 					double number = distrib(gen);
 					Player& player_att = registry.players.get(player);
 					if (number < player_att.critical_hit) {
-						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage*player_att.critical_demage;
-						registry.realDeathTimers.emplace(createCriHit(renderer, deadly_motion.position-vec2(30,0))).death_counter_ms = 300;
+						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage * player_att.critical_demage;
+						registry.realDeathTimers.emplace(createCriHit(renderer, deadly_motion.position - vec2(30, 0))).death_counter_ms = 300;
 					}
 					else {
 						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;

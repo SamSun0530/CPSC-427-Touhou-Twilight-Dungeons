@@ -80,7 +80,8 @@ class RenderSystem {
 			textures_path("CriticalDemage.png"),
 			textures_path("CriticalHitIcon.png"),
 			textures_path("FocusBar.png"),
-			textures_path("Coins-Static.png")
+			textures_path("Coins-Static.png"),
+			textures_path("TileAtlasSandstone.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -138,10 +139,15 @@ public:
 
 	// extra parameter in_world specifies whether or not text should be world or screen coordinate
 	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world = false);
+
+	// tiles instancing
+	// called when generating new map
+	void set_tiles_instance_buffer();
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);
 	void drawBulletsInstanced(const std::vector<Entity>& entities, const glm::mat3& projection, const glm::mat3& view);
+	void drawTilesInstanced(const std::vector<Entity>& entities, const glm::mat3& projection, const glm::mat3& view);
 	void drawToScreen();
 
 	// Window handle
@@ -157,6 +163,12 @@ private:
 	GLuint enemy_bullet_instance_program;
 	GLuint enemy_bullet_instance_VAO;
 	GLuint enemy_bullet_instance_VBO;
+
+	// Tile instancing
+	void initializeTileInstance();
+	GLuint tile_instance_program;
+	GLuint tiles_instance_VAO;
+	GLuint tiles_instance_VBO;
 
 	// Fonts
 	std::map<char, Character> m_ftCharacters;
@@ -201,7 +213,7 @@ private:
 	// Utilities/Helper functions
 	void get_strings_delim(const std::string& input, char delim, std::vector<std::string>& output);
 	void render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world);
-	vec2 get_texcoord_sandstone(TILE_NAME_SANDSTONE tile_name);
+	vec4 get_spriteloc_sandstone(TILE_NAME_SANDSTONE tile_name);
 };
 
 bool loadEffectFromFile(

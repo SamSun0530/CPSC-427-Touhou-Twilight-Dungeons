@@ -463,7 +463,7 @@ std::vector<TEXTURE_ASSET_ID> MapSystem::getTileAssetID(int row, int col, std::v
 
 void MapSystem::addTile(int row, int col, std::vector<TEXTURE_ASSET_ID>& textureIDs, std::vector<std::vector<int>>& map) {
 
-	coord world_coord = convert_grid_to_world({ col, row });
+	coord world_coord = convert_grid_to_world({ col, row }); // col, row?
 
 	// Gets the proper texture id list given the position
 	switch (map[row][col])
