@@ -208,10 +208,10 @@ void MapSystem::generateTutorialMap() {
 	createText(convert_grid_to_world({ 41.f, 17.5f }), vec3(1.f), "Toggle camera offset", vec3(1, 1, 1), true, true);
 
 	createKey(convert_grid_to_world({ 48, 16 }), vec2(120), KEYS::F, false, true);
-	createText(convert_grid_to_world({ 47.f, 17.5f }), vec3(1.f), "Show fps" , vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 47.f, 17.5f }), vec3(1.f), "Show fps", vec3(1, 1, 1), true, true);
 
 	createKey(convert_grid_to_world({ 59, 16 }), vec2(120), KEYS::R, false, true);
-	createText(convert_grid_to_world({ 57.f, 17.5f }), vec3(1.f), "Return to main world" , vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 57.f, 17.5f }), vec3(1.f), "Return to main world", vec3(1, 1, 1), true, true);
 
 	// Add grid to map
 	for (int y = 0; y < grid.size(); ++y) {
@@ -219,7 +219,8 @@ void MapSystem::generateTutorialMap() {
 			world_map[y + 1][x + 1] = grid[y][x];
 		}
 	}
-	generateAllEntityTiles(world_map);
+	//generateAllEntityTiles(world_map);
+	generate_all_tiles(world_map);
 }
 
 Room& MapSystem::generateBossRoom() {
@@ -256,7 +257,6 @@ Room& MapSystem::generateBossRoom() {
 
 	rooms.push_back(room);
 	addRoomToMap(room, world_map);
-	//generateAllEntityTiles(world_map);
 	return room;
 }
 
@@ -300,7 +300,8 @@ void MapSystem::generateRandomMap() {
 	bsptree.add_corridors_to_map(bsptree.corridors, world_map);
 	bsptree.set_map_walls(world_map);
 
-	generateAllEntityTiles(world_map);
+	//generateAllEntityTiles(world_map);
+	generate_all_tiles(world_map);
 }
 
 Room generateBasicRoom(int x, int y) {
@@ -461,9 +462,216 @@ std::vector<TEXTURE_ASSET_ID> MapSystem::getTileAssetID(int row, int col, std::v
 	return textures;
 }
 
+TILE_NAME_SANDSTONE MapSystem::get_tile_name_sandstone(int x, int y, std::vector<std::vector<int>>& map) {
+	int type = map[y][x];
+	// Specify int casted enums
+	const int E = (int)TILE_TYPE::EMPTY;
+	const int W = (int)TILE_TYPE::WALL;
+	const int F = (int)TILE_TYPE::FLOOR;
+
+	if (type == E) return TILE_NAME_SANDSTONE::NONE;
+	else if (type == F) return TILE_NAME_SANDSTONE::AZTEC_FLOOR;
+
+	// Specify neighbors for hardcoded checks
+	const int U = map[y - 1][x];	// Up
+	const int D = map[y + 1][x];	// Down
+	const int L = map[y][x - 1];	// Left
+	const int R = map[y][x + 1];	// Right
+	const int UL = map[y - 1][x - 1];	// Up left
+	const int UR = map[y - 1][x + 1];	// Up right
+	const int DL = map[y + 1][x - 1];	// Down left
+	const int DR = map[y + 1][x + 1];	// Down right
+
+	TILE_NAME_SANDSTONE result = TILE_NAME_SANDSTONE::NONE;
+
+	// To get precise results, we must cover all cases
+	// Based on "Building a dungeon phase00.png" from https://kartoy.itch.io/32x32sandstone-dungeon-and-character-pack
+	// >>>>> Left wall
+	if (UL == E && U == E && UR == E && L == E && DL == E && D == W && DR == F && R == W) {
+		// 2, top
+		result = TILE_NAME_SANDSTONE::LEFT_WALL;
+	}
+	else if (UL == E && U == W && UR == W && L == E && DL == W && D == W && DR == F && R == F) {
+		// 2, bottom
+		result = TILE_NAME_SANDSTONE::LEFT_WALL;
+	}
+	else if (UL == E && U == W && UR == F && L == E && DL == W && D == W && DR == F && R == F) {
+		// 2, bottom, but no wall in UR
+		result = TILE_NAME_SANDSTONE::LEFT_WALL;
+	}
+	else if (UL == E && U == W && UR == F && L == E && DL == E && D == W && DR == F && R == F) {
+		// General case, up and bottom are left walls
+		result = TILE_NAME_SANDSTONE::LEFT_WALL;
+	}
+	else if (UL == W && U == W && UR == F && L == E && DL == E && D == W && DR == F && R == F) {
+		// Between 5 and 7
+		result = TILE_NAME_SANDSTONE::LEFT_WALL;
+	}
+	else if (UL == E && U == W && UR == W && L == E && DL == E && D == W && DR == F && R == F) {
+		// General case, wall on top right
+		result = TILE_NAME_SANDSTONE::LEFT_WALL;
+	}
+	else if (UL == E && U == W && UR == F && L == E && DL == E && D == W && DR == W && R == F) {
+		// General case, wall on bottom right
+		result = TILE_NAME_SANDSTONE::LEFT_WALL;
+	}
+	else if (UL == W && U == W && UR == F && L == E && DL == W && D == W && DR == F && R == F) {
+		// General case, wall on top and down left
+		result = TILE_NAME_SANDSTONE::LEFT_WALL;
+	}
+	// >>>>> Right wall
+	else if (UL == E && U == E && UR == E && L == W && DL == F && D == W && DR == E && R == E) {
+		// opposite of 2, top
+		result = TILE_NAME_SANDSTONE::RIGHT_WALL;
+	}
+	else if (UL == W && U == W && UR == E && L == F && DL == F && D == W && DR == W && R == E) {
+		// opposite of 2, bottom
+		result = TILE_NAME_SANDSTONE::RIGHT_WALL;
+	}
+	else if (UL == F && U == W && UR == E && L == F && DL == F && D == W && DR == W && R == E) {
+		// opposite of 2, bottom, but no wall in UL
+		result = TILE_NAME_SANDSTONE::RIGHT_WALL;
+	}
+	else if (UL == F && U == W && UR == E && L == F && DL == F && D == W && DR == E && R == E) {
+		// General case, up and bottom are right walls
+		result = TILE_NAME_SANDSTONE::RIGHT_WALL;
+	}
+	else if (UL == F && U == W && UR == W && L == F && DL == F && D == W && DR == E && R == E) {
+		// Between 6 and 9
+		result = TILE_NAME_SANDSTONE::RIGHT_WALL;
+	}
+	else if (UL == W && U == W && UR == E && L == F && DL == F && D == W && DR == E && R == E) {
+		// General case, wall on top left
+		result = TILE_NAME_SANDSTONE::RIGHT_WALL;
+	}
+	else if (UL == F && U == W && UR == E && L == F && DL == W && D == W && DR == E && R == E) {
+		// General case, wall on bottom left
+		result = TILE_NAME_SANDSTONE::RIGHT_WALL;
+	}
+	else if (UL == F && U == W && UR == W && L == F && DL == F && D == W && DR == W && R == E) {
+		// General case, wall on top and down right
+		result = TILE_NAME_SANDSTONE::RIGHT_WALL;
+	}
+	// >>>>> Top wall
+	else if (UL == E && U == E && UR == E && L == W && DL == W && D == F && DR == F && R == W) {
+		// 3, left
+		result = TILE_NAME_SANDSTONE::TOP_WALL;
+	}
+	else if (UL == E && U == E && UR == E && L == W && DL == F && D == F && DR == W && R == W) {
+		// opposite of 3, right
+		result = TILE_NAME_SANDSTONE::TOP_WALL;
+	}
+	else if (UL == E && U == E && UR == W && L == W && DL == F && D == F && DR == F && R == W) {
+		// 3, 1 cell from right
+		result = TILE_NAME_SANDSTONE::TOP_WALL;
+	}
+	else if (UL == W && U == E && UR == E && L == W && DL == F && D == F && DR == F && R == W) {
+		// opposite of 3, 1 cell from left
+		result = TILE_NAME_SANDSTONE::TOP_WALL;
+	}
+	else if (UL == E && U == W && UR == F && L == W && DL == F && D == F && DR == F && R == F) {
+		// below 2
+		result = TILE_NAME_SANDSTONE::TOP_WALL;
+	}
+	else if (UL == F && U == W && UR == E && L == F && DL == F && D == F && DR == F && R == W) {
+		// opposite of 2, below
+		result = TILE_NAME_SANDSTONE::TOP_WALL;
+	}
+	else if (UL == E && U == E && UR == E && L == W && DL == F && D == F && DR == F && R == W) {
+		// General case, left and right are top walls
+		result = TILE_NAME_SANDSTONE::TOP_WALL;
+	}
+	// >>>>> Bottom wall
+	else if (UL == F && U == F && UR == F && L == W && DL == W && D == E && DR == E && R == W) {
+		// 8, left
+		result = TILE_NAME_SANDSTONE::BOTTOM_WALL;
+	}
+	else if (UL == F && U == F && UR == W && L == W && DL == E && D == E && DR == E && R == W) {
+		// 8, right
+		result = TILE_NAME_SANDSTONE::BOTTOM_WALL;
+	}
+	else if (UL == F && U == F && UR == W && L == W && DL == W && D == E && DR == E && R == W) {
+		// 8, right, but down left is a wall
+		result = TILE_NAME_SANDSTONE::BOTTOM_WALL;
+	}
+	else if (UL == F && U == F && UR == F && L == W && DL == E && D == E && DR == W && R == W) {
+		// opposite of 8, right
+		result = TILE_NAME_SANDSTONE::BOTTOM_WALL;
+	}
+	else if (UL == W && U == F && UR == F && L == W && DL == E && D == E && DR == E && R == W) {
+		// opposite of 8, left
+		result = TILE_NAME_SANDSTONE::BOTTOM_WALL;
+	}
+	else if (UL == W && U == F && UR == F && L == W && DL == E && D == E && DR == W && R == W) {
+		// opposite of 8, left, but down right is a wall
+		result = TILE_NAME_SANDSTONE::BOTTOM_WALL;
+	}
+	else if (UL == F && U == F && UR == F && L == W && DL == E && D == E && DR == E && R == W) {
+		// General case, left and right are bottom walls
+		result = TILE_NAME_SANDSTONE::BOTTOM_WALL;
+	}
+	// >>>>> Corridor bottom right (texcoord 0,5 or #5)
+	else if (UL == F && U == F && UR == F && L == W && DL == E && D == W && DR == F && R == F) {
+		result = TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_RIGHT;
+	}
+	else if (UL == W && U == F && UR == F && L == W && DL == E && D == W && DR == F && R == F) {
+		// up left is a wall
+		result = TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_RIGHT;
+	}
+	// >>>>> Corridor bottom left (texcoord 2,5 or #6)
+	else if (UL == F && U == F && UR == F && L == F && DL == F && D == W && DR == E && R == W) {
+		result = TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_LEFT;
+	}
+	else if (UL == F && U == F && UR == W && L == F && DL == F && D == W && DR == E && R == W) {
+		// Up right is a wall
+		result = TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_LEFT;
+	}
+	// >>>>> Bottom left (texcoord 0,6 or #7)
+	else if (UL == E && U == W && UR == F && L == E && DL == E && D == E && DR == E && R == W) {
+		result = TILE_NAME_SANDSTONE::BOTTOM_LEFT;
+	}
+	else if (UL == E && U == W && UR == F && L == E && DL == E && D == E && DR == W && R == W) {
+		// Down right is a wall
+		result = TILE_NAME_SANDSTONE::BOTTOM_LEFT;
+	}
+	// >>>>> Bottom right (texcoord 2,6 or #9)
+	else if (UL == F && U == W && UR == E && L == W && DL == E && D == E && DR == E && R == E) {
+		result = TILE_NAME_SANDSTONE::BOTTOM_RIGHT;
+	}
+	else if (UL == F && U == W && UR == E && L == W && DL == W && D == E && DR == E && R == E) {
+		// Down left is a wall
+		result = TILE_NAME_SANDSTONE::BOTTOM_RIGHT;
+	}
+
+	// TODO: Add more
+
+	return result;
+}
+
+void MapSystem::generate_all_tiles(std::vector<std::vector<int>>& map) {
+	int map_height = map.size();
+	int map_width = map[0].size();
+	assert(map_height > 0 && map_width > 0 && "Map should have at least one cell");
+	// Create padding of empty tile in the edges by copy
+	auto map_copy = std::vector<std::vector<int>>(map_height + 2, std::vector<int>(map_width + 2, 0));
+	for (int y = 0; y < map_height; ++y) {
+		for (int x = 0; x < map_width; ++x) {
+			map_copy[y + 1][x + 1] = map[y][x];
+		}
+	}
+
+	for (int y = 0; y < map_height; ++y) {
+		for (int x = 0; x < map_width; ++x) {
+			TILE_NAME_SANDSTONE result = get_tile_name_sandstone(x + 1, y + 1, map_copy);
+			if (result == TILE_NAME_SANDSTONE::NONE) continue;
+			createTile(renderer, convert_grid_to_world({ x, y }), result, map[y][x] == (int)TILE_TYPE::WALL);
+		}
+	}
+}
+
 void MapSystem::addTile(int row, int col, std::vector<TEXTURE_ASSET_ID>& textureIDs, std::vector<std::vector<int>>& map) {
 
-	coord world_coord = convert_grid_to_world({ col, row }); // col, row?
+	coord world_coord = convert_grid_to_world({ col, row });
 
 	// Gets the proper texture id list given the position
 	switch (map[row][col])

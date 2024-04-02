@@ -384,18 +384,19 @@ void WorldSystem::restart_game() {
 
 	if (map_level.level == MapLevel::TUTORIAL) {
 		map->generateTutorialMap();
+		renderer->set_tiles_instance_buffer();
 		player = map->spawnPlayer(world_center);
 	}
 	else {
 		//map->generateBasicMap();
 		//map->spawnEnemies();
 		//map->generateBossRoom();
-		//map->generateRandomMap();
+		map->generateRandomMap();
 		//map->spawnEnemies();
 		//map->spawnEnemiesInRoom();
-		//player = map->spawnPlayerInRoom(0);
-		player = map->spawnPlayer(world_center);
-		//renderer->set_tiles_instance_buffer();
+		player = map->spawnPlayerInRoom(0);
+		//player = map->spawnPlayer(world_center);
+		renderer->set_tiles_instance_buffer();
 	}
 	world_map = map->world_map;
 

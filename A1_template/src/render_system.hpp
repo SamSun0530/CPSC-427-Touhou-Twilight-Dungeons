@@ -143,6 +143,7 @@ public:
 	// tiles instancing
 	// called when generating new map
 	void set_tiles_instance_buffer();
+	vec4 get_spriteloc_sandstone(TILE_NAME_SANDSTONE tile_name);
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);
@@ -213,7 +214,6 @@ private:
 	// Utilities/Helper functions
 	void get_strings_delim(const std::string& input, char delim, std::vector<std::string>& output);
 	void render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world);
-	vec4 get_spriteloc_sandstone(TILE_NAME_SANDSTONE tile_name);
 };
 
 bool loadEffectFromFile(

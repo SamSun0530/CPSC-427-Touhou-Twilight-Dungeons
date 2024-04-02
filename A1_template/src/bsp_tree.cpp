@@ -12,7 +12,9 @@ BSPTree::~BSPTree() { delete root; }
 
 void BSPTree::init(vec2 max_room_size, vec2 world_size) {
 	this->max_room_size = max_room_size;
-	root = new BSPNode(vec2(1, 1), world_size - vec2(1)); // To create a space between world edge and map
+	// No need to create padding yet, that will be handled when generating tiles
+	root = new BSPNode(vec2(0), world_size);
+	//root = new BSPNode(vec2(1), world_size - vec2(1));
 	gen.seed(std::random_device{}());
 }
 
@@ -212,8 +214,8 @@ void BSPTree::set_map_walls(std::vector<std::vector<int>>& map) {
 	};
 
 	const int map_height = map.size();
-	assert(map_height > 0 && "Adding to empty map");
 	const int map_width = map[0].size();
+	assert(map_height > 0 && map_width > 0 && "Adding to empty map");
 
 	// supports edges of the map
 	for (int row = 0; row < map.size(); row++) {

@@ -27,11 +27,16 @@ private:
 	// game systems
 	RenderSystem* renderer;
 
+	// old version
 	void addTile(int x, int y, std::vector<TEXTURE_ASSET_ID>& textureIDs, std::vector<std::vector<int>>& map);
 	void generateAllEntityTiles(std::vector<std::vector<int>>& map);
 	std::vector<TEXTURE_ASSET_ID> getTileAssetID(int row, int col, std::vector<std::vector<int>>& map);
-
 	std::vector<Room> rooms;
+
+	// sandstone tile atlas
+	TILE_NAME_SANDSTONE get_tile_name_sandstone(int x, int y, std::vector<std::vector<int>>& map);
+	void generate_all_tiles(std::vector<std::vector<int>>& map);
+
 
 	// C++ random number generator
 	std::default_random_engine rng;

@@ -589,13 +589,13 @@ Entity createHealthUI(RenderSystem* renderer)
 
 std::vector<Entity> createAttributeUI(RenderSystem* renderer)
 {
-	
+
 	std::vector<Entity> entity_array;
 	auto entity_coin = Entity();
 	Mesh& mesh_coin = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity_coin, &mesh_coin);
 	Motion& motion_coin = registry.motions.emplace(entity_coin);
-	motion_coin.position = vec2(0, 0) - window_px_half + vec2(30, 200-50);
+	motion_coin.position = vec2(0, 0) - window_px_half + vec2(30, 200 - 50);
 	motion_coin.scale = vec2({ 128 * 0.2, 128 * 0.2 });
 	registry.UIUX.emplace(entity_coin);
 	registry.renderRequests.insert(
@@ -658,7 +658,7 @@ Entity createDummyEnemy(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.position = position;
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ ENEMY_BB_WIDTH * 2.f, ENEMY_BB_HEIGHT * 2.f});
+	motion.scale = vec2({ ENEMY_BB_WIDTH * 2.f, ENEMY_BB_HEIGHT * 2.f });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 100.f;
@@ -1123,6 +1123,43 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 	}
 	return entities;
 }
+
+Entity createTile(RenderSystem* renderer, vec2 position, TILE_NAME_SANDSTONE tile_name, bool is_wall) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	//Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	//registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.scale = vec2(world_tile_size, world_tile_size);
+
+	// Create wall or floor entity for physics collision
+	if (is_wall) {
+		registry.walls.emplace(entity);
+		// Set the collision box
+		auto& collidable = registry.collidables.emplace(entity);
+		collidable.size = { motion.scale.x, motion.scale.y };
+		collidable.shift = { 0, 0 };
+	}
+	else {
+		registry.floors.emplace(entity);
+	}
+
+	// Set up instance data
+	Transform t;
+	t.translate(motion.position);
+	t.scale(motion.scale);
+	registry.tileInstanceData.emplace(entity) = {
+		renderer->get_spriteloc_sandstone(tile_name),
+		t.mat
+	};
+
+	return entity;
+}
+
 
 // IMPORTANT: creates pillar using grid coordinates, NOT world coorindates
 // textureIDs[0] == bottom, textureIDs[1] == top

@@ -45,10 +45,10 @@ const int window_width_px = 1280;
 const int window_height_px = 720;
 const vec2 window_px_half = { window_width_px / 2, window_height_px / 2 };
 
-const vec2 WORLD_CENTER_DEFAULT = { 0, 0 };
-const int WORLD_WIDTH_DEFAULT = 1;
-const int WORLD_HEIGHT_DEFAULT = 1;
-const int WORLD_TILE_SIZE_DEFAULT = 64;
+const vec2 WORLD_CENTER_DEFAULT = { 9, 9 };
+const int WORLD_WIDTH_DEFAULT = 60;
+const int WORLD_HEIGHT_DEFAULT = 60;
+const int WORLD_TILE_SIZE_DEFAULT = 8;
 
 
 

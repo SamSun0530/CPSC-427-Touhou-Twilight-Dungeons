@@ -308,6 +308,7 @@ struct Pickupable
 // Tile set names specifically mapped from Sandstone Dungeon texture atlas
 // comments are in (x,y), indexed by 0
 enum class TILE_NAME_SANDSTONE {
+	NONE,
 	AZTEC_FLOOR, // 1,0
 	ROCK_FLOOR, // 2,0
 	BONE_FLOOR, // 3,0

@@ -74,6 +74,8 @@ std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vect
 std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 // Pillar tile
 std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std::vector<TEXTURE_ASSET_ID> textureIDs);
+// Tile for instance rendering
+Entity createTile(RenderSystem* renderer, vec2 position, TILE_NAME_SANDSTONE tile_name, bool is_wall);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
