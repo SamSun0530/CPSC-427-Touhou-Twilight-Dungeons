@@ -311,8 +311,8 @@ void RenderSystem::draw()
 	// Clearing backbuffer
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
-	glClearColor(0.674, 0.847, 1.0, 1.0);
-	//glClearColor(0, 0, 0 , 1.0);
+	//glClearColor(0.674, 0.847, 1.0, 1.0);
+	glClearColor(0, 0, 0 , 1.0);
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
@@ -330,6 +330,9 @@ void RenderSystem::draw()
 	// Draw all textured meshes that have a position and size component
 	std::vector<Entity> boss_ui_entities;
 	std::vector<Entity> uiux_world_entities;
+
+	drawTilesInstanced(projection_2D, view_2D);
+
 	for (Entity entity : registry.renderRequests.entities)
 	{
 		if (registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::BOSS_HEALTH_BAR) {
@@ -386,8 +389,6 @@ void RenderSystem::draw()
 		}
 	}
 	drawBulletsInstanced(enemy_bullets, projection_2D, view_2D);
-
-	drawTilesInstanced(enemy_bullets, projection_2D, view_2D);
 
 	// this will only have at most one focusdots
 	// it will always be in camera view, and has motion
@@ -738,43 +739,16 @@ vec4 RenderSystem::get_spriteloc_sandstone(TILE_NAME_SANDSTONE tile_name) {
 }
 
 void RenderSystem::set_tiles_instance_buffer() {
-
-	//mat3* instance_transforms = new mat3[1];
-	//for (int i = 0; i < 1; ++i) {
-	//	//Motion& motion = registry.motions.get(entities[i]);
-	//	Transform transform;
-	//	//transform.translate(motion.position);
-	//	//transform.rotate(motion.angle);
-	//	//transform.scale(motion.scale);
-	//	instance_transforms[i] = transform.mat;
-	//}
-
-	//vec2* tile_texcoords = new vec2[1];
-	//tile_texcoords[0] = get_spriteloc_sandstone(TILE_NAME_SANDSTONE::AZTEC_FLOOR);
-	// 
-	//// for testing
-	//Transform t;
-	//coord world_coord = convert_grid_to_world({ 0, 0 });
-	//t.translate(world_coord);
-	//t.scale(vec2(world_tile_size, world_tile_size));
-
-	//TileInstanceData* data = new TileInstanceData[1];
-	//data[0] = {
-	//	get_spriteloc_sandstone(TILE_NAME_SANDSTONE::AZTEC_FLOOR),
-	//	t.mat
-	//};
-
 	glUseProgram(tile_instance_program);
 	glBindVertexArray(tiles_instance_VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, tiles_instance_VBO);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(TileInstanceData) * 1, data, GL_STATIC_DRAW);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(TileInstanceData) * registry.tileInstanceData.size(), registry.tileInstanceData.components.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
 
 
-void RenderSystem::drawTilesInstanced(const std::vector<Entity>& entities, const glm::mat3& projection, const glm::mat3& view)
+void RenderSystem::drawTilesInstanced(const glm::mat3& projection, const glm::mat3& view)
 {
 	const GLuint ibo = index_buffers[(GLuint)GEOMETRY_BUFFER_ID::SPRITE];
 

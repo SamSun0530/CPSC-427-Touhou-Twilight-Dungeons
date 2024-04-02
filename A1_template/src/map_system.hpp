@@ -37,13 +37,17 @@ private:
 	TILE_NAME_SANDSTONE get_tile_name_sandstone(int x, int y, std::vector<std::vector<int>>& map);
 	void generate_all_tiles(std::vector<std::vector<int>>& map);
 
-
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
 	// Binary space partitioning tree
 	BSPTree bsptree;
+
+	// Utility to check if map is valid
+	// NOT VALID IF: FLOOR WALL FLOOR 
+	// - this only applies immediately after generating map. you can place items, pillars, walls, after
+	bool is_valid_map(std::vector<std::vector<int>>& map);
 public:
 	MapSystem();
 	void restart_map();

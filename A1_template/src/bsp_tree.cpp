@@ -136,8 +136,8 @@ void BSPTree::add_corridors_to_map(std::vector<Corridor>& corridors, std::vector
 					map[start_y + 1][x] = (int)TILE_TYPE::FLOOR;
 				}
 				for (int y = end_y; y >= start_y; y--) {
-					map[y][start_x] = (int)TILE_TYPE::FLOOR;
-					map[y][start_x - 1] = (int)TILE_TYPE::FLOOR;
+					map[y][end_x] = (int)TILE_TYPE::FLOOR;
+					map[y][end_x - 1] = (int)TILE_TYPE::FLOOR;
 				}
 			}
 			else if (start_y == end_y) {

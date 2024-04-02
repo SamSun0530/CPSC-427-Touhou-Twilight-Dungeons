@@ -148,7 +148,7 @@ private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);
 	void drawBulletsInstanced(const std::vector<Entity>& entities, const glm::mat3& projection, const glm::mat3& view);
-	void drawTilesInstanced(const std::vector<Entity>& entities, const glm::mat3& projection, const glm::mat3& view);
+	void drawTilesInstanced(const glm::mat3& projection, const glm::mat3& view);
 	void drawToScreen();
 
 	// Window handle
