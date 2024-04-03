@@ -337,14 +337,14 @@ void AISystem::init() {
 
 	ActionNode* move_random_direction_bee = new ActionNode(moveRandomDirection);
 	ActionNode* fire_at_player_bee = new ActionNode(fireAtPlayer);
-	ActionNode* find_player_bee = new ActionNode(findPlayerAStar);
+	//ActionNode* find_player_bee = new ActionNode(findPlayerAStar);
 	ActionNode* follow_flow_field_threshold_bee = new ActionNode(followFlowFieldThreshold);
 
 	can_shoot_bee->setTrue(fire_at_player_bee);
 	can_shoot_bee->setFalse(follow_flow_field_threshold_bee);
 
 	can_see_player_bee->setTrue(can_shoot_bee);
-	can_see_player_bee->setFalse(find_player_bee);
+	can_see_player_bee->setFalse(follow_flow_field_threshold_bee);
 
 	is_in_range_bee->setTrue(can_see_player_bee);
 	is_in_range_bee->setFalse(move_random_direction_bee);
@@ -360,14 +360,14 @@ void AISystem::init() {
 
 	ActionNode* move_random_direction_wolf = new ActionNode(moveRandomDirection);
 	ActionNode* fire_at_player_wolf = new ActionNode(fireAtPlayer);
-	ActionNode* find_player_wolf = new ActionNode(findPlayerThresholdAStar);
+	//ActionNode* find_player_wolf = new ActionNode(findPlayerThresholdAStar);
 	ActionNode* find_player_threshold_wolf = new ActionNode(followFlowFieldThreshold);
 
 	can_shoot_wolf->setTrue(fire_at_player_wolf);
 	can_shoot_wolf->setFalse(find_player_threshold_wolf);
 
 	can_see_player_wolf->setTrue(can_shoot_wolf);
-	can_see_player_wolf->setFalse(find_player_wolf);
+	can_see_player_wolf->setFalse(find_player_threshold_wolf);
 
 	is_in_range_wolf->setTrue(can_see_player_wolf);
 	is_in_range_wolf->setFalse(move_random_direction_wolf);

@@ -6,7 +6,7 @@
 #include <iostream>
 
 
-int room_size = 11;
+int room_size = 8; // Bug: Can't be smaller than 8
 
 MapSystem::MapSystem() {
 	// Seeding rng with random device
@@ -318,8 +318,7 @@ void MapSystem::generateRandomMap() {
 		boss_corridor.start = (bsptree.rooms[generated_room_num].bottom_left +
 			bsptree.rooms[generated_room_num].top_left) / 2.f;
 		boss_corridor.end = (boss_room2.top_left + boss_room2.bottom_left) / 2.f;
-		printf("start (%f,%f)\n", boss_corridor.start.x, boss_corridor.start.y);
-		printf("end (%f,%f)\n", boss_corridor.end.x, boss_corridor.end.y);
+
 		bsptree.corridors.push_back(boss_corridor);
 		bsptree.rooms.push_back(boss_room2);
 
