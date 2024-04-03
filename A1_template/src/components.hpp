@@ -5,6 +5,42 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 
+// World map loader
+struct MapLevel {
+	enum LEVEL {
+		TUTORIAL,
+		MAIN
+	} level = LEVEL::MAIN;
+};
+extern MapLevel map_level;
+
+// Menu loader
+enum class MENU_STATE {
+	MAIN_MENU,
+	PLAY,
+	PAUSE
+};
+
+struct Menu {
+	MENU_STATE state = MENU_STATE::MAIN_MENU;
+};
+extern Menu menu;
+
+// Data structure for toggling debug mode
+struct Debug {
+	bool in_debug_mode = 0;
+	bool in_freeze_mode = 0;
+};
+extern Debug debugging;
+
+struct FocusMode {
+	bool in_focus_mode = 0;
+	float speed_constant = 1.0f;
+	// limit usage of focus mode through time
+	float counter_ms = 10000;
+	float max_counter_ms = 10000; // 10 seconds
+};
+extern FocusMode focus_mode;
 
 struct PlayerBullet {
 	int damage = 10;
@@ -22,14 +58,6 @@ struct EnemyBullet
 {
 	int damage = 1;
 };
-
-struct MapLevel {
-	enum LEVEL {
-		TUTORIAL,
-		MAIN
-	} level = LEVEL::MAIN;
-};
-extern MapLevel map_level;
 
 /*
 Bullet actions:
@@ -376,22 +404,6 @@ struct FollowFlowField
 	// set to true to prevent enemy from stopping early
 	bool is_player_target = true;
 };
-
-// Data structure for toggling debug mode
-struct Debug {
-	bool in_debug_mode = 0;
-	bool in_freeze_mode = 0;
-};
-extern Debug debugging;
-
-struct FocusMode {
-	bool in_focus_mode = 0;
-	float speed_constant = 1.0f;
-	// limit usage of focus mode through time
-	float counter_ms = 10000;
-	float max_counter_ms = 10000; // 10 seconds
-};
-extern FocusMode focus_mode;
 
 // Sets the brightness of the screen
 struct ScreenState

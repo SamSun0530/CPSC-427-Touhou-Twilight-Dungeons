@@ -8,7 +8,7 @@
 #include <iostream>
 #include <sstream>
 
-
+Menu menu;
 MapLevel map_level;
 FocusMode focus_mode;
 Debug debugging;
