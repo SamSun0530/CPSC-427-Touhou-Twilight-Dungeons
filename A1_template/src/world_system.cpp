@@ -910,6 +910,7 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 			int button_container_size = button_container.size();
 			for (int i = 0; i < button_container_size; ++i) {
 				Button& button = button_container.components[i];
+				if (button.state != MENU_STATE::MAIN_MENU) continue; // don't check other state buttons
 				Entity& entity = button_container.entities[i];
 				const Motion& motion = registry.motions.get(entity);
 
