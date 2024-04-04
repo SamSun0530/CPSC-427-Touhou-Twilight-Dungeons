@@ -80,4 +80,6 @@ Entity createLine(vec2 position, vec2 size);
 // a egg
 Entity createEgg(vec2 pos, vec2 size);
 
-
+// Menu button
+Entity createButton(RenderSystem* renderer, vec2 pos, vec2 size,
+	MENU_STATE menu_state, std::string button_text, std::function<void()> func);

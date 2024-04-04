@@ -38,6 +38,9 @@ public:
 	// starts the game
 	void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai);
 
+	// initialize the menu
+	void init_menu();
+
 	// Releases all associated resources
 	~WorldSystem();
 
@@ -105,7 +108,8 @@ private:
 	float tutorial_timer = 10000.0f;
 
 	// fonts seting
-	std::string font_filename = "..//..//..//data//fonts//OpenSans-Bold.ttf";
+	//std::string font_filename = "..//..//..//data//fonts//OpenSans-Bold.ttf";
+	std::string font_filename = "..//..//..//data//fonts//pixelmix//pixelmix.ttf";
 	unsigned int font_default_size = 25;
 
 	// Player state

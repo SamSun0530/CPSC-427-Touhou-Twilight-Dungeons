@@ -80,7 +80,8 @@ class RenderSystem {
 			textures_path("CriticalDemage.png"),
 			textures_path("CriticalHitIcon.png"),
 			textures_path("FocusBar.png"),
-			textures_path("Coins-Static.png")
+			textures_path("Coins-Static.png"),
+			textures_path("Button.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

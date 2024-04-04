@@ -42,6 +42,13 @@ struct FocusMode {
 };
 extern FocusMode focus_mode;
 
+// Menu stuff
+struct Button {
+	MENU_STATE state; // button related to which state
+	std::string content; // button text
+	std::function<void()> func;
+};
+
 struct PlayerBullet {
 	int damage = 10;
 };
@@ -599,7 +606,8 @@ enum class TEXTURE_ASSET_ID {
 	CRTHITICON = CRTDMG + 1,
 	FOCUS_BAR = CRTHITICON + 1,
 	COIN_STATIC = FOCUS_BAR + 1,
-	TEXTURE_COUNT = COIN_STATIC + 1
+	BUTTON = COIN_STATIC + 1,
+	TEXTURE_COUNT = BUTTON + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

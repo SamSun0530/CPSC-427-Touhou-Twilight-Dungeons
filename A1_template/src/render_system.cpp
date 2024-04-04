@@ -327,135 +327,132 @@ void RenderSystem::draw()
 
 	camera.setCameraAABB();
 
-	// Draw all textured meshes that have a position and size component
-	std::vector<Entity> boss_ui_entities;
-	std::vector<Entity> uiux_world_entities;
-	for (Entity entity : registry.renderRequests.entities)
-	{
-		if (registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::BOSS_HEALTH_BAR) {
-			boss_ui_entities.push_back(entity);
-			continue;
-		}
-		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
-			continue;
-		}
-		if (registry.UIUXWorld.has(entity)) {
-			uiux_world_entities.push_back(entity);
-			continue;
-		}
-		if (registry.focusdots.has(entity)) continue;
-		if (registry.UIUX.has(entity)) continue;
-		if (registry.players.has(entity)) continue;
+	if (menu.state == MENU_STATE::PLAY) {
+		// Draw all textured meshes that have a position and size component
+		std::vector<Entity> boss_ui_entities;
+		std::vector<Entity> uiux_world_entities;
+		for (Entity entity : registry.renderRequests.entities)
+		{
+			if (registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::BOSS_HEALTH_BAR) {
+				boss_ui_entities.push_back(entity);
+				continue;
+			}
+			if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
+				continue;
+			}
+			if (registry.UIUXWorld.has(entity)) {
+				uiux_world_entities.push_back(entity);
+				continue;
+			}
+			if (registry.focusdots.has(entity)) continue;
+			if (registry.UIUX.has(entity)) continue;
+			if (registry.players.has(entity)) continue;
 
-		// Note, its not very efficient to access elements indirectly via the entity
-		// albeit iterating through all Sprites in sequence. A good point to optimize
-		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-	}
-
-	// UIUX entities that in the world (e.g. tutorial keys that is before player)
-	for (Entity entity : uiux_world_entities) {
-		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-	}
-
-	// World texts:
-	for (Entity entity : registry.textsWorld.entities) {
-		Motion& text_motion = registry.motions.get(entity);
-		if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
-		vec3 text_color = registry.colors.get(entity);
-		RenderTextWorld& text_cont = registry.textsWorld.get(entity);
-		render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true);
-	}
-	for (Entity entity : registry.textsPermWorld.entities) {
-		Motion& text_motion = registry.motions.get(entity);
-		if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
-		vec3 text_color = registry.colors.get(entity);
-		RenderTextPermanentWorld& text_cont = registry.textsPermWorld.get(entity);
-		render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true);
-	}
-
-	// Render player
-	for (Entity entity : registry.players.entities) {
-		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-	}
-
-	// Render instance of visible enemy bullets
-	std::vector<Entity> enemy_bullets;
-	for (Entity entity : registry.enemyBullets.entities) {
-		if (registry.motions.has(entity) && camera.isInCameraView(registry.motions.get(entity).position)) {
-			enemy_bullets.push_back(entity);
-		}
-	}
-	drawBulletsInstanced(enemy_bullets, projection_2D, view_2D);
-
-	// this will only have at most one focusdots
-	// it will always be in camera view, and has motion
-	for (Entity entity : registry.focusdots.entities) {
-		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-	}
-
-	// Render foreground entities, these will be in front of things rendered before
-	for (Entity entity : registry.renderRequestsForeground.entities) {
-		if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
-			continue;
-		}
-		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-	}
-
-	for (Entity entity : registry.UIUX.entities) {
-		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-	}
-
-	for (Entity entity : boss_ui_entities) {
-		BossHealthBarUI& bhp = registry.bossHealthBarUIs.get(entity);
-		if (bhp.is_visible) {
+			// Note, its not very efficient to access elements indirectly via the entity
+			// albeit iterating through all Sprites in sequence. A good point to optimize
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
+
+		// UIUX entities that in the world (e.g. tutorial keys that is before player)
+		for (Entity entity : uiux_world_entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
+		// World texts:
+		for (Entity entity : registry.textsWorld.entities) {
+			Motion& text_motion = registry.motions.get(entity);
+			if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
+			vec3 text_color = registry.colors.get(entity);
+			RenderTextWorld& text_cont = registry.textsWorld.get(entity);
+			render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true);
+		}
+		for (Entity entity : registry.textsPermWorld.entities) {
+			Motion& text_motion = registry.motions.get(entity);
+			if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
+			vec3 text_color = registry.colors.get(entity);
+			RenderTextPermanentWorld& text_cont = registry.textsPermWorld.get(entity);
+			render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true);
+		}
+
+		// Render player
+		for (Entity entity : registry.players.entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
+		// Render instance of visible enemy bullets
+		std::vector<Entity> enemy_bullets;
+		for (Entity entity : registry.enemyBullets.entities) {
+			if (registry.motions.has(entity) && camera.isInCameraView(registry.motions.get(entity).position)) {
+				enemy_bullets.push_back(entity);
+			}
+		}
+		drawBulletsInstanced(enemy_bullets, projection_2D, view_2D);
+
+		// this will only have at most one focusdots
+		// it will always be in camera view, and has motion
+		for (Entity entity : registry.focusdots.entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
+		// Render foreground entities, these will be in front of things rendered before
+		for (Entity entity : registry.renderRequestsForeground.entities) {
+			if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
+				continue;
+			}
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
+		for (Entity entity : registry.UIUX.entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
+		for (Entity entity : boss_ui_entities) {
+			BossHealthBarUI& bhp = registry.bossHealthBarUIs.get(entity);
+			if (bhp.is_visible) {
+				drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+			}
+		}
+
+
+		// Render user guide on screen
+		if (WorldSystem::getInstance().get_display_instruction() == true) {
+			renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.6f, 0.9f, glm::vec3(0, 0, 0), trans);
+		}
+
+		if (WorldSystem::getInstance().get_show_fps() == true) {
+			renderText("FPS:", window_width_px / 2.45f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans);
+			renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px / 2.2f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans);
+		}
+
+		// On screen/ui texts:
+		for (Entity entity : registry.texts.entities) {
+			Motion& text_motion = registry.motions.get(entity);
+			vec3 text_color = registry.colors.get(entity);
+			RenderText& text_cont = registry.texts.get(entity);
+			renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
+		}
+		for (Entity entity : registry.textsPerm.entities) {
+			Motion& text_motion = registry.motions.get(entity);
+			vec3 text_color = registry.colors.get(entity);
+			RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
+			renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
+		}
+	}
+	else if (menu.state == MENU_STATE::MAIN_MENU) {
+		ComponentContainer<Button>& button_container = registry.buttons;
+		int button_container_size = button_container.size();
+		for (int i = 0; i < button_container_size; ++i) {
+			Button& button = button_container.components[i];
+			if (button.state != MENU_STATE::MAIN_MENU) continue; // don't render other buttons
+			Entity& entity = button_container.entities[i];
+			Motion& motion = registry.motions.get(entity);
+
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+			renderText(button.content, motion.position.x, motion.position.y, 1.f, vec3(0), trans, false);
+		}
 	}
 
 
-	// Render user guide on screen
-	if (WorldSystem::getInstance().get_display_instruction() == true) {
-		renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.6f, 0.9f, glm::vec3(0, 0, 0), trans);
-		/*
-		renderText("User Guide:", window_width_px / 30 - 25, window_height_px / 2 + 200, 0.8f, glm::vec3(0, 0, 0), trans);
-
-		renderText("R -", window_width_px / 30 - 25, window_height_px / 2 + 160, 0.6f, glm::vec3(0, 0, 0), trans);
-		renderText("Reset Game", window_width_px / 30 - 25, window_height_px / 2 + 140, 0.6f, glm::vec3(0, 0, 0), trans);
-
-		renderText("ESC -", window_width_px / 30 - 25, window_height_px / 2 + 100, 0.6f, glm::vec3(0, 0, 0), trans);
-		renderText("Quit Game", window_width_px / 30 - 25, window_height_px / 2 + 80, 0.6f, glm::vec3(0, 0, 0), trans);
-
-		renderText("G -", window_width_px / 30 - 25, window_height_px / 2 + 40, 0.6f, glm::vec3(0, 0, 0), trans);
-		renderText("Toggle debug mode -", window_width_px / 30 - 25, window_height_px / 2 + 20, 0.6f, glm::vec3(0, 0, 0), trans);
-
-		renderText("WASD -", window_width_px / 30 - 25, window_height_px / 2 - 20, 0.6f, glm::vec3(0, 0, 0), trans);
-		renderText("Player movement", window_width_px / 30 - 25, window_height_px / 2 - 40, 0.6f, glm::vec3(0, 0, 0), trans);
-
-		renderText("Mouse(left)/space -", window_width_px / 30 - 25, window_height_px / 2 - 80, 0.6f, glm::vec3(0, 0, 0), trans);
-		renderText("Firing bullets", window_width_px / 30 - 25, window_height_px / 2 - 100, 0.6f, glm::vec3(0, 0, 0), trans);
-
-		renderText("Scroll wheel -", window_width_px / 30 - 25, window_height_px / 2 - 140, 0.6f, glm::vec3(0, 0, 0), trans);
-		renderText("Zooming in/out", window_width_px / 30 - 25, window_height_px / 2 - 160, 0.6f, glm::vec3(0, 0, 0), trans);
-		*/
-	}
-
-	if (WorldSystem::getInstance().get_show_fps() == true) {
-		renderText("FPS:", window_width_px / 2.45f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans);
-		renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px / 2.2f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans);
-	}
-	// On screen/ui texts:
-	for (Entity entity : registry.texts.entities) {
-		Motion& text_motion = registry.motions.get(entity);
-		vec3 text_color = registry.colors.get(entity);
-		RenderText& text_cont = registry.texts.get(entity);
-		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
-	}
-	for (Entity entity : registry.textsPerm.entities) {
-		Motion& text_motion = registry.motions.get(entity);
-		vec3 text_color = registry.colors.get(entity);
-		RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
-		renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
-	}
 	// Truely render to the screen
 	drawToScreen();
 

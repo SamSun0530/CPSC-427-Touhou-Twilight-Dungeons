@@ -589,13 +589,13 @@ Entity createHealthUI(RenderSystem* renderer)
 
 std::vector<Entity> createAttributeUI(RenderSystem* renderer)
 {
-	
+
 	std::vector<Entity> entity_array;
 	auto entity_coin = Entity();
 	Mesh& mesh_coin = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity_coin, &mesh_coin);
 	Motion& motion_coin = registry.motions.emplace(entity_coin);
-	motion_coin.position = vec2(0, 0) - window_px_half + vec2(30, 200-50);
+	motion_coin.position = vec2(0, 0) - window_px_half + vec2(30, 200 - 50);
 	motion_coin.scale = vec2({ 128 * 0.2, 128 * 0.2 });
 	registry.UIUX.emplace(entity_coin);
 	registry.renderRequests.insert(
@@ -658,7 +658,7 @@ Entity createDummyEnemy(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.position = position;
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ ENEMY_BB_WIDTH * 2.f, ENEMY_BB_HEIGHT * 2.f});
+	motion.scale = vec2({ ENEMY_BB_WIDTH * 2.f, ENEMY_BB_HEIGHT * 2.f });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 100.f;
@@ -1217,6 +1217,32 @@ Entity createEgg(vec2 pos, vec2 size)
 			GEOMETRY_BUFFER_ID::EGG });
 
 	registry.debugComponents.emplace(entity);
+	return entity;
+}
+
+Entity createButton(RenderSystem* renderer, vec2 pos, vec2 size,
+	MENU_STATE menu_state, std::string button_text, std::function<void()> func) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = size;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BUTTON,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	Button& button = registry.buttons.emplace(entity);
+	button.state = menu_state;
+	button.content = button_text;
+	button.func = func;
+
 	return entity;
 }
 

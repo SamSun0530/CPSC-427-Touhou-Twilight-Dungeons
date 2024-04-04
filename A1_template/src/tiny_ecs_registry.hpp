@@ -70,6 +70,7 @@ public:
 	ComponentContainer<DummyEnemy> dummyenemies;
 	ComponentContainer<DummyEnemySpawner> dummyenemyspawners;
 	ComponentContainer<DummyEnemyLink> dummyEnemyLink;
+	ComponentContainer<Button> buttons;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -134,6 +135,7 @@ public:
 		registry_list.push_back(&dummyenemies);
 		registry_list.push_back(&dummyenemyspawners);
 		registry_list.push_back(&dummyEnemyLink);
+		registry_list.push_back(&buttons);
 	}
 
 	void clear_all_components() {

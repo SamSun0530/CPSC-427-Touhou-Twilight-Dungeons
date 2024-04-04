@@ -26,7 +26,7 @@ std::vector<std::vector<int>> WorldSystem::world_map = std::vector<std::vector<i
 WorldSystem::WorldSystem()
 	: points(0)
 	, next_enemy_spawn(0.f)
-	, display_instruction(true){
+	, display_instruction(true) {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -131,8 +131,21 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map,
 	//Sets the size of the empty world
 	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
 
-	// Set all states to default
-	restart_game();
+	// TODO: remove, redundant
+	if (menu.state == MENU_STATE::PLAY) {
+		// Set all states to default
+		restart_game();
+	}
+}
+
+void WorldSystem::init_menu() {
+	// create buttons
+	// bind: https://stackoverflow.com/a/23962087
+	std::function<void()> func = std::bind(&WorldSystem::restart_game, this);
+	createButton(renderer, { 0, 0 }, { 100, 100 }, MENU_STATE::MAIN_MENU, "Start", func);
+
+	//restart_game();
+	//menu.state = MENU_STATE::PLAY;
 }
 
 // Update our game world
@@ -164,7 +177,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Remove texts in ui and world that are not permanent
 	while (registry.texts.entities.size() > 0)
-		registry.remove_all_components_of(registry.texts.entities.back());	
+		registry.remove_all_components_of(registry.texts.entities.back());
 	while (registry.textsWorld.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
 
@@ -176,12 +189,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	//createText({ 128 * 1.3 + 70 - 4, window_height_px - 77 }, { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
 	createText(-window_px_half + vec2(230, 77), { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
 	Player& player_att = registry.players.get(player);
-	std::string fire_rate = std::to_string(1/player_att.fire_rate);
-	std::string critical_hit = std::to_string(player_att.critical_hit*100);
-	std::string critical_dmg = std::to_string(player_att.critical_demage*100);
+	std::string fire_rate = std::to_string(1 / player_att.fire_rate);
+	std::string critical_hit = std::to_string(player_att.critical_hit * 100);
+	std::string critical_dmg = std::to_string(player_att.critical_demage * 100);
 	createText(-window_px_half + vec2(70, 160), { 1,1 }, std::to_string(player_att.coin_amount), vec3(0, 0, 0), false);
 	createText(-window_px_half + vec2(70, 210), { 1,1 }, std::to_string(player_att.bullet_damage), vec3(0, 0, 0), false);
-	createText(-window_px_half + vec2(70, 260), { 1,1 }, fire_rate.substr(0, fire_rate.find(".")+3), vec3(0, 0, 0), false);
+	createText(-window_px_half + vec2(70, 260), { 1,1 }, fire_rate.substr(0, fire_rate.find(".") + 3), vec3(0, 0, 0), false);
 	createText(-window_px_half + vec2(70, 310), { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(0, 0, 0), false);
 	createText(-window_px_half + vec2(70, 360), { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(0, 0, 0), false);
 
@@ -360,6 +373,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
+	menu.state = MENU_STATE::PLAY;
+
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 	printf("Restarting\n");
@@ -451,7 +466,7 @@ void WorldSystem::handle_collisions() {
 								registry.kinematics.get(entity_other).direction = { 0,0 };
 							}
 						}
-						
+
 						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity).invulnerable_counter_ms = registry.players.components[0].invulnerability_time_ms;
 					}
@@ -492,16 +507,16 @@ void WorldSystem::handle_collisions() {
 				}
 			}
 			else if (registry.maxhpIncreases.has(entity_other)) {
-				
+
 				registry.hps.get(entity).max_hp += registry.maxhpIncreases.get(entity_other).max_health_increase;
 				if (registry.hps.get(entity).max_hp > 12) {
 					registry.hps.get(entity).max_hp = 12;
 				}
 				registry.hps.get(entity).curr_hp += registry.maxhpIncreases.get(entity_other).max_health_increase;
 				registry.remove_all_components_of(entity_other);
-				
+
 			}
-			else if (registry.attackUps.has(entity_other)) {	
+			else if (registry.attackUps.has(entity_other)) {
 				registry.players.get(entity).bullet_damage += 1;
 				registry.remove_all_components_of(entity_other);
 			}
@@ -525,8 +540,8 @@ void WorldSystem::handle_collisions() {
 					double number = distrib(gen);
 					Player& player_att = registry.players.get(player);
 					if (number < player_att.critical_hit) {
-						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage*player_att.critical_demage;
-						registry.realDeathTimers.emplace(createCriHit(renderer, deadly_motion.position-vec2(30,0))).death_counter_ms = 300;
+						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage * player_att.critical_demage;
+						registry.realDeathTimers.emplace(createCriHit(renderer, deadly_motion.position - vec2(30, 0))).death_counter_ms = 300;
 					}
 					else {
 						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
@@ -699,196 +714,252 @@ void WorldSystem::updatePlayerDirection(Kinematic& player_kinematic) {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
-	// Resetting game
-	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-		map_level.level = MapLevel::MAIN;
-		restart_game();
-	}
-
-	// Handle player movement
-	if (is_alive) {
-		Kinematic& kinematic = registry.kinematics.get(player);
-		switch (key) {
-		case GLFW_KEY_W:
-			if (action == GLFW_PRESS) {
-				pressed[key] = true;
-			}
-			else if (action == GLFW_RELEASE) {
-				pressed[key] = false;
-			}
-			break;
-		case GLFW_KEY_A:
-			if (action == GLFW_PRESS) {
-				pressed[key] = true;
-			}
-			else if (action == GLFW_RELEASE) {
-				pressed[key] = false;
-			}
-			break;
-		case GLFW_KEY_S:
-			if (action == GLFW_PRESS) {
-				pressed[key] = true;
-			}
-			else if (action == GLFW_RELEASE) {
-				pressed[key] = false;
-			}
-			break;
-		case GLFW_KEY_D:
-			if (action == GLFW_PRESS) {
-				pressed[key] = true;
-			}
-			else if (action == GLFW_RELEASE) {
-				pressed[key] = false;
-			}
-			break;
-		default:
-			break;
+	if (menu.state == MENU_STATE::PLAY) {
+		// Resetting game
+		if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
+			int w, h;
+			glfwGetWindowSize(window, &w, &h);
+			map_level.level = MapLevel::MAIN;
+			restart_game();
 		}
 
-		// Update player direction
-		updatePlayerDirection(kinematic);
-	}
+		// Handle player movement
+		// Added key checks at the beginning so don't have to fetch kinematics / update player direction for
+		// every key press that is not related to WASD
+		if (is_alive && (key == GLFW_KEY_W || key == GLFW_KEY_A || key == GLFW_KEY_S || key == GLFW_KEY_D)) {
+			Kinematic& kinematic = registry.kinematics.get(player);
+			switch (key) {
+			case GLFW_KEY_W:
+				if (action == GLFW_PRESS) {
+					pressed[key] = true;
+				}
+				else if (action == GLFW_RELEASE) {
+					pressed[key] = false;
+				}
+				break;
+			case GLFW_KEY_A:
+				if (action == GLFW_PRESS) {
+					pressed[key] = true;
+				}
+				else if (action == GLFW_RELEASE) {
+					pressed[key] = false;
+				}
+				break;
+			case GLFW_KEY_S:
+				if (action == GLFW_PRESS) {
+					pressed[key] = true;
+				}
+				else if (action == GLFW_RELEASE) {
+					pressed[key] = false;
+				}
+				break;
+			case GLFW_KEY_D:
+				if (action == GLFW_PRESS) {
+					pressed[key] = true;
+				}
+				else if (action == GLFW_RELEASE) {
+					pressed[key] = false;
+				}
+				break;
+			default:
+				break;
+			}
 
-	// Debug mode: M to print mapsystem/worldsystem world map
-	if (debugging.in_debug_mode && action == GLFW_RELEASE && key == GLFW_KEY_M) {
-		printf("mapsystem map:\n");
-		for (int i = 0; i < map->world_map.size(); i++) {
-			for (int j = 0; j < map->world_map[0].size(); j++) {
-				printf("%d ", map->world_map[i][j]);
+			// Update player direction
+			updatePlayerDirection(kinematic);
+		}
+
+		// Debug mode: M to print mapsystem/worldsystem world map
+		if (debugging.in_debug_mode && action == GLFW_RELEASE && key == GLFW_KEY_M) {
+			printf("mapsystem map:\n");
+			for (int i = 0; i < map->world_map.size(); i++) {
+				for (int j = 0; j < map->world_map[0].size(); j++) {
+					printf("%d ", map->world_map[i][j]);
+				}
+				printf("\n");
 			}
 			printf("\n");
-		}
-		printf("\n");
-		printf("worldsystem map:\n");
-		for (int i = 0; i < world_map.size(); i++) {
-			for (int j = 0; j < world_map[0].size(); j++) {
-				printf("%d ", world_map[i][j]);
-			}
-			printf("\n");
-		}
-	}
-
-
-	// Toggle between camera-cursor offset
-	if (key == GLFW_KEY_P) {
-		if (action == GLFW_RELEASE) {
-			renderer->camera.isFreeCam = !renderer->camera.isFreeCam;
-			if (!renderer->camera.isFreeCam) {
-				renderer->camera.offset_target = { 0, 0 };
+			printf("worldsystem map:\n");
+			for (int i = 0; i < world_map.size(); i++) {
+				for (int j = 0; j < world_map[0].size(); j++) {
+					printf("%d ", world_map[i][j]);
+				}
+				printf("\n");
 			}
 		}
-	}
 
-	// Fire bullets at mouse cursor (Also mouse 1)
-	if (key == GLFW_KEY_SPACE) {
-		BulletSpawner& bullet_spawner = registry.bulletSpawners.get(player);
-		if (action == GLFW_PRESS) {
-			bullet_spawner.is_firing = true;
-		}
-		else if (action == GLFW_RELEASE) {
-			bullet_spawner.is_firing = false;
-		}
-	}
 
-	// Debugging
-	if (key == GLFW_KEY_G) {
-		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = !debugging.in_debug_mode;
-	}
-
-	// Exit the program
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-		glfwSetWindowShouldClose(window, true);
-	}
-
-	// Toggle FPS display
-	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
-		getInstance().toggle_show_fps();
-	}
-
-	// Toggle tutorial display
-	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
-
-		getInstance().display_instruction = false;
-		map_level.level = MapLevel::TUTORIAL;
-		restart_game();
-
-	}
-
-	// Hold for focus mode
-	if (is_alive) {
-		if (key == GLFW_KEY_LEFT_SHIFT &&
-			!pressed[key] &&
-			action == GLFW_PRESS &&
-			!focus_mode.in_focus_mode) {
-			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
-			focus_mode.speed_constant = 0.5f;
-			Motion& motion = registry.motions.get(player);
-			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
-			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
-			pressed[key] = true;
-		}
-		else if (key == GLFW_KEY_LEFT_SHIFT &&
-			pressed[key] &&
-			action == GLFW_RELEASE &&
-			focus_mode.in_focus_mode) {
-			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
-			focus_mode.speed_constant = 1.0f;
-			while (registry.focusdots.entities.size() > 0)
-				registry.remove_all_components_of(registry.focusdots.entities.back());
-			pressed[key] = false;
+		// Toggle between camera-cursor offset
+		if (key == GLFW_KEY_P) {
+			if (action == GLFW_RELEASE) {
+				renderer->camera.isFreeCam = !renderer->camera.isFreeCam;
+				if (!renderer->camera.isFreeCam) {
+					renderer->camera.offset_target = { 0, 0 };
+				}
+				else {
+					// set camera offset immediately when button is pressed
+					if (registry.players.has(player)) {
+						double mouse_pos_x;
+						double mouse_pos_y;
+						glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
+						vec2 player_position = registry.motions.get(player).position;
+						renderer->camera.offset_target = ((vec2(mouse_pos_x, mouse_pos_y) - window_px_half) - player_position) / 2.f + player_position / 2.f;
+					}
+				}
+			}
 		}
 
+		// Fire bullets at mouse cursor (Also mouse 1)
+		if (key == GLFW_KEY_SPACE) {
+			BulletSpawner& bullet_spawner = registry.bulletSpawners.get(player);
+			if (action == GLFW_PRESS) {
+				bullet_spawner.is_firing = true;
+			}
+			else if (action == GLFW_RELEASE) {
+				bullet_spawner.is_firing = false;
+			}
+		}
+
+		// Debugging
+		if (key == GLFW_KEY_G) {
+			if (action == GLFW_RELEASE)
+				debugging.in_debug_mode = !debugging.in_debug_mode;
+		}
+
+		// Exit the program
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
+			glfwSetWindowShouldClose(window, true);
+		}
+
+		// Toggle FPS display
+		if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
+			getInstance().toggle_show_fps();
+		}
+
+		// Toggle tutorial display
+		if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
+			getInstance().display_instruction = false;
+			map_level.level = MapLevel::TUTORIAL;
+			restart_game();
+		}
+
+		// Hold for focus mode
+		if (is_alive) {
+			if (key == GLFW_KEY_LEFT_SHIFT &&
+				!pressed[key] &&
+				action == GLFW_PRESS &&
+				!focus_mode.in_focus_mode) {
+				focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+				focus_mode.speed_constant = 0.5f;
+				Motion& motion = registry.motions.get(player);
+				CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
+				createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+				pressed[key] = true;
+			}
+			else if (key == GLFW_KEY_LEFT_SHIFT &&
+				pressed[key] &&
+				action == GLFW_RELEASE &&
+				focus_mode.in_focus_mode) {
+				focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+				focus_mode.speed_constant = 1.0f;
+				while (registry.focusdots.entities.size() > 0)
+					registry.remove_all_components_of(registry.focusdots.entities.back());
+				pressed[key] = false;
+			}
+		}
+	}
+	else if (menu.state == MENU_STATE::MAIN_MENU) {
+		// Exit the program
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
+			glfwSetWindowShouldClose(window, true);
+		}
 	}
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	if (renderer->camera.isFreeCam) {
-		vec2& player_position = registry.motions.get(player).position;
-		// Set the camera offset to be in between the cursor and the player
-		// Center the mouse position, get the half distance between mouse cursor and player, update offset relative to player position
-		renderer->camera.offset_target = ((mouse_position - window_px_half) - player_position) / 2.f + player_position / 2.f;
+	if (menu.state == MENU_STATE::PLAY) {
+		if (renderer->camera.isFreeCam) {
+			vec2& player_position = registry.motions.get(player).position;
+			// Set the camera offset to be in between the cursor and the player
+			// Center the mouse position, get the half distance between mouse cursor and player, update offset relative to player position
+			renderer->camera.offset_target = ((mouse_position - window_px_half) - player_position) / 2.f + player_position / 2.f;
+		}
 	}
 }
 
 void WorldSystem::on_mouse_key(int button, int action, int mods) {
-	if (!is_alive) {
-		return;
-	}
-	if (button == GLFW_MOUSE_BUTTON_LEFT) {
-		BulletSpawner& bullet_spawner = registry.bulletSpawners.get(player);
-		if (action == GLFW_PRESS) {
-			// Start firing
-			bullet_spawner.is_firing = true;
+	if (menu.state == MENU_STATE::PLAY) {
+		if (!is_alive) {
+			return;
 		}
-		else if (action == GLFW_RELEASE) {
-			// Stop firing
-			bullet_spawner.is_firing = false;
+		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+			BulletSpawner& bullet_spawner = registry.bulletSpawners.get(player);
+			if (action == GLFW_PRESS) {
+				// Start firing
+				bullet_spawner.is_firing = true;
+			}
+			else if (action == GLFW_RELEASE) {
+				// Stop firing
+				bullet_spawner.is_firing = false;
+			}
+		}
+	}
+	else if (menu.state == MENU_STATE::MAIN_MENU) {
+		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+			ComponentContainer<Button>& button_container = registry.buttons;
+			int button_container_size = button_container.size();
+			for (int i = 0; i < button_container_size; ++i) {
+				Button& button = button_container.components[i];
+				Entity& entity = button_container.entities[i];
+				const Motion& motion = registry.motions.get(entity);
+
+				double mouse_pos_x;
+				double mouse_pos_y;
+				glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
+				// normalize mouse position
+				mouse_pos_x -= window_px_half.x;
+				mouse_pos_y -= window_px_half.y;
+				// check if point clicked is inside button
+				vec2 half_extent = motion.scale / 2.f;
+				vec2 min = motion.position - half_extent;
+				vec2 max = motion.position + half_extent;
+				if (mouse_pos_x >= min.x && mouse_pos_x <= max.x &&
+					mouse_pos_y >= min.y && mouse_pos_y <= max.y) {
+					// execute function
+					// this function should handle menu state change
+					// e.g. restart_game should set menu.state == MENU_STATE::PLAY
+					button.func();
+
+					break; // don't check any more buttons
+				}
+			}
 		}
 	}
 }
 
 void WorldSystem::on_scroll(vec2 scroll_offset) {
-	renderer->camera.addZoom(scroll_offset.y);
+	if (menu.state == MENU_STATE::PLAY) {
+		renderer->camera.addZoom(scroll_offset.y);
+	}
 }
 
 void WorldSystem::update_focus_dot() {
-	if (focus_mode.in_focus_mode) {
-		// Only reimu should have focus dot
-		for (Entity entity : registry.focusdots.entities) {
-			Motion& motion = registry.motions.get(entity);
-			Motion& player_motion = registry.motions.get(player);
-			CircleCollidable& player_circle_collidable = registry.circleCollidables.get(player);
-			motion.position = player_motion.position + player_circle_collidable.shift;
-		}
+	if (menu.state == MENU_STATE::PLAY) {
+		if (focus_mode.in_focus_mode) {
+			// Only reimu should have focus dot
+			for (Entity entity : registry.focusdots.entities) {
+				Motion& motion = registry.motions.get(entity);
+				Motion& player_motion = registry.motions.get(player);
+				CircleCollidable& player_circle_collidable = registry.circleCollidables.get(player);
+				motion.position = player_motion.position + player_circle_collidable.shift;
+			}
 
-		// This is for testing circleCollidable size if focus mode texture is not present
-		//for (Entity entity : registry.circleCollidables.entities) {
-		//	Motion& motion = registry.motions.get(entity);
-		//	CircleCollidable& circle_collidable = registry.circleCollidables.get(entity);
-		//	createEgg(motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
-		//}
+			// This is for testing circleCollidable size if focus mode texture is not present
+			//for (Entity entity : registry.circleCollidables.entities) {
+			//	Motion& motion = registry.motions.get(entity);
+			//	CircleCollidable& circle_collidable = registry.circleCollidables.get(entity);
+			//	createEgg(motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+			//}
+		}
 	}
 }
