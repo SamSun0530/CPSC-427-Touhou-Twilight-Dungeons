@@ -417,12 +417,7 @@ void RenderSystem::draw()
 			const Motion& motion = registry.motions.get(entity);
 			const Pickupable& food = registry.pickupables.get(entity);
 
-			// Calculate position for score text
-			float x = motion.position.x;
-			float y = motion.position.y;
-
-			renderText("Test", x, y, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f), trans, false);
-			//std::cout << "renderBugScore" << std::endl;
+			renderText("HP Up+", motion.position.x - 30, motion.position.y + 25, 0.6f, glm::vec3(0.0f, 1.0f, 0.0f), trans, true);
 		}
 	}
 
