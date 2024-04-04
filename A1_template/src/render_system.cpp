@@ -412,6 +412,19 @@ void RenderSystem::draw()
 		}
 	}
 
+	for (Entity entity : registry.pickupables.entities) {
+		if (registry.motions.has(entity)) {
+			const Motion& motion = registry.motions.get(entity);
+			const Pickupable& food = registry.pickupables.get(entity);
+
+			// Calculate position for score text
+			float x = motion.position.x;
+			float y = motion.position.y;
+
+			renderText("Test", x, y, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f), trans, false);
+			//std::cout << "renderBugScore" << std::endl;
+		}
+	}
 
 	// Render user guide on screen
 	if (WorldSystem::getInstance().get_display_instruction() == true) {

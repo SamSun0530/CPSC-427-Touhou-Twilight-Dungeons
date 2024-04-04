@@ -35,7 +35,7 @@ Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bo
 Entity createCriHit(RenderSystem* renderer, vec2 pos);
 std::vector<Entity> createAttributeUI(RenderSystem* renderer);
 Entity createHealthUI(RenderSystem*);
-Entity createHealth(RenderSystem* renderer, vec2 position);
+Entity createFood(RenderSystem* renderer, vec2 position);
 Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss);
 // ui key
 Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true, bool is_active = true, float frame_rate = 500.f);
