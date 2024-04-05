@@ -295,6 +295,21 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 }
 
+void RenderSystem::render_buttons(glm::mat3& projection_2D, glm::mat3& view_2D, glm::mat3& view_2D_ui, MENU_STATE state)
+{
+	ComponentContainer<Button>& button_container = registry.buttons;
+	int button_container_size = button_container.size();
+	for (int i = 0; i < button_container_size; ++i) {
+		Button& button = button_container.components[i];
+		if (button.state != state) continue; // don't render other buttons
+		Entity& entity = button_container.entities[i];
+		Motion& motion = registry.motions.get(entity);
+
+		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		renderText(button.content, motion.position.x, motion.position.y, 1.f, vec3(0), trans, false);
+	}
+}
+
 // Render our game world
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
 void RenderSystem::draw()
@@ -327,12 +342,13 @@ void RenderSystem::draw()
 
 	camera.setCameraAABB();
 
-	if (menu.state == MENU_STATE::PLAY) {
+	if (menu.state == MENU_STATE::PLAY || menu.state == MENU_STATE::PAUSE) {
 		// Draw all textured meshes that have a position and size component
 		std::vector<Entity> boss_ui_entities;
 		std::vector<Entity> uiux_world_entities;
 		for (Entity entity : registry.renderRequests.entities)
 		{
+			if (registry.buttons.has(entity)) continue;
 			if (registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::BOSS_HEALTH_BAR) {
 				boss_ui_entities.push_back(entity);
 				continue;
@@ -437,19 +453,14 @@ void RenderSystem::draw()
 			RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
 			renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
 		}
+
+		// Render this last, because it should be on top
+		if (menu.state == MENU_STATE::PAUSE) {
+			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::PAUSE);
+		}
 	}
 	else if (menu.state == MENU_STATE::MAIN_MENU) {
-		ComponentContainer<Button>& button_container = registry.buttons;
-		int button_container_size = button_container.size();
-		for (int i = 0; i < button_container_size; ++i) {
-			Button& button = button_container.components[i];
-			if (button.state != MENU_STATE::MAIN_MENU) continue; // don't render other buttons
-			Entity& entity = button_container.entities[i];
-			Motion& motion = registry.motions.get(entity);
-
-			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-			renderText(button.content, motion.position.x, motion.position.y, 1.f, vec3(0), trans, false);
-		}
+		render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::MAIN_MENU);
 	}
 
 

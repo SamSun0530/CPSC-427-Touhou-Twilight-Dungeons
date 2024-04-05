@@ -139,13 +139,53 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map,
 }
 
 void WorldSystem::init_menu() {
-	// create buttons
-	// bind: https://stackoverflow.com/a/23962087
-	std::function<void()> func = std::bind(&WorldSystem::restart_game, this);
-	createButton(renderer, { 0, 0 }, { 100, 100 }, MENU_STATE::MAIN_MENU, "Start", func);
+	// TODO: create texture
 
-	//restart_game();
-	//menu.state = MENU_STATE::PLAY;
+	// create buttons
+	float button_height = 100;
+	float padding_y = 0;
+	const float padding_y_delta = button_height + 20;
+	if (game_info.has_started) {
+		createButton(renderer, { 0, padding_y }, { 100, button_height }, MENU_STATE::MAIN_MENU, "Resume", [&]() { 
+			Mix_ResumeMusic();
+			resume_game(); 
+			});
+		padding_y += padding_y_delta;
+	}
+	createButton(renderer, { 0, padding_y }, { 100, button_height }, MENU_STATE::MAIN_MENU, "New Game", [&]() { restart_game(); });
+	padding_y += padding_y_delta;
+	createButton(renderer, { 0, padding_y }, { 100, button_height }, MENU_STATE::MAIN_MENU, "Exit", [&]() { glfwSetWindowShouldClose(window, true); });
+}
+
+void WorldSystem::init_pause_menu() {
+	// TODO: create texture
+
+	// create buttons
+	float button_height = 100;
+	float padding_y = 0;
+	const float padding_y_delta = button_height + 20;
+	createButton(renderer, { 0, padding_y }, { 100, button_height }, MENU_STATE::PAUSE, "Resume", [&]() { resume_game(); });
+	padding_y += padding_y_delta;
+	createButton(renderer, { 0, padding_y }, { 100, button_height }, MENU_STATE::PAUSE, "Restart", [&]() { restart_game(); });
+	padding_y += padding_y_delta;
+	createButton(renderer, { 0, padding_y }, { 100, button_height }, MENU_STATE::PAUSE, "Exit", [&]() {
+		Mix_PauseMusic();
+		menu.state = MENU_STATE::MAIN_MENU;
+		});
+}
+
+void WorldSystem::resume_game() {
+	menu.state = MENU_STATE::PLAY;
+	pressed = { 0 };
+	registry.kinematics.get(player).direction = { 0, 0 };
+	if (registry.bulletSpawners.has(player)) {
+		registry.bulletSpawners.get(player).is_firing = false;
+	}
+	focus_mode.in_focus_mode = false;
+	focus_mode.speed_constant = 1.0f;
+	while (registry.focusdots.entities.size() > 0)
+		registry.remove_all_components_of(registry.focusdots.entities.back());
+	pressed[GLFW_KEY_LEFT_SHIFT] = false;
 }
 
 // Update our game world
@@ -156,7 +196,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
 	if (elapsedSinceLastFPSUpdate >= 1000.0) {
 		// Calculate FPS
-		getInstance().fps = static_cast<int>(1000.0f / (elapsed_ms_since_last_update / combo_meter));
+		getInstance().fps = static_cast<int>(1000.0f / (elapsed_ms_since_last_update / combo_mode.combo_meter));
 		elapsedSinceLastFPSUpdate = 0.0f;
 	}
 
@@ -182,7 +222,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.remove_all_components_of(registry.texts.entities.back());
 
 	// Create combo meter ui
-	createText({ window_width_px / 2.5f , window_height_px / 2.1f }, { 1, 1 }, std::to_string(combo_meter), { 0, 1, 0 }, false);
+	createText({ window_width_px / 2.5f , window_height_px / 2.1f }, { 1, 1 }, std::to_string(combo_mode.combo_meter), { 0, 1, 0 }, false);
 
 	// Create on screen player attributes ui
 	HP& player_hp = registry.hps.get(player);
@@ -374,6 +414,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
 	menu.state = MENU_STATE::PLAY;
+	game_info.has_started = true;
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -389,6 +430,10 @@ void WorldSystem::restart_game() {
 	// All that have a motion, we could also iterate over all enemies, coins, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
 		registry.remove_all_components_of(registry.motions.entities.back());
+
+	// TODO: decide whether to destroy buttons every time on menu entry or one set of buttons
+	init_menu();
+	init_pause_menu();
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -419,10 +464,8 @@ void WorldSystem::restart_game() {
 	is_alive = true;
 	createHealthUI(renderer);
 	createAttributeUI(renderer);
-	combo_meter = 1;
-	focus_mode.in_focus_mode = false;
-	focus_mode.speed_constant = 1.0f;
-	focus_mode.counter_ms = focus_mode.max_counter_ms;
+	combo_mode.restart();
+	focus_mode.restart();
 	ai->restart_flow_field_map();
 
 	renderer->camera.setPosition({ 0, 0 });
@@ -452,7 +495,7 @@ void WorldSystem::handle_collisions() {
 							HP& player_hp = registry.hps.get(player);
 							player_hp.curr_hp -= registry.deadlys.get(entity_other).damage;
 							if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
-							combo_meter = 1;
+							combo_mode.restart();
 							if (registry.bomberEnemies.has(entity_other)) {
 								registry.realDeathTimers.emplace(entity_other).death_counter_ms = 1000;
 								registry.hps.remove(entity_other);
@@ -480,7 +523,7 @@ void WorldSystem::handle_collisions() {
 						registry.hitTimers.emplace(entity);
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(entity) = vec3(-1.f);
-						combo_meter = 1;
+						combo_mode.restart();
 						HP& player_hp = registry.hps.get(player);
 						player_hp.curr_hp -= registry.enemyBullets.get(entity_other).damage;
 						if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
@@ -558,7 +601,7 @@ void WorldSystem::handle_collisions() {
 
 					HP& hp = registry.hps.get(entity);
 					if (hp.curr_hp <= 0.0f) {
-						combo_meter = min(combo_meter + 0.02f, COMBO_METER_MAX);
+						combo_mode.combo_meter = min(combo_mode.combo_meter + 0.02f, combo_mode.COMBO_METER_MAX);
 						if (registry.beeEnemies.has(entity) || registry.wolfEnemies.has(entity) || registry.bomberEnemies.has(entity) || registry.dummyenemies.has(entity)) {
 							registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
 							registry.hps.remove(entity);
@@ -826,11 +869,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				debugging.in_debug_mode = !debugging.in_debug_mode;
 		}
 
-		// Exit the program
-		if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-			glfwSetWindowShouldClose(window, true);
-		}
-
 		// Toggle FPS display
 		if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
 			getInstance().toggle_show_fps();
@@ -867,11 +905,22 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				pressed[key] = false;
 			}
 		}
+
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+			// open pause menu
+			menu.state = MENU_STATE::PAUSE;
+		}
 	}
 	else if (menu.state == MENU_STATE::MAIN_MENU) {
 		// Exit the program
-		if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-			glfwSetWindowShouldClose(window, true);
+		//if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
+		//	glfwSetWindowShouldClose(window, true);
+		//}
+	}
+	else if (menu.state == MENU_STATE::PAUSE) {
+		// back to game
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+			resume_game();
 		}
 	}
 }
@@ -889,10 +938,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 
 void WorldSystem::on_mouse_key(int button, int action, int mods) {
 	if (menu.state == MENU_STATE::PLAY) {
-		if (!is_alive) {
-			return;
-		}
-		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+		if (is_alive && button == GLFW_MOUSE_BUTTON_LEFT) {
 			BulletSpawner& bullet_spawner = registry.bulletSpawners.get(player);
 			if (action == GLFW_PRESS) {
 				// Start firing
@@ -904,13 +950,14 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 			}
 		}
 	}
-	else if (menu.state == MENU_STATE::MAIN_MENU) {
-		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+	else {
+		// prevent double presses by setting pressed array
+		if (pressed[GLFW_MOUSE_BUTTON_LEFT] && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
 			ComponentContainer<Button>& button_container = registry.buttons;
 			int button_container_size = button_container.size();
 			for (int i = 0; i < button_container_size; ++i) {
 				Button& button = button_container.components[i];
-				if (button.state != MENU_STATE::MAIN_MENU) continue; // don't check other state buttons
+				if (button.state != menu.state) continue; // don't check other state buttons
 				Entity& entity = button_container.entities[i];
 				const Motion& motion = registry.motions.get(entity);
 
@@ -934,6 +981,10 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 					break; // don't check any more buttons
 				}
 			}
+			pressed[GLFW_MOUSE_BUTTON_LEFT] = false;
+		}
+		else if (!pressed[GLFW_MOUSE_BUTTON_LEFT] && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+			pressed[GLFW_MOUSE_BUTTON_LEFT] = true;
 		}
 	}
 }

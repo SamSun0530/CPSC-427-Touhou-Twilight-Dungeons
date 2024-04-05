@@ -125,6 +125,8 @@ public:
 	// Destroy resources associated to one or all entities created by the system
 	~RenderSystem();
 
+	void render_buttons(glm::mat3& projection_2D, glm::mat3& view_2D, glm::mat3& view_2D_ui, MENU_STATE state);
+
 	// Draw all entities
 	void draw();
 

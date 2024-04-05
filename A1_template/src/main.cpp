@@ -65,11 +65,12 @@ int main()
 		float elapsed_ms =
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
-		
+
 		if (menu.state == MENU_STATE::MAIN_MENU) {
 
-		} else if (menu.state == MENU_STATE::PLAY) {
-			elapsed_ms = world.combo_meter * elapsed_ms;
+		}
+		else if (menu.state == MENU_STATE::PLAY) {
+			elapsed_ms = combo_mode.combo_meter * elapsed_ms;
 			world.step(elapsed_ms);
 			boss_system.step(elapsed_ms);
 			animation.step(elapsed_ms);
@@ -78,6 +79,9 @@ int main()
 			ai.step(elapsed_ms);
 			bullets.step(elapsed_ms);
 			world.handle_collisions();
+		}
+		else if (menu.state == MENU_STATE::PAUSE) {
+
 		}
 
 		// map.debug(); // Just to visualize the map

@@ -39,8 +39,31 @@ struct FocusMode {
 	// limit usage of focus mode through time
 	float counter_ms = 10000;
 	float max_counter_ms = 10000; // 10 seconds
+
+	void restart() {
+		in_focus_mode = false;
+		speed_constant = 1.0f;
+		counter_ms = max_counter_ms;
+	}
 };
 extern FocusMode focus_mode;
+
+struct ComboMode {
+	// Combo meter
+	float combo_meter = 1.0f;
+	const float COMBO_METER_MAX = 1.5f;
+	
+	void restart() {
+		combo_meter = 1.0f;
+	}
+};
+extern ComboMode combo_mode;
+
+// Game related information
+struct GameInfo {
+	bool has_started = false;
+};
+extern GameInfo game_info;
 
 // Menu stuff
 struct Button {
