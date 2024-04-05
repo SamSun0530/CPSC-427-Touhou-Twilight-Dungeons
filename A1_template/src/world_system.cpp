@@ -139,11 +139,12 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map,
 }
 
 void WorldSystem::init_menu() {
-	// TODO: create texture
+	// create main menu title and background
+	createMainMenu(renderer, vec2(-window_px_half.x / 2.2f, 0.f), 0.38f);
 
 	// create buttons
-	float button_scale = 0.7f;
-	float offset_x = window_px_half.x / 1.8f;
+	float button_scale = 0.8f;
+	float offset_x = window_px_half.x / 2.2f;
 	float offset_y = -window_px_half.y / 10.f;;
 	const float offset_y_delta = BUTTON_HOVER_HEIGHT * button_scale + 5;
 	if (game_info.has_started) {
@@ -153,9 +154,9 @@ void WorldSystem::init_menu() {
 			});
 		offset_y += offset_y_delta;
 	}
-	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "New Game", 0.9f, [&]() { restart_game(); });
+	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "New Game", 1.f, [&]() { restart_game(); });
 	offset_y += offset_y_delta;
-	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Exit", 0.9f, [&]() { glfwSetWindowShouldClose(window, true); });
+	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Exit", 1.f, [&]() { glfwSetWindowShouldClose(window, true); });
 }
 
 void WorldSystem::init_pause_menu() {

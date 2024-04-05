@@ -1247,3 +1247,45 @@ Entity createButton(RenderSystem* renderer, vec2 pos, float scale,
 	return entity;
 }
 
+Entity createMainMenu(RenderSystem* renderer, vec2 title_pos, float title_scale) {
+	// Main menu background
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = { 0, 0 };
+	vec2 background_size = { MENU_BACKGROUND_WIDTH, MENU_BACKGROUND_HEIGHT };
+	vec2 ratio = vec2(window_width_px, window_height_px) / background_size;
+	motion.scale = (ratio.x + ratio.y) / 2.f * background_size;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::MENU_BACKGROUND,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.titleBackgrounds.emplace(entity);
+
+	// Main menu title 
+	auto entity2 = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh2 = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity2, &mesh2);
+
+	Motion& motion2 = registry.motions.emplace(entity2);
+	motion2.position = title_pos;
+	motion2.scale = title_scale * vec2(MENU_TITLE_WIDTH, MENU_TITLE_HEIGHT);
+
+	registry.renderRequests.insert(
+		entity2,
+		{ TEXTURE_ASSET_ID::MENU_TITLE,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.titleBackgrounds.emplace(entity2);
+
+	return entity;
+}
+

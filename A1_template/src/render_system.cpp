@@ -350,7 +350,6 @@ void RenderSystem::draw()
 		std::vector<Entity> uiux_world_entities;
 		for (Entity entity : registry.renderRequests.entities)
 		{
-			if (registry.buttons.has(entity)) continue;
 			if (registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::BOSS_HEALTH_BAR) {
 				boss_ui_entities.push_back(entity);
 				continue;
@@ -358,6 +357,7 @@ void RenderSystem::draw()
 			if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 				continue;
 			}
+			if (registry.buttons.has(entity) || registry.titleBackgrounds.has(entity)) continue;
 			if (registry.UIUXWorld.has(entity)) {
 				uiux_world_entities.push_back(entity);
 				continue;
@@ -462,6 +462,10 @@ void RenderSystem::draw()
 		}
 	}
 	else if (menu.state == MENU_STATE::MAIN_MENU) {
+		for (Entity entity : registry.titleBackgrounds.entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
 		render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::MAIN_MENU);
 	}
 

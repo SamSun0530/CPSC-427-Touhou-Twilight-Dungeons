@@ -84,6 +84,8 @@ class RenderSystem {
 			textures_path("Button.png"),
 			textures_path("ButtonHover.png"),
 			textures_path("None.png"),
+			textures_path("MainMenuTitle.png"),
+			textures_path("MainMenuBackground.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

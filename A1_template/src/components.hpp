@@ -52,7 +52,7 @@ struct ComboMode {
 	// Combo meter
 	float combo_meter = 1.0f;
 	const float COMBO_METER_MAX = 1.5f;
-	
+
 	void restart() {
 		combo_meter = 1.0f;
 	}
@@ -66,6 +66,10 @@ struct GameInfo {
 extern GameInfo game_info;
 
 // Menu stuff
+struct MainMenuTitleBackground {
+
+};
+
 struct Button {
 	MENU_STATE state; // button related to which state
 	std::string text = ""; // button text
@@ -349,14 +353,14 @@ struct Chest
 struct Key
 {
 };
-	
+
 struct BossHealthBarUI {
 	bool is_visible = false;
 };
 
 // keep track of which boss this ui belongs to
 struct BossHealthBarLink {
-	Entity other; 
+	Entity other;
 	BossHealthBarLink(Entity& other) { this->other = other; };
 };
 
@@ -608,7 +612,7 @@ enum class TEXTURE_ASSET_ID {
 	RIGHT_TOP_CORNER_WALL = LEFT_BOTTOM_CORNER_WALL + 1,
 	RIGHT_BOTTOM_CORNER_WALL = RIGHT_TOP_CORNER_WALL + 1,
 	REIMU_HEALTH = RIGHT_BOTTOM_CORNER_WALL + 1,
-	REIMU_HEAD= REIMU_HEALTH + 1,
+	REIMU_HEAD = REIMU_HEALTH + 1,
 	EMPTY_HEART = REIMU_HEAD + 1,
 	BOTTOM_WALL = EMPTY_HEART + 1,
 	WALL_EDGE = BOTTOM_WALL + 1,
@@ -634,7 +638,9 @@ enum class TEXTURE_ASSET_ID {
 	BUTTON = COIN_STATIC + 1,
 	BUTTON_HOVERED = BUTTON + 1,
 	NONE = BUTTON_HOVERED + 1,
-	TEXTURE_COUNT = NONE + 1
+	MENU_TITLE = NONE + 1,
+	MENU_BACKGROUND = MENU_TITLE + 1,
+	TEXTURE_COUNT = MENU_BACKGROUND + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

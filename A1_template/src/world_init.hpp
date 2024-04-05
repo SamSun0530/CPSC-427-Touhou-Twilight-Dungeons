@@ -27,6 +27,10 @@ const float BOSS_HEALTH_BAR_WIDTH = 0.6f * 931.f;
 const float BOSS_HEALTH_BAR_HEIGHT = 0.6f * 116.f /*232.f*/;
 const float BUTTON_HOVER_WIDTH = 1.f * 284.f;
 const float BUTTON_HOVER_HEIGHT = 1.f * 104.f;
+const float MENU_TITLE_WIDTH = 1.f * 1608.f;
+const float MENU_TITLE_HEIGHT = 1.f * 538.f;
+const float MENU_BACKGROUND_WIDTH = 1.f * 1792.f;
+const float MENU_BACKGROUND_HEIGHT = 1.f * 1008.f;
 
 // the bullet, takes into account entity's speed and position
 Entity createBullet(RenderSystem * renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern * bullet_pattern = nullptr);
@@ -85,3 +89,6 @@ Entity createEgg(vec2 pos, vec2 size);
 // Menu button
 Entity createButton(RenderSystem* renderer, vec2 pos, float scale,
 	MENU_STATE menu_state, std::string button_text, float button_scale, std::function<void()> func);
+// Menu title and background
+Entity createMainMenu(RenderSystem* renderer, vec2 title_pos, float title_scale);
+
