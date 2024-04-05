@@ -152,6 +152,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		getInstance().display_instruction = false;
 	}
 
+	
+	getInstance().HP_timer -= getInstance().HP_timer <= 0 ? 0 : elapsed_ms_since_last_update;
+	if (getInstance().HP_timer < 0) {
+		getInstance().HP_timer = 0;
+	}
+	// std::cout << HP_timer << std::endl;
+
 	// Updating window title with points
 	std::stringstream title_ss;
 	//title_ss << "Points: " << points;
@@ -478,6 +485,7 @@ void WorldSystem::handle_collisions() {
 			}
 			else if (registry.pickupables.has(entity_other)) {
 				if (!registry.realDeathTimers.has(entity)) {
+					getInstance().HP_timer = 3000.0f;
 					registry.hps.get(entity).curr_hp += registry.pickupables.get(entity_other).health_change;
 					if (registry.hps.get(entity).curr_hp > registry.hps.get(entity).max_hp) {
 						registry.hps.get(entity).curr_hp = registry.hps.get(entity).max_hp;
@@ -668,6 +676,10 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
+float WorldSystem::get_HP_timer()
+{
+	return HP_timer;
+}
 bool WorldSystem::get_display_instruction()
 {
 	return display_instruction;

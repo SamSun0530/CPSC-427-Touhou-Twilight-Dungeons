@@ -57,6 +57,7 @@ public:
 	static std::vector<std::vector<int>> world_map; // world_map[Row][Col]
 
 	// font and instructions
+	float get_HP_timer();
 	bool get_display_instruction();
 	int get_tutorial_counter();
 	bool get_show_fps();
@@ -103,6 +104,7 @@ private:
 	bool display_instruction;
 	float elapsedSinceLastFPSUpdate = 0.0f;
 	float tutorial_timer = 10000.0f;
+	float HP_timer = 0.0f;
 
 	// fonts seting
 	std::string font_filename = "..//..//..//data//fonts//OpenSans-Bold.ttf";

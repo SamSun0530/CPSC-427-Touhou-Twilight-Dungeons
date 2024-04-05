@@ -376,6 +376,10 @@ void RenderSystem::draw()
 	// Render player
 	for (Entity entity : registry.players.entities) {
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		if (WorldSystem::getInstance().get_HP_timer() > 0) {
+			const Motion& motion = registry.motions.get(entity);
+			renderText("HP++!", motion.position.x-30, motion.position.y - 35, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f), trans, true);
+		}
 	}
 
 	// Render instance of visible enemy bullets
