@@ -496,14 +496,27 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
 
 	glBindVertexArray(m_font_VAO);
 
+	// https://gamedev.stackexchange.com/q/178035
+	float offset_x = 0.f;
+	float offset_y = 0.f;
+	for (auto c = text.begin(); c != text.end(); c++) {
+		Character ch = m_ftCharacters[*c];
+		// advance is length of current glyph to next glyph
+		offset_x += (ch.Advance >> 6) * scale;
+		// size is entire glyph size, need to shift equally for different glyph heights
+		offset_y = max(offset_y, ch.Size.y * scale);
+	}
+	offset_x /= 2.f;
+	offset_y /= 2.f;
+
 	// iterate through all characters
 	std::string::const_iterator c;
 	for (c = text.begin(); c != text.end(); c++)
 	{
 		Character ch = m_ftCharacters[*c];
 
-		float xpos = x + ch.Bearing.x * scale;
-		float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+		float xpos = x + ch.Bearing.x * scale - offset_x;
+		float ypos = y - (ch.Size.y - ch.Bearing.y) * scale - offset_y;
 
 		float w = ch.Size.x * scale;
 		float h = ch.Size.y * scale;
