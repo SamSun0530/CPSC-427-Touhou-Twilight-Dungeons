@@ -170,7 +170,7 @@ void WorldSystem::init_pause_menu() {
 	offset_y += offset_y_delta;
 	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Restart", 0.9f, [&]() { restart_game(); });
 	offset_y += offset_y_delta;
-	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Exit", 0.9f, [&]() {
+	createButton(renderer, { 0, offset_y }, button_scale * 1.1f, MENU_STATE::PAUSE, "Exit to Menu", 0.85f, [&]() {
 		Mix_PauseMusic();
 		menu.state = MENU_STATE::MAIN_MENU;
 		});
@@ -206,12 +206,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (tutorial_timer <= 0) {
 		getInstance().display_instruction = false;
 	}
-
-	// Updating window title with points
-	std::stringstream title_ss;
-	//title_ss << "Points: " << points;
-	title_ss << "Touhou: Twilight Dungeon";
-	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
@@ -426,6 +420,7 @@ void WorldSystem::restart_game() {
 	pressed = { 0 };
 
 	// Reset bgm
+	Mix_ResumeMusic();
 	Mix_PlayMusic(audio->background_music, -1);
 
 	// Remove all entities that we created
