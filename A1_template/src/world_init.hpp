@@ -31,9 +31,11 @@ const float MENU_TITLE_WIDTH = 1.f * 1608.f;
 const float MENU_TITLE_HEIGHT = 1.f * 538.f;
 const float MENU_BACKGROUND_WIDTH = 1.f * 1792.f;
 const float MENU_BACKGROUND_HEIGHT = 1.f * 1008.f;
+const float PAUSE_BACKGROUND_WIDTH = 1.f * 416.f;
+const float PAUSE_BACKGROUND_HEIGHT = 1.f * 448.f;
 
 // the bullet, takes into account entity's speed and position
-Entity createBullet(RenderSystem * renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern * bullet_pattern = nullptr);
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern* bullet_pattern = nullptr);
 Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet);
 
 Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm, bool in_world = false);
@@ -89,6 +91,7 @@ Entity createEgg(vec2 pos, vec2 size);
 // Menu button
 Entity createButton(RenderSystem* renderer, vec2 pos, float scale,
 	MENU_STATE menu_state, std::string button_text, float button_scale, std::function<void()> func);
-// Menu title and background
-Entity createMainMenu(RenderSystem* renderer, vec2 title_pos, float title_scale);
-
+// Main menu title and background
+Entity createMainMenu(RenderSystem* renderer, vec2 title_pos = { 0, 0 }, float title_scale = 1.f);
+// Pause menu background
+Entity createPauseMenu(RenderSystem* renderer, vec2 background_pos = { 0,0 }, float background_scale = 1.f);

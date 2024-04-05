@@ -1257,6 +1257,7 @@ Entity createMainMenu(RenderSystem* renderer, vec2 title_pos, float title_scale)
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = { 0, 0 };
+	// background will always be largest size and centered
 	vec2 background_size = { MENU_BACKGROUND_WIDTH, MENU_BACKGROUND_HEIGHT };
 	vec2 ratio = vec2(window_width_px, window_height_px) / background_size;
 	motion.scale = (ratio.x + ratio.y) / 2.f * background_size;
@@ -1266,7 +1267,7 @@ Entity createMainMenu(RenderSystem* renderer, vec2 title_pos, float title_scale)
 		{ TEXTURE_ASSET_ID::MENU_BACKGROUND,
 			EFFECT_ASSET_ID::UI,
 			GEOMETRY_BUFFER_ID::SPRITE });
-	registry.titleBackgrounds.emplace(entity);
+	registry.mainMenus.emplace(entity);
 
 	// Main menu title 
 	auto entity2 = Entity();
@@ -1284,8 +1285,29 @@ Entity createMainMenu(RenderSystem* renderer, vec2 title_pos, float title_scale)
 		{ TEXTURE_ASSET_ID::MENU_TITLE,
 			EFFECT_ASSET_ID::UI,
 			GEOMETRY_BUFFER_ID::SPRITE });
-	registry.titleBackgrounds.emplace(entity2);
+	registry.mainMenus.emplace(entity2);
 
 	return entity;
 }
 
+Entity createPauseMenu(RenderSystem* renderer, vec2 background_pos, float background_scale) {
+	// Pause menu background
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = background_pos;
+	motion.scale = background_scale * vec2(PAUSE_BACKGROUND_WIDTH, PAUSE_BACKGROUND_HEIGHT);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::PAUSE_BACKGROUND,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.pauseMenus.emplace(entity);
+
+	return entity;
+}

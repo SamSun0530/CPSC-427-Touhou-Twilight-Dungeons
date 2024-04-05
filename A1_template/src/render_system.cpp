@@ -357,7 +357,7 @@ void RenderSystem::draw()
 			if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 				continue;
 			}
-			if (registry.buttons.has(entity) || registry.titleBackgrounds.has(entity)) continue;
+			if (registry.buttons.has(entity) || registry.mainMenus.has(entity) || registry.pauseMenus.has(entity)) continue;
 			if (registry.UIUXWorld.has(entity)) {
 				uiux_world_entities.push_back(entity);
 				continue;
@@ -458,11 +458,15 @@ void RenderSystem::draw()
 
 		// Render this last, because it should be on top
 		if (menu.state == MENU_STATE::PAUSE) {
+			for (Entity entity : registry.pauseMenus.entities) {
+				drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+			}
+
 			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::PAUSE);
 		}
 	}
 	else if (menu.state == MENU_STATE::MAIN_MENU) {
-		for (Entity entity : registry.titleBackgrounds.entities) {
+		for (Entity entity : registry.mainMenus.entities) {
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
 

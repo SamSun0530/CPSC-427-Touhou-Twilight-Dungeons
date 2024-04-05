@@ -34,3 +34,4 @@ Alan Huang <br />
 - Cirno/Reimu - http://revdot.web.fc2.com/dot_rpgvx_toho.html
 - Bullets - https://danmakufu.wiki.fc2.com/wiki/%E7%B4%A0%E6%9D%90%E3%83%AA%E3%83%B3%E3%82%AF#b52b3719
 - Font - https://www.dafont.com/pixelmix.font
+- Paper UI - https://humblepixel.itch.io/pocket-inventory-series-5-player-status

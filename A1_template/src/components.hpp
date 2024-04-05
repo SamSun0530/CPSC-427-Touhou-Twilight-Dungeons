@@ -66,7 +66,11 @@ struct GameInfo {
 extern GameInfo game_info;
 
 // Menu stuff
-struct MainMenuTitleBackground {
+struct MainMenu {
+
+};
+
+struct PauseMenu {
 
 };
 
@@ -640,7 +644,8 @@ enum class TEXTURE_ASSET_ID {
 	NONE = BUTTON_HOVERED + 1,
 	MENU_TITLE = NONE + 1,
 	MENU_BACKGROUND = MENU_TITLE + 1,
-	TEXTURE_COUNT = MENU_BACKGROUND + 1
+	PAUSE_BACKGROUND = MENU_BACKGROUND + 1,
+	TEXTURE_COUNT = PAUSE_BACKGROUND + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
