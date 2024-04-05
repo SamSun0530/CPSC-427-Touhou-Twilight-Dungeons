@@ -84,7 +84,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		(*render_request).used_effect == EFFECT_ASSET_ID::UI ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB ||
-		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER)
+		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER || 
+		(*render_request).used_effect == EFFECT_ASSET_ID::COMBO)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -160,6 +161,21 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			glUniform1f(invul_uloc, invul_timer);
 			gl_has_errors();
 		}
+		float strength = 0.2f;
+		if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::C) {
+			strength = 0.2f;
+		} else if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::B) {
+			strength = 0.3f;
+		}
+		else if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::A) {
+			strength = 0.4f;
+		}
+		else if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::S) {
+			strength = 0.5f;
+		}
+		GLint strength_uloc = glGetUniformLocation(program, "strength");
+		glUniform1f(strength_uloc, strength);
+		gl_has_errors();
 	}
 	else if ((*render_request).used_effect == EFFECT_ASSET_ID::EGG)
 	{
@@ -230,6 +246,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	glUniformMatrix3fv(view_loc, 1, GL_FALSE, (float*)&view);
 	GLuint view_loc_ui = glGetUniformLocation(currProgram, "view_ui");
 	glUniformMatrix3fv(view_loc_ui, 1, GL_FALSE, (float*)&view_ui);
+	GLuint time_uloc = glGetUniformLocation(currProgram, "time");
+	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
 	gl_has_errors();
 	// Drawing of num_indices/3 triangles specified in the index buffer
 	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
