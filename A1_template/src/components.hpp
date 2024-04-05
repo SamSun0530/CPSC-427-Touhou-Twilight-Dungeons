@@ -68,8 +68,10 @@ extern GameInfo game_info;
 // Menu stuff
 struct Button {
 	MENU_STATE state; // button related to which state
-	std::string content; // button text
+	std::string text = ""; // button text
+	float text_scale = 1.f;
 	std::function<void()> func;
+	bool is_hovered = false;
 };
 
 struct PlayerBullet {
@@ -630,7 +632,9 @@ enum class TEXTURE_ASSET_ID {
 	FOCUS_BAR = CRTHITICON + 1,
 	COIN_STATIC = FOCUS_BAR + 1,
 	BUTTON = COIN_STATIC + 1,
-	TEXTURE_COUNT = BUTTON + 1
+	BUTTON_HOVERED = BUTTON + 1,
+	NONE = BUTTON_HOVERED + 1,
+	TEXTURE_COUNT = NONE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

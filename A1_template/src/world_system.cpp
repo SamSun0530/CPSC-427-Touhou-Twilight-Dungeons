@@ -142,33 +142,34 @@ void WorldSystem::init_menu() {
 	// TODO: create texture
 
 	// create buttons
-	float button_height = 100;
-	float padding_y = 0;
-	const float padding_y_delta = button_height + 20;
+	float button_scale = 0.7f;
+	float offset_x = window_px_half.x / 1.8f;
+	float offset_y = -window_px_half.y / 10.f;;
+	const float offset_y_delta = BUTTON_HOVER_HEIGHT * button_scale + 5;
 	if (game_info.has_started) {
-		createButton(renderer, { 0, padding_y }, { 100, button_height }, MENU_STATE::MAIN_MENU, "Resume", [&]() { 
+		createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Resume", 0.9f, [&]() {
 			Mix_ResumeMusic();
-			resume_game(); 
+			resume_game();
 			});
-		padding_y += padding_y_delta;
+		offset_y += offset_y_delta;
 	}
-	createButton(renderer, { 0, padding_y }, { 100, button_height }, MENU_STATE::MAIN_MENU, "New Game", [&]() { restart_game(); });
-	padding_y += padding_y_delta;
-	createButton(renderer, { 0, padding_y }, { 100, button_height }, MENU_STATE::MAIN_MENU, "Exit", [&]() { glfwSetWindowShouldClose(window, true); });
+	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "New Game", 0.9f, [&]() { restart_game(); });
+	offset_y += offset_y_delta;
+	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Exit", 0.9f, [&]() { glfwSetWindowShouldClose(window, true); });
 }
 
 void WorldSystem::init_pause_menu() {
 	// TODO: create texture
 
 	// create buttons
-	float button_height = 100;
-	float padding_y = 0;
-	const float padding_y_delta = button_height + 20;
-	createButton(renderer, { 0, padding_y }, { 100, button_height }, MENU_STATE::PAUSE, "Resume", [&]() { resume_game(); });
-	padding_y += padding_y_delta;
-	createButton(renderer, { 0, padding_y }, { 100, button_height }, MENU_STATE::PAUSE, "Restart", [&]() { restart_game(); });
-	padding_y += padding_y_delta;
-	createButton(renderer, { 0, padding_y }, { 100, button_height }, MENU_STATE::PAUSE, "Exit", [&]() {
+	float button_scale = 0.7f;
+	float offset_y = 0;
+	const float offset_y_delta = BUTTON_HOVER_HEIGHT * button_scale + 5;
+	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Resume", 0.9f, [&]() { resume_game(); });
+	offset_y += offset_y_delta;
+	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Restart", 0.9f, [&]() { restart_game(); });
+	offset_y += offset_y_delta;
+	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Exit", 0.9f, [&]() {
 		Mix_PauseMusic();
 		menu.state = MENU_STATE::MAIN_MENU;
 		});
@@ -932,6 +933,29 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 			// Set the camera offset to be in between the cursor and the player
 			// Center the mouse position, get the half distance between mouse cursor and player, update offset relative to player position
 			renderer->camera.offset_target = ((mouse_position - window_px_half) - player_position) / 2.f + player_position / 2.f;
+		}
+	}
+	else {
+		ComponentContainer<Button>& button_container = registry.buttons;
+		int button_container_size = button_container.size();
+		for (int i = 0; i < button_container_size; ++i) {
+			Button& button = button_container.components[i];
+			if (button.state != menu.state) continue; // don't check other state buttons
+			Entity& entity = button_container.entities[i];
+			const Motion& motion = registry.motions.get(entity);
+
+			vec2 mouse_pos = mouse_position - window_px_half;
+			// check if point clicked is inside button
+			vec2 half_extent = motion.scale / 2.f;
+			vec2 min = motion.position - half_extent;
+			vec2 max = motion.position + half_extent;
+			if (mouse_pos.x >= min.x && mouse_pos.x <= max.x &&
+				mouse_pos.y >= min.y && mouse_pos.y <= max.y) {
+				button.is_hovered = true;
+			}
+			else {
+				button.is_hovered = false;
+			}
 		}
 	}
 }

@@ -1220,8 +1220,8 @@ Entity createEgg(vec2 pos, vec2 size)
 	return entity;
 }
 
-Entity createButton(RenderSystem* renderer, vec2 pos, vec2 size,
-	MENU_STATE menu_state, std::string button_text, std::function<void()> func) {
+Entity createButton(RenderSystem* renderer, vec2 pos, float scale,
+	MENU_STATE menu_state, std::string button_text, float text_scale, std::function<void()> func) {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -1230,7 +1230,7 @@ Entity createButton(RenderSystem* renderer, vec2 pos, vec2 size,
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
-	motion.scale = size;
+	motion.scale = scale * vec2(BUTTON_HOVER_WIDTH, BUTTON_HOVER_HEIGHT);
 
 	registry.renderRequests.insert(
 		entity,
@@ -1240,7 +1240,8 @@ Entity createButton(RenderSystem* renderer, vec2 pos, vec2 size,
 
 	Button& button = registry.buttons.emplace(entity);
 	button.state = menu_state;
-	button.content = button_text;
+	button.text = button_text;
+	button.text_scale = text_scale;
 	button.func = func;
 
 	return entity;

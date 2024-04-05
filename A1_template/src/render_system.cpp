@@ -304,9 +304,11 @@ void RenderSystem::render_buttons(glm::mat3& projection_2D, glm::mat3& view_2D, 
 		if (button.state != state) continue; // don't render other buttons
 		Entity& entity = button_container.entities[i];
 		Motion& motion = registry.motions.get(entity);
+		RenderRequest& rr = registry.renderRequests.get(entity);
+		rr.used_texture = button.is_hovered ? TEXTURE_ASSET_ID::BUTTON_HOVERED : TEXTURE_ASSET_ID::BUTTON;
 
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-		renderText(button.content, motion.position.x, motion.position.y, 1.f, vec3(0), trans, false);
+		renderText(button.text, motion.position.x, motion.position.y, button.text_scale, button.is_hovered ? vec3(1.f) : vec3(0.03f), trans, false);
 	}
 }
 
@@ -544,7 +546,7 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
 		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
 		// std::cout << "binding texture: " << ch.character << " = " << ch.TextureID << std::endl;
 
-		// update content of VBO memory
+		// update text of VBO memory
 		glBindBuffer(GL_ARRAY_BUFFER, m_font_VBO);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
