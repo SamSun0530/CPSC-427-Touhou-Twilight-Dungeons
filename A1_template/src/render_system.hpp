@@ -81,6 +81,12 @@ class RenderSystem {
 			textures_path("CriticalHitIcon.png"),
 			textures_path("FocusBar.png"),
 			textures_path("Coins-Static.png"),
+			textures_path("Button.png"),
+			textures_path("ButtonHover.png"),
+			textures_path("None.png"),
+			textures_path("MainMenuTitle.png"),
+			textures_path("MainMenuBackground.png"),
+			textures_path("PauseMenuBackground.png"),
 			textures_path("C.png"),
 			textures_path("B.png"),
 			textures_path("A.png"),
@@ -128,6 +134,8 @@ public:
 
 	// Destroy resources associated to one or all entities created by the system
 	~RenderSystem();
+
+	void render_buttons(glm::mat3& projection_2D, glm::mat3& view_2D, glm::mat3& view_2D_ui, MENU_STATE state);
 
 	// Draw all entities
 	void draw();

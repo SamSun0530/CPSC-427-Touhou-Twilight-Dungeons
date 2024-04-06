@@ -38,6 +38,11 @@ public:
 	// starts the game
 	void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai);
 
+	// initialize the menu
+	void init_menu();
+	void init_pause_menu();
+	void resume_game();
+
 	// Releases all associated resources
 	~WorldSystem();
 
@@ -66,9 +71,6 @@ public:
 	// Updates focus mode position
 	// Fixes issue where dot lags behind player due to physics lerp step after setting position
 	void update_focus_dot();
-	// Combo meter
-	float combo_meter = 1.0f;
-	const float COMBO_METER_MAX = 1.5f;
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -106,7 +108,8 @@ private:
 	Entity display_combo;
 
 	// fonts seting
-	std::string font_filename = "..//..//..//data//fonts//OpenSans-Bold.ttf";
+	//std::string font_filename = "..//..//..//data//fonts//OpenSans-Bold.ttf";
+	std::string font_filename = "..//..//..//data//fonts//pixelmix//pixelmix.ttf";
 	unsigned int font_default_size = 25;
 
 	// Player state

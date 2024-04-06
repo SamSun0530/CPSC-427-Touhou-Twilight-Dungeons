@@ -5,6 +5,82 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 
+// World map loader
+struct MapLevel {
+	enum LEVEL {
+		TUTORIAL,
+		MAIN
+	} level = LEVEL::MAIN;
+};
+extern MapLevel map_level;
+
+// Menu loader
+enum class MENU_STATE {
+	MAIN_MENU,
+	PLAY,
+	PAUSE
+};
+
+struct Menu {
+	MENU_STATE state = MENU_STATE::MAIN_MENU;
+};
+extern Menu menu;
+
+// Data structure for toggling debug mode
+struct Debug {
+	bool in_debug_mode = 0;
+	bool in_freeze_mode = 0;
+};
+extern Debug debugging;
+
+struct FocusMode {
+	bool in_focus_mode = 0;
+	float speed_constant = 1.0f;
+	// limit usage of focus mode through time
+	float counter_ms = 10000;
+	float max_counter_ms = 10000; // 10 seconds
+
+	void restart() {
+		in_focus_mode = false;
+		speed_constant = 1.0f;
+		counter_ms = max_counter_ms;
+	}
+};
+extern FocusMode focus_mode;
+
+struct ComboMode {
+	// Combo meter
+	float combo_meter = 1.0f;
+	const float COMBO_METER_MAX = 1.5f;
+
+	void restart() {
+		combo_meter = 1.0f;
+	}
+};
+extern ComboMode combo_mode;
+
+// Game related information
+struct GameInfo {
+	bool has_started = false;
+};
+extern GameInfo game_info;
+
+// Menu stuff
+struct MainMenu {
+
+};
+
+struct PauseMenu {
+
+};
+
+struct Button {
+	MENU_STATE state; // button related to which state
+	std::string text = ""; // button text
+	float text_scale = 1.f;
+	std::function<void()> func;
+	bool is_hovered = false;
+};
 
 struct PlayerBullet {
 	int damage = 10;
@@ -22,14 +98,6 @@ struct EnemyBullet
 {
 	int damage = 1;
 };
-
-struct MapLevel {
-	enum LEVEL {
-		TUTORIAL,
-		MAIN
-	} level = LEVEL::MAIN;
-};
-extern MapLevel map_level;
 
 /*
 Bullet actions:
@@ -289,14 +357,14 @@ struct Chest
 struct Key
 {
 };
-	
+
 struct BossHealthBarUI {
 	bool is_visible = false;
 };
 
 // keep track of which boss this ui belongs to
 struct BossHealthBarLink {
-	Entity other; 
+	Entity other;
 	BossHealthBarLink(Entity& other) { this->other = other; };
 };
 
@@ -376,22 +444,6 @@ struct FollowFlowField
 	// set to true to prevent enemy from stopping early
 	bool is_player_target = true;
 };
-
-// Data structure for toggling debug mode
-struct Debug {
-	bool in_debug_mode = 0;
-	bool in_freeze_mode = 0;
-};
-extern Debug debugging;
-
-struct FocusMode {
-	bool in_focus_mode = 0;
-	float speed_constant = 1.0f;
-	// limit usage of focus mode through time
-	float counter_ms = 10000;
-	float max_counter_ms = 10000; // 10 seconds
-};
-extern FocusMode focus_mode;
 
 // Sets the brightness of the screen
 struct ScreenState
@@ -564,7 +616,7 @@ enum class TEXTURE_ASSET_ID {
 	RIGHT_TOP_CORNER_WALL = LEFT_BOTTOM_CORNER_WALL + 1,
 	RIGHT_BOTTOM_CORNER_WALL = RIGHT_TOP_CORNER_WALL + 1,
 	REIMU_HEALTH = RIGHT_BOTTOM_CORNER_WALL + 1,
-	REIMU_HEAD= REIMU_HEALTH + 1,
+	REIMU_HEAD = REIMU_HEALTH + 1,
 	EMPTY_HEART = REIMU_HEAD + 1,
 	BOTTOM_WALL = EMPTY_HEART + 1,
 	WALL_EDGE = BOTTOM_WALL + 1,
@@ -587,7 +639,13 @@ enum class TEXTURE_ASSET_ID {
 	CRTHITICON = CRTDMG + 1,
 	FOCUS_BAR = CRTHITICON + 1,
 	COIN_STATIC = FOCUS_BAR + 1,
-	C = COIN_STATIC + 1,
+	BUTTON = COIN_STATIC + 1,
+	BUTTON_HOVERED = BUTTON + 1,
+	NONE = BUTTON_HOVERED + 1,
+	MENU_TITLE = NONE + 1,
+	MENU_BACKGROUND = MENU_TITLE + 1,
+	PAUSE_BACKGROUND = MENU_BACKGROUND + 1,
+	C = PAUSE_BACKGROUND + 1,
 	B = C + 1,
 	A = B + 1,
 	S = A + 1,
