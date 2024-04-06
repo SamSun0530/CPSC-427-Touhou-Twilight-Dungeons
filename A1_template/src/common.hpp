@@ -82,9 +82,10 @@ enum class ROOM_TYPE {
 	BOSS
 };
 
-// TEMPORARY
-struct Room2 {
+// A  basic way to store room data
+struct Room_struct {
 	ROOM_TYPE type = ROOM_TYPE::NORMAL;
+	std::vector<vec2> door_locations;
 	vec2 top_left;
 	vec2 bottom_right;
 };

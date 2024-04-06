@@ -23,48 +23,9 @@ void MapSystem::restart_map() {
 	world_map = std::vector<std::vector<int>>(world_height, std::vector<int>(world_width, 0));
 }
 
-void MapSystem::spawnEnemies() {
-	// testing boss enemy
-	//for (Room& room : rooms) {
-	//	coord world_coord = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 5));		
-	//	//coord world_coord2 = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 4));		
-	//	//coord world_coord3 = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 3));
-	//	//coord world_coord4 = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 2));
-	//	createBoss(renderer, world_coord);
-	//	//createBeeEnemy(renderer, world_coord);
-	//	//createBeeEnemy(renderer, world_coord2);
-	//	//createWolfEnemy(renderer, world_coord3);
-	//	//createBomberEnemy(renderer, world_coord4);
-	//}
-
-	for (Room room : rooms) {
-		std::vector<vec2> spawn_points;
-		spawn_points.push_back(vec2(room.x + 2, room.y + 2));
-		spawn_points.push_back(vec2(room.x + room_size - 2, room.y + 2));
-		spawn_points.push_back(vec2(room.x + 2, room.y + room_size - 2));
-		spawn_points.push_back(vec2(room.x + room_size - 2, room.y + room_size - 2));
-		vec2 world_coord;
-		for (vec2 point : spawn_points) {
-			world_coord = convert_grid_to_world(point);
-			std::random_device ran;
-			std::mt19937 gen(ran());
-			std::uniform_real_distribution<> dis(0.0, 1.0);
-			float random_numer = dis(gen);
-			if (random_numer <= 0.33) {
-				createBeeEnemy(renderer, world_coord);
-			}
-			else if (random_numer <= 0.66) {
-				createWolfEnemy(renderer, world_coord);
-			}
-			else if (random_numer <= 0.99) {
-				createBomberEnemy(renderer, world_coord);
-			}
-		}
-	}
-}
 
 void MapSystem::spawnEnemiesInRoom() {
-	Room2 room;
+	Room_struct room;
 
 	for (int room_num = 1; room_num < bsptree.rooms.size(); room_num++) {
 		room = bsptree.rooms[room_num];
@@ -138,33 +99,6 @@ void MapSystem::generateBasicMap() {
 	// }
 
 	generateAllEntityTiles(world_map);
-}
-
-Room generateTutRoom(int x, int y) {
-	Room room;
-	room.id = room_id++;
-	room.x = x;
-	room.y = y;
-
-	std::vector<std::vector<int>> grid = {
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
-	};
-	room.grid = grid;
-	return room;
 }
 
 void MapSystem::generateTutorialMap() {
@@ -327,7 +261,7 @@ void MapSystem::generateRandomMap() {
 	// Connect boss with last room
 	assert(bsptree.rooms.size() > 0 && bsptree.corridors.size() > 0);
 	Corridor boss_corridor;
-	Room2 boss_room2;
+	Room_struct boss_room2;
 	boss_room2.top_left = vec2(boss_room.x, boss_room.y);
 	boss_room2.bottom_right = boss_room2.top_left + boss_room.size - 1.f; // round issues probably
 	boss_room2.type = ROOM_TYPE::BOSS;
@@ -339,7 +273,7 @@ void MapSystem::generateRandomMap() {
 
 	// Populates the map with floors
 	for (int i = 0; i < bsptree.rooms.size(); i++) {
-		Room2& room2 = bsptree.rooms[i];
+		Room_struct& room2 = bsptree.rooms[i];
 		for (int i = room2.top_left.y; i < room2.bottom_right.y; i++) {
 			for (int j = room2.top_left.x; j < room2.bottom_right.x; j++) {
 				world_map[i][j] = (int)TILE_TYPE::FLOOR;
