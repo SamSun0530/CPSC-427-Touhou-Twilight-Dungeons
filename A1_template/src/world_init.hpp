@@ -92,6 +92,7 @@ Entity createEgg(vec2 pos, vec2 size);
 Entity createButton(RenderSystem* renderer, vec2 pos, float scale,
 	MENU_STATE menu_state, std::string button_text, float button_scale, std::function<void()> func);
 // Main menu title and background
-Entity createMainMenu(RenderSystem* renderer, vec2 title_pos = { 0, 0 }, float title_scale = 1.f);
+Entity createMainMenu(RenderSystem* renderer, vec2 title_pos = { 0, 0 }, float title_scale = 1.f, vec2 background_pos = { 0, 0 }, float background_scale = 1.f);
+
 // Pause menu background
 Entity createPauseMenu(RenderSystem* renderer, vec2 background_pos = { 0,0 }, float background_scale = 1.f);

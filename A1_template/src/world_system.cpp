@@ -139,16 +139,18 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map,
 }
 
 void WorldSystem::init_menu() {
-	// create main menu title and background
-	createMainMenu(renderer, { -window_px_half.x / 2.2f, 0.f }, 0.38f);
-
 	// create buttons
 	int num_buttons = game_info.has_started ? 3 : 2;
 	const float button_scale = 0.8f;
 	const float button_padding_y = 5.f;
+	const float offset_y_padding = 50.f;
 	const float offset_y_delta = BUTTON_HOVER_HEIGHT * button_scale + button_padding_y;
-	float offset_y = -(offset_y_delta * (num_buttons - 1) - button_padding_y) / 2.f + 50.f;
+	float offset_y = -(offset_y_delta * (num_buttons - 1) - button_padding_y) / 2.f + offset_y_padding;
 	float offset_x = window_px_half.x / 2.2f;
+
+	// create main menu title and background
+	createMainMenu(renderer, { -window_px_half.x / 2.2f, 0.f }, 0.38f, { offset_x , offset_y_padding }, 1.f);
+
 	if (game_info.has_started) {
 		createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Resume", 0.9f, [&]() {
 			Mix_ResumeMusic();

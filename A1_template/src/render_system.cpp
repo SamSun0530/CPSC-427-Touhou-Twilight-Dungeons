@@ -308,7 +308,7 @@ void RenderSystem::render_buttons(glm::mat3& projection_2D, glm::mat3& view_2D, 
 		rr.used_texture = button.is_hovered ? TEXTURE_ASSET_ID::BUTTON_HOVERED : TEXTURE_ASSET_ID::BUTTON;
 
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-		renderText(button.text, motion.position.x, motion.position.y, button.text_scale, button.is_hovered ? vec3(1.f) : vec3(0.03f), trans, false);
+		renderText(button.text, motion.position.x, motion.position.y, button.text_scale, button.is_hovered ? vec3(0.03f) : vec3(0.5f), trans, false);
 	}
 }
 

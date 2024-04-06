@@ -1232,6 +1232,8 @@ Entity createButton(RenderSystem* renderer, vec2 pos, float scale,
 	motion.position = pos;
 	motion.scale = scale * vec2(BUTTON_HOVER_WIDTH, BUTTON_HOVER_HEIGHT);
 
+	registry.colors.emplace(entity, vec3(0.f));
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::BUTTON,
@@ -1247,7 +1249,7 @@ Entity createButton(RenderSystem* renderer, vec2 pos, float scale,
 	return entity;
 }
 
-Entity createMainMenu(RenderSystem* renderer, vec2 title_pos, float title_scale) {
+Entity createMainMenu(RenderSystem* renderer, vec2 title_pos, float title_scale, vec2 background_pos, float background_scale) {
 	// Main menu background
 	auto entity = Entity();
 
@@ -1286,6 +1288,24 @@ Entity createMainMenu(RenderSystem* renderer, vec2 title_pos, float title_scale)
 			EFFECT_ASSET_ID::UI,
 			GEOMETRY_BUFFER_ID::SPRITE });
 	registry.mainMenus.emplace(entity2);
+
+	// Paper on buttons for visibility
+	auto entity3 = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh3 = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity3, &mesh3);
+
+	Motion& motion3 = registry.motions.emplace(entity3);
+	motion3.position = background_pos;
+	motion3.scale = background_scale * vec2(PAUSE_BACKGROUND_WIDTH, PAUSE_BACKGROUND_HEIGHT);
+
+	registry.renderRequests.insert(
+		entity3,
+		{ TEXTURE_ASSET_ID::PAUSE_BACKGROUND,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.mainMenus.emplace(entity3);
 
 	return entity;
 }
