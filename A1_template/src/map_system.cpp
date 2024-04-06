@@ -272,82 +272,65 @@ void MapSystem::generateTutorialMap() {
 	generateAllEntityTiles(world_map);
 }
 
-Room& MapSystem::generateBossRoom() {
+Room MapSystem::generateBossRoom() {
 	rooms.clear();
 	Room room;
 	room.grid = {
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+		{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+		{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 	};
 	room.size = { room.grid[0].size(), room.grid.size() };
-	room.x = world_width - room.size.x - 1;
+	room.x = world_width - room.size.x - 2;
 	room.y = world_height / 2 - room.size.y / 2 - 1;
 
 	rooms.push_back(room);
 	addRoomToMap(room, world_map);
-	//generateAllEntityTiles(world_map);
 	return room;
 }
 
 void MapSystem::generateRandomMap() {
 	// Resets the map
-	bsptree.corridors.clear();
+	restart_map();
 	bsptree.rooms.clear();
-	Room& boss_room = generateBossRoom();
+	Room boss_room = generateBossRoom();
 
 	bsptree.init(vec2(room_size), vec2(world_width - boss_room.size.x - 1, world_height));
 	bsptree.generate_partitions(bsptree.root);
 	bsptree.generate_rooms_random(bsptree.root);
 	bsptree.generate_corridors(bsptree.root);
-	bsptree.get_corridors(bsptree.root, bsptree.corridors);
-	bsptree.get_rooms(bsptree.root, bsptree.rooms);
-	//bsptree.print_tree(bsptree.root);
 
-	// Connect boss with last room
-	assert(bsptree.rooms.size() > 0 && bsptree.corridors.size() > 0);
-	Corridor boss_corridor;
+	// Connect boss room
+	assert(bsptree.rooms.size() > 0);
 	Room2 boss_room2;
 	boss_room2.top_left = vec2(boss_room.x, boss_room.y);
 	boss_room2.bottom_left = boss_room2.top_left + boss_room.size - 1.f; // round issues probably
 	boss_room2.type = ROOM_TYPE::BOSS;
-	boss_corridor.start = (bsptree.rooms[bsptree.rooms.size() - 1].bottom_left +
-		bsptree.rooms[bsptree.rooms.size() - 1].top_left) / 2.f;
-	boss_corridor.end = (boss_room2.top_left + boss_room2.bottom_left) / 2.f;
-	bsptree.corridors.push_back(boss_corridor);
+	std::uniform_int_distribution<> int_distrib(0, bsptree.rooms.size() - 1);
+	int random_num = int_distrib(rng);
+	vec2 start = (bsptree.rooms[random_num].bottom_left +
+		bsptree.rooms[random_num].top_left) / 2.f;
+	vec2 end = (boss_room2.top_left + boss_room2.bottom_left) / 2.f;
+
 	bsptree.rooms.push_back(boss_room2);
+	bsptree.generate_corridor_between_two_points(start, end);
 
-	// Populates the map with floors
-	for (int i = 0; i < bsptree.rooms.size(); i++) {
-		Room2& room2 = bsptree.rooms[i];
-		for (int i = room2.top_left.y; i < room2.bottom_left.y; i++) {
-			for (int j = room2.top_left.x; j < room2.bottom_left.x; j++) {
-				world_map[i][j] = (int)TILE_TYPE::FLOOR;
-			}
-		}
-	}
-
-	bsptree.add_corridors_to_map(bsptree.corridors, world_map);
 	bsptree.set_map_walls(world_map);
 
 	generateAllEntityTiles(world_map);

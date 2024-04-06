@@ -1180,7 +1180,7 @@ std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std
 	bottom_collidable.size = { bottom_motion.scale.x, bottom_motion.scale.y };
 	bottom_collidable.shift = { 0, 0 };
 
-	WorldSystem::world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+	world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
 
 	registry.walls.emplace(bottom_entity);
 	registry.floors.emplace(top_entity); // TODO: maybe foreground.emplace

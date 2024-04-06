@@ -19,9 +19,6 @@ const size_t MAX_ENEMIES = 10;
 const size_t ENEMY_SPAWN_DELAY_MS = 2000 * 3;
 bool is_alive = true;
 
-// TODO: remove this and put into map_system, this is only for testing ai system
-std::vector<std::vector<int>> WorldSystem::world_map = std::vector<std::vector<int>>(world_height, std::vector<int>(world_width, (int)TILE_TYPE::EMPTY));
-
 // Create the world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -469,10 +466,9 @@ void WorldSystem::restart_game() {
 		//map->generateBossRoom();
 		map->generateRandomMap();
 		//map->spawnEnemies();
-		map->spawnEnemiesInRoom();
+		//map->spawnEnemiesInRoom();
 		player = map->spawnPlayerInRoom(0);
 	}
-	world_map = map->world_map;
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
@@ -833,20 +829,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// Debug mode: M to print mapsystem/worldsystem world map
 		if (debugging.in_debug_mode && action == GLFW_RELEASE && key == GLFW_KEY_M) {
 			printf("mapsystem map:\n");
-			for (int i = 0; i < map->world_map.size(); i++) {
-				for (int j = 0; j < map->world_map[0].size(); j++) {
-					printf("%d ", map->world_map[i][j]);
-				}
-				printf("\n");
-			}
-			printf("\n");
-			printf("worldsystem map:\n");
 			for (int i = 0; i < world_map.size(); i++) {
 				for (int j = 0; j < world_map[0].size(); j++) {
 					printf("%d ", world_map[i][j]);
 				}
 				printf("\n");
 			}
+			printf("\n");
 		}
 
 

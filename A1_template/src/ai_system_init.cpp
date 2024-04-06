@@ -4,8 +4,8 @@
 // checks if (x,y) on the map grid is valid, this is not world coordinates
 bool is_valid_cell(int x, int y) {
 	return !(y < 0 || x < 0 || y >= world_height || x >= world_width
-		|| WorldSystem::world_map[y][x] == (int)TILE_TYPE::WALL
-		|| WorldSystem::world_map[y][x] == (int)TILE_TYPE::EMPTY);
+		|| world_map[y][x] == (int)TILE_TYPE::WALL
+		|| world_map[y][x] == (int)TILE_TYPE::EMPTY);
 }
 
 // checks if entity has a line of sight of the player
@@ -134,6 +134,9 @@ struct GScore
 // Note: parameter coords are in grid coordinates NOT world coordinates
 // e.g. input (x,y) should be (1,1) on the grid instead of (550.53, -102.33)
 path astar(coord start, coord goal) {
+	// unlikely to find path between floats, so round
+	start = round(start);
+	goal = round(goal);
 	std::priority_queue<std::pair<float, coord>, std::vector<std::pair<float, coord>>, CompareGreater> open_list;
 	std::unordered_set<coord> close_list; // visited set
 	std::unordered_map<coord, coord> came_from;
