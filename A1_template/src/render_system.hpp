@@ -80,7 +80,11 @@ class RenderSystem {
 			textures_path("CriticalDemage.png"),
 			textures_path("CriticalHitIcon.png"),
 			textures_path("FocusBar.png"),
-			textures_path("Coins-Static.png")
+			textures_path("Coins-Static.png"),
+			textures_path("C.png"),
+			textures_path("B.png"),
+			textures_path("A.png"),
+			textures_path("S.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -94,7 +98,8 @@ class RenderSystem {
 		shader_path("ui"),
 		shader_path("font"),
 		shader_path("playerhealthbar"),
-		shader_path("bosshealthbar")
+		shader_path("bosshealthbar"),
+		shader_path("combo")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
