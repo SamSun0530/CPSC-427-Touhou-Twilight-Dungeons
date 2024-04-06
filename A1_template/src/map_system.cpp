@@ -1,5 +1,3 @@
-// Adpated from: https://www.gamedeveloper.com/programming/procedural-dungeon-generation-algorithm#close-modal
-
 // internal
 #include "map_system.hpp"
 #include "map_system.hpp"
@@ -8,7 +6,7 @@
 #include <iostream>
 
 
-int room_size = 11;
+int room_size = 11; // Must be at least >= 4
 
 MapSystem::MapSystem() {
 	// Seeding rng with random device
@@ -23,20 +21,35 @@ void MapSystem::restart_map() {
 	world_map = std::vector<std::vector<int>>(world_height, std::vector<int>(world_width, 0));
 }
 
-void MapSystem::spawnEnemies() {
-	// testing boss enemy
-	//for (Room& room : rooms) {
-	//	coord world_coord = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 5));		
-	//	//coord world_coord2 = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 4));		
-	//	//coord world_coord3 = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 3));
-	//	//coord world_coord4 = convert_grid_to_world(vec2(room.x + room.size.x / 2, room.y + room.size.y / 2 - 2));
-	//	createBoss(renderer, world_coord);
-	//	//createBeeEnemy(renderer, world_coord);
-	//	//createBeeEnemy(renderer, world_coord2);
-	//	//createWolfEnemy(renderer, world_coord3);
-	//	//createBomberEnemy(renderer, world_coord4);
-	//}
+bool MapSystem::is_valid_map(std::vector<std::vector<int>>& map) {
+	if (room_size <= 3) return true;
+	int map_height = map.size();
+	int map_width = map[0].size();
+	assert(map_height > 0 && map_width > 0 && "Map should have at least one cell");
+	// Create padding of empty tile in the edges by copy
+	auto map_copy = std::vector<std::vector<int>>(map_height + 2, std::vector<int>(map_width + 2, 0));
+	for (int y = 0; y < map_height; ++y) {
+		for (int x = 0; x < map_width; ++x) {
+			map_copy[y + 1][x + 1] = map[y][x];
+		}
+	}
 
+	for (int y = 0; y < map_height; ++y) {
+		for (int x = 0; x < map_width; ++x) {
+			if (map[y][x] == (int)TILE_TYPE::EMPTY || map[y][x] == (int)TILE_TYPE::FLOOR) continue;
+			const int U = map_copy[y - 1 + 1][x + 1];	// Up
+			const int D = map_copy[y + 1 + 1][x + 1];	// Down
+			const int L = map_copy[y + 1][x - 1 + 1];	// Left
+			const int R = map_copy[y + 1][x + 1 + 1];	// Right
+			const int F = (int)TILE_TYPE::FLOOR;
+			// False if there is floor on both sides (too many cases to handle + no tile set for this situation)
+			if ((U == F && D == F) || (L == F && R == F)) return false;
+		}
+	}
+	return true;
+}
+
+void MapSystem::spawnEnemies() {
 	for (Room room : rooms) {
 		std::vector<vec2> spawn_points;
 		spawn_points.push_back(vec2(room.x + 2, room.y + 2));
@@ -129,42 +142,7 @@ void MapSystem::generateBasicMap() {
 	addHallwayBetweenRoom(rooms[2], rooms[5], world_map);
 	addHallwayBetweenRoom(rooms[4], rooms[5], world_map);
 
-	// // Print the initialized array
-	// for (int i = 0; i < world_map.size(); ++i) {
-	//     for (int j = 0; j < world_map[i].size(); ++j) {
-	//         std::cout << world_map[i][j] << " ";
-	//     }
-	//     std::cout << std::endl;
-	// }
-
 	generateAllEntityTiles(world_map);
-}
-
-Room generateTutRoom(int x, int y) {
-	Room room;
-	room.id = room_id++;
-	room.x = x;
-	room.y = y;
-
-	std::vector<std::vector<int>> grid = {
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
-	};
-	room.grid = grid;
-	return room;
 }
 
 void MapSystem::generateTutorialMap() {
@@ -228,7 +206,7 @@ void MapSystem::generateTutorialMap() {
 
 	// shift key focus mode
 	createKey(convert_grid_to_world({ 3.5, 8.5 }), vec2(150), KEYS::SHIFT, false, true, 1300);
-	createText(convert_grid_to_world({ 1.6, 9.5 }), vec3(0.8), "Hold for Focus Mode\nReduces hitbox to dot\nSlows down movement", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 2.3, 9.5 }), vec3(0.8), "Hold to reduce\nhitbox to a dot", vec3(1, 1, 1), true, true);
 
 	// hardcoded bullet for this specific grid only
 	for (int j = 0; j < 7; ++j) {
@@ -258,10 +236,10 @@ void MapSystem::generateTutorialMap() {
 	createText(convert_grid_to_world({ 41.f, 17.5f }), vec3(1.f), "Toggle camera offset", vec3(1, 1, 1), true, true);
 
 	createKey(convert_grid_to_world({ 48, 16 }), vec2(120), KEYS::F, false, true);
-	createText(convert_grid_to_world({ 47.f, 17.5f }), vec3(1.f), "Show fps" , vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 47.f, 17.5f }), vec3(1.f), "Show fps", vec3(1, 1, 1), true, true);
 
 	createKey(convert_grid_to_world({ 59, 16 }), vec2(120), KEYS::R, false, true);
-	createText(convert_grid_to_world({ 57.f, 17.5f }), vec3(1.f), "Return to main world" , vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 57.f, 17.5f }), vec3(1.f), "Return to main world", vec3(1, 1, 1), true, true);
 
 	// Add grid to map
 	for (int y = 0; y < grid.size(); ++y) {
@@ -269,7 +247,8 @@ void MapSystem::generateTutorialMap() {
 			world_map[y + 1][x + 1] = grid[y][x];
 		}
 	}
-	generateAllEntityTiles(world_map);
+	//generateAllEntityTiles(world_map);
+	generate_all_tiles(world_map);
 }
 
 Room MapSystem::generateBossRoom() {
@@ -306,34 +285,41 @@ Room MapSystem::generateBossRoom() {
 }
 
 void MapSystem::generateRandomMap() {
-	// Resets the map
-	restart_map();
-	bsptree.rooms.clear();
-	Room boss_room = generateBossRoom();
+	assert(room_size > 3 && "Room too small!");
+	bool is_valid = false;
+	
+	while (!is_valid) {
+		// Resets the map
+		restart_map();
+		bsptree.rooms.clear();
+		Room boss_room = generateBossRoom();
 
-	bsptree.init(vec2(room_size), vec2(world_width - boss_room.size.x - 1, world_height));
-	bsptree.generate_partitions(bsptree.root);
-	bsptree.generate_rooms_random(bsptree.root);
-	bsptree.generate_corridors(bsptree.root);
+		bsptree.init(vec2(room_size), vec2(world_width - boss_room.size.x - 1, world_height));
+		bsptree.generate_partitions(bsptree.root);
+		bsptree.generate_rooms_random(bsptree.root);
+		bsptree.generate_corridors(bsptree.root);
 
-	// Connect boss room
-	assert(bsptree.rooms.size() > 0);
-	Room2 boss_room2;
-	boss_room2.top_left = vec2(boss_room.x, boss_room.y);
-	boss_room2.bottom_left = boss_room2.top_left + boss_room.size - 1.f; // round issues probably
-	boss_room2.type = ROOM_TYPE::BOSS;
-	std::uniform_int_distribution<> int_distrib(0, bsptree.rooms.size() - 1);
-	int random_num = int_distrib(rng);
-	vec2 start = (bsptree.rooms[random_num].bottom_left +
-		bsptree.rooms[random_num].top_left) / 2.f;
-	vec2 end = (boss_room2.top_left + boss_room2.bottom_left) / 2.f;
+		// Connect boss room
+		assert(bsptree.rooms.size() > 0);
+		Room2 boss_room2;
+		boss_room2.top_left = vec2(boss_room.x, boss_room.y);
+		boss_room2.bottom_left = boss_room2.top_left + boss_room.size - 1.f; // round issues probably
+		boss_room2.type = ROOM_TYPE::BOSS;
+		std::uniform_int_distribution<> int_distrib(0, bsptree.rooms.size() - 1);
+		int random_num = int_distrib(rng);
+		vec2 start = (bsptree.rooms[random_num].bottom_left +
+			bsptree.rooms[random_num].top_left) / 2.f;
+		vec2 end = (boss_room2.top_left + boss_room2.bottom_left) / 2.f;
 
-	bsptree.rooms.push_back(boss_room2);
-	bsptree.generate_corridor_between_two_points(start, end);
+		bsptree.rooms.push_back(boss_room2);
+		bsptree.generate_corridor_between_two_points(start, end);
 
-	bsptree.set_map_walls(world_map);
+		bsptree.set_map_walls(world_map);
+		is_valid = is_valid_map(world_map);
+	}
 
-	generateAllEntityTiles(world_map);
+	//generateAllEntityTiles(world_map);
+	generate_all_tiles(world_map);
 }
 
 Room generateBasicRoom(int x, int y) {
@@ -364,11 +350,6 @@ void addRoomToMap(const Room& room, std::vector<std::vector<int>>& map) {
 	for (int row = room.y; row < room_height + room.y; row++) {
 		int room_width = room.grid[row - room.y].size();
 		for (int col = room.x; col < room_width + room.x; col++) {
-			// int max = room.grid[row-room.y].size() + room.x;
-			// int shiftedY = row-room.y;
-			// int shiftedX = col-room.x;
-			// int roomVal = room.grid[row-room.y][col-room.x];
-
 			map[row][col] = room.grid[row - room.y][col - room.x];
 		}
 	}
@@ -472,7 +453,6 @@ std::vector<TEXTURE_ASSET_ID> MapSystem::getTileAssetID(int row, int col, std::v
 
 	// Top Wall
 	if (map[row + 1][col] == (int)TILE_TYPE::FLOOR) {
-		textures.push_back(TEXTURE_ASSET_ID::WALL_SURFACE);
 		textures.push_back(TEXTURE_ASSET_ID::TOP_WALL);
 		return textures;
 	}
@@ -498,6 +478,83 @@ std::vector<TEXTURE_ASSET_ID> MapSystem::getTileAssetID(int row, int col, std::v
 
 	// Should not return here
 	return textures;
+}
+
+TILE_NAME_SANDSTONE MapSystem::get_tile_name_sandstone(int x, int y, std::vector<std::vector<int>>& map) {
+	int type = map[y][x];
+	// Specify int casted enums
+	const int E = (int)TILE_TYPE::EMPTY;
+	const int W = (int)TILE_TYPE::WALL;
+	const int F = (int)TILE_TYPE::FLOOR;
+
+	if (type == E) return TILE_NAME_SANDSTONE::NONE;
+	else if (type == F) return TILE_NAME_SANDSTONE::AZTEC_FLOOR;
+
+	// Specify neighbors for hardcoded checks
+	const int U = map[y - 1][x];	// Up
+	const int D = map[y + 1][x];	// Down
+	const int L = map[y][x - 1];	// Left
+	const int R = map[y][x + 1];	// Right
+	const int UL = map[y - 1][x - 1];	// Up left
+	const int UR = map[y - 1][x + 1];	// Up right
+	const int DL = map[y + 1][x - 1];	// Down left
+	const int DR = map[y + 1][x + 1];	// Down right
+
+	TILE_NAME_SANDSTONE result = TILE_NAME_SANDSTONE::NONE;
+
+	if (UR == F && U == W && R == W && D != F) {
+		result = TILE_NAME_SANDSTONE::BOTTOM_LEFT;
+	}
+	else if (UL == F && U == W && L == W && D != F) {
+		result = TILE_NAME_SANDSTONE::BOTTOM_RIGHT;
+	}
+	else if ((U == F && L == F && R == W && D == W) ||
+		(U == F && L == W && R == W && D == W && DL == F && DR == E)) {
+		result = TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_LEFT;
+	}
+	else if ((U == F && L == W && R == F && D == W) ||
+		(U == F && L == W && R == W && D == W && DR == F && DL == E)) {
+		result = TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_RIGHT;
+	}
+	else if (D == F ||
+		(U == W && L == W && D == F && R == F) ||
+		(U == W && L == F && D == F && R == W)) {
+		result = TILE_NAME_SANDSTONE::TOP_WALL;
+	}
+	else if (L == F || 
+		(L == W && DL == F && D == W)) {
+		result = TILE_NAME_SANDSTONE::RIGHT_WALL;
+	}
+	else if (R == F || 
+		(R == W && DR == F && D == W)) {
+		result = TILE_NAME_SANDSTONE::LEFT_WALL;
+	}
+	else if (U == F) {
+		result = TILE_NAME_SANDSTONE::BOTTOM_WALL;
+	}
+
+	return result;
+}
+
+void MapSystem::generate_all_tiles(std::vector<std::vector<int>>& map) {
+	int map_height = map.size();
+	int map_width = map[0].size();
+	assert(map_height > 0 && map_width > 0 && "Map should have at least one cell");
+	// Create padding of empty tile in the edges by copy
+	auto map_copy = std::vector<std::vector<int>>(map_height + 2, std::vector<int>(map_width + 2, 0));
+	for (int y = 0; y < map_height; ++y) {
+		for (int x = 0; x < map_width; ++x) {
+			map_copy[y + 1][x + 1] = map[y][x];
+		}
+	}
+
+	for (int y = 0; y < map_height; ++y) {
+		for (int x = 0; x < map_width; ++x) {
+			TILE_NAME_SANDSTONE result = get_tile_name_sandstone(x + 1, y + 1, map_copy);
+			if (result == TILE_NAME_SANDSTONE::NONE) continue;
+			createTile(renderer, convert_grid_to_world({ x, y }), result, map[y][x] == (int)TILE_TYPE::WALL);
+		}
+	}
 }
 
 void MapSystem::addTile(int row, int col, std::vector<TEXTURE_ASSET_ID>& textureIDs, std::vector<std::vector<int>>& map) {

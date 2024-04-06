@@ -1088,49 +1088,51 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 
 		// Set the collision box
 		auto& collidable = registry.collidables.emplace(entity);
+		collidable.size = { motion.scale.x, motion.scale.y };
+		collidable.shift = { 0, 0 };
 
-		if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_WALL) {
-			collidable.size = { motion.scale.x, motion.scale.y };
-			collidable.shift = { 0, 0 };
-		}
-		else if (textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_WALL) {
-			collidable.size = { motion.scale.x, motion.scale.y };
-			collidable.shift = { 0, 0 };
-		}
-		else if (textureIDs[i] == TEXTURE_ASSET_ID::BOTTOM_WALL) {
-			collidable.size = { motion.scale.x, motion.scale.y };
-			collidable.shift = { 0, 0 };
-		}
-		else if (textureIDs[i] == TEXTURE_ASSET_ID::WALL_SURFACE) {
-			collidable.size = { motion.scale.x, motion.scale.y };
-			collidable.shift = { 0, 0 };
-		}
-		else if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL ||
-			textureIDs[i] == TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL ||
-			textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL ||
-			textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL) {
-			collidable.size = { motion.scale.x, motion.scale.y };
-			collidable.shift = { 0, 0 };
-		}
-		else
-			// TODO: remove this, used for testing ai can see player
-			if (textureIDs[i] == TEXTURE_ASSET_ID::PILLAR_BOTTOM) {
-				collidable.size = { motion.scale.x, motion.scale.y / 2 };
-				collidable.shift = { 0, -motion.scale.y / 4 };
-			}
-			else {
-				// Temporary
-				// TODO: Maybe change/refactor this since it's adding floors when its in createWall
-				registry.collidables.remove(entity);
-				registry.floors.emplace(entity);
-				registry.renderRequests.insert(
-					entity,
-					{ textureIDs[i],
-					 EFFECT_ASSET_ID::TEXTURED,
-					 GEOMETRY_BUFFER_ID::SPRITE });
-				entities.push_back(entity);
-				continue;
-			}
+		//if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_WALL) {
+		//	collidable.size = { motion.scale.x, motion.scale.y };
+		//	collidable.shift = { 0, 0 };
+		//}
+		//else if (textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_WALL) {
+		//	collidable.size = { motion.scale.x, motion.scale.y };
+		//	collidable.shift = { 0, 0 };
+		//}
+		//else if (textureIDs[i] == TEXTURE_ASSET_ID::BOTTOM_WALL) {
+		//	collidable.size = { motion.scale.x, motion.scale.y };
+		//	collidable.shift = { 0, 0 };
+		//}
+		//else if (textureIDs[i] == TEXTURE_ASSET_ID::WALL_SURFACE) {
+		//	collidable.size = { motion.scale.x, motion.scale.y };
+		//	collidable.shift = { 0, 0 };
+		//}
+		//else if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL ||
+		//	textureIDs[i] == TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL ||
+		//	textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL ||
+		//	textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL) {
+		//	collidable.size = { motion.scale.x, motion.scale.y };
+		//	collidable.shift = { 0, 0 };
+		//}
+		//else
+		//	// TODO: remove this, used for testing ai can see player
+		//	if (textureIDs[i] == TEXTURE_ASSET_ID::PILLAR_BOTTOM) {
+		//		collidable.size = { motion.scale.x, motion.scale.y / 2 };
+		//		collidable.shift = { 0, -motion.scale.y / 4 };
+		//	}
+		//	else {
+		//		// Temporary
+		//		// TODO: Maybe change/refactor this since it's adding floors when its in createWall
+		//		registry.collidables.remove(entity);
+		//		registry.floors.emplace(entity);
+		//		registry.renderRequests.insert(
+		//			entity,
+		//			{ textureIDs[i],
+		//			 EFFECT_ASSET_ID::TEXTURED,
+		//			 GEOMETRY_BUFFER_ID::SPRITE });
+		//		entities.push_back(entity);
+		//		continue;
+		//	}
 
 		// Create and (empty) Tile component to be able to refer to all physical tiles
 		registry.walls.emplace(entity);
@@ -1144,6 +1146,43 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 	}
 	return entities;
 }
+
+Entity createTile(RenderSystem* renderer, vec2 position, TILE_NAME_SANDSTONE tile_name, bool is_wall) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	//Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	//registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.scale = vec2(world_tile_size, world_tile_size);
+
+	// Create wall or floor entity for physics collision
+	if (is_wall) {
+		registry.walls.emplace(entity);
+		// Set the collision box
+		auto& collidable = registry.collidables.emplace(entity);
+		collidable.size = { motion.scale.x, motion.scale.y };
+		collidable.shift = { 0, 0 };
+	}
+	else {
+		registry.floors.emplace(entity);
+	}
+
+	// Set up instance data
+	Transform t;
+	t.translate(motion.position);
+	t.scale(motion.scale);
+	registry.tileInstanceData.emplace(entity) = {
+		renderer->get_spriteloc_sandstone(tile_name),
+		t.mat
+	};
+
+	return entity;
+}
+
 
 // IMPORTANT: creates pillar using grid coordinates, NOT world coorindates
 // textureIDs[0] == bottom, textureIDs[1] == top

@@ -458,6 +458,7 @@ void WorldSystem::restart_game() {
 
 	if (map_level.level == MapLevel::TUTORIAL) {
 		map->generateTutorialMap();
+		renderer->set_tiles_instance_buffer();
 		player = map->spawnPlayer(world_center);
 	}
 	else {
@@ -468,6 +469,8 @@ void WorldSystem::restart_game() {
 		//map->spawnEnemies();
 		map->spawnEnemiesInRoom();
 		player = map->spawnPlayerInRoom(0);
+		//player = map->spawnPlayer(world_center);
+		renderer->set_tiles_instance_buffer();
 	}
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});

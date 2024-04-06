@@ -27,11 +27,15 @@ private:
 	// game systems
 	RenderSystem* renderer;
 
+	// old version
 	void addTile(int x, int y, std::vector<TEXTURE_ASSET_ID>& textureIDs, std::vector<std::vector<int>>& map);
 	void generateAllEntityTiles(std::vector<std::vector<int>>& map);
 	std::vector<TEXTURE_ASSET_ID> getTileAssetID(int row, int col, std::vector<std::vector<int>>& map);
-
 	std::vector<Room> rooms;
+
+	// sandstone tile atlas
+	TILE_NAME_SANDSTONE get_tile_name_sandstone(int x, int y, std::vector<std::vector<int>>& map);
+	void generate_all_tiles(std::vector<std::vector<int>>& map);
 
 	// C++ random number generator
 	std::default_random_engine rng;
@@ -39,6 +43,11 @@ private:
 
 	// Binary space partitioning tree
 	BSPTree bsptree;
+
+	// Utility to check if map is valid
+	// NOT VALID IF: FLOOR WALL FLOOR 
+	// - this only applies immediately after generating map. you can place items, pillars, walls, after
+	bool is_valid_map(std::vector<std::vector<int>>& map);
 public:
 	MapSystem();
 	void restart_map();

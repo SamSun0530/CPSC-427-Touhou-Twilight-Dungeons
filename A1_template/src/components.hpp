@@ -373,6 +373,32 @@ struct Pickupable
 	int health_change = 1;
 };
 
+// Tile set names specifically mapped from Sandstone Dungeon texture atlas
+// comments are in (x,y), indexed by 0
+enum class TILE_NAME_SANDSTONE {
+	NONE,
+	AZTEC_FLOOR, // 1,0
+	ROCK_FLOOR, // 2,0
+	BONE_FLOOR, // 3,0
+	CHOCOLATE_FLOOR, // 0,1
+	BRICK_FLOOR, // 1,1
+	CANDY_FLOOR, // 2,1
+	CHECKER_FLOOR, // 3,1
+	LEFT_WALL, // 0,2
+	TOP_WALL, // 1,2 - Corridors included
+	RIGHT_WALL, // 2,2
+	CORRIDOR_BOTTOM_RIGHT, // 0,5
+	CORRIDOR_BOTTOM_LEFT, // 2,5
+	BOTTOM_LEFT, // 0,6
+	BOTTOM_WALL, // 1,6
+	BOTTOM_RIGHT, // 2,6
+	CORRIDOR_BOTTOM_RIGHT_LIGHT, // 0,3
+	CORRIDOR_BOTTOM_LEFT_LIGHT, // 2,3
+	BOTTOM_LEFT_LIGHT, // 0,4
+	// BOTTOM_WALL_LIGHT -> use TOP_WALL
+	BOTTOM_RIGHT_LIGHT, // 2,4
+};
+
 // A non interactable tile of the map
 struct Floor
 {
@@ -380,6 +406,12 @@ struct Floor
 
 // A interactable tile of the map
 struct Wall {
+};
+
+// Tile data to be instance rendered
+struct TileInstanceData {
+	vec4 spriteloc;
+	mat3 transform;
 };
 
 // All data relevant to the shape and motion of entities
@@ -639,7 +671,8 @@ enum class TEXTURE_ASSET_ID {
 	CRTHITICON = CRTDMG + 1,
 	FOCUS_BAR = CRTHITICON + 1,
 	COIN_STATIC = FOCUS_BAR + 1,
-	BUTTON = COIN_STATIC + 1,
+	TILES_ATLAS_SANDSTONE = COIN_STATIC + 1,
+	BUTTON = TILES_ATLAS_SANDSTONE + 1,
 	BUTTON_HOVERED = BUTTON + 1,
 	NONE = BUTTON_HOVERED + 1,
 	MENU_TITLE = NONE + 1,

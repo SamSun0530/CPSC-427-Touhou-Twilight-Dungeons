@@ -70,6 +70,7 @@ public:
 	ComponentContainer<DummyEnemy> dummyenemies;
 	ComponentContainer<DummyEnemySpawner> dummyenemyspawners;
 	ComponentContainer<DummyEnemyLink> dummyEnemyLink;
+	ComponentContainer<TileInstanceData> tileInstanceData;
 	ComponentContainer<Button> buttons;
 	ComponentContainer<MainMenu> mainMenus;
 	ComponentContainer<PauseMenu> pauseMenus;
@@ -137,6 +138,7 @@ public:
 		registry_list.push_back(&dummyenemies);
 		registry_list.push_back(&dummyenemyspawners);
 		registry_list.push_back(&dummyEnemyLink);
+		registry_list.push_back(&tileInstanceData);
 		registry_list.push_back(&buttons);
 		registry_list.push_back(&mainMenus);
 		registry_list.push_back(&pauseMenus);

@@ -68,6 +68,7 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	initializeGlGeometryBuffers();
 
 	initializeEnemyBulletInstance();
+	initializeTileInstance();
 
 	return true;
 }
@@ -626,4 +627,85 @@ bool loadEffectFromFile(
 	return true;
 }
 
+void RenderSystem::initializeTileInstance() {
+	tile_instance_program = glCreateProgram();
 
+	// Load shaders
+	std::string path = shader_path("tiles_instance");
+
+	const std::string vertex_shader_name = path + ".vs.glsl";
+	const std::string fragment_shader_name = path + ".fs.glsl";
+
+	bool is_valid = loadEffectFromFile(vertex_shader_name, fragment_shader_name, tile_instance_program);
+	assert(is_valid && (GLuint)tile_instance_program != 0);
+
+	glUseProgram(tile_instance_program);
+	gl_has_errors();
+
+	glGenBuffers(1, &tiles_instance_VBO);
+	glGenVertexArrays(1, &tiles_instance_VAO);
+	gl_has_errors();
+
+	glBindVertexArray(tiles_instance_VAO);
+	gl_has_errors();
+
+	// bind vbo for textured vertex
+	const GLuint vbo = vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SPRITE];
+	const GLuint ibo = index_buffers[(GLuint)GEOMETRY_BUFFER_ID::SPRITE];
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+	GLint in_position_loc = glGetAttribLocation(tile_instance_program, "in_position");
+	GLint in_texcoord_loc = glGetAttribLocation(tile_instance_program, "in_texcoord");
+	assert(in_position_loc >= 0);
+	assert(in_texcoord_loc >= 0);
+
+	glEnableVertexAttribArray(in_position_loc);
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)0);
+	gl_has_errors();
+
+	glEnableVertexAttribArray(in_texcoord_loc);
+	// note the stride to skip the preceeding vertex position
+	glVertexAttribPointer(in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)sizeof(vec3));
+
+	// bind tiles instance vbo for instance rendering
+	glBindBuffer(GL_ARRAY_BUFFER, tiles_instance_VBO);
+	gl_has_errors();
+
+	// sprite location data
+	int sprite_loc = glGetAttribLocation(tile_instance_program, "in_sprite_loc");
+	assert(sprite_loc >= 0);
+	gl_has_errors();
+	glEnableVertexAttribArray(sprite_loc);
+	glVertexAttribPointer(sprite_loc, 4, GL_FLOAT, GL_FALSE, sizeof(TileInstanceData), (void*)(0));
+	gl_has_errors();
+	glVertexAttribDivisor(sprite_loc, 1);
+	gl_has_errors();
+
+	// transform data
+	int loc = glGetAttribLocation(tile_instance_program, "in_transform");
+	assert(loc >= 0);
+	gl_has_errors();
+	int loc1 = loc;
+	int loc2 = loc + 1;
+	int loc3 = loc + 2;
+	glEnableVertexAttribArray(loc1);
+	glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_FALSE, sizeof(TileInstanceData), (void*)(sizeof(vec4)));
+	gl_has_errors();
+	glEnableVertexAttribArray(loc2);
+	glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_FALSE, sizeof(TileInstanceData), (void*)(sizeof(vec4) + sizeof(vec3)));
+	gl_has_errors();
+	glEnableVertexAttribArray(loc3);
+	glVertexAttribPointer(loc3, 3, GL_FLOAT, GL_FALSE, sizeof(TileInstanceData), (void*)(sizeof(vec4) + sizeof(vec3) * 2));
+	gl_has_errors();
+	glVertexAttribDivisor(loc1, 1);
+	glVertexAttribDivisor(loc2, 1);
+	glVertexAttribDivisor(loc3, 1);
+	gl_has_errors();
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	gl_has_errors();
+}

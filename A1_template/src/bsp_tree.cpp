@@ -11,7 +11,9 @@ BSPTree::~BSPTree() { delete root; }
 
 void BSPTree::init(vec2 max_room_size, vec2 world_size) {
 	this->max_room_size = max_room_size;
-	root = new BSPNode(vec2(1, 1), world_size - vec2(1)); // To create a space between world edge and map
+	// No need to create padding yet, that will be handled when generating tiles
+	root = new BSPNode(vec2(0), world_size);
+	//root = new BSPNode(vec2(1), world_size - vec2(1));
 	gen.seed(std::random_device{}());
 }
 
@@ -142,17 +144,33 @@ BSPNode* BSPTree::get_random_leaf_node(BSPNode* node) {
 }
 
 void BSPTree::set_map_walls(std::vector<std::vector<int>>& map) {
-	for (int row = 1; row < map.size()-1; row++) {
-		for (int col = 1; col < map[row].size()-1; col++) {
-			if(map[row][col] != (int)TILE_TYPE::EMPTY) {
-				continue; // Can't pull walls on floors
-			}
+	const std::vector<coord> ACTIONS = {
+		vec2(0, -1),	// UP
+		vec2(0, 1),		// DOWN
+		vec2(-1, 0),	// LEFT
+		vec2(1, 0),		// RIGHT
+		vec2(-1, -1),	// UP LEFT
+		vec2(1, -1),	// UP RIGHT
+		vec2(-1, 1),	// DOWN LEFT
+		vec2(1, 1)		// DOWN RIGHT
+	};
 
-			if (map[row][col + 1] == (int)TILE_TYPE::FLOOR || map[row][col - 1] == (int)TILE_TYPE::FLOOR ||
-				map[row + 1][col] == (int)TILE_TYPE::FLOOR || map[row - 1][col] == (int)TILE_TYPE::FLOOR ||
-				map[row + 1][col + 1] == (int)TILE_TYPE::FLOOR || map[row + 1][col - 1] == (int)TILE_TYPE::FLOOR ||
-				map[row - 1][col + 1] == (int)TILE_TYPE::FLOOR || map[row - 1][col - 1] == (int)TILE_TYPE::FLOOR) {
-				map[row][col] = (int)TILE_TYPE::WALL; // Adds wall to a tile adjacent to a floor
+	const int map_height = map.size();
+	const int map_width = map[0].size();
+	assert(map_height > 0 && map_width > 0 && "Adding to empty map");
+
+	// supports edges of the map
+	for (int row = 0; row < map.size(); row++) {
+		for (int col = 0; col < map[row].size(); col++) {
+			// Only check for empty tiles
+			if (map[row][col] != (int)TILE_TYPE::EMPTY) continue;
+			for (const coord& action : ACTIONS) {
+				const vec2 candidate_cell = vec2(col, row) + action;
+				if (candidate_cell.x < 0 || candidate_cell.x >= map_width ||
+					candidate_cell.y < 0 || candidate_cell.y >= map_height ||
+					map[candidate_cell.y][candidate_cell.x] != (int)TILE_TYPE::FLOOR) continue;
+				map[row][col] = (int)TILE_TYPE::WALL;
+				break;
 			}
 		}
 	}
