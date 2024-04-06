@@ -58,9 +58,6 @@ public:
 	// Should the game be over ?
 	bool is_over()const;
 
-	// World Map
-	static std::vector<std::vector<int>> world_map; // world_map[Row][Col]
-
 	// font and instructions
 	bool get_display_instruction();
 	int get_tutorial_counter();
