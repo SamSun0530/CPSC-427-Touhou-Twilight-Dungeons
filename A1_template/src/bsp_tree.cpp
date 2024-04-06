@@ -6,7 +6,6 @@ BSPNode::~BSPNode() {
 	delete left_node;
 	delete right_node;
 	delete room;
-	delete corridor;
 }
 BSPTree::~BSPTree() { delete root; }
 
@@ -82,6 +81,15 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 		node->room->top_left.x = int_distrib_x(gen);
 		node->room->top_left.y = int_distrib_y(gen);
 		node->room->bottom_left = node->room->top_left + room_size;
+
+		rooms.push_back(*node->room);
+
+		// Populates the map with floors
+		for (int i = node->room->top_left.y; i < node->room->bottom_left.y; ++i) {
+			for (int j = node->room->top_left.x; j < node->room->bottom_left.x; ++j) {
+				world_map[i][j] = (int)TILE_TYPE::FLOOR;
+			}
+		}
 	}
 
 	generate_rooms_random(node->left_node);
@@ -98,96 +106,30 @@ void BSPTree::generate_corridors(BSPNode* node) {
 		BSPNode* rNode = get_random_leaf_node(node->right_node);
 		BSPNode* lNode = get_random_leaf_node(node->left_node);
 
-		node->corridor = new Corridor{ vec2((rNode->room->bottom_left + rNode->room->top_left) / 2.f),
-			vec2((lNode->room->bottom_left + lNode->room->top_left) / 2.f) };
+		std::uniform_int_distribution<> int_distrib_rx(rNode->room->top_left.x, rNode->room->bottom_left.x);
+		std::uniform_int_distribution<> int_distrib_ry(rNode->room->top_left.y, rNode->room->bottom_left.y);
+		std::uniform_int_distribution<> int_distrib_lx(lNode->room->top_left.x, lNode->room->bottom_left.x);
+		std::uniform_int_distribution<> int_distrib_ly(lNode->room->top_left.y, lNode->room->bottom_left.y);
+
+		// random point in both room gives more variety
+		vec2 start = vec2(int_distrib_rx(rng), int_distrib_ry(rng));
+		vec2 end = vec2(int_distrib_lx(rng), int_distrib_ly(rng));
+
+		// center point of both room
+		//vec2 start = vec2((rNode->room->bottom_left + rNode->room->top_left) / 2.f);
+		//vec2 end = vec2((lNode->room->bottom_left + lNode->room->top_left) / 2.f);
+
+		generate_corridor_between_two_points(start, end);
 	}
 }
 
-
-void BSPTree::add_corridors_to_map(std::vector<Corridor>& corridors, std::vector<std::vector<int>>& map) {
-	for (Corridor& corridor : corridors) {
-		int start_x = corridor.start.x;
-		int start_y = corridor.start.y;
-		int end_x = corridor.end.x;
-		int end_y = corridor.end.y;
-
-		// ensure that start is always left of end
-		if (start_x > end_x) {
-			std::swap(start_x, end_x);
-			std::swap(start_y, end_y);
-		}
-
-		if (start_x != end_x) {
-			if (start_y > end_y) {
-				// end is top right
-				for (int x = start_x; x <= end_x; x++) {
-					map[start_y][x] = (int)TILE_TYPE::FLOOR;
-					map[start_y + 1][x] = (int)TILE_TYPE::FLOOR;
-				}
-				for (int y = end_y; y <= start_y; y++) {
-					map[y][end_x] = (int)TILE_TYPE::FLOOR;
-					map[y][end_x - 1] = (int)TILE_TYPE::FLOOR;
-				}
-			}
-			else if (start_y < end_y) {
-				// end is bottom right
-				for (int x = start_x; x <= end_x; x++) {
-					map[start_y][x] = (int)TILE_TYPE::FLOOR;
-					map[start_y + 1][x] = (int)TILE_TYPE::FLOOR;
-				}
-				for (int y = end_y; y >= start_y; y--) {
-					map[y][end_x] = (int)TILE_TYPE::FLOOR;
-					map[y][end_x - 1] = (int)TILE_TYPE::FLOOR;
-				}
-			}
-			else if (start_y == end_y) {
-				// start is left of end
-				for (int x = start_x; x <= end_x; x++) {
-					map[start_y][x] = (int)TILE_TYPE::FLOOR;
-					map[start_y + 1][x] = (int)TILE_TYPE::FLOOR;
-				}
-			}
-		}
-		else {
-			// ensure that start is below end
-			if (start_y > end_y) {
-				std::swap(start_y, end_y);
-			}
-			// start is below end
-			for (int y = start_y; y <= end_y; y++) {
-				map[y][start_x] = (int)TILE_TYPE::FLOOR;
-				map[y][start_x - 1] = (int)TILE_TYPE::FLOOR;
-			}
-		}
+void BSPTree::generate_corridor_between_two_points(vec2 start, vec2 end) {
+	const path optimal_path = astar(start, end);
+	coord next_pos;
+	for (int i = 0; i < optimal_path.size(); ++i) {
+		next_pos = optimal_path[i];
+		world_map[next_pos.y][next_pos.x] = (int)TILE_TYPE::FLOOR;
 	}
-
-	//for (int i = 0; i < map.size(); i++) {
-	//	for (int j = 0; j < map[0].size(); j++) {
-	//		printf("%d ", map[i][j]);
-	//	}
-	//	printf("\n");
-	//}
-}
-
-void BSPTree::get_corridors(BSPNode* node, std::vector<Corridor>& corridors) {
-	if (!node) return;
-
-	if (node->corridor)
-		corridors.push_back(*node->corridor);
-
-	get_corridors(node->left_node, corridors);
-	get_corridors(node->right_node, corridors);
-}
-
-void BSPTree::get_rooms(BSPNode* node, std::vector<Room2>& rooms) {
-	if (!node) return;
-
-	if (!node->left_node && !node->right_node) {
-		rooms.push_back(*node->room);
-	}
-
-	get_rooms(node->left_node, rooms);
-	get_rooms(node->right_node, rooms);
 }
 
 BSPNode* BSPTree::get_random_leaf_node(BSPNode* node) {

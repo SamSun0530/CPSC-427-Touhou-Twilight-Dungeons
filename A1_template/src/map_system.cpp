@@ -6,7 +6,7 @@
 #include <iostream>
 
 
-int room_size = 8; // Bug: Can't be smaller than 8
+int room_size = 11; // Must be at least >= 4
 
 MapSystem::MapSystem() {
 	// Seeding rng with random device
@@ -22,6 +22,7 @@ void MapSystem::restart_map() {
 }
 
 bool MapSystem::is_valid_map(std::vector<std::vector<int>>& map) {
+	if (room_size <= 3) return true;
 	int map_height = map.size();
 	int map_width = map[0].size();
 	assert(map_height > 0 && map_width > 0 && "Map should have at least one cell");
@@ -250,36 +251,32 @@ void MapSystem::generateTutorialMap() {
 	generate_all_tiles(world_map);
 }
 
-Room& MapSystem::generateBossRoom() {
+Room MapSystem::generateBossRoom() {
 	rooms.clear();
 	Room room;
 	room.grid = {
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2},
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+		{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+		{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 	};
 	room.size = { room.grid[0].size(), room.grid.size() };
-	room.x = world_width - room.size.x - 1;
+	room.x = world_width - room.size.x - 2;
 	room.y = world_height / 2 - room.size.y / 2 - 1;
 
 	rooms.push_back(room);
@@ -288,52 +285,35 @@ Room& MapSystem::generateBossRoom() {
 }
 
 void MapSystem::generateRandomMap() {
+	assert(room_size > 3 && "Room too small!");
 	bool is_valid = false;
 	
 	while (!is_valid) {
-		restart_map();
-
 		// Resets the map
-		bsptree.corridors.clear();
+		restart_map();
 		bsptree.rooms.clear();
-		Room& boss_room = generateBossRoom();
+		Room boss_room = generateBossRoom();
 
 		bsptree.init(vec2(room_size), vec2(world_width - boss_room.size.x - 1, world_height));
 		bsptree.generate_partitions(bsptree.root);
 		bsptree.generate_rooms_random(bsptree.root);
 		bsptree.generate_corridors(bsptree.root);
-		bsptree.get_corridors(bsptree.root, bsptree.corridors);
-		bsptree.get_rooms(bsptree.root, bsptree.rooms);
-		//bsptree.print_tree(bsptree.root);
 
-		// Connect boss with last room
-		assert(bsptree.rooms.size() > 0 && bsptree.corridors.size() > 0);
-		Corridor boss_corridor;
+		// Connect boss room
+		assert(bsptree.rooms.size() > 0);
 		Room2 boss_room2;
 		boss_room2.top_left = vec2(boss_room.x, boss_room.y);
 		boss_room2.bottom_left = boss_room2.top_left + boss_room.size - 1.f; // round issues probably
 		boss_room2.type = ROOM_TYPE::BOSS;
-		std::uniform_int_distribution<int> int_dist(0, bsptree.rooms.size() - 1);
-		int generated_room_num = int_dist(rng);
-		boss_corridor.start = (bsptree.rooms[generated_room_num].bottom_left +
-			bsptree.rooms[generated_room_num].top_left) / 2.f;
-		boss_corridor.end = (boss_room2.top_left + boss_room2.bottom_left) / 2.f;
+		std::uniform_int_distribution<> int_distrib(0, bsptree.rooms.size() - 1);
+		int random_num = int_distrib(rng);
+		vec2 start = (bsptree.rooms[random_num].bottom_left +
+			bsptree.rooms[random_num].top_left) / 2.f;
+		vec2 end = (boss_room2.top_left + boss_room2.bottom_left) / 2.f;
 
-		bsptree.corridors.push_back(boss_corridor);
 		bsptree.rooms.push_back(boss_room2);
+		bsptree.generate_corridor_between_two_points(start, end);
 
-		// Populates the map with floors
-		for (int i = 0; i < bsptree.rooms.size(); i++) {
-			Room2& room2 = bsptree.rooms[i];
-			if (room2.type == ROOM_TYPE::BOSS) continue; // don't overwrite premade room
-			for (int i = room2.top_left.y; i < room2.bottom_left.y; i++) {
-				for (int j = room2.top_left.x; j < room2.bottom_left.x; j++) {
-					world_map[i][j] = (int)TILE_TYPE::FLOOR;
-				}
-			}
-		}
-
-		bsptree.add_corridors_to_map(bsptree.corridors, world_map);
 		bsptree.set_map_walls(world_map);
 		is_valid = is_valid_map(world_map);
 	}

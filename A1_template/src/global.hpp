@@ -1,8 +1,10 @@
 #pragma once
 
 #include "common.hpp"
+#include "components.hpp"
 
 // World Map Data
+extern std::vector<std::vector<int>> world_map;
 extern int world_width;
 extern int world_height;
 extern int world_tile_size; // In pixels

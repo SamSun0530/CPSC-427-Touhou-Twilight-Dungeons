@@ -81,7 +81,17 @@ class RenderSystem {
 			textures_path("CriticalHitIcon.png"),
 			textures_path("FocusBar.png"),
 			textures_path("Coins-Static.png"),
-			textures_path("TileAtlasSandstone.png")
+			textures_path("TileAtlasSandstone.png"),
+			textures_path("Button.png"),
+			textures_path("ButtonHover.png"),
+			textures_path("None.png"),
+			textures_path("MainMenuTitle.png"),
+			textures_path("MainMenuBackground.png"),
+			textures_path("PauseMenuBackground.png"),
+			textures_path("C.png"),
+			textures_path("B.png"),
+			textures_path("A.png"),
+			textures_path("S.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -95,7 +105,8 @@ class RenderSystem {
 		shader_path("ui"),
 		shader_path("font"),
 		shader_path("playerhealthbar"),
-		shader_path("bosshealthbar")
+		shader_path("bosshealthbar"),
+		shader_path("combo")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -124,6 +135,8 @@ public:
 
 	// Destroy resources associated to one or all entities created by the system
 	~RenderSystem();
+
+	void render_buttons(glm::mat3& projection_2D, glm::mat3& view_2D, glm::mat3& view_2D_ui, MENU_STATE state);
 
 	// Draw all entities
 	void draw();

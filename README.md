@@ -33,4 +33,9 @@ Alan Huang <br />
 - Boss health bar - https://www.reddit.com/r/Roll20/comments/uim0v1/made_a_boss_health_bar_for_my_campaign/
 - Cirno/Reimu - http://revdot.web.fc2.com/dot_rpgvx_toho.html
 - Bullets - https://danmakufu.wiki.fc2.com/wiki/%E7%B4%A0%E6%9D%90%E3%83%AA%E3%83%B3%E3%82%AF#b52b3719
+<<<<<<< HEAD
 - Sandstone texture - https://kartoy.itch.io/32x32sandstone-dungeon-and-character-pack
+=======
+- Font - https://www.dafont.com/pixelmix.font
+- Paper UI - https://humblepixel.itch.io/pocket-inventory-series-5-player-status
+>>>>>>> origin/bugfix/corridor_overlap

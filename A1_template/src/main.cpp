@@ -15,9 +15,7 @@
 #include "audio.hpp"
 #include "animation.hpp"
 #include "boss_system.hpp"
-
-// debug
-#include <iostream>
+#include "components.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
 
@@ -54,6 +52,7 @@ int main()
 	ai.init();
 	map.init(&renderer);
 	animation.init(&renderer, window);
+	world.init_menu();
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -67,15 +66,23 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		elapsed_ms = world.combo_meter * elapsed_ms;
-		world.step(elapsed_ms);
-		boss_system.step(elapsed_ms);
-		animation.step(elapsed_ms);
-		physics.step(elapsed_ms);
-		world.update_focus_dot();
-		ai.step(elapsed_ms);
-		bullets.step(elapsed_ms);
-		world.handle_collisions();
+		if (menu.state == MENU_STATE::MAIN_MENU) {
+
+		}
+		else if (menu.state == MENU_STATE::PLAY) {
+			elapsed_ms = combo_mode.combo_meter * elapsed_ms;
+			world.step(elapsed_ms);
+			boss_system.step(elapsed_ms);
+			animation.step(elapsed_ms);
+			physics.step(elapsed_ms);
+			world.update_focus_dot();
+			ai.step(elapsed_ms);
+			bullets.step(elapsed_ms);
+			world.handle_collisions();
+		}
+		else if (menu.state == MENU_STATE::PAUSE) {
+
+		}
 
 		// map.debug(); // Just to visualize the map
 
