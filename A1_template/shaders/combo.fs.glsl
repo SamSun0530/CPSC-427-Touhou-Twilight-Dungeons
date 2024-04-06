@@ -15,14 +15,13 @@ layout(location = 0) out  vec4 color;
 void main()
 {
     vec2 offset = texcoord;
-    offset.x += sin(time*strength*2.5 + texcoord.y * 2.0) * 0.005; // Horizontal wave
-    offset.y += cos(time*strength*2.5 + texcoord.x * 2.0) * 0.005; // Vertical wave
+    offset.x += sin(time*strength*2.5 + texcoord.y * 2.0) * 0.005;
+    offset.y += cos(time*strength*2.5 + texcoord.x * 2.0) * 0.005;
     vec4 texColor = texture(sampler0, offset);
-    float gradient = texcoord.x + texcoord.y - (sin(time*strength) + 1.0); // This will be in range [0,2]
+    float gradient = texcoord.x + texcoord.y - (sin(time*strength) + 1.0);
     
-    float gradientInverse = -(texcoord.x + texcoord.y - (sin(time*strength) + 1.0)); // This will be in range [0,2]
-    texColor.rgb +=1.5* texColor.rgb * smoothstep(-0.2, 0.2, gradient) * smoothstep(-0.2, 0.2, gradientInverse); // Increasing intensity
-
+    float gradientInverse = -(texcoord.x + texcoord.y - (sin(time*strength) + 1.0));
+    texColor.rgb +=1.5* texColor.rgb * smoothstep(-0.2, 0.2, gradient) * smoothstep(-0.2, 0.2, gradientInverse);
 
     // Sample the texture with constrained coordinates
     color = vec4(fcolor, 1.0) * texColor;
