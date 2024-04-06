@@ -71,9 +71,9 @@ void MapSystem::spawnEnemiesInRoom() {
 		if (bsptree.rooms[room_num].type == ROOM_TYPE::NORMAL) {
 			std::vector<vec2> spawn_points;
 			spawn_points.push_back(convert_grid_to_world(room.top_left + 1.f));
-			spawn_points.push_back(convert_grid_to_world(room.bottom_left - 1.f));
-			spawn_points.push_back(convert_grid_to_world(vec2(room.bottom_left.x - 1.f, room.top_left.y + 1.f)));
-			spawn_points.push_back(convert_grid_to_world(vec2(room.top_left.x + 1.f, room.bottom_left.y - 1.f)));
+			spawn_points.push_back(convert_grid_to_world(room.bottom_right - 1.f));
+			spawn_points.push_back(convert_grid_to_world(vec2(room.bottom_right.x - 1.f, room.top_left.y + 1.f)));
+			spawn_points.push_back(convert_grid_to_world(vec2(room.top_left.x + 1.f, room.bottom_right.y - 1.f)));
 
 			for (vec2 point : spawn_points) {
 				float random_numer = uniform_dist(rng);
@@ -89,14 +89,14 @@ void MapSystem::spawnEnemiesInRoom() {
 			}
 		}
 		else if (bsptree.rooms[room_num].type == ROOM_TYPE::BOSS) {
-			createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_left) / 2.f));
+			createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f));
 		}
 	}
 }
 
 Entity MapSystem::spawnPlayerInRoom(int room_number) {
 	if (room_number < 0 || room_number >= bsptree.rooms.size()) assert(false && "Room number out of bounds");
-	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_left) / 2.f));
+	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f));
 }
 
 // Getting out of map results? Consider that there is empty padding in the world map.
@@ -329,19 +329,19 @@ void MapSystem::generateRandomMap() {
 	Corridor boss_corridor;
 	Room2 boss_room2;
 	boss_room2.top_left = vec2(boss_room.x, boss_room.y);
-	boss_room2.bottom_left = boss_room2.top_left + boss_room.size - 1.f; // round issues probably
+	boss_room2.bottom_right = boss_room2.top_left + boss_room.size - 1.f; // round issues probably
 	boss_room2.type = ROOM_TYPE::BOSS;
-	boss_corridor.start = (bsptree.rooms[bsptree.rooms.size() - 1].bottom_left +
+	boss_corridor.start = (bsptree.rooms[bsptree.rooms.size() - 1].bottom_right +
 		bsptree.rooms[bsptree.rooms.size() - 1].top_left) / 2.f;
-	boss_corridor.end = (boss_room2.top_left + boss_room2.bottom_left) / 2.f;
+	boss_corridor.end = (boss_room2.top_left + boss_room2.bottom_right) / 2.f;
 	bsptree.corridors.push_back(boss_corridor);
 	bsptree.rooms.push_back(boss_room2);
 
 	// Populates the map with floors
 	for (int i = 0; i < bsptree.rooms.size(); i++) {
 		Room2& room2 = bsptree.rooms[i];
-		for (int i = room2.top_left.y; i < room2.bottom_left.y; i++) {
-			for (int j = room2.top_left.x; j < room2.bottom_left.x; j++) {
+		for (int i = room2.top_left.y; i < room2.bottom_right.y; i++) {
+			for (int j = room2.top_left.x; j < room2.bottom_right.x; j++) {
 				world_map[i][j] = (int)TILE_TYPE::FLOOR;
 			}
 		}
@@ -350,6 +350,10 @@ void MapSystem::generateRandomMap() {
 	bsptree.add_corridors_to_map(bsptree.corridors, world_map);
 	bsptree.set_map_walls(world_map);
 
+	// TODO put door gen here
+	printMap();
+	bsptree.generateDoors(bsptree.rooms, world_map);
+	printMap();
 	generateAllEntityTiles(world_map);
 }
 

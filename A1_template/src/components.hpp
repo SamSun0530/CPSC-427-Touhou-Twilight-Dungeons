@@ -517,7 +517,8 @@ enum class KEYS {
 enum class TILE_TYPE {
 	EMPTY = 0,
 	FLOOR = EMPTY + 1,
-	WALL = FLOOR + 1
+	WALL = FLOOR + 1,
+	DOOR = WALL + 1
 };
 
 /**

@@ -71,7 +71,7 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 		vec2 size = max_temp - min_temp;
 		// randomly generate room size based on constraint
 		std::uniform_real_distribution<> float_distrib(0.6, 0.8);
-		vec2 room_size = vec2(size.x * float_distrib(gen), size.y * float_distrib(gen));
+		vec2 room_size = vec2(round(size.x * float_distrib(gen)), round(size.y * float_distrib(gen)));
 
 		// randomly generate top left corner
 		// will only generate within partition bounds to fit room
@@ -79,7 +79,7 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 		std::uniform_int_distribution<> int_distrib_y(min_temp.y, max_temp.y - room_size.y);
 		node->room->top_left.x = int_distrib_x(gen);
 		node->room->top_left.y = int_distrib_y(gen);
-		node->room->bottom_left = node->room->top_left + room_size;
+		node->room->bottom_right = node->room->top_left + room_size;
 	}
 
 	generate_rooms_random(node->left_node);
@@ -96,8 +96,52 @@ void BSPTree::generate_corridors(BSPNode* node) {
 		BSPNode* rNode = get_random_leaf_node(node->right_node);
 		BSPNode* lNode = get_random_leaf_node(node->left_node);
 
-		node->corridor = new Corridor{ vec2((rNode->room->bottom_left + rNode->room->top_left) / vec2(2,2)),
-							  vec2((lNode->room->bottom_left + lNode->room->top_left) / vec2(2,2)) };
+		node->corridor = new Corridor{ vec2((rNode->room->bottom_right + rNode->room->top_left) / vec2(2,2)),
+							  vec2((lNode->room->bottom_right + lNode->room->top_left) / vec2(2,2)) };
+	}
+}
+
+/*
+* Adds doors to the grid map based on if the room edges is a wall
+* MUST BE AFTER WALL GENERATION
+*/
+void BSPTree::generateDoors(std::vector<Room2> rooms, std::vector<std::vector<int>>& map) {
+	for (const Room2 room : rooms) { 
+		// Duplicated code. A point to optimize
+
+		// Check top of room
+		int row = room.top_left.y - 1;
+		int col = room.top_left.x - 1;
+		for (; col < room.bottom_right.x + 1; col++) {
+			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
+				// Found a floor tile on the outer edges of the room
+				map[row][col] = (int)TILE_TYPE::DOOR;
+			}
+		}
+		// Check bottom of room
+		row = room.bottom_right.y;
+		for (col = room.top_left.x - 1; col < room.bottom_right.x + 1; col++) {
+			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
+				// Found a floor tile on the outer edges of the room
+				map[row][col] = (int)TILE_TYPE::DOOR;
+			}
+		}
+		// Check left of room
+		col = room.top_left.x - 1;
+		for (row = room.top_left.y - 1; row < room.bottom_right.y + 1; row++) {
+			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
+				// Found a floor tile on the outer edges of the room
+				map[row][col] = (int)TILE_TYPE::DOOR;
+			}
+		}
+		// Check right of room
+		col = room.bottom_right.x;
+		for (row = room.top_left.y - 1; row < room.bottom_right.y + 1; row++) {
+			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
+				// Found a floor tile on the outer edges of the room
+				map[row][col] = (int)TILE_TYPE::DOOR;
+			}
+		}
 	}
 }
 
@@ -114,12 +158,12 @@ void BSPTree::add_corridors_to_map(std::vector<Corridor> corridors, std::vector<
 				// Start is bot right of end
 				for (int col = end_x; col <= start_x; col++) {
 					map[end_y][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-					map[end_y+1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
+					//map[end_y+1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
 
 				}
 				for (int row = end_y; row <= start_y; row++) {
 					map[row][start_x] = (int)TILE_TYPE::FLOOR;
-					map[row][start_x+1] = (int)TILE_TYPE::FLOOR;
+					//map[row][start_x+1] = (int)TILE_TYPE::FLOOR;
 
 				}
 			}
@@ -127,12 +171,12 @@ void BSPTree::add_corridors_to_map(std::vector<Corridor> corridors, std::vector<
 				// Start is top right of end
 				for (int col = end_x; col <= start_x; col++) {
 					map[end_y][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-					map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
+					//map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
 
 				}
 				for (int row = end_y; row >= start_y; row--) {
 					map[row][start_x] = (int)TILE_TYPE::FLOOR;
-					map[row][start_x + 1] = (int)TILE_TYPE::FLOOR;
+					//map[row][start_x + 1] = (int)TILE_TYPE::FLOOR;
 
 				}
 			}
@@ -140,7 +184,7 @@ void BSPTree::add_corridors_to_map(std::vector<Corridor> corridors, std::vector<
 				// Start is directly right of end
 				for (int col = end_x; col <= start_x; col++) {
 					map[end_y][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-					map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
+					//map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
 
 				}
 			}
@@ -151,12 +195,12 @@ void BSPTree::add_corridors_to_map(std::vector<Corridor> corridors, std::vector<
 				// Start is bot left of end
 				for (int col = end_x; col >= start_x; col--) {
 					map[end_y][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-					map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
+					//map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
 
 				}
 				for (int row = end_y; row <= start_y; row++) {
 					map[row][start_x] = (int)TILE_TYPE::FLOOR;
-					map[row][start_x - 1] = (int)TILE_TYPE::FLOOR;
+					//map[row][start_x - 1] = (int)TILE_TYPE::FLOOR;
 
 				}
 			}
@@ -164,12 +208,12 @@ void BSPTree::add_corridors_to_map(std::vector<Corridor> corridors, std::vector<
 				// Start is top left of end
 				for (int col = end_x; col >= start_x; col--) {
 					map[end_y][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-					map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
+					//map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
 
 				}
 				for (int row = end_y; row >= start_y; row--) {
 					map[row][start_x] = (int)TILE_TYPE::FLOOR;
-					map[row][start_x - 1] = (int)TILE_TYPE::FLOOR;
+					//map[row][start_x - 1] = (int)TILE_TYPE::FLOOR;
 
 				}
 			}
@@ -177,7 +221,7 @@ void BSPTree::add_corridors_to_map(std::vector<Corridor> corridors, std::vector<
 				// Start is directly left of end
 				for (int col = end_x; col >= start_x; col--) {
 					map[end_y][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
-					map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
+					//map[end_y + 1][col] = (int)TILE_TYPE::FLOOR; // Sets floor tile
 
 				}
 			}
@@ -187,7 +231,7 @@ void BSPTree::add_corridors_to_map(std::vector<Corridor> corridors, std::vector<
 				// Start is bot of end
 				for (int row = end_y; row <= start_y; row++) {
 					map[row][start_x] = (int)TILE_TYPE::FLOOR;
-					map[row][start_x - 1] = (int)TILE_TYPE::FLOOR;
+					//map[row][start_x - 1] = (int)TILE_TYPE::FLOOR;
 
 				}
 			}
@@ -195,7 +239,7 @@ void BSPTree::add_corridors_to_map(std::vector<Corridor> corridors, std::vector<
 				// Start is top of end
 				for (int row = end_y; row >= start_y; row--) {
 					map[row][start_x] = (int)TILE_TYPE::FLOOR;
-					map[row][start_x - 1] = (int)TILE_TYPE::FLOOR;
+					//map[row][start_x - 1] = (int)TILE_TYPE::FLOOR;
 
 				}
 			}
