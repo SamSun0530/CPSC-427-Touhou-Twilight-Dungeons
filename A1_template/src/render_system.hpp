@@ -86,7 +86,11 @@ class RenderSystem {
 			textures_path("None.png"),
 			textures_path("MainMenuTitle.png"),
 			textures_path("MainMenuBackground.png"),
-			textures_path("PauseMenuBackground.png")
+			textures_path("PauseMenuBackground.png"),
+			textures_path("C.png"),
+			textures_path("B.png"),
+			textures_path("A.png"),
+			textures_path("S.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -100,7 +104,8 @@ class RenderSystem {
 		shader_path("ui"),
 		shader_path("font"),
 		shader_path("playerhealthbar"),
-		shader_path("bosshealthbar")
+		shader_path("bosshealthbar"),
+		shader_path("combo")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

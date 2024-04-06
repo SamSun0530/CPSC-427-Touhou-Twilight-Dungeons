@@ -227,6 +227,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Create combo meter ui
 	createText({ window_width_px / 2.5f , window_height_px / 2.1f }, { 1, 1 }, std::to_string(combo_mode.combo_meter), { 0, 1, 0 }, false);
+	if (combo_mode.combo_meter <= 1.04) {
+		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::C;
+	}
+	else if (combo_mode.combo_meter <= 1.1) {
+		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::B;
+	}
+	else if (combo_mode.combo_meter <= 1.2) {
+		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::A;
+	}
+	else {
+		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::S;
+	}
 
 	// Create on screen player attributes ui
 	HP& player_hp = registry.hps.get(player);
@@ -472,6 +484,7 @@ void WorldSystem::restart_game() {
 	combo_mode.restart();
 	focus_mode.restart();
 	ai->restart_flow_field_map();
+	display_combo = createCombo(renderer);
 
 	renderer->camera.setPosition({ 0, 0 });
 }

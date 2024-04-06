@@ -40,6 +40,8 @@ Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float
 
 Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm, bool in_world = false);
 
+Entity createCombo(RenderSystem* renderer);
+
 Entity createCriHit(RenderSystem* renderer, vec2 pos);
 std::vector<Entity> createAttributeUI(RenderSystem* renderer);
 Entity createHealthUI(RenderSystem*);
