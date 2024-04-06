@@ -64,7 +64,7 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 	if (!node) return;
 
 	if (!node->left_node && !node->right_node) {
-		node->room = new Room2();
+		node->room = new Room_struct();
 		// remove split between partitions
 		vec2 min_temp = node->min + vec2(1);
 		vec2 max_temp = node->max - vec2(1);
@@ -105,8 +105,8 @@ void BSPTree::generate_corridors(BSPNode* node) {
 * Adds doors to the grid map based on if the room edges is a wall
 * MUST BE AFTER WALL GENERATION
 */
-void BSPTree::generateDoors(std::vector<Room2> rooms, std::vector<std::vector<int>>& map) {
-	for (const Room2 room : rooms) { 
+void BSPTree::generateDoors(std::vector<Room_struct> &rooms, std::vector<std::vector<int>>& map) {
+	for (Room_struct &room : rooms) { 
 		// Duplicated code. A point to optimize
 
 		// Check top of room
@@ -116,6 +116,7 @@ void BSPTree::generateDoors(std::vector<Room2> rooms, std::vector<std::vector<in
 			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
 				// Found a floor tile on the outer edges of the room
 				map[row][col] = (int)TILE_TYPE::DOOR;
+				room.door_locations.push_back({ row,col });
 			}
 		}
 		// Check bottom of room
@@ -124,6 +125,7 @@ void BSPTree::generateDoors(std::vector<Room2> rooms, std::vector<std::vector<in
 			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
 				// Found a floor tile on the outer edges of the room
 				map[row][col] = (int)TILE_TYPE::DOOR;
+				room.door_locations.push_back({ row,col });
 			}
 		}
 		// Check left of room
@@ -132,6 +134,7 @@ void BSPTree::generateDoors(std::vector<Room2> rooms, std::vector<std::vector<in
 			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
 				// Found a floor tile on the outer edges of the room
 				map[row][col] = (int)TILE_TYPE::DOOR;
+				room.door_locations.push_back({ row,col });
 			}
 		}
 		// Check right of room
@@ -140,6 +143,7 @@ void BSPTree::generateDoors(std::vector<Room2> rooms, std::vector<std::vector<in
 			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
 				// Found a floor tile on the outer edges of the room
 				map[row][col] = (int)TILE_TYPE::DOOR;
+				room.door_locations.push_back({ row,col });
 			}
 		}
 	}
@@ -261,7 +265,7 @@ void BSPTree::get_corridors(BSPNode* node, std::vector<Corridor>& corridors) {
 	get_corridors(node->right_node, corridors);
 }
 
-void BSPTree::get_rooms(BSPNode* node, std::vector<Room2>& rooms) {
+void BSPTree::get_rooms(BSPNode* node, std::vector<Room_struct>& rooms) {
 	if (!node) return;
 
 	if (!node->left_node && !node->right_node) {
