@@ -71,9 +71,11 @@ public:
 	ComponentContainer<DummyEnemySpawner> dummyenemyspawners;
 	ComponentContainer<DummyEnemyLink> dummyEnemyLink;
 	ComponentContainer<TileInstanceData> tileInstanceData;
+	ComponentContainer<VisibilityTileInstanceData> visibilityTileInstanceData;
 	ComponentContainer<Button> buttons;
 	ComponentContainer<MainMenu> mainMenus;
 	ComponentContainer<PauseMenu> pauseMenus;
+	ComponentContainer<VisibilityTile> visibilityTiles;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -139,9 +141,11 @@ public:
 		registry_list.push_back(&dummyenemyspawners);
 		registry_list.push_back(&dummyEnemyLink);
 		registry_list.push_back(&tileInstanceData);
+		registry_list.push_back(&visibilityTileInstanceData);
 		registry_list.push_back(&buttons);
 		registry_list.push_back(&mainMenus);
 		registry_list.push_back(&pauseMenus);
+		registry_list.push_back(&visibilityTiles);
 	}
 
 	void clear_all_components() {

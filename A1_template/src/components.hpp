@@ -82,6 +82,10 @@ struct Button {
 	bool is_hovered = false;
 };
 
+struct VisibilityTile {
+
+};
+
 struct PlayerBullet {
 	int damage = 10;
 };
@@ -411,6 +415,10 @@ struct Wall {
 // Tile data to be instance rendered
 struct TileInstanceData {
 	vec4 spriteloc;
+	mat3 transform;
+};
+
+struct VisibilityTileInstanceData {
 	mat3 transform;
 };
 

@@ -119,11 +119,12 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai) {
+void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai, VisibilitySystem* visibility_arg) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
 	this->map = map;
 	this->ai = ai;
+	this->visibility_system = visibility_arg;
 	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
 	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
@@ -470,7 +471,6 @@ void WorldSystem::restart_game() {
 		map->spawnEnemiesInRoom();
 		player = map->spawnPlayerInRoom(0);
 		//player = map->spawnPlayer(world_center);
-		renderer->set_tiles_instance_buffer();
 	}
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
