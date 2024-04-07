@@ -4,8 +4,8 @@
 // checks if (x,y) on the map grid is valid, this is not world coordinates
 bool is_valid_cell(int x, int y) {
 	return !(y < 0 || x < 0 || y >= world_height || x >= world_width
-		|| WorldSystem::world_map[y][x] == (int)TILE_TYPE::WALL
-		|| WorldSystem::world_map[y][x] == (int)TILE_TYPE::EMPTY);
+		|| world_map[y][x] == (int)TILE_TYPE::WALL
+		|| world_map[y][x] == (int)TILE_TYPE::EMPTY);
 }
 
 // checks if entity has a line of sight of the player
@@ -134,6 +134,9 @@ struct GScore
 // Note: parameter coords are in grid coordinates NOT world coordinates
 // e.g. input (x,y) should be (1,1) on the grid instead of (550.53, -102.33)
 path astar(coord start, coord goal) {
+	// unlikely to find path between floats, so round
+	start = round(start);
+	goal = round(goal);
 	std::priority_queue<std::pair<float, coord>, std::vector<std::pair<float, coord>>, CompareGreater> open_list;
 	std::unordered_set<coord> close_list; // visited set
 	std::unordered_map<coord, coord> came_from;
@@ -337,14 +340,14 @@ void AISystem::init() {
 
 	ActionNode* move_random_direction_bee = new ActionNode(moveRandomDirection);
 	ActionNode* fire_at_player_bee = new ActionNode(fireAtPlayer);
-	ActionNode* find_player_bee = new ActionNode(findPlayerAStar);
+	//ActionNode* find_player_bee = new ActionNode(findPlayerAStar);
 	ActionNode* follow_flow_field_threshold_bee = new ActionNode(followFlowFieldThreshold);
 
 	can_shoot_bee->setTrue(fire_at_player_bee);
 	can_shoot_bee->setFalse(follow_flow_field_threshold_bee);
 
 	can_see_player_bee->setTrue(can_shoot_bee);
-	can_see_player_bee->setFalse(find_player_bee);
+	can_see_player_bee->setFalse(follow_flow_field_threshold_bee);
 
 	is_in_range_bee->setTrue(can_see_player_bee);
 	is_in_range_bee->setFalse(move_random_direction_bee);
@@ -360,14 +363,14 @@ void AISystem::init() {
 
 	ActionNode* move_random_direction_wolf = new ActionNode(moveRandomDirection);
 	ActionNode* fire_at_player_wolf = new ActionNode(fireAtPlayer);
-	ActionNode* find_player_wolf = new ActionNode(findPlayerThresholdAStar);
+	//ActionNode* find_player_wolf = new ActionNode(findPlayerThresholdAStar);
 	ActionNode* find_player_threshold_wolf = new ActionNode(followFlowFieldThreshold);
 
 	can_shoot_wolf->setTrue(fire_at_player_wolf);
 	can_shoot_wolf->setFalse(find_player_threshold_wolf);
 
 	can_see_player_wolf->setTrue(can_shoot_wolf);
-	can_see_player_wolf->setFalse(find_player_wolf);
+	can_see_player_wolf->setFalse(find_player_threshold_wolf);
 
 	is_in_range_wolf->setTrue(can_see_player_wolf);
 	is_in_range_wolf->setFalse(move_random_direction_wolf);

@@ -47,8 +47,8 @@ const vec2 window_px_half = { window_width_px / 2, window_height_px / 2 };
 
 const vec2 WORLD_CENTER_DEFAULT = { 9, 9 };
 const int WORLD_WIDTH_DEFAULT = 60;
-const int WORLD_HEIGHT_DEFAULT = 50;
-const int WORLD_TILE_SIZE_DEFAULT = 80;
+const int WORLD_HEIGHT_DEFAULT = 60;
+const int WORLD_TILE_SIZE_DEFAULT = 100;
 
 
 
@@ -82,10 +82,18 @@ enum class ROOM_TYPE {
 	BOSS
 };
 
-// A  basic way to store room data
+enum class DIRECTIONS {
+	UP,
+	RIGHT,
+	DOWN,
+	LEFT
+};
+
+// TEMPORARY
 struct Room_struct {
 	ROOM_TYPE type = ROOM_TYPE::NORMAL;
-	std::vector<vec2> door_locations;
+	bool visited = false;
+	std::vector<vec3> door_locations; // {x,y,direction}
 	vec2 top_left;
 	vec2 bottom_right;
 };
