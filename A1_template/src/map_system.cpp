@@ -290,11 +290,12 @@ void MapSystem::generateRandomMap() {
 		bsptree.set_map_walls(world_map);
 		is_valid = is_valid_map(world_map);
 	}
-	bsptree.generateDoors(bsptree.rooms, world_map);
-
+	
 	// TODO put door gen here
 	generate_all_tiles(world_map);
-
+	std::vector<vec3> door_info;
+	door_info = bsptree.generateDoors(bsptree.rooms, world_map);
+	generate_door_tiles(door_info, world_map);
 }
 
 Room generateBasicRoom(int x, int y) {
@@ -511,9 +512,13 @@ TILE_NAME_SANDSTONE MapSystem::get_tile_name_sandstone(int x, int y, std::vector
 	return result;
 }
 
-void generate_door_tiles(std::vector<std::vector<int>>& map) {
+void MapSystem::generate_door_tiles(std::vector<vec3> door_info, std::vector<std::vector<int>>& map) {
 		// TODO
 		// Loops through all rooms and creates a door entitry for every marked door
+	for (vec3 door : door_info) {
+		vec2 world_coord = convert_grid_to_world({ door[0], door[1] });
+		createDoor(renderer, world_coord, static_cast<DIRECTIONS>(door[2]), 0);
+	}
 }
 
 void MapSystem::generate_all_tiles(std::vector<std::vector<int>>& map) {
