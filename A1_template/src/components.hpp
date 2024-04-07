@@ -62,8 +62,6 @@ extern ComboMode combo_mode;
 struct VisibilityInfo {
 	// TODO: limit how fast tiles are revealed using flood fill
 	bool need_update = false;
-	float counter_ms = 0;
-	float counter_ms_default = 100;
 };
 extern VisibilityInfo visibility_info;
 
@@ -82,7 +80,17 @@ struct GameInfo {
 	}
 	// TODO: store player current room (index or id?)
 	// TODO: store visited rooms (for doors)
-	int in_room = -1;
+	int in_room = -1; // -1 - not in room
+	// each index represents a room
+	std::vector<Room2> room_index;
+	// same size as room_index, where each index corresponds to whether it's been visited
+	std::vector<bool> room_visited;
+
+	void reset_room_info() {
+		in_room = -1;
+		room_index.clear();
+		room_visited.clear();
+	}
 };
 extern GameInfo game_info;
 

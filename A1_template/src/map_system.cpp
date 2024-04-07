@@ -330,7 +330,10 @@ void MapSystem::generateRandomMap() {
 	// set buffer data for tile instance rendering
 	renderer->set_tiles_instance_buffer();
 
-
+	// add all rooms to component
+	//for (int i = 0; i < bsptree.rooms.size(); ++i) {
+	//	game_info.
+	//}
 }
 
 Room generateBasicRoom(int x, int y) {

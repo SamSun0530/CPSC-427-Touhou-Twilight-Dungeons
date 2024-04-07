@@ -1,5 +1,7 @@
 #pragma once
 
+#include <queue>
+
 #include "common.hpp"
 #include "components.hpp"
 #include "global.hpp"
@@ -43,6 +45,26 @@ public:
 	void print_visibility_map();
 	void print_reference_map();
 private:
+	// BFS floodfill
+	// keeps track of next grid positions to reveal and number of tiles
+	std::queue<coord> next_pos;
+	int next_num;
+
+	const std::vector<coord> ACTIONS = {
+		vec2(0, -1),	// UP
+		vec2(0, 1),		// DOWN
+		vec2(-1, 0),	// LEFT
+		vec2(1, 0),		// RIGHT
+		vec2(-1, -1),	// UP LEFT
+		vec2(1, -1),	// UP RIGHT
+		vec2(-1, 1),	// DOWN LEFT
+		vec2(1, 1)		// DOWN RIGHT
+	};
+
+	// Limit frequency of flood fill
+	float counter_ms = 0;
+	float counter_ms_default = 100;
+
 	// set tile to be visible by removing visibility tile
 	void set_tile_visible(coord grid_pos);
 

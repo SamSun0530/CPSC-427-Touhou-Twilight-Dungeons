@@ -34,13 +34,16 @@ void VisibilitySystem::step(float elapsed_ms)
 	vec2 grid_pos = convert_world_to_grid(player_motion.position);
 	if (grid_pos.y >= 0 && grid_pos.y < WORLD_HEIGHT_DEFAULT && grid_pos.x >= 0 && grid_pos.x < WORLD_WIDTH_DEFAULT &&
 		map[grid_pos.y][grid_pos.x] == (int)VISIBILITY_STATE::NOT_VISIBLE) {
-		set_tile_visible(grid_pos); // TODO: instead of one tile, use flood fill -> need rooms!
+		//set_tile_visible(grid_pos); // TODO: instead of one tile, use flood fill -> need rooms!
+
+
+
 		renderer->set_visibility_tiles_instance_buffer();
 	}
 }
 
 void VisibilitySystem::set_tile_visible(coord grid_pos) {
-	if (reference_map[grid_pos.y][grid_pos.x] != -1) {
+	if (reference_map[grid_pos.y][grid_pos.x] != -1 && map[grid_pos.y][grid_pos.x] == (int)VISIBILITY_STATE::NOT_VISIBLE ) {
 		Entity entity = (Entity) reference_map[grid_pos.y][grid_pos.x];
 		map[grid_pos.y][grid_pos.x] = (int)VISIBILITY_STATE::VISIBLE;
 		registry.remove_all_components_of(entity);
