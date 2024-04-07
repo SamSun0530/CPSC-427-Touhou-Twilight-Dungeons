@@ -13,6 +13,7 @@ Audio::Audio() {
 	}
 
 	background_music = Mix_LoadMUS(audio_path("regular_room_bgm.wav").c_str());
+	menu_music = Mix_LoadMUS(audio_path("main_menu_bgm.wav").c_str());
 	game_ending_sound = Mix_LoadWAV(audio_path("game_ending_sound.wav").c_str());
 	firing_sound = Mix_LoadWAV(audio_path("spell_sound.wav").c_str());
 	damage_sound = Mix_LoadWAV(audio_path("damage_sound.wav").c_str());
