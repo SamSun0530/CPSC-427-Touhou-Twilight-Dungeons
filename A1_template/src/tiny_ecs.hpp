@@ -20,6 +20,13 @@ public:
 		// Note, indices of already deleted entities arent re-used in this simple implementation.
 	}
 	operator unsigned int() { return id; } // this enables automatic casting to int
+
+	// https://stackoverflow.com/a/45896024
+	// Explicit cast, only use if necessary.
+	// Does not increase id count, as this entity is a reference
+	// Remember to delete the reference as it may be deleted from registry -> registry.*.get(ref) can throw error
+	// e.g. Entity ref = (Entity) 1;
+	explicit Entity(int x) : id(x) {};
 };
 
 // Common interface to refer to all containers in the ECS registry

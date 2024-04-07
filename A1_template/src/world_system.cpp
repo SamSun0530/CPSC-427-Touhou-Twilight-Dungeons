@@ -119,11 +119,12 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai) {
+void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai, VisibilitySystem* visibility_arg) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
 	this->map = map;
 	this->ai = ai;
+	this->visibility_system = visibility_arg;
 	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
 	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
@@ -445,6 +446,10 @@ void WorldSystem::restart_game() {
 	while (registry.motions.entities.size() > 0)
 		registry.remove_all_components_of(registry.motions.entities.back());
 
+	// Since visibility tile do not have motion, iterate and remove here
+	while (registry.visibilityTileInstanceData.entities.size() > 0)
+		registry.remove_all_components_of(registry.visibilityTileInstanceData.entities.back());
+
 	// TODO: decide whether to destroy buttons every time on menu entry or one set of buttons
 	init_menu();
 	init_pause_menu();
@@ -470,7 +475,6 @@ void WorldSystem::restart_game() {
 		map->spawnEnemiesInRoom();
 		player = map->spawnPlayerInRoom(0);
 		//player = map->spawnPlayer(world_center);
-		renderer->set_tiles_instance_buffer();
 	}
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
@@ -484,6 +488,7 @@ void WorldSystem::restart_game() {
 	focus_mode.restart();
 	ai->restart_flow_field_map();
 	display_combo = createCombo(renderer);
+	game_info.set_player_id(player);
 
 	renderer->camera.setPosition({ 0, 0 });
 }

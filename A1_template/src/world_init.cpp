@@ -1175,7 +1175,7 @@ Entity createDoor(RenderSystem* renderer, vec2 position, DIRECTIONS dir, int roo
 	return entity;
 }
 
-Entity createTile(RenderSystem* renderer, vec2 position, TILE_NAME_SANDSTONE tile_name, bool is_wall) {
+Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, vec2 grid_position, TILE_NAME_SANDSTONE tile_name, bool is_wall) {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -1184,7 +1184,7 @@ Entity createTile(RenderSystem* renderer, vec2 position, TILE_NAME_SANDSTONE til
 
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
-	motion.position = position;
+	motion.position = convert_grid_to_world(grid_position);
 	motion.scale = vec2(world_tile_size, world_tile_size);
 
 	// Create wall or floor entity for physics collision
@@ -1207,6 +1207,24 @@ Entity createTile(RenderSystem* renderer, vec2 position, TILE_NAME_SANDSTONE til
 		renderer->get_spriteloc_sandstone(tile_name),
 		t.mat
 	};
+
+	// Add visibility tile
+	// We do it here bcause we have already calculated the transform matrix
+	/*
+	This entity has:
+
+	TEXTURE_ASSET_ID::TEXTURE_COUNT,
+	EFFECT_ASSET_ID::EGG,
+	GEOMETRY_BUFFER_ID::DEBUG_LINE2
+	*/
+	auto entity2 = Entity();
+	//registry.visibilityTiles.emplace(entity2); // TODO
+	registry.visibilityTileInstanceData.emplace(entity2) = {
+		t.mat
+	};
+	// add reference to entity in 2d array
+	// when removing visibility tile entities, we set it's corresponding grid position in reference map to -1
+	visibility_system->reference_map[grid_position.y][grid_position.x] = entity2;
 
 	return entity;
 }

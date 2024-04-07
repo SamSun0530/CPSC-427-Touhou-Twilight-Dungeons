@@ -59,9 +59,38 @@ struct ComboMode {
 };
 extern ComboMode combo_mode;
 
+struct VisibilityInfo {
+	// TODO: limit how fast tiles are revealed using flood fill
+	bool need_update = false;
+};
+extern VisibilityInfo visibility_info;
+
 // Game related information
 struct GameInfo {
+	// for "resume" in button
 	bool has_started = false;
+
+	// Player information
+	// store player entity id
+	Entity player_id;
+	bool is_player_id_set = false;
+	void set_player_id(unsigned int player_actual) {
+		player_id = (Entity)player_actual;
+		is_player_id_set = true;
+	}
+	// TODO: store player current room (index or id?)
+	// TODO: store visited rooms (for doors)
+	int in_room = -1; // -1 - not in room
+	// each index represents a room
+	std::vector<Room_struct> room_index;
+	// same size as room_index, where each index corresponds to whether it's been visited
+	std::vector<bool> room_visited;
+
+	void reset_room_info() {
+		in_room = -1;
+		room_index.clear();
+		room_visited.clear();
+	}
 };
 extern GameInfo game_info;
 
@@ -80,6 +109,10 @@ struct Button {
 	float text_scale = 1.f;
 	std::function<void()> func;
 	bool is_hovered = false;
+};
+
+struct VisibilityTile {
+
 };
 
 struct PlayerBullet {
@@ -418,6 +451,10 @@ struct Door {
 	bool is_locked = true;
 	DIRECTIONS dir;
 	int room_index;
+};
+
+struct VisibilityTileInstanceData {
+	mat3 transform;
 };
 
 // All data relevant to the shape and motion of entities

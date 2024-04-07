@@ -442,6 +442,10 @@ void RenderSystem::draw()
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
 
+		if (registry.visibilityTileInstanceData.components.size() > 0) {
+			drawVisibilityTilesInstanced(projection_2D, view_2D);
+		}
+
 		for (Entity entity : registry.UIUX.entities) {
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
@@ -839,6 +843,65 @@ void RenderSystem::drawTilesInstanced(const glm::mat3& projection, const glm::ma
 	gl_has_errors();
 
 	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, 0, registry.tileInstanceData.size());
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	gl_has_errors();
+}
+
+// called once when generating new map
+void RenderSystem::set_visibility_tiles_instance_buffer_max() {
+	glUseProgram(visibility_tile_instance_program);
+	glBindVertexArray(visibility_tile_instance_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, visibility_tile_instance_VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(VisibilityTileInstanceData) * registry.visibilityTileInstanceData.size(), registry.visibilityTileInstanceData.components.data(), GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
+// called when visibility map is decreased, we do this instead of glBufferData so don't realloc every time
+void RenderSystem::set_visibility_tiles_instance_buffer() {
+	glUseProgram(visibility_tile_instance_program);
+	glBindVertexArray(visibility_tile_instance_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, visibility_tile_instance_VBO);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(VisibilityTileInstanceData) * registry.visibilityTileInstanceData.size(), registry.visibilityTileInstanceData.components.data());
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
+void RenderSystem::drawVisibilityTilesInstanced(const glm::mat3& projection, const glm::mat3& view)
+{
+	const GLuint ibo = index_buffers[(GLuint)GEOMETRY_BUFFER_ID::DEBUG_LINE];
+
+	// Setting vertex and index buffers
+	glUseProgram(visibility_tile_instance_program);
+	glBindVertexArray(visibility_tile_instance_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, visibility_tile_instance_VBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+
+	// Getting uniform locations for glUniform* calls
+	GLint color_uloc = glGetUniformLocation(visibility_tile_instance_program, "fcolor");
+	//const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
+	const vec3 color = vec3(1);
+	glUniform3fv(color_uloc, 1, (float*)&color);
+	gl_has_errors();
+
+	// Get number of indices from index buffer, which has elements uint16_t
+	GLint size = 0;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	gl_has_errors();
+	GLsizei num_indices = size / sizeof(uint16_t);
+
+	GLint currProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&projection);
+	GLuint view_loc = glGetUniformLocation(currProgram, "view");
+	glUniformMatrix3fv(view_loc, 1, GL_FALSE, (float*)&view);
+	gl_has_errors();
+
+	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, 0, registry.visibilityTileInstanceData.size());
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);

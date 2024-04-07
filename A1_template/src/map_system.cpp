@@ -13,8 +13,9 @@ MapSystem::MapSystem() {
 	rng = std::default_random_engine(std::random_device()());
 }
 
-void MapSystem::init(RenderSystem* renderer_arg) {
+void MapSystem::init(RenderSystem* renderer_arg, VisibilitySystem* visibility_arg) {
 	this->renderer = renderer_arg;
+	this->visibility_system = visibility_arg;
 }
 
 void MapSystem::restart_map() {
@@ -290,9 +291,23 @@ void MapSystem::generateRandomMap() {
 		bsptree.set_map_walls(world_map);
 		is_valid = is_valid_map(world_map);
 	}
-	
-	// TODO put door gen here
+
+	// ignore these - for visibility
+	// ORDER IS IMPORTANT!
+	// for order of operations, please see VisibilitySystem class
+	visibility_system->restart_map();
 	generate_all_tiles(world_map);
+	visibility_system->init_visibility();
+	// set buffer data for visibility tile instance rendering
+	renderer->set_visibility_tiles_instance_buffer_max();
+	// set buffer data for tile instance rendering
+	renderer->set_tiles_instance_buffer();
+
+	// add all rooms to component
+	//for (int i = 0; i < bsptree.rooms.size(); ++i) {
+	//	game_info.
+	//}
+
 	std::vector<vec3> door_info;
 	door_info = bsptree.generateDoors(bsptree.rooms, world_map);
 	generate_door_tiles(door_info, world_map);
@@ -537,7 +552,7 @@ void MapSystem::generate_all_tiles(std::vector<std::vector<int>>& map) {
 		for (int x = 0; x < map_width; ++x) {
 			TILE_NAME_SANDSTONE result = get_tile_name_sandstone(x + 1, y + 1, map_copy);
 			if (result == TILE_NAME_SANDSTONE::NONE) continue;
-			createTile(renderer, convert_grid_to_world({ x, y }), result, map[y][x] == (int)TILE_TYPE::WALL);
+			createTile(renderer, visibility_system, { x, y }, result, map[y][x] == (int)TILE_TYPE::WALL);
 		}
 	}
 }

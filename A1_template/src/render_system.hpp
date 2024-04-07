@@ -154,14 +154,20 @@ public:
 	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world = false);
 
 	// tiles instancing
-	// called when generating new map
+	// called once when generating new map
 	void set_tiles_instance_buffer();
+	// called when visibility map is decreased
+	void set_visibility_tiles_instance_buffer();
+	// called once when generating new map
+	void set_visibility_tiles_instance_buffer_max();
+
 	vec4 get_spriteloc_sandstone(TILE_NAME_SANDSTONE tile_name);
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);
 	void drawBulletsInstanced(const std::vector<Entity>& entities, const glm::mat3& projection, const glm::mat3& view);
 	void drawTilesInstanced(const glm::mat3& projection, const glm::mat3& view);
+	void drawVisibilityTilesInstanced(const glm::mat3& projection, const glm::mat3& view);
 	void drawToScreen();
 
 	// Window handle
@@ -183,6 +189,12 @@ private:
 	GLuint tile_instance_program;
 	GLuint tiles_instance_VAO;
 	GLuint tiles_instance_VBO;
+
+	// Visibility tile instancing
+	void initializeVisibilityTileInstance();
+	GLuint visibility_tile_instance_program;
+	GLuint visibility_tile_instance_VAO;
+	GLuint visibility_tile_instance_VBO;
 
 	// Fonts
 	std::map<char, Character> m_ftCharacters;

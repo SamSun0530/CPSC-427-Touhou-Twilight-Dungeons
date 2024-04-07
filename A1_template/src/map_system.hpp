@@ -10,6 +10,7 @@
 #include "physics_system.hpp"
 #include "bsp_tree.hpp"
 #include "global.hpp"
+#include <visibility_system.hpp>
 
 // Grid coordinates: x, y, size
 struct Room {
@@ -27,6 +28,7 @@ class MapSystem {
 private:
 	// game systems
 	RenderSystem* renderer;
+	VisibilitySystem* visibility_system;
 
 	// old version
 	void addTile(int x, int y, std::vector<TEXTURE_ASSET_ID>& textureIDs, std::vector<std::vector<int>>& map);
@@ -53,7 +55,7 @@ private:
 public:
 	MapSystem();
 	void restart_map();
-	void init(RenderSystem* renderer);
+	void init(RenderSystem* renderer, VisibilitySystem* visibility_arg);
 	void generateBasicMap();
 	Room generateBossRoom();
 	void generateRandomMap();
