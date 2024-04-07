@@ -55,7 +55,7 @@ int main()
 	map.init(&renderer, &visibility_system);
 	animation.init(&renderer, window);
 	world.init_menu();
-	visibility_system.init();
+	visibility_system.init(&renderer);
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -79,6 +79,7 @@ int main()
 			animation.step(elapsed_ms);
 			physics.step(elapsed_ms);
 			world.update_focus_dot();
+			visibility_system.step(elapsed_ms);
 			ai.step(elapsed_ms);
 			bullets.step(elapsed_ms);
 			world.handle_collisions();

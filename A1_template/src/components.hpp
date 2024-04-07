@@ -59,9 +59,30 @@ struct ComboMode {
 };
 extern ComboMode combo_mode;
 
+struct VisibilityInfo {
+	// TODO: limit how fast tiles are revealed using flood fill
+	bool need_update = false;
+	float counter_ms = 0;
+	float counter_ms_default = 100;
+};
+extern VisibilityInfo visibility_info;
+
 // Game related information
 struct GameInfo {
+	// for "resume" in button
 	bool has_started = false;
+
+	// Player information
+	// store player entity id
+	Entity player_id;
+	bool is_player_id_set = false;
+	void set_player_id(unsigned int player_actual) {
+		player_id = (Entity)player_actual;
+		is_player_id_set = true;
+	}
+	// TODO: store player current room (index or id?)
+	// TODO: store visited rooms (for doors)
+	int in_room = -1;
 };
 extern GameInfo game_info;
 

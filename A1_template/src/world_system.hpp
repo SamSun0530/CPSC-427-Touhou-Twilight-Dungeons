@@ -67,6 +67,7 @@ public:
 	void toggle_display_instruction() { display_instruction = !display_instruction; }
 	void toggle_show_fps() { show_fps = !show_fps; }
 	// Updates focus mode position
+	// Should be called after physics step
 	// Fixes issue where dot lags behind player due to physics lerp step after setting position
 	void update_focus_dot();
 private:

@@ -446,6 +446,10 @@ void WorldSystem::restart_game() {
 	while (registry.motions.entities.size() > 0)
 		registry.remove_all_components_of(registry.motions.entities.back());
 
+	// Since visibility tile do not have motion, iterate and remove here
+	while (registry.visibilityTileInstanceData.entities.size() > 0)
+		registry.remove_all_components_of(registry.visibilityTileInstanceData.entities.back());
+
 	// TODO: decide whether to destroy buttons every time on menu entry or one set of buttons
 	init_menu();
 	init_pause_menu();
@@ -484,6 +488,7 @@ void WorldSystem::restart_game() {
 	focus_mode.restart();
 	ai->restart_flow_field_map();
 	display_combo = createCombo(renderer);
+	game_info.set_player_id(player);
 
 	renderer->camera.setPosition({ 0, 0 });
 }

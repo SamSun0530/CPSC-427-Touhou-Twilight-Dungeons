@@ -1187,11 +1187,11 @@ Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, v
 
 	TEXTURE_ASSET_ID::TEXTURE_COUNT,
 	EFFECT_ASSET_ID::EGG,
-	GEOMETRY_BUFFER_ID::DEBUG_LINE
+	GEOMETRY_BUFFER_ID::DEBUG_LINE2
 	*/
 	auto entity2 = Entity();
-	registry.visibilityTiles.emplace(entity2);
-	registry.visibilityTileInstanceData.emplace(entity) = {
+	//registry.visibilityTiles.emplace(entity2); // TODO
+	registry.visibilityTileInstanceData.emplace(entity2) = {
 		t.mat
 	};
 	// add reference to entity in 2d array

@@ -319,10 +319,18 @@ void MapSystem::generateRandomMap() {
 		is_valid = is_valid_map(world_map);
 	}
 
-	//generateAllEntityTiles(world_map);
+	// ignore these - for visibility
+	// ORDER IS IMPORTANT!
+	// for order of operations, please see VisibilitySystem class
+	visibility_system->restart_map();
 	generate_all_tiles(world_map);
+	visibility_system->init_visibility();
+	// set buffer data for visibility tile instance rendering
 	renderer->set_visibility_tiles_instance_buffer_max();
+	// set buffer data for tile instance rendering
 	renderer->set_tiles_instance_buffer();
+
+
 }
 
 Room generateBasicRoom(int x, int y) {
