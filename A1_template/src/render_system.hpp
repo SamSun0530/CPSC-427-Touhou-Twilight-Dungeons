@@ -137,7 +137,7 @@ public:
 	bool initFont(GLFWwindow* window, const std::string& font_filename, unsigned int font_default_size);
 
 	// extra parameter in_world specifies whether or not text should be world or screen coordinate
-	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world = false);
+	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world = false, float transparency_rate = 1);
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);
@@ -184,17 +184,20 @@ private:
 
 	const char* fontFragmentShaderSource =
 		"#version 330 core\n"
-		"in vec2 TexCoords; \n"
-		"out vec4 color; \n"
+		"in vec2 TexCoords;\n"
+		"out vec4 color;\n"
 		"\n"
-		"uniform sampler2D text; \n"
-		"uniform vec3 textColor; \n"
+		"uniform sampler2D text;\n"
+		"uniform vec3 textColor;\n"
+		"uniform float transparency;\n"
 		"\n"
 		"void main()\n"
 		"{\n"
 		"    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, TexCoords).r);\n"
-		"    color = vec4(textColor, 1.0) * sampled;\n"
-		"}\0";
+		"    vec4 finalColor = vec4(textColor, 1.0) * sampled;\n"
+		"    finalColor.a *= transparency; // Adjust alpha with transparency\n"
+		"    color = finalColor;\n"
+		"}\n";
 
 	Entity screen_state_entity;
 

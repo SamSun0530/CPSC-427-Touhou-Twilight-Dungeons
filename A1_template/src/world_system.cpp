@@ -485,7 +485,7 @@ void WorldSystem::handle_collisions() {
 			}
 			else if (registry.pickupables.has(entity_other)) {
 				if (!registry.realDeathTimers.has(entity)) {
-					getInstance().HP_timer = 3000.0f;
+					getInstance().HP_timer = 2000.0f;
 					registry.hps.get(entity).curr_hp += registry.pickupables.get(entity_other).health_change;
 					if (registry.hps.get(entity).curr_hp > registry.hps.get(entity).max_hp) {
 						registry.hps.get(entity).curr_hp = registry.hps.get(entity).max_hp;

@@ -376,9 +376,11 @@ void RenderSystem::draw()
 	// Render player
 	for (Entity entity : registry.players.entities) {
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-		if (WorldSystem::getInstance().get_HP_timer() > 0) {
+		float HP_timer = WorldSystem::getInstance().get_HP_timer(); // HP_timer should drop from 2000 to 0 in 2 seconds
+		if (HP_timer > 0) {
 			const Motion& motion = registry.motions.get(entity);
-			renderText("HP++!", motion.position.x-30, motion.position.y - 35, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f), trans, true);
+			float transparency_rate = HP_timer /2000;
+			renderText("HP++!", motion.position.x+30, motion.position.y + ((transparency_rate-1) * 35), 0.5f, glm::vec3(0.0f, 1.0f, 0.0f), trans, true, transparency_rate);
 		}
 	}
 
@@ -477,7 +479,8 @@ void RenderSystem::draw()
 }
 
 // This adapted from lecture material (Wednesday Feb 28th 2024)
-void RenderSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world) {
+// fully transparent when transparency_rate = 0
+void RenderSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world, float transparency_rate) {
 	// activate the shaders!
 	glUseProgram(m_font_shaderProgram);
 
@@ -488,6 +491,10 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
 		);
 	assert(textColor_location >= 0);
 	glUniform3f(textColor_location, color.x, color.y, color.z);
+
+	auto transparency_location = glGetUniformLocation(m_font_shaderProgram, "transparency");
+	assert(transparency_location > -1);
+	glUniform1f(transparency_location, transparency_rate);
 
 	// flip both y axis so translations will match opengl
 	y = -1 * y;
