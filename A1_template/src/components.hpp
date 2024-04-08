@@ -449,7 +449,7 @@ struct TileInstanceData {
 
 struct Door {
 	bool is_locked = true;
-	std::vector<Entity> enemies;
+	bool is_shut = true;
 	DIRECTIONS dir;
 	int room_index;
 };

@@ -686,7 +686,7 @@ void WorldSystem::handle_collisions() {
 		}
 		// Checks wall collisions
 		// Checks locked door collisions
-		else if (registry.walls.has(entity) || (registry.doors.has(entity) && registry.doors.get(entity).is_locked)) {
+		else if (registry.walls.has(entity) || (registry.doors.has(entity) && registry.doors.get(entity).is_shut)) {
 			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
 				Motion& bullet_motion = registry.motions.get(entity_other);
 				if (registry.playerBullets.has(entity_other)) {
@@ -702,6 +702,11 @@ void WorldSystem::handle_collisions() {
 				Collidable& entity_collidable = registry.collidables.get(entity_other);
 				vec2 wall_center = wall_motion.position + wall_collidable.shift;
 				vec2 entity_center = entity_motion.position + entity_collidable.shift;
+
+				if (registry.doors.has(entity) && !registry.deadlys.has(entity_other)) {
+					Door& door = registry.doors.get(entity);
+					door.is_shut = false;
+				}
 
 				// Minkowski Sum adapted from "sam hocevar": https://gamedev.stackexchange.com/a/24091
 				// Find the normal of object B, or the wall given two rectangles
@@ -741,7 +746,7 @@ void WorldSystem::handle_collisions() {
 			}
 		}
 		else if (registry.enemyBullets.has(entity)) {
-			if (registry.walls.has(entity_other) || (registry.doors.has(entity_other) && registry.doors.get(entity_other).is_locked)) {
+			if (registry.walls.has(entity_other) || (registry.doors.has(entity_other) && registry.doors.get(entity_other).is_shut)) {
 				registry.remove_all_components_of(entity);
 			}
 		}
