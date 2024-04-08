@@ -579,11 +579,11 @@ void WorldSystem::handle_collisions() {
 						Player& player_att = registry.players.get(player);
 						treasure.player_overlap = true;
 						if (pressed[GLFW_KEY_E] && player_att.coin_amount >= treasure.cost) {
-							registry.remove_all_components_of(entity_other);
-							std::cout << "player_att.coin_amount: " << std::to_string(player_att.coin_amount) << std::endl;
+							std::cout << "player_prev_coin_amount: " << std::to_string(player_att.coin_amount) << std::endl;
 							std::cout << "treasure.cost: " << std::to_string(treasure.cost) << std::endl;
 							player_att.coin_amount -= treasure.cost;
-							std::cout << std::to_string(player_att.coin_amount) << std::endl;
+							registry.remove_all_components_of(entity_other);
+							std::cout << "player_after_coin_amount: " << std::to_string(player_att.coin_amount) << std::endl;
 						}
 						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, "cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
 
