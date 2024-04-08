@@ -81,7 +81,8 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 		std::uniform_int_distribution<> int_distrib_y(min_temp.y, max_temp.y - room_size.y);
 		node->room->top_left.x = int_distrib_x(gen);
 		node->room->top_left.y = int_distrib_y(gen);
-		node->room->bottom_right = node->room->top_left + room_size;
+		// since bottom right is inclusive, room size should be subtracted by 1
+		node->room->bottom_right = node->room->top_left + room_size - 1.f;
 
 		rooms.push_back(*node->room);
 
@@ -95,97 +96,6 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 
 	generate_rooms_random(node->left_node);
 	generate_rooms_random(node->right_node);
-}
-
-vec4 addSingleDoor(int row, int col, DIRECTIONS dir, int room_index, Room_struct& room, std::vector<std::vector<int>>& map) {
-	map[row][col] = (int)TILE_TYPE::DOOR;
-	vec4 door_info = { col, row, dir, room_index};
-	//room.door_locations.push_back(door_info);
-	// Creates a door
-	//createDoor
-
-	return door_info;
-}
-
-/*
-* Adds doors to the grid map based on if the room edges is a wall
-* MUST BE AFTER WALL GENERATION
-*/
-std::vector<vec4> BSPTree::generateDoorInfo(std::vector<Room_struct>& rooms, std::vector<std::vector<int>>& map) {
-	std::vector<vec4> doors;
-
-	int map_height = map.size();
-	int map_width = map[0].size();
-	assert(map_height > 0 && map_width > 0 && "Map should have at least one cell");
-	// Create padding of empty tile in the edges by copy
-	auto map_copy = std::vector<std::vector<int>>(map_height + 4, std::vector<int>(map_width + 4, 0));
-	for (int y = 0; y < map_height; ++y) {
-		for (int x = 0; x < map_width; ++x) {
-			map_copy[y + 2][x + 2] = map[y][x];
-		}
-	}
-
-	//for (Room_struct& room : rooms) 
-	for(int i = 0; i < rooms.size(); i++)
-	{
-		Room_struct& room = rooms[i];
-		// Duplicated code. A point to optimize
-
-		// Check top of room
-		//int row = room.top_left.y - 1;
-		//int col = room.top_left.x - 1;
-		/*
-		for (int row = room.top_left.y - 1; row < room.bottom_right.y + 1; row++) {
-			for (int col = room.top_left.x - 1 ; col < room.bottom_right.x + 1; col++) {
-				if (map[row][col] == (int)TILE_TYPE::FLOOR) {
-					//addSingleDoor(row, col, 0, room, map);
-				}
-				// Checks only the edges of each room
-				// Ignores interriors
-				if (row != room.top_left.y - 1 || row != room.bottom_right.y + 1 &&
-					map[row][room.bottom_right.x+1] == (int)TILE_TYPE::FLOOR) {
-					//addSingleDoor(row, col, 0, room, map);
-					row++; // Skips current row
-					col = room.bottom_right.x + 1;
-				}
-			}
-		}*/
-			// Checks top of room
-			for (int col = room.top_left.x - 1 + 2; col <= room.bottom_right.x + 1 + 2; col++) {
-				if (map_copy[room.top_left.y - 1 + 2][col] == (int)TILE_TYPE::FLOOR) {
-					// Found a floor tile on the outer edges of the room
-					doors.push_back(addSingleDoor(room.top_left.y - 1, col - 2, DIRECTIONS::DOWN, i, room, map_copy));
-
-				}
-			}
-			// Check bottom of room
-			//row = room.bottom_right.y + 1;
-			for (int col = room.top_left.x - 1 + 2; col <= room.bottom_right.x + 1 + 2; col++) {
-				if (map_copy[room.top_left.y - 1 + 2][col] == (int)TILE_TYPE::FLOOR) {
-					// Found a floor tile on the outer edges of the room
-					doors.push_back(addSingleDoor(room.top_left.y - 1, col - 2, DIRECTIONS::UP, i, room, map_copy));
-				}
-			}
-			// Check left of room
-			//col = room.top_left.x - 1;
-			for (int row = room.top_left.y - 1 + 2; row <= room.bottom_right.y + 1 + 2; row++) {
-				if (map_copy[row][room.top_left.x - 1 + 2] == (int)TILE_TYPE::FLOOR) {
-					// Found a floor tile on the outer edges of the room
-					doors.push_back(addSingleDoor(row - 2, room.top_left.x - 1, DIRECTIONS::RIGHT, i, room, map_copy));
-
-				}
-			}
-			// Check right of room
-			//col = room.bottom_right.x + 1;
-			for (int row = room.top_left.y - 1 + 2; row <= room.bottom_right.y + 1 + 2; row++) {
-				if (map_copy[row][room.top_left.x - 1 + 2] == (int)TILE_TYPE::FLOOR) {
-					// Found a floor tile on the outer edges of the room
-					doors.push_back(addSingleDoor(row - 2, room.top_left.x - 1, DIRECTIONS::LEFT, i, room, map_copy));
-				}
-			}
-	}
-
-	return doors;
 }
 
 void BSPTree::generate_corridors(BSPNode* node) {
@@ -233,39 +143,6 @@ BSPNode* BSPTree::get_random_leaf_node(BSPNode* node) {
 
 	std::uniform_real_distribution<> float_distrib(0, 1);
 	return float_distrib(gen) < 0.5 ? get_random_leaf_node(node->left_node) : get_random_leaf_node(node->right_node);
-}
-
-void BSPTree::set_map_walls(std::vector<std::vector<int>>& map) {
-	const std::vector<coord> ACTIONS = {
-		vec2(0, -1),	// UP
-		vec2(0, 1),		// DOWN
-		vec2(-1, 0),	// LEFT
-		vec2(1, 0),		// RIGHT
-		vec2(-1, -1),	// UP LEFT
-		vec2(1, -1),	// UP RIGHT
-		vec2(-1, 1),	// DOWN LEFT
-		vec2(1, 1)		// DOWN RIGHT
-	};
-
-	const int map_height = map.size();
-	const int map_width = map[0].size();
-	assert(map_height > 0 && map_width > 0 && "Adding to empty map");
-
-	// supports edges of the map
-	for (int row = 0; row < map.size(); row++) {
-		for (int col = 0; col < map[row].size(); col++) {
-			// Only check for empty tiles
-			if (map[row][col] != (int)TILE_TYPE::EMPTY) continue;
-			for (const coord& action : ACTIONS) {
-				const vec2 candidate_cell = vec2(col, row) + action;
-				if (candidate_cell.x < 0 || candidate_cell.x >= map_width ||
-					candidate_cell.y < 0 || candidate_cell.y >= map_height ||
-					map[candidate_cell.y][candidate_cell.x] != (int)TILE_TYPE::FLOOR) continue;
-				map[row][col] = (int)TILE_TYPE::WALL;
-				break;
-			}
-		}
-	}
 }
 
 void BSPTree::print_tree(BSPNode* node) {

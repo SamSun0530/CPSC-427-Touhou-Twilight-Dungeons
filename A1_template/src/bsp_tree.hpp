@@ -57,8 +57,6 @@ public:
 	void generate_corridors(BSPNode* node); // sets world tiles when called
 	void generate_corridor_between_two_points(vec2 start, vec2 end);
 	BSPNode* generate_partitions(BSPNode* node);
-	std::vector<vec4> generateDoorInfo(std::vector<Room_struct> &rooms,std::vector<std::vector<int>>& map);
-	void set_map_walls(std::vector<std::vector<int>>& map);
 	void print_tree(BSPNode* node); // for debugging
 	BSPNode* get_random_leaf_node(BSPNode* node);
 	std::vector<Room_struct> rooms;

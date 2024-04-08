@@ -261,7 +261,7 @@ Room MapSystem::generateBossRoom() {
 void MapSystem::generateRandomMap() {
 	assert(room_size > 3 && "Room too small!");
 	bool is_valid = false;
-	
+
 	while (!is_valid) {
 		// Resets the map
 		restart_map();
@@ -288,7 +288,7 @@ void MapSystem::generateRandomMap() {
 		bsptree.rooms.push_back(boss_room2);
 		bsptree.generate_corridor_between_two_points(start, end);
 
-		bsptree.set_map_walls(world_map);
+		set_map_walls(world_map);
 		is_valid = is_valid_map(world_map);
 	}
 
@@ -308,9 +308,96 @@ void MapSystem::generateRandomMap() {
 		game_info.room_index.push_back(bsptree.rooms[i]);
 	}
 
-	std::vector<vec4> door_info;
-	door_info = bsptree.generateDoorInfo(bsptree.rooms, world_map);
+	std::vector<vec4> door_info = generateDoorInfo(bsptree.rooms, world_map);
 	generate_door_tiles(door_info, world_map);
+}
+
+vec4 addSingleDoor(int row, int col, DIRECTIONS dir, int room_index, Room_struct& room, std::vector<std::vector<int>>& map) {
+	map[row][col] = (int)TILE_TYPE::DOOR;
+	vec4 door_info = { col, row, dir, room_index };
+	return door_info;
+}
+
+/*
+* Adds doors to the grid map based on if the room edges is a wall
+* MUST BE AFTER WALL GENERATION
+*/
+std::vector<vec4> MapSystem::generateDoorInfo(std::vector<Room_struct>& rooms, std::vector<std::vector<int>>& map) {
+	std::vector<vec4> doors;
+
+	int map_height = map.size();
+	int map_width = map[0].size();
+	assert(map_height > 0 && map_width > 0 && "Map should have at least one cell");
+	// Create padding of empty tile in the edges by copy
+	auto map_copy = std::vector<std::vector<int>>(map_height + 2, std::vector<int>(map_width + 2, 0));
+	for (int y = 0; y < map_height; ++y) {
+		for (int x = 0; x < map_width; ++x) {
+			map_copy[y + 1][x + 1] = map[y][x];
+		}
+	}
+
+	for (int i = 0; i < rooms.size(); i++)
+	{
+		Room_struct& room = rooms[i];
+
+		// Check edges of room which are walls, when there is a floor, add a door
+		for (int x = room.top_left.x - 1; x <= room.bottom_right.x + 1; x++) {
+			// top edge
+			if (map_copy[room.top_left.y][x + 1] == (int)TILE_TYPE::FLOOR) {
+				doors.push_back(addSingleDoor(room.top_left.y - 1, x, DIRECTIONS::DOWN, i, room, world_map));
+			}
+			// bottom edge
+			if (map_copy[room.bottom_right.y + 2][x + 1] == (int)TILE_TYPE::FLOOR) {
+				doors.push_back(addSingleDoor(room.bottom_right.y + 1, x, DIRECTIONS::UP, i, room, world_map));
+			}
+		}
+
+		for (int y = room.top_left.y - 1; y <= room.bottom_right.y + 1; y++) {
+			// left edge
+			if (map_copy[y + 1][room.top_left.x] == (int)TILE_TYPE::FLOOR) {
+				doors.push_back(addSingleDoor(y, room.top_left.x - 1, DIRECTIONS::RIGHT, i, room, world_map));
+			}
+			// right edge
+			if (map_copy[y + 1][room.bottom_right.x + 2] == (int)TILE_TYPE::FLOOR) {
+				doors.push_back(addSingleDoor(y, room.bottom_right.x + 1, DIRECTIONS::LEFT, i, room, world_map));
+			}
+		}
+	}
+
+	return doors;
+}
+
+void MapSystem::set_map_walls(std::vector<std::vector<int>>& map) {
+	const std::vector<coord> ACTIONS = {
+		vec2(0, -1),	// UP
+		vec2(0, 1),		// DOWN
+		vec2(-1, 0),	// LEFT
+		vec2(1, 0),		// RIGHT
+		vec2(-1, -1),	// UP LEFT
+		vec2(1, -1),	// UP RIGHT
+		vec2(-1, 1),	// DOWN LEFT
+		vec2(1, 1)		// DOWN RIGHT
+	};
+
+	const int map_height = map.size();
+	const int map_width = map[0].size();
+	assert(map_height > 0 && map_width > 0 && "Adding to empty map");
+
+	// supports edges of the map
+	for (int row = 0; row < map.size(); row++) {
+		for (int col = 0; col < map[row].size(); col++) {
+			// Only check for empty tiles
+			if (map[row][col] != (int)TILE_TYPE::EMPTY) continue;
+			for (const coord& action : ACTIONS) {
+				const vec2 candidate_cell = vec2(col, row) + action;
+				if (candidate_cell.x < 0 || candidate_cell.x >= map_width ||
+					candidate_cell.y < 0 || candidate_cell.y >= map_height ||
+					map[candidate_cell.y][candidate_cell.x] != (int)TILE_TYPE::FLOOR) continue;
+				map[row][col] = (int)TILE_TYPE::WALL;
+				break;
+			}
+		}
+	}
 }
 
 Room generateBasicRoom(int x, int y) {
@@ -512,11 +599,11 @@ TILE_NAME_SANDSTONE MapSystem::get_tile_name_sandstone(int x, int y, std::vector
 		(U == W && L == F && D == F && R == W)) {
 		result = TILE_NAME_SANDSTONE::TOP_WALL;
 	}
-	else if (L == F || 
+	else if (L == F ||
 		(L == W && DL == F && D == W)) {
 		result = TILE_NAME_SANDSTONE::RIGHT_WALL;
 	}
-	else if (R == F || 
+	else if (R == F ||
 		(R == W && DR == F && D == W)) {
 		result = TILE_NAME_SANDSTONE::LEFT_WALL;
 	}
@@ -528,8 +615,8 @@ TILE_NAME_SANDSTONE MapSystem::get_tile_name_sandstone(int x, int y, std::vector
 }
 
 void MapSystem::generate_door_tiles(std::vector<vec4> door_info, std::vector<std::vector<int>>& map) {
-		// TODO
-		// Loops through all rooms and creates a door entitry for every marked door
+	// TODO
+	// Loops through all rooms and creates a door entitry for every marked door
 	for (vec4 door : door_info) {
 		vec2 world_coord = convert_grid_to_world({ door[0], door[1] });
 		createDoor(renderer, world_coord, static_cast<DIRECTIONS>(door[2]), door[3]);
