@@ -74,6 +74,7 @@ public:
 	ComponentContainer<Button> buttons;
 	ComponentContainer<MainMenu> mainMenus;
 	ComponentContainer<PauseMenu> pauseMenus;
+	ComponentContainer<Dialogue> dialogueMenus;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -142,6 +143,7 @@ public:
 		registry_list.push_back(&buttons);
 		registry_list.push_back(&mainMenus);
 		registry_list.push_back(&pauseMenus);
+		registry_list.push_back(&dialogueMenus);
 	}
 
 	void clear_all_components() {

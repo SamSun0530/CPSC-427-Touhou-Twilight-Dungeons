@@ -15,7 +15,7 @@ void RenderSystem::get_strings_delim(const std::string& input, char delim, std::
 }
 
 // Helper function to render text with new lines
-void RenderSystem::render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world) {
+void RenderSystem::render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world, float padding_y = 25) {
 	// Prevent having to split string if there are no new lines
 	if (text.find('\n') == std::string::npos) {
 		renderText(text, x, y, scale, color, trans, in_world);
@@ -23,7 +23,6 @@ void RenderSystem::render_text_newline(const std::string& text, float x, float y
 	}
 	std::vector<std::string> segments;
 	get_strings_delim(text, '\n', segments);
-	float padding_y = 25.f;
 	// Either use x, y OR Transform t. t.mat will not work together with x, y
 	//Transform t;
 	//t.mat = trans;
@@ -85,7 +84,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		(*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER || 
-		(*render_request).used_effect == EFFECT_ASSET_ID::COMBO)
+		(*render_request).used_effect == EFFECT_ASSET_ID::COMBO || 
+		(*render_request).used_effect == EFFECT_ASSET_ID::GREY)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -362,7 +362,7 @@ void RenderSystem::draw()
 
 	camera.setCameraAABB();
 
-	if (menu.state == MENU_STATE::PLAY || menu.state == MENU_STATE::PAUSE) {
+	if (menu.state == MENU_STATE::PLAY || menu.state == MENU_STATE::PAUSE || menu.state == MENU_STATE::DIALOGUE) {
 		// Draw all textured meshes that have a position and size component
 		std::vector<Entity> boss_ui_entities;
 		std::vector<Entity> uiux_world_entities;
@@ -387,6 +387,7 @@ void RenderSystem::draw()
 			if (registry.focusdots.has(entity)) continue;
 			if (registry.UIUX.has(entity)) continue;
 			if (registry.players.has(entity)) continue;
+			if (registry.dialogueMenus.has(entity)) continue;
 
 			// Note, its not very efficient to access elements indirectly via the entity
 			// albeit iterating through all Sprites in sequence. A good point to optimize
@@ -441,7 +442,7 @@ void RenderSystem::draw()
 			}
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
-
+		if (menu.state != MENU_STATE::DIALOGUE)
 		for (Entity entity : registry.UIUX.entities) {
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
@@ -465,17 +466,36 @@ void RenderSystem::draw()
 		}
 
 		// On screen/ui texts:
-		for (Entity entity : registry.texts.entities) {
-			Motion& text_motion = registry.motions.get(entity);
-			vec3 text_color = registry.colors.get(entity);
-			RenderText& text_cont = registry.texts.get(entity);
-			renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
+		if (menu.state != MENU_STATE::DIALOGUE) {
+			for (Entity entity : registry.texts.entities) {
+				Motion& text_motion = registry.motions.get(entity);
+				vec3 text_color = registry.colors.get(entity);
+				RenderText& text_cont = registry.texts.get(entity);
+				renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
+			}
+			for (Entity entity : registry.textsPerm.entities) {
+				Motion& text_motion = registry.motions.get(entity);
+				vec3 text_color = registry.colors.get(entity);
+				RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
+				renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
+			}
 		}
-		for (Entity entity : registry.textsPerm.entities) {
-			Motion& text_motion = registry.motions.get(entity);
-			vec3 text_color = registry.colors.get(entity);
-			RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
-			renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
+		if (menu.state == MENU_STATE::DIALOGUE) {
+			for (Entity entity : registry.dialogueMenus.entities) {
+				drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+			}
+			for (Entity entity : registry.texts.entities) {
+				Motion& text_motion = registry.motions.get(entity);
+				vec3 text_color = registry.colors.get(entity);
+				RenderText& text_cont = registry.texts.get(entity);
+				render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, 50.f);
+			}
+			for (Entity entity : registry.textsPerm.entities) {
+				Motion& text_motion = registry.motions.get(entity);
+				vec3 text_color = registry.colors.get(entity);
+				RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
+				render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, 50.f);
+			}
 		}
 
 		// Render this last, because it should be on top

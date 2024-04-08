@@ -91,7 +91,10 @@ class RenderSystem {
 			textures_path("C.png"),
 			textures_path("B.png"),
 			textures_path("A.png"),
-			textures_path("S.png")
+			textures_path("S.png"),
+			textures_path("reimu_portrait.png"),
+			textures_path("cirno_portrait.png"),
+			textures_path("DialogueBox.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -106,7 +109,8 @@ class RenderSystem {
 		shader_path("font"),
 		shader_path("playerhealthbar"),
 		shader_path("bosshealthbar"),
-		shader_path("combo")
+		shader_path("combo"),
+		shader_path("grey"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -226,7 +230,7 @@ private:
 
 	// Utilities/Helper functions
 	void get_strings_delim(const std::string& input, char delim, std::vector<std::string>& output);
-	void render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world);
+	void render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world, float padding_y);
 };
 
 bool loadEffectFromFile(

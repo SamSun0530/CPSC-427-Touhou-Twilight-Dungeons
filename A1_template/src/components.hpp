@@ -5,6 +5,12 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 
+struct DialogueInfo {
+	unsigned int cirno_pt = 1000000;
+	bool cirno_played = false;
+};
+extern DialogueInfo dialogue_info;
+
 // World map loader
 struct MapLevel {
 	enum LEVEL {
@@ -18,7 +24,9 @@ extern MapLevel map_level;
 enum class MENU_STATE {
 	MAIN_MENU,
 	PLAY,
-	PAUSE
+	PAUSE,
+	DIALOGUE,
+	INVENTORY
 };
 
 struct Menu {
@@ -90,6 +98,10 @@ struct UIUX {
 
 };
 
+struct Dialogue {
+
+};
+
 struct UIUXWorld {
 
 };
@@ -127,6 +139,12 @@ enum class BULLET_ACTION {
 	DEL,
 	SPLIT,
 	DIRECTION
+};
+
+enum class CHARACTER {
+	REIMU,
+	CIRNO,
+	NONE,
 };
 
 struct BulletCommand {
@@ -682,7 +700,10 @@ enum class TEXTURE_ASSET_ID {
 	B = C + 1,
 	A = B + 1,
 	S = A + 1,
-	TEXTURE_COUNT = S + 1
+	REIMU_PORTRAIT = S + 1,
+	CIRNO_PORTRAIT = REIMU_PORTRAIT + 1,
+	DIALOGUE_BOX = CIRNO_PORTRAIT + 1,
+	TEXTURE_COUNT = DIALOGUE_BOX + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -697,7 +718,8 @@ enum class EFFECT_ASSET_ID {
 	PLAYER_HB = FONT + 1,
 	BOSSHEALTHBAR = PLAYER_HB + 1,
 	COMBO = BOSSHEALTHBAR + 1,
-	EFFECT_COUNT = COMBO + 1
+	GREY = COMBO + 1,
+	EFFECT_COUNT = GREY + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

@@ -9,6 +9,7 @@
 #include <glm/trigonometric.hpp>
 #include <iostream>
 #include <GLFW/glfw3.h>
+#include <fstream>
 #include <map>
 #include <string>
 #include <SDL_opengl.h>
@@ -26,6 +27,8 @@ WorldSystem::WorldSystem()
 	, display_instruction(true) {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
+	loadScript("start.txt",start_script);
+	loadScript("cirno.txt", cirno_script);
 }
 
 WorldSystem::~WorldSystem() {
@@ -237,6 +240,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::S;
 	}
 
+
 	// Create on screen player attributes ui
 	HP& player_hp = registry.hps.get(player);
 	//createText({ 128 * 1.3 + 70 - 4, window_height_px - 77 }, { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
@@ -424,10 +428,39 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	return true;
 }
 
+std::string replaceNewlines(std::string str) {
+	size_t start_pos = 0;
+	while ((start_pos = str.find("\\n", start_pos)) != std::string::npos) {
+		str.replace(start_pos, 2, "\n");
+		start_pos += 1;
+	}
+	return str;
+}
+
+unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::string> & scripts) {
+	std::ifstream script_file("../../../script/"+file_name);
+	if (script_file.is_open()) {
+		std::cout << "opened" << std::endl;
+		std::string line;
+		while (getline(script_file, line)) {
+			scripts.push_back(replaceNewlines(line));
+		}
+		script_file.close();
+	}
+	else {
+		std::cout << "Unable to open file" << std::endl;
+	}
+	return 0;
+}
+
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
+	start_pt = 0;
+	dialogue_info.cirno_pt =  1000;
+	dialogue_info.cirno_played = false;
+	start_dialogue_timer = 1000.f;
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -486,6 +519,7 @@ void WorldSystem::restart_game() {
 	display_combo = createCombo(renderer);
 
 	renderer->camera.setPosition({ 0, 0 });
+	
 }
 
 // Compute collisions between entities
@@ -933,6 +967,91 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			resume_game();
 		}
 	}
+	else if (menu.state == MENU_STATE::DIALOGUE) {
+		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+			start_pt += 1;
+			dialogue_info.cirno_pt += 1;
+			curr_word = 0;
+			start_buffer = "";
+		}
+	}
+}
+
+void WorldSystem::dialogue_step(float elapsed_time) {
+	start_dialogue_timer -= elapsed_time;
+
+	if (start_dialogue_timer > 0) {
+		return;
+	}
+
+	// Remove debug info from the last step
+	while (registry.debugComponents.entities.size() > 0)
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
+
+	// Remove texts in ui and world that are not permanent
+	while (registry.texts.entities.size() > 0)
+		registry.remove_all_components_of(registry.texts.entities.back());
+	while (registry.textsWorld.entities.size() > 0)
+		registry.remove_all_components_of(registry.texts.entities.back());
+	while (registry.dialogueMenus.entities.size() > 0)
+		registry.remove_all_components_of(registry.dialogueMenus.entities.back());
+
+
+	if (start_pt < start_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+
+		std::istringstream ss(start_script[start_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		menu.state = MENU_STATE::DIALOGUE;
+		createDialogue(speaking_chara, start_buffer, CHARACTER::NONE);
+	}
+	else if (start_pt == start_script.size()) {
+		start_pt += 1;
+		resume_game();
+	} else if (dialogue_info.cirno_pt < cirno_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		std::istringstream ss(cirno_script[dialogue_info.cirno_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		menu.state = MENU_STATE::DIALOGUE;
+		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO);
+	}
+	else if (dialogue_info.cirno_pt == cirno_script.size()) {
+		dialogue_info.cirno_pt += 1;
+		dialogue_info.cirno_played = true;
+		resume_game();
+	}
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
@@ -981,6 +1100,14 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 				// Stop firing
 				bullet_spawner.is_firing = false;
 			}
+		}
+	}
+	else if (menu.state == MENU_STATE::DIALOGUE) {
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+			start_pt += 1;
+			dialogue_info.cirno_pt += 1;
+			curr_word = 0;
+			start_buffer = "";
 		}
 	}
 	else {
