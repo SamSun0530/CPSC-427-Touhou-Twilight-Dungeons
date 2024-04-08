@@ -143,6 +143,59 @@ Entity createHealth(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
+// creat purchase able items (boost/buff)
+Entity createTreasure(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.angle = 0.f;
+	motion.scale = vec2({ HEALTH_WIDTH, HEALTH_HEIGHT });
+	registry.kinematics.emplace(entity);
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = abs(motion.scale);
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> distrib(0, 1);
+	double number = distrib(gen);
+	double number_y = distrib(gen) / 2;
+	auto& purchasableable = registry.purchasableables.emplace(entity);
+	registry.colors.insert(entity, { 1,1,1 });
+	if (number <= 0.6) {
+		purchasableable.cost = 3;
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::HEALTH_1, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+
+	}
+	else if (number <= 0.9) {
+		purchasableable.cost = 5;
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::HEALTH_2, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		purchasableable.cost = 10;
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::REGENERATE_HEALTH, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	vec2 dir = { 60 * (number - 0.5), 50 * (number_y) };
+	BezierCurve curve;
+	curve.bezier_pts.push_back(position);
+	curve.bezier_pts.push_back(position + vec2(0, -20));
+	curve.bezier_pts.push_back(position + dir);
+	registry.bezierCurves.insert(entity, curve);
+	return entity;
+}
+
 Entity createCoin(RenderSystem* renderer, vec2 position, int value)
 {
 	// Reserve en entity

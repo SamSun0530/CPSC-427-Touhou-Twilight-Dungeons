@@ -220,7 +220,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	while (registry.texts.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
 	while (registry.textsWorld.entities.size() > 0)
-		registry.remove_all_components_of(registry.texts.entities.back());
+		registry.remove_all_components_of(registry.textsWorld.entities.back());
 
 	// Create combo meter ui
 	createText({ window_width_px / 2.5f , window_height_px / 2.1f }, { 1, 1 }, std::to_string(combo_mode.combo_meter), { 0, 1, 0 }, false);
@@ -371,8 +371,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					registry.dummyEnemyLink.remove(entity);
 				}
 
-				if (number <= 0.1)
+				if (number <= 0.1) {
 					createHealth(renderer, registry.motions.get(entity).position);
+				}
+				else {
+					createTreasure(renderer, registry.motions.get(entity).position);
+				}
 				registry.remove_all_components_of(entity);
 			}
 			else {
@@ -564,6 +568,18 @@ void WorldSystem::handle_collisions() {
 				if (!registry.realDeathTimers.has(entity)) {
 					registry.players.get(entity).coin_amount += registry.coins.get(entity_other).coin_amount;
 					registry.remove_all_components_of(entity_other);
+				}
+			}
+			// shop system
+			else if (registry.purchasableables.has(entity_other)) {
+				if (!registry.realDeathTimers.has(entity)) {
+					if (registry.motions.has(entity_other)) {
+						Purchasableable& treasure = registry.purchasableables.get(entity_other);
+						const Motion& motion = registry.motions.get(entity_other);
+						treasure.player_overlap = true;
+						createText(vec2(motion.position.x, motion.position.y + 25), {0.6f,0.6f}, "Buy this", vec3(0, 1, 0), false, true);
+						// std::cout << "Buy this" << std::endl;
+					}
 				}
 			}
 			else if (registry.maxhpIncreases.has(entity_other)) {

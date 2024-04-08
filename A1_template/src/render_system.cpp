@@ -453,6 +453,18 @@ void RenderSystem::draw()
 			}
 		}
 
+		for (Entity entity : registry.purchasableables.entities) {
+			if (registry.motions.has(entity)) {
+				const Motion& motion = registry.motions.get(entity);
+				//this can be removed when the sprite for the purchasableable items are done
+				renderText("treasure", motion.position.x, motion.position.y - 25, 0.6f, glm::vec3(0.0f, 1.0f, 0.0f), trans, true);
+
+				const Purchasableable& treasure = registry.purchasableables.get(entity);
+				if (treasure.player_overlap == true) {
+					// renderText("Buy this", motion.position.x - 30, motion.position.y + 25, 0.6f, glm::vec3(0.0f, 1.0f, 0.0f), trans, true);
+				}
+			}
+		}
 
 		// Render user guide on screen
 		if (WorldSystem::getInstance().get_display_instruction() == true) {

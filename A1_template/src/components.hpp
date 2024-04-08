@@ -373,6 +373,12 @@ struct Pickupable
 	int health_change = 1;
 };
 
+struct Purchasableable
+{
+	int cost = 1;
+	bool player_overlap = false;
+};
+
 // Tile set names specifically mapped from Sandstone Dungeon texture atlas
 // comments are in (x,y), indexed by 0
 enum class TILE_NAME_SANDSTONE {
