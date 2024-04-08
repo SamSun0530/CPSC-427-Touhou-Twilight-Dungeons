@@ -250,7 +250,7 @@ Room MapSystem::generateBossRoom() {
 		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 	};
 	room.size = { room.grid[0].size(), room.grid.size() };
-	room.x = world_width - room.size.x - 2;
+	room.x = world_width - room.size.x - 1;
 	room.y = world_height / 2 - room.size.y / 2 - 1;
 
 	rooms.push_back(room);
@@ -268,7 +268,7 @@ void MapSystem::generateRandomMap() {
 		bsptree.rooms.clear();
 		Room boss_room = generateBossRoom();
 
-		bsptree.init(vec2(room_size), vec2(world_width - boss_room.size.x - 1, world_height));
+		bsptree.init(vec2(room_size), vec2(world_width - (boss_room.size.x + 2), world_height));
 		bsptree.generate_partitions(bsptree.root);
 		bsptree.generate_rooms_random(bsptree.root);
 		bsptree.generate_corridors(bsptree.root);

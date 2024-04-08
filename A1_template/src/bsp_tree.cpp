@@ -86,8 +86,8 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 		rooms.push_back(*node->room);
 
 		// Populates the map with floors
-		for (int i = node->room->top_left.y; i < node->room->bottom_right.y; ++i) {
-			for (int j = node->room->top_left.x; j < node->room->bottom_right.x; ++j) {
+		for (int i = node->room->top_left.y; i <= node->room->bottom_right.y; ++i) {
+			for (int j = node->room->top_left.x; j <= node->room->bottom_right.x; ++j) {
 				world_map[i][j] = (int)TILE_TYPE::FLOOR;
 			}
 		}
@@ -113,15 +113,27 @@ vec4 addSingleDoor(int row, int col, DIRECTIONS dir, int room_index, Room_struct
 */
 std::vector<vec4> BSPTree::generateDoorInfo(std::vector<Room_struct>& rooms, std::vector<std::vector<int>>& map) {
 	std::vector<vec4> doors;
+
+	int map_height = map.size();
+	int map_width = map[0].size();
+	assert(map_height > 0 && map_width > 0 && "Map should have at least one cell");
+	// Create padding of empty tile in the edges by copy
+	auto map_copy = std::vector<std::vector<int>>(map_height + 4, std::vector<int>(map_width + 4, 0));
+	for (int y = 0; y < map_height; ++y) {
+		for (int x = 0; x < map_width; ++x) {
+			map_copy[y + 2][x + 2] = map[y][x];
+		}
+	}
+
 	//for (Room_struct& room : rooms) 
 	for(int i = 0; i < rooms.size(); i++)
 	{
-		Room_struct room = rooms[i];
+		Room_struct& room = rooms[i];
 		// Duplicated code. A point to optimize
 
 		// Check top of room
-		int row = room.top_left.y - 1;
-		int col = room.top_left.x - 1;
+		//int row = room.top_left.y - 1;
+		//int col = room.top_left.x - 1;
 		/*
 		for (int row = room.top_left.y - 1; row < room.bottom_right.y + 1; row++) {
 			for (int col = room.top_left.x - 1 ; col < room.bottom_right.x + 1; col++) {
@@ -138,40 +150,39 @@ std::vector<vec4> BSPTree::generateDoorInfo(std::vector<Room_struct>& rooms, std
 				}
 			}
 		}*/
-		
-		// Checks top of room
-		for (; col < room.bottom_right.x + 1; col++) {
-			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
-				// Found a floor tile on the outer edges of the room
-				doors.push_back(addSingleDoor(row, col, DIRECTIONS::DOWN,i, room, map));
+			// Checks top of room
+			for (int col = room.top_left.x - 1 + 2; col <= room.bottom_right.x + 1 + 2; col++) {
+				if (map_copy[room.top_left.y - 1 + 2][col] == (int)TILE_TYPE::FLOOR) {
+					// Found a floor tile on the outer edges of the room
+					doors.push_back(addSingleDoor(room.top_left.y - 1, col - 2, DIRECTIONS::DOWN, i, room, map_copy));
 
+				}
 			}
-		}
-		// Check bottom of room
-		row = room.bottom_right.y;
-		for (col = room.top_left.x - 1; col < room.bottom_right.x + 1; col++) {
-			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
-				// Found a floor tile on the outer edges of the room
-				doors.push_back(addSingleDoor(row, col, DIRECTIONS::UP,i ,room, map));
+			// Check bottom of room
+			//row = room.bottom_right.y + 1;
+			for (int col = room.top_left.x - 1 + 2; col <= room.bottom_right.x + 1 + 2; col++) {
+				if (map_copy[room.top_left.y - 1 + 2][col] == (int)TILE_TYPE::FLOOR) {
+					// Found a floor tile on the outer edges of the room
+					doors.push_back(addSingleDoor(room.top_left.y - 1, col - 2, DIRECTIONS::UP, i, room, map_copy));
+				}
 			}
-		}
-		// Check left of room
-		col = room.top_left.x - 1;
-		for (row = room.top_left.y - 1; row < room.bottom_right.y + 1; row++) {
-			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
-				// Found a floor tile on the outer edges of the room
-				doors.push_back(addSingleDoor(row, col, DIRECTIONS::RIGHT,i, room, map));
+			// Check left of room
+			//col = room.top_left.x - 1;
+			for (int row = room.top_left.y - 1 + 2; row <= room.bottom_right.y + 1 + 2; row++) {
+				if (map_copy[row][room.top_left.x - 1 + 2] == (int)TILE_TYPE::FLOOR) {
+					// Found a floor tile on the outer edges of the room
+					doors.push_back(addSingleDoor(row - 2, room.top_left.x - 1, DIRECTIONS::RIGHT, i, room, map_copy));
 
+				}
 			}
-		}
-		// Check right of room
-		col = room.bottom_right.x;
-		for (row = room.top_left.y - 1; row < room.bottom_right.y + 1; row++) {
-			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
-				// Found a floor tile on the outer edges of the room
-				doors.push_back(addSingleDoor(row, col, DIRECTIONS::LEFT,i, room, map));
+			// Check right of room
+			//col = room.bottom_right.x + 1;
+			for (int row = room.top_left.y - 1 + 2; row <= room.bottom_right.y + 1 + 2; row++) {
+				if (map_copy[row][room.top_left.x - 1 + 2] == (int)TILE_TYPE::FLOOR) {
+					// Found a floor tile on the outer edges of the room
+					doors.push_back(addSingleDoor(row - 2, room.top_left.x - 1, DIRECTIONS::LEFT, i, room, map_copy));
+				}
 			}
-		}
 	}
 
 	return doors;
