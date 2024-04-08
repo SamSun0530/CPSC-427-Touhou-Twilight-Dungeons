@@ -450,7 +450,7 @@ void WorldSystem::restart_game() {
 	while (registry.visibilityTileInstanceData.entities.size() > 0)
 		registry.remove_all_components_of(registry.visibilityTileInstanceData.entities.back());
 
-	// TODO: decide whether to destroy buttons every time on menu entry or one set of buttons
+	// initialize menus
 	init_menu();
 	init_pause_menu();
 
@@ -469,14 +469,9 @@ void WorldSystem::restart_game() {
 		player = map->spawnPlayer(world_center);
 	}
 	else {
-		//map->generateBasicMap();
-		//map->spawnEnemies();	`
-		//map->generateBossRoom();
 		map->generateRandomMap();
-		//map->spawnEnemies();
 		//map->spawnEnemiesInRoom();
 		player = map->spawnPlayerInRoom(0);
-		//player = map->spawnPlayer(world_center);
 	}
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});

@@ -21,7 +21,6 @@ struct Room {
 	std::vector<std::vector<int>> grid;
 };
 
-
 static int room_id = 0;
 
 class MapSystem {
@@ -31,10 +30,7 @@ private:
 	VisibilitySystem* visibility_system;
 
 	// old version
-	void addTile(int x, int y, std::vector<TEXTURE_ASSET_ID>& textureIDs, std::vector<std::vector<int>>& map);
-	void generateAllEntityTiles(std::vector<std::vector<int>>& map);
 	void generate_door_tiles(std::vector<std::vector<int>>& map);
-	std::vector<TEXTURE_ASSET_ID> getTileAssetID(int row, int col, std::vector<std::vector<int>>& map);
 	std::vector<Room> rooms;
 
 	// sandstone tile atlas
@@ -56,7 +52,6 @@ public:
 	MapSystem();
 	void restart_map();
 	void init(RenderSystem* renderer, VisibilitySystem* visibility_arg);
-	void generateBasicMap();
 	Room generateBossRoom();
 	void generateRandomMap();
 	void generateTutorialMap();
