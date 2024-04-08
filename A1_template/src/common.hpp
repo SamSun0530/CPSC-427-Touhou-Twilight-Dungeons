@@ -48,7 +48,7 @@ const vec2 window_px_half = { window_width_px / 2, window_height_px / 2 };
 const vec2 WORLD_CENTER_DEFAULT = { 9, 9 };
 const int WORLD_WIDTH_DEFAULT = 90;
 const int WORLD_HEIGHT_DEFAULT = 60;
-const int WORLD_TILE_SIZE_DEFAULT = 10;
+const int WORLD_TILE_SIZE_DEFAULT = 100;
 
 
 
