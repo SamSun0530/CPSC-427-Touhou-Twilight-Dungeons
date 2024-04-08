@@ -38,6 +38,11 @@ public:
 	// starts the game
 	void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai);
 
+	// initialize the menu
+	void init_menu();
+	void init_pause_menu();
+	void resume_game();
+
 	// Releases all associated resources
 	~WorldSystem();
 
@@ -53,9 +58,6 @@ public:
 	// Should the game be over ?
 	bool is_over()const;
 
-	// World Map
-	static std::vector<std::vector<int>> world_map; // world_map[Row][Col]
-
 	// font and instructions
 	float get_HP_timer();
 	bool get_display_instruction();
@@ -67,9 +69,6 @@ public:
 	// Updates focus mode position
 	// Fixes issue where dot lags behind player due to physics lerp step after setting position
 	void update_focus_dot();
-	// Combo meter
-	float combo_meter = 1.0f;
-	const float COMBO_METER_MAX = 1.5f;
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -105,9 +104,11 @@ private:
 	float elapsedSinceLastFPSUpdate = 0.0f;
 	float tutorial_timer = 10000.0f;
 	float HP_timer = 0.0f;
+	Entity display_combo;
 
 	// fonts seting
-	std::string font_filename = "..//..//..//data//fonts//OpenSans-Bold.ttf";
+	//std::string font_filename = "..//..//..//data//fonts//OpenSans-Bold.ttf";
+	std::string font_filename = "..//..//..//data//fonts//pixelmix//pixelmix.ttf";
 	unsigned int font_default_size = 25;
 
 	// Player state
