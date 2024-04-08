@@ -1147,7 +1147,7 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 	return entities;
 }
 
-Entity createDoor(RenderSystem* renderer, vec2 position, DIRECTIONS dir, int room_index) {
+Entity createDoor(RenderSystem* renderer, vec2 position, DIRECTION dir, int room_index) {
 	auto entity = Entity();
 
 	// Initializes the motion

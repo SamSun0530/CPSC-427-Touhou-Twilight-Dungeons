@@ -85,7 +85,7 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 // Pillar tile
 std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 // Door tile that can be open or closed
-Entity createDoor(RenderSystem* renderer, vec2 position, DIRECTIONS dir, int room_index);
+Entity createDoor(RenderSystem* renderer, vec2 position, DIRECTION dir, int room_index);
 // Tile for instance rendering
 // Note: different than other create* calls where it is GRID position argument
 Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, vec2 grid_position, TILE_NAME_SANDSTONE tile_name, bool is_wall);

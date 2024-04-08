@@ -308,11 +308,11 @@ void MapSystem::generateRandomMap() {
 		game_info.room_index.push_back(bsptree.rooms[i]);
 	}
 
-	std::vector<vec4> door_info = generateDoorInfo(bsptree.rooms, world_map);
-	generate_door_tiles(door_info, world_map);
+	// generates door info then the tiles
+	generate_door_tiles(world_map);
 }
 
-vec4 addSingleDoor(int row, int col, DIRECTIONS dir, int room_index, Room_struct& room, std::vector<std::vector<int>>& map) {
+vec4 addSingleDoor(int row, int col, DIRECTION dir, int room_index, Room_struct& room, std::vector<std::vector<int>>& map) {
 	map[row][col] = (int)TILE_TYPE::DOOR;
 	vec4 door_info = { col, row, dir, room_index };
 	return door_info;
@@ -344,22 +344,22 @@ std::vector<vec4> MapSystem::generateDoorInfo(std::vector<Room_struct>& rooms, s
 		for (int x = room.top_left.x - 1; x <= room.bottom_right.x + 1; x++) {
 			// top edge
 			if (map_copy[room.top_left.y][x + 1] == (int)TILE_TYPE::FLOOR) {
-				doors.push_back(addSingleDoor(room.top_left.y - 1, x, DIRECTIONS::DOWN, i, room, world_map));
+				doors.push_back(addSingleDoor(room.top_left.y - 1, x, DIRECTION::DOWN, i, room, world_map));
 			}
 			// bottom edge
 			if (map_copy[room.bottom_right.y + 2][x + 1] == (int)TILE_TYPE::FLOOR) {
-				doors.push_back(addSingleDoor(room.bottom_right.y + 1, x, DIRECTIONS::UP, i, room, world_map));
+				doors.push_back(addSingleDoor(room.bottom_right.y + 1, x, DIRECTION::UP, i, room, world_map));
 			}
 		}
 
 		for (int y = room.top_left.y - 1; y <= room.bottom_right.y + 1; y++) {
 			// left edge
 			if (map_copy[y + 1][room.top_left.x] == (int)TILE_TYPE::FLOOR) {
-				doors.push_back(addSingleDoor(y, room.top_left.x - 1, DIRECTIONS::RIGHT, i, room, world_map));
+				doors.push_back(addSingleDoor(y, room.top_left.x - 1, DIRECTION::RIGHT, i, room, world_map));
 			}
 			// right edge
 			if (map_copy[y + 1][room.bottom_right.x + 2] == (int)TILE_TYPE::FLOOR) {
-				doors.push_back(addSingleDoor(y, room.bottom_right.x + 1, DIRECTIONS::LEFT, i, room, world_map));
+				doors.push_back(addSingleDoor(y, room.bottom_right.x + 1, DIRECTION::LEFT, i, room, world_map));
 			}
 		}
 	}
@@ -614,12 +614,14 @@ TILE_NAME_SANDSTONE MapSystem::get_tile_name_sandstone(int x, int y, std::vector
 	return result;
 }
 
-void MapSystem::generate_door_tiles(std::vector<vec4> door_info, std::vector<std::vector<int>>& map) {
-	// TODO
-	// Loops through all rooms and creates a door entitry for every marked door
-	for (vec4 door : door_info) {
+void MapSystem::generate_door_tiles(std::vector<std::vector<int>>& map) {
+	std::vector<vec4> door_info = generateDoorInfo(bsptree.rooms, world_map);
+
+	// Loops through all rooms and creates a door entity for every marked door
+	// door_info vec4 order: col, row, direction, room_index
+	for (const vec4& door : door_info) {
 		vec2 world_coord = convert_grid_to_world({ door[0], door[1] });
-		createDoor(renderer, world_coord, static_cast<DIRECTIONS>(door[2]), door[3]);
+		createDoor(renderer, world_coord, static_cast<DIRECTION>(door[2]), door[3]);
 	}
 }
 

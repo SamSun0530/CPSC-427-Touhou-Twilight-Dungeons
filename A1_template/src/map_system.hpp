@@ -33,7 +33,7 @@ private:
 	// old version
 	void addTile(int x, int y, std::vector<TEXTURE_ASSET_ID>& textureIDs, std::vector<std::vector<int>>& map);
 	void generateAllEntityTiles(std::vector<std::vector<int>>& map);
-	void generate_door_tiles(std::vector<vec4> door_info, std::vector<std::vector<int>>& map);
+	void generate_door_tiles(std::vector<std::vector<int>>& map);
 	std::vector<TEXTURE_ASSET_ID> getTileAssetID(int row, int col, std::vector<std::vector<int>>& map);
 	std::vector<Room> rooms;
 

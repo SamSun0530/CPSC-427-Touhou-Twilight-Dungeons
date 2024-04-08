@@ -82,7 +82,7 @@ enum class ROOM_TYPE {
 	BOSS
 };
 
-enum class DIRECTIONS {
+enum class DIRECTION {
 	UP,
 	RIGHT,
 	DOWN,
