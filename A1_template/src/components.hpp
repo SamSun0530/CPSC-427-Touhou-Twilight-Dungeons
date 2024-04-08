@@ -375,7 +375,7 @@ struct Pickupable
 
 struct Purchasableable
 {
-	int cost = 1;
+	int cost;
 	bool player_overlap = false;
 };
 

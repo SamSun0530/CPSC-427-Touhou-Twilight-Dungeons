@@ -245,7 +245,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	std::string fire_rate = std::to_string(1 / player_att.fire_rate);
 	std::string critical_hit = std::to_string(player_att.critical_hit * 100);
 	std::string critical_dmg = std::to_string(player_att.critical_demage * 100);
-	createText(-window_px_half + vec2(70, 160), { 1,1 }, std::to_string(player_att.coin_amount), vec3(0, 0, 0), false);
+	createText(-window_px_half + vec2(70, 160), { 1,1 }, std::to_string(player_att.coin_amount), vec3(255, 255, 255), false);
 	createText(-window_px_half + vec2(70, 210), { 1,1 }, std::to_string(player_att.bullet_damage), vec3(0, 0, 0), false);
 	createText(-window_px_half + vec2(70, 260), { 1,1 }, fire_rate.substr(0, fire_rate.find(".") + 3), vec3(0, 0, 0), false);
 	createText(-window_px_half + vec2(70, 310), { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(0, 0, 0), false);
@@ -576,8 +576,18 @@ void WorldSystem::handle_collisions() {
 					if (registry.motions.has(entity_other)) {
 						Purchasableable& treasure = registry.purchasableables.get(entity_other);
 						const Motion& motion = registry.motions.get(entity_other);
+						Player& player_att = registry.players.get(player);
 						treasure.player_overlap = true;
-						createText(vec2(motion.position.x, motion.position.y + 25), {0.6f,0.6f}, "Buy this", vec3(0, 1, 0), false, true);
+						if (pressed[GLFW_KEY_E] && player_att.coin_amount >= treasure.cost) {
+							registry.remove_all_components_of(entity_other);
+							std::cout << "player_att.coin_amount: " << std::to_string(player_att.coin_amount) << std::endl;
+							std::cout << "treasure.cost: " << std::to_string(treasure.cost) << std::endl;
+							player_att.coin_amount -= treasure.cost;
+							std::cout << std::to_string(player_att.coin_amount) << std::endl;
+						}
+						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, "cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
+
+						createText(vec2(motion.position.x, motion.position.y + 50), {0.6f,0.6f}, "press \"E\" to buy this", vec3(0, 1, 0), false, true);
 						// std::cout << "Buy this" << std::endl;
 					}
 				}
@@ -799,6 +809,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			restart_game();
 		}
 
+		// buy item
+		if (key == GLFW_KEY_E) {
+			if (action == GLFW_PRESS) {
+				pressed[key] = true;
+			}
+			else if (action == GLFW_RELEASE) {
+				pressed[key] = false;
+			}
+		}
 		// Handle player movement
 		// Added key checks at the beginning so don't have to fetch kinematics / update player direction for
 		// every key press that is not related to WASD

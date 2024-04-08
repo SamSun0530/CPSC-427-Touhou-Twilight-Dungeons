@@ -160,10 +160,10 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 	std::uniform_real_distribution<> distrib(0, 1);
 	double number = distrib(gen);
 	double number_y = distrib(gen) / 2;
-	auto& purchasableable = registry.purchasableables.emplace(entity);
+	Purchasableable& purchasableable = registry.purchasableables.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
 	if (number <= 0.6) {
-		purchasableable.cost = 3;
+		purchasableable.cost = 2;
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::HEALTH_1, // TEXTURE_COUNT indicates that no txture is needed
@@ -172,7 +172,7 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 
 	}
 	else if (number <= 0.9) {
-		purchasableable.cost = 5;
+		purchasableable.cost = 4;
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::HEALTH_2, // TEXTURE_COUNT indicates that no txture is needed
@@ -180,7 +180,7 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else {
-		purchasableable.cost = 10;
+		purchasableable.cost = 6;
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::REGENERATE_HEALTH, // TEXTURE_COUNT indicates that no txture is needed
