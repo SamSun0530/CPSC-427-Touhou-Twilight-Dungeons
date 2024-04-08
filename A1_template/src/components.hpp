@@ -82,9 +82,15 @@ struct GameInfo {
 	// TODO: store visited rooms (for doors)
 	int in_room = -1; // -1 - not in room
 	// each index represents a room
+	// e.g. 
 	std::vector<Room2> room_index;
 	// same size as room_index, where each index corresponds to whether it's been visited
 	std::vector<bool> room_visited;
+
+	void add_room(Room2& room) {
+		room_index.push_back(room);
+		room_visited.push_back(false);
+	}
 
 	void reset_room_info() {
 		in_room = -1;

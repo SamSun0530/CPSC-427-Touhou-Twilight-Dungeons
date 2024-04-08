@@ -461,6 +461,8 @@ void WorldSystem::restart_game() {
 	reset_world_default();
 	map->restart_map();
 
+	game_info.reset_room_info();
+
 	if (map_level.level == MapLevel::TUTORIAL) {
 		map->generateTutorialMap();
 		renderer->set_tiles_instance_buffer();
@@ -468,7 +470,7 @@ void WorldSystem::restart_game() {
 	}
 	else {
 		//map->generateBasicMap();
-		//map->spawnEnemies();
+		//map->spawnEnemies();	`
 		//map->generateBossRoom();
 		map->generateRandomMap();
 		//map->spawnEnemies();

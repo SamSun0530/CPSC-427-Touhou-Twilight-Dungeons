@@ -1,6 +1,6 @@
 #pragma once
 
-#include <queue>
+#include <deque>
 
 #include "common.hpp"
 #include "components.hpp"
@@ -47,8 +47,9 @@ public:
 private:
 	// BFS floodfill
 	// keeps track of next grid positions to reveal and number of tiles
-	std::queue<coord> next_pos;
-	int next_num;
+	std::deque<coord> next_pos;
+	int next_num = 0; // number of neighbors added
+	int curr_num = 0; // current numbers left
 
 	const std::vector<coord> ACTIONS = {
 		vec2(0, -1),	// UP
@@ -63,7 +64,7 @@ private:
 
 	// Limit frequency of flood fill
 	float counter_ms = 0;
-	float counter_ms_default = 100;
+	float counter_ms_default = 50;
 
 	// set tile to be visible by removing visibility tile
 	void set_tile_visible(coord grid_pos);

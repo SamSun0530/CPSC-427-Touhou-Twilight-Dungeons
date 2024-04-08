@@ -80,13 +80,13 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 		std::uniform_int_distribution<> int_distrib_y(min_temp.y, max_temp.y - room_size.y);
 		node->room->top_left.x = int_distrib_x(gen);
 		node->room->top_left.y = int_distrib_y(gen);
-		node->room->bottom_left = node->room->top_left + room_size;
+		node->room->bottom_left = node->room->top_left + round(room_size);
 
 		rooms.push_back(*node->room);
 
 		// Populates the map with floors
-		for (int i = node->room->top_left.y; i < node->room->bottom_left.y; ++i) {
-			for (int j = node->room->top_left.x; j < node->room->bottom_left.x; ++j) {
+		for (int i = node->room->top_left.y; i <= node->room->bottom_left.y; ++i) {
+			for (int j = node->room->top_left.x; j <= node->room->bottom_left.x; ++j) {
 				world_map[i][j] = (int)TILE_TYPE::FLOOR;
 			}
 		}

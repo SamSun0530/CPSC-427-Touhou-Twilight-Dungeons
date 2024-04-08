@@ -165,6 +165,23 @@ bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& m
 	return false;
 }
 
+bool is_in_room(Room2& room, Collidable& collidable, Motion& motion) {
+	const vec2 bounding_box = collidable.size / 2.f;
+	const vec2 box_center = motion.position + collidable.shift;
+
+	const float top = box_center.y - bounding_box.y;
+	const float bottom = box_center.y + bounding_box.y;
+	const float left = box_center.x - bounding_box.x;
+	const float right = box_center.x + bounding_box.x;
+
+	coord top_left_world = convert_grid_to_world(room.top_left - 1.f);
+	coord bottom_right_world = convert_grid_to_world(room.bottom_left + 1.f);
+
+	if (top >= top_left_world.y && bottom <= bottom_right_world.y && left >= top_left_world.x && right <= bottom_right_world.x)
+		return true;
+	return false;
+}
+
 void PhysicsSystem::step(float elapsed_ms)
 {
 	// Assume there exists a player
@@ -321,6 +338,23 @@ void PhysicsSystem::step(float elapsed_ms)
 			}
 		}
 	}
+
+	// Check and set room
+	Motion& motion = registry.motions.get(player);
+	Collidable& collidable = registry.collidables.get(player);
+	int room_index_size = game_info.room_index.size();
+	bool has_set_room = false;
+	for (int i = 0; i < room_index_size; ++i) {
+		has_set_room = is_in_room(game_info.room_index[i], collidable, motion);
+		if (has_set_room) {
+			game_info.in_room = i;
+			break;
+		}
+	}
+	if (!has_set_room) {
+		game_info.in_room = -1;
+	}
+
 	// Visualize bounding boxes
 	if (debugging.in_debug_mode) {
 		for (Entity& entity : registry.collidables.entities) {
