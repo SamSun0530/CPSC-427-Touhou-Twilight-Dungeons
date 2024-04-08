@@ -174,8 +174,8 @@ bool is_in_room(Room2& room, Collidable& collidable, Motion& motion) {
 	const float left = box_center.x - bounding_box.x;
 	const float right = box_center.x + bounding_box.x;
 
-	coord top_left_world = convert_grid_to_world(room.top_left - 1.f);
-	coord bottom_right_world = convert_grid_to_world(room.bottom_left + 1.f);
+	coord top_left_world = convert_grid_to_world(room.top_left - 0.5f);
+	coord bottom_right_world = convert_grid_to_world(room.bottom_left + 0.5f);
 
 	if (top >= top_left_world.y && bottom <= bottom_right_world.y && left >= top_left_world.x && right <= bottom_right_world.x)
 		return true;

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <deque>
+#include <unordered_set>
+#include <glm/gtx/hash.hpp>
 
 #include "common.hpp"
 #include "components.hpp"
@@ -50,7 +52,9 @@ private:
 	std::deque<coord> next_pos;
 	int next_num = 0; // number of neighbors added
 	int curr_num = 0; // current numbers left
+	std::unordered_set<coord> close_list; // prevent rechecking tiles already in deque
 
+	// list of actions for getting neighbor cells
 	const std::vector<coord> ACTIONS = {
 		vec2(0, -1),	// UP
 		vec2(0, 1),		// DOWN
@@ -62,9 +66,12 @@ private:
 		vec2(1, 1)		// DOWN RIGHT
 	};
 
+	// used for stopping floodfill when player is in a corridor
+	bool is_door_found = false;
+
 	// Limit frequency of flood fill
 	float counter_ms = 0;
-	float counter_ms_default = 50;
+	float counter_ms_default = 100;
 
 	// set tile to be visible by removing visibility tile
 	void set_tile_visible(coord grid_pos);
