@@ -12,6 +12,7 @@ void VisibilitySystem::restart_map()
 	next_pos.clear();
 	next_num = 0;
 	curr_num = 0;
+	is_door_found = false;
 }
 
 void VisibilitySystem::init_visibility()
@@ -81,38 +82,40 @@ void VisibilitySystem::step(float elapsed_ms)
 			}
 			else {
 				// in a corridor
-				//if (map[grid_pos.y][grid_pos.x] == (int)VISIBILITY_STATE::NOT_VISIBLE && next_pos.empty()) {
-				//	next_pos.push_back(grid_pos);
-				//	curr_num = 1;
-				//}
-				//else if (!next_pos.empty()) {
-				//	next_num = 0;
-				//	float is_door_found_temp = false;
-				//	while (curr_num > 0 && !next_pos.empty()) {
-				//		coord current = next_pos.front();
-				//		next_pos.pop_front();
-				//		set_tile_visible(current);
-				//		close_list.insert(current);
-				//		if (!is_door_found) {
-				//			for (const coord& ACTION : ACTIONS) {
-				//				coord candidate = current + ACTION;
-				//				if (close_list.count(candidate) == 0 &&
-				//					candidate.x >= 0 && candidate.x < WORLD_WIDTH_DEFAULT &&
-				//					candidate.y >= 0 && candidate.y < WORLD_HEIGHT_DEFAULT &&
-				//					map[candidate.y][candidate.x] == (int)VISIBILITY_STATE::NOT_VISIBLE &&
-				//					reference_map[candidate.y][candidate.x] != -1) {
-				//					close_list.insert(candidate);
-				//					next_pos.push_back(candidate);
-				//					next_num++;
-				//					if (map[candidate.y][candidate.x] == (int)TILE_TYPE::DOOR)
-				//				}
-				//			}
-				//		}
-				//		curr_num--;
-				//	}
-				//	curr_num = next_num;
-				//	renderer->set_visibility_tiles_instance_buffer();
-				//}
+				if (map[grid_pos.y][grid_pos.x] == (int)VISIBILITY_STATE::NOT_VISIBLE && next_pos.empty()) {
+					is_door_found = false;
+					next_pos.push_back(grid_pos);
+					curr_num = 1;
+				}
+				else if (!next_pos.empty()) {
+					next_num = 0;
+					while (curr_num > 0 && !next_pos.empty()) {
+						coord current = next_pos.front();
+						next_pos.pop_front();
+						set_tile_visible(current);
+						close_list.insert(current);
+						if (!is_door_found) {
+							for (const coord& ACTION : ACTIONS) {
+								coord candidate = current + ACTION;
+								if (close_list.count(candidate) == 0 &&
+									candidate.x >= 0 && candidate.x < WORLD_WIDTH_DEFAULT &&
+									candidate.y >= 0 && candidate.y < WORLD_HEIGHT_DEFAULT &&
+									map[candidate.y][candidate.x] == (int)VISIBILITY_STATE::NOT_VISIBLE &&
+									reference_map[candidate.y][candidate.x] != -1) {
+									close_list.insert(candidate);
+									next_pos.push_back(candidate);
+									next_num++;
+									if (world_map[candidate.y][candidate.x] == (int)TILE_TYPE::DOOR) {
+										is_door_found = true;
+									}
+								}
+							}
+						}
+						curr_num--;
+					}
+					curr_num = next_num;
+					renderer->set_visibility_tiles_instance_buffer();
+				}
 			}
 		}
 
