@@ -1,4 +1,5 @@
 #include "bsp_tree.hpp"
+#include "world_init.hpp"
 
 unsigned int BSPNode::count_id = 0;
 
@@ -65,14 +66,14 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 	if (!node) return;
 
 	if (!node->left_node && !node->right_node) {
-		node->room = new Room2();
+		node->room = new Room_struct();
 		// remove split between partitions
 		vec2 min_temp = node->min + vec2(1);
 		vec2 max_temp = node->max - vec2(1);
 		vec2 size = max_temp - min_temp;
 		// randomly generate room size based on constraint
 		std::uniform_real_distribution<> float_distrib(0.6, 0.8);
-		vec2 room_size = vec2(size.x * float_distrib(gen), size.y * float_distrib(gen));
+		vec2 room_size = vec2(round(size.x * float_distrib(gen)), round(size.y * float_distrib(gen)));
 
 		// randomly generate top left corner
 		// will only generate within partition bounds to fit room
@@ -80,13 +81,15 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 		std::uniform_int_distribution<> int_distrib_y(min_temp.y, max_temp.y - room_size.y);
 		node->room->top_left.x = int_distrib_x(gen);
 		node->room->top_left.y = int_distrib_y(gen);
-		node->room->bottom_left = node->room->top_left + round(room_size);
+		// since bottom right is inclusive, room size should be subtracted by 1
+		node->room->bottom_right = node->room->top_left + room_size - 1.f;
 
 		rooms.push_back(*node->room);
 
 		// Populates the map with floors
-		for (int i = node->room->top_left.y; i <= node->room->bottom_left.y; ++i) {
-			for (int j = node->room->top_left.x; j <= node->room->bottom_left.x; ++j) {
+
+		for (int i = node->room->top_left.y; i <= node->room->bottom_right.y; ++i) {
+			for (int j = node->room->top_left.x; j <= node->room->bottom_right.x; ++j) {
 				world_map[i][j] = (int)TILE_TYPE::FLOOR;
 			}
 		}
@@ -106,10 +109,10 @@ void BSPTree::generate_corridors(BSPNode* node) {
 		BSPNode* rNode = get_random_leaf_node(node->right_node);
 		BSPNode* lNode = get_random_leaf_node(node->left_node);
 
-		std::uniform_int_distribution<> int_distrib_rx(rNode->room->top_left.x, rNode->room->bottom_left.x);
-		std::uniform_int_distribution<> int_distrib_ry(rNode->room->top_left.y, rNode->room->bottom_left.y);
-		std::uniform_int_distribution<> int_distrib_lx(lNode->room->top_left.x, lNode->room->bottom_left.x);
-		std::uniform_int_distribution<> int_distrib_ly(lNode->room->top_left.y, lNode->room->bottom_left.y);
+		std::uniform_int_distribution<> int_distrib_rx(rNode->room->top_left.x, rNode->room->bottom_right.x);
+		std::uniform_int_distribution<> int_distrib_ry(rNode->room->top_left.y, rNode->room->bottom_right.y);
+		std::uniform_int_distribution<> int_distrib_lx(lNode->room->top_left.x, lNode->room->bottom_right.x);
+		std::uniform_int_distribution<> int_distrib_ly(lNode->room->top_left.y, lNode->room->bottom_right.y);
 
 		// random point in both room gives more variety
 		vec2 start = vec2(int_distrib_rx(rng), int_distrib_ry(rng));
@@ -141,39 +144,6 @@ BSPNode* BSPTree::get_random_leaf_node(BSPNode* node) {
 
 	std::uniform_real_distribution<> float_distrib(0, 1);
 	return float_distrib(gen) < 0.5 ? get_random_leaf_node(node->left_node) : get_random_leaf_node(node->right_node);
-}
-
-void BSPTree::set_map_walls(std::vector<std::vector<int>>& map) {
-	const std::vector<coord> ACTIONS = {
-		vec2(0, -1),	// UP
-		vec2(0, 1),		// DOWN
-		vec2(-1, 0),	// LEFT
-		vec2(1, 0),		// RIGHT
-		vec2(-1, -1),	// UP LEFT
-		vec2(1, -1),	// UP RIGHT
-		vec2(-1, 1),	// DOWN LEFT
-		vec2(1, 1)		// DOWN RIGHT
-	};
-
-	const int map_height = map.size();
-	const int map_width = map[0].size();
-	assert(map_height > 0 && map_width > 0 && "Adding to empty map");
-
-	// supports edges of the map
-	for (int row = 0; row < map.size(); row++) {
-		for (int col = 0; col < map[row].size(); col++) {
-			// Only check for empty tiles
-			if (map[row][col] != (int)TILE_TYPE::EMPTY) continue;
-			for (const coord& action : ACTIONS) {
-				const vec2 candidate_cell = vec2(col, row) + action;
-				if (candidate_cell.x < 0 || candidate_cell.x >= map_width ||
-					candidate_cell.y < 0 || candidate_cell.y >= map_height ||
-					map[candidate_cell.y][candidate_cell.x] != (int)TILE_TYPE::FLOOR) continue;
-				map[row][col] = (int)TILE_TYPE::WALL;
-				break;
-			}
-		}
-	}
 }
 
 void BSPTree::print_tree(BSPNode* node) {

@@ -44,7 +44,7 @@ void VisibilitySystem::step(float elapsed_ms)
 		if (grid_pos.y >= 0 && grid_pos.y < WORLD_HEIGHT_DEFAULT && grid_pos.x >= 0 && grid_pos.x < WORLD_WIDTH_DEFAULT) {
 			if (game_info.in_room != -1) {
 				// in a room
-				Room2& room = game_info.room_index[game_info.in_room];
+				Room_struct& room = game_info.room_index[game_info.in_room];
 
 				// check if it's the first tile that is not visible, otherwise expand on previous
 				if (map[grid_pos.y][grid_pos.x] == (int)VISIBILITY_STATE::NOT_VISIBLE && next_pos.empty()) {
@@ -64,8 +64,8 @@ void VisibilitySystem::step(float elapsed_ms)
 							if (close_list.count(candidate) == 0 &&
 								candidate.x >= 0 && candidate.x < WORLD_WIDTH_DEFAULT &&
 								candidate.y >= 0 && candidate.y < WORLD_HEIGHT_DEFAULT &&
-								candidate.x >= room.top_left.x - 1 && candidate.x <= room.bottom_left.x + 1 &&
-								candidate.y >= room.top_left.y - 1 && candidate.y <= room.bottom_left.y + 1 &&
+								candidate.x >= room.top_left.x - 1 && candidate.x <= room.bottom_right.x + 1 &&
+								candidate.y >= room.top_left.y - 1 && candidate.y <= room.bottom_right.y + 1 &&
 								map[candidate.y][candidate.x] == (int)VISIBILITY_STATE::NOT_VISIBLE &&
 								reference_map[candidate.y][candidate.x] != -1) {
 								close_list.insert(candidate);

@@ -165,7 +165,7 @@ bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& m
 	return false;
 }
 
-bool is_in_room(Room2& room, Collidable& collidable, Motion& motion) {
+bool is_in_room(Room_struct& room, Collidable& collidable, Motion& motion) {
 	const vec2 bounding_box = collidable.size / 2.f;
 	const vec2 box_center = motion.position + collidable.shift;
 
@@ -175,7 +175,7 @@ bool is_in_room(Room2& room, Collidable& collidable, Motion& motion) {
 	const float right = box_center.x + bounding_box.x;
 
 	coord top_left_world = convert_grid_to_world(room.top_left - 0.5f);
-	coord bottom_right_world = convert_grid_to_world(room.bottom_left + 0.5f);
+	coord bottom_right_world = convert_grid_to_world(room.bottom_right + 0.5f);
 
 	if (top >= top_left_world.y && bottom <= bottom_right_world.y && left >= top_left_world.x && right <= bottom_right_world.x)
 		return true;
@@ -277,7 +277,8 @@ void PhysicsSystem::step(float elapsed_ms)
 			Motion& motion = registry.motions.get(bullet_entity);
 			Collidable& collidable = registry.collidables.get(bullet_entity);
 			coord grid_coord = convert_world_to_grid(motion.position);
-			if (!is_valid_cell(grid_coord.x, grid_coord.y)) {
+
+			if (!is_valid_cell(grid_coord.x, grid_coord.y) || world_map[grid_coord.y][grid_coord.x] == (int)TILE_TYPE::DOOR) {
 				//registry.collisions.emplace(bullet_entity, wall_entity); // causes bullet to go through walls
 				registry.remove_all_components_of(bullet_entity);
 			}

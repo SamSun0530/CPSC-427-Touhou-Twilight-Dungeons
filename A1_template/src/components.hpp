@@ -82,12 +82,11 @@ struct GameInfo {
 	// TODO: store visited rooms (for doors)
 	int in_room = -1; // -1 - not in room
 	// each index represents a room
-	// e.g. 
-	std::vector<Room2> room_index;
+	std::vector<Room_struct> room_index;
 	// same size as room_index, where each index corresponds to whether it's been visited
 	std::vector<bool> room_visited;
 
-	void add_room(Room2& room) {
+	void add_room(Room_struct& room) {
 		room_index.push_back(room);
 		room_visited.push_back(false);
 	}
@@ -453,6 +452,13 @@ struct TileInstanceData {
 	mat3 transform;
 };
 
+struct Door {
+	bool is_locked = true;
+	bool is_shut = true;
+	DIRECTION dir;
+	int room_index;
+};
+
 struct VisibilityTileInstanceData {
 	mat3 transform;
 };
@@ -644,7 +650,8 @@ enum class KEYS {
 enum class TILE_TYPE {
 	EMPTY = 0,
 	FLOOR = EMPTY + 1,
-	WALL = FLOOR + 1
+	WALL = FLOOR + 1,
+	DOOR = WALL + 1
 };
 
 /**

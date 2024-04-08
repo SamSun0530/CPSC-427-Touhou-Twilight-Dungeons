@@ -1147,6 +1147,36 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 	return entities;
 }
 
+Entity createDoor(RenderSystem* renderer, vec2 position, DIRECTION dir, int room_index) {
+	auto entity = Entity();
+
+	// Initializes the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.scale = vec2(world_tile_size, world_tile_size);
+
+	// Creates door
+	auto& door = registry.doors.emplace(entity);
+	door.dir = dir;
+	door.is_locked = true;
+	door.room_index = room_index;
+
+	game_info.room_index[room_index].doors.push_back(entity);
+
+	// Locked doors are collidable
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = { motion.scale.x, motion.scale.y };
+	collidable.shift = { 0, 0 };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BOSS, // TEMP TEXTURE
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, vec2 grid_position, TILE_NAME_SANDSTONE tile_name, bool is_wall) {
 	auto entity = Entity();
 

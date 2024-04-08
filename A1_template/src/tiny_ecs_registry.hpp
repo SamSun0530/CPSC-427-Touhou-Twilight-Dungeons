@@ -25,6 +25,7 @@ public:
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Floor> floors;
 	ComponentContainer<Wall> walls;
+	ComponentContainer<Door> doors;
 	ComponentContainer<EnemyBullet> enemyBullets;
 	ComponentContainer<InvulnerableTimer> invulnerableTimers;
 	ComponentContainer<HP> hps;
@@ -95,6 +96,7 @@ public:
 		registry_list.push_back(&colors);
 		registry_list.push_back(&floors);
 		registry_list.push_back(&walls);
+		registry_list.push_back(&doors);
 		registry_list.push_back(&enemyBullets);
 		registry_list.push_back(&invulnerableTimers);
 		registry_list.push_back(&hps);
