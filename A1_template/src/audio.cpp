@@ -13,9 +13,9 @@ Audio::Audio() {
 	}
 
 	background_music = Mix_LoadMUS(audio_path("regular_room_bgm.wav").c_str());
-	menu_music = Mix_LoadMUS(audio_path("main_menu_bgm.wav").c_str());
+	menu_music = Mix_LoadWAV(audio_path("main_menu_bgm.wav").c_str());
 	boss_music = Mix_LoadMUS(audio_path("boss_fight_bgm.wav").c_str());
-	game_ending_sound = Mix_LoadWAV(audio_path("game_ending_sound.wav").c_str());
+	game_ending_sound = Mix_LoadWAV(audio_path("game_ending.wav").c_str());
 	firing_sound = Mix_LoadWAV(audio_path("spell_sound.wav").c_str());
 	damage_sound = Mix_LoadWAV(audio_path("damage_sound.wav").c_str());
 	hit_spell = Mix_LoadWAV(audio_path("hit_spell.wav").c_str());
@@ -27,7 +27,7 @@ Audio::Audio() {
 	if (background_music == nullptr || game_ending_sound == nullptr || firing_sound == nullptr || damage_sound == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("backgroundmusic.wav").c_str(),
-			audio_path("game_ending_sound.wav").c_str(),
+			audio_path("game_ending.wav").c_str(),
 			audio_path("spell_sound.wav").c_str(),
 			audio_path("damage_sound.wav").c_str(),
 			audio_path("hit_spell.wav").c_str());
@@ -49,7 +49,7 @@ Audio::~Audio() {
 	if (hit_spell != nullptr)
 		Mix_FreeChunk(hit_spell);
 	if (menu_music != nullptr)
-		Mix_FreeMusic(menu_music);
+		Mix_FreeChunk(menu_music);
 	if (boss_music != nullptr)
 		Mix_FreeMusic(boss_music);
 

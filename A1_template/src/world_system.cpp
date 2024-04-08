@@ -150,11 +150,11 @@ void WorldSystem::init_menu() {
 
 	// create main menu title and background
 	createMainMenu(renderer, { -window_px_half.x / 2.2f, 0.f }, 0.38f, { offset_x , offset_y_padding }, 1.f);
-	Mix_PlayMusic(audio->menu_music, -1);
+	Mix_PlayChannel(2, audio->menu_music, 0);
 
 	if (game_info.has_started) {
 		createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Resume", 0.9f, [&]() {
-			Mix_ResumeMusic();
+			//Mix_ResumeMusic();
 			resume_game();
 			});
 		offset_y += offset_y_delta;
@@ -186,6 +186,7 @@ void WorldSystem::init_pause_menu() {
 }
 
 void WorldSystem::resume_game() {
+	//Mix_ResumeMusic();
 	menu.state = MENU_STATE::PLAY;
 	pressed = { 0 };
 	registry.kinematics.get(player).direction = { 0, 0 };
@@ -441,8 +442,8 @@ void WorldSystem::restart_game() {
 	pressed = { 0 };
 
 	// Reset bgm
-	Mix_HaltMusic();
-	Mix_ResumeMusic();
+	//Mix_HaltMusic();
+	Mix_Pause(2);
 	Mix_PlayMusic(audio->background_music, -1);
 
 	// Remove all entities that we created
@@ -929,6 +930,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			// open pause menu
 			menu.state = MENU_STATE::PAUSE;
+			Mix_PauseMusic();
 		}
 	}
 	else if (menu.state == MENU_STATE::MAIN_MENU) {
