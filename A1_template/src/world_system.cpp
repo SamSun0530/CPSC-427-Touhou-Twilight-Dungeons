@@ -700,9 +700,11 @@ void WorldSystem::handle_collisions() {
 				vec2 wall_center = wall_motion.position + wall_collidable.shift;
 				vec2 entity_center = entity_motion.position + entity_collidable.shift;
 
+				// Opens the door and prevents stopping once collided
 				if (registry.doors.has(entity) && !registry.deadlys.has(entity_other)) {
 					Door& door = registry.doors.get(entity);
 					door.is_shut = false;
+					break;
 				}
 
 				// Minkowski Sum adapted from "sam hocevar": https://gamedev.stackexchange.com/a/24091
