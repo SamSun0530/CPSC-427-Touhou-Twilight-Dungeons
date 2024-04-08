@@ -295,21 +295,21 @@ void MapSystem::generateRandomMap() {
 	// ignore these - for visibility
 	// ORDER IS IMPORTANT!
 	// for order of operations, please see VisibilitySystem class
-	visibility_system->restart_map();
+	//visibility_system->restart_map();
 	generate_all_tiles(world_map);
-	visibility_system->init_visibility();
+	//visibility_system->init_visibility();
 	// set buffer data for visibility tile instance rendering
-	renderer->set_visibility_tiles_instance_buffer_max();
+	//renderer->set_visibility_tiles_instance_buffer_max();
 	// set buffer data for tile instance rendering
 	renderer->set_tiles_instance_buffer();
 
 	// add all rooms to component
-	//for (int i = 0; i < bsptree.rooms.size(); ++i) {
-	//	game_info.
-	//}
+	for (int i = 0; i < bsptree.rooms.size(); ++i) {
+		game_info.room_index.push_back(bsptree.rooms[i]);
+	}
 
-	std::vector<vec3> door_info;
-	door_info = bsptree.generateDoors(bsptree.rooms, world_map);
+	std::vector<vec4> door_info;
+	door_info = bsptree.generateDoorInfo(bsptree.rooms, world_map);
 	generate_door_tiles(door_info, world_map);
 }
 
@@ -527,12 +527,12 @@ TILE_NAME_SANDSTONE MapSystem::get_tile_name_sandstone(int x, int y, std::vector
 	return result;
 }
 
-void MapSystem::generate_door_tiles(std::vector<vec3> door_info, std::vector<std::vector<int>>& map) {
+void MapSystem::generate_door_tiles(std::vector<vec4> door_info, std::vector<std::vector<int>>& map) {
 		// TODO
 		// Loops through all rooms and creates a door entitry for every marked door
-	for (vec3 door : door_info) {
+	for (vec4 door : door_info) {
 		vec2 world_coord = convert_grid_to_world({ door[0], door[1] });
-		createDoor(renderer, world_coord, static_cast<DIRECTIONS>(door[2]), 0);
+		createDoor(renderer, world_coord, static_cast<DIRECTIONS>(door[2]), door[3]);
 	}
 }
 

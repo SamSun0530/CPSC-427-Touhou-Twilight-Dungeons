@@ -89,11 +89,12 @@ enum class DIRECTIONS {
 	LEFT
 };
 
-// TEMPORARY
+// Generic Room container
 struct Room_struct {
 	ROOM_TYPE type = ROOM_TYPE::NORMAL;
 	bool visited = false;
 	std::vector<vec3> door_locations; // {x,y,direction}
+	std::vector<Entity> doors;
 	vec2 top_left;
 	vec2 bottom_right;
 };

@@ -97,10 +97,10 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 	generate_rooms_random(node->right_node);
 }
 
-vec3 addSingleDoor(int row, int col, DIRECTIONS dir, Room_struct& room, std::vector<std::vector<int>>& map) {
+vec4 addSingleDoor(int row, int col, DIRECTIONS dir, int room_index, Room_struct& room, std::vector<std::vector<int>>& map) {
 	map[row][col] = (int)TILE_TYPE::DOOR;
-	vec3 door_info = { col, row, dir};
-	room.door_locations.push_back(door_info);
+	vec4 door_info = { col, row, dir, room_index};
+	//room.door_locations.push_back(door_info);
 	// Creates a door
 	//createDoor
 
@@ -111,9 +111,12 @@ vec3 addSingleDoor(int row, int col, DIRECTIONS dir, Room_struct& room, std::vec
 * Adds doors to the grid map based on if the room edges is a wall
 * MUST BE AFTER WALL GENERATION
 */
-std::vector<vec3> BSPTree::generateDoors(std::vector<Room_struct>& rooms, std::vector<std::vector<int>>& map) {
-	std::vector<vec3> doors;
-	for (Room_struct& room : rooms) {
+std::vector<vec4> BSPTree::generateDoorInfo(std::vector<Room_struct>& rooms, std::vector<std::vector<int>>& map) {
+	std::vector<vec4> doors;
+	//for (Room_struct& room : rooms) 
+	for(int i = 0; i < rooms.size(); i++)
+	{
+		Room_struct room = rooms[i];
 		// Duplicated code. A point to optimize
 
 		// Check top of room
@@ -140,7 +143,7 @@ std::vector<vec3> BSPTree::generateDoors(std::vector<Room_struct>& rooms, std::v
 		for (; col < room.bottom_right.x + 1; col++) {
 			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
 				// Found a floor tile on the outer edges of the room
-				doors.push_back(addSingleDoor(row, col, DIRECTIONS::DOWN, room, map));
+				doors.push_back(addSingleDoor(row, col, DIRECTIONS::DOWN,i, room, map));
 
 			}
 		}
@@ -149,7 +152,7 @@ std::vector<vec3> BSPTree::generateDoors(std::vector<Room_struct>& rooms, std::v
 		for (col = room.top_left.x - 1; col < room.bottom_right.x + 1; col++) {
 			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
 				// Found a floor tile on the outer edges of the room
-				doors.push_back(addSingleDoor(row, col, DIRECTIONS::UP, room, map));
+				doors.push_back(addSingleDoor(row, col, DIRECTIONS::UP,i ,room, map));
 			}
 		}
 		// Check left of room
@@ -157,7 +160,7 @@ std::vector<vec3> BSPTree::generateDoors(std::vector<Room_struct>& rooms, std::v
 		for (row = room.top_left.y - 1; row < room.bottom_right.y + 1; row++) {
 			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
 				// Found a floor tile on the outer edges of the room
-				doors.push_back(addSingleDoor(row, col, DIRECTIONS::RIGHT, room, map));
+				doors.push_back(addSingleDoor(row, col, DIRECTIONS::RIGHT,i, room, map));
 
 			}
 		}
@@ -166,7 +169,7 @@ std::vector<vec3> BSPTree::generateDoors(std::vector<Room_struct>& rooms, std::v
 		for (row = room.top_left.y - 1; row < room.bottom_right.y + 1; row++) {
 			if (map[row][col] == (int)TILE_TYPE::FLOOR) {
 				// Found a floor tile on the outer edges of the room
-				doors.push_back(addSingleDoor(row, col, DIRECTIONS::LEFT, room, map));
+				doors.push_back(addSingleDoor(row, col, DIRECTIONS::LEFT,i, room, map));
 			}
 		}
 	}

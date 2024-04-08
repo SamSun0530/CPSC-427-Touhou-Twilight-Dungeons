@@ -1161,6 +1161,8 @@ Entity createDoor(RenderSystem* renderer, vec2 position, DIRECTIONS dir, int roo
 	door.is_locked = true;
 	door.room_index = room_index;
 
+	game_info.room_index[room_index].doors.push_back(entity);
+
 	// Locked doors are collidable
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = { motion.scale.x, motion.scale.y };
@@ -1219,9 +1221,11 @@ Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, v
 	*/
 	auto entity2 = Entity();
 	//registry.visibilityTiles.emplace(entity2); // TODO
+	/*
 	registry.visibilityTileInstanceData.emplace(entity2) = {
 		t.mat
 	};
+	*/
 	// add reference to entity in 2d array
 	// when removing visibility tile entities, we set it's corresponding grid position in reference map to -1
 	visibility_system->reference_map[grid_position.y][grid_position.x] = entity2;

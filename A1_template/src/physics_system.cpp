@@ -260,7 +260,8 @@ void PhysicsSystem::step(float elapsed_ms)
 			Motion& motion = registry.motions.get(bullet_entity);
 			Collidable& collidable = registry.collidables.get(bullet_entity);
 			coord grid_coord = convert_world_to_grid(motion.position);
-			if (!is_valid_cell(grid_coord.x, grid_coord.y)) {
+
+			if (!is_valid_cell(grid_coord.x, grid_coord.y) || world_map[grid_coord.y][grid_coord.x] == (int)TILE_TYPE::DOOR) {
 				//registry.collisions.emplace(bullet_entity, wall_entity); // causes bullet to go through walls
 				registry.remove_all_components_of(bullet_entity);
 			}
