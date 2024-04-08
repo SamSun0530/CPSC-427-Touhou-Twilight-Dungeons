@@ -39,6 +39,7 @@ void VisibilitySystem::step(float elapsed_ms)
 
 	counter_ms = counter_ms - elapsed_ms <= 0 ? 0 : counter_ms - elapsed_ms;
 
+	// unreadable code - maybe refactor
 	if (counter_ms <= 0) {
 		Motion& player_motion = registry.motions.get(game_info.player_id);
 		vec2 grid_pos = convert_world_to_grid(player_motion.position);
@@ -49,6 +50,7 @@ void VisibilitySystem::step(float elapsed_ms)
 
 				// check if it's the first tile that is not visible, otherwise expand on previous
 				if (map[grid_pos.y][grid_pos.x] == (int)VISIBILITY_STATE::NOT_VISIBLE && next_pos.empty()) {
+					registry.visibilityTileInstanceData.get((Entity)reference_map[grid_pos.y][grid_pos.x]).alpha = 0.5;
 					game_info.room_visited[game_info.in_room] = true;
 					next_pos.push_back(grid_pos);
 					curr_num = 1;
@@ -69,9 +71,22 @@ void VisibilitySystem::step(float elapsed_ms)
 								candidate.y >= room.top_left.y - 1 && candidate.y <= room.bottom_right.y + 1 &&
 								map[candidate.y][candidate.x] == (int)VISIBILITY_STATE::NOT_VISIBLE &&
 								reference_map[candidate.y][candidate.x] != -1) {
+								registry.visibilityTileInstanceData.get((Entity)reference_map[candidate.y][candidate.x]).alpha = 0.5;
 								close_list.insert(candidate);
 								next_pos.push_back(candidate);
 								next_num++;
+								if (world_map[candidate.y][candidate.x] == (int)TILE_TYPE::DOOR) {
+									// get adjacent neighbors and set their transparency
+									for (const coord& ACTION2 : ACTIONS_DIAGONALS) {
+										coord door_candidate = candidate + ACTION2;
+										if (door_candidate.x >= 0 && door_candidate.x < WORLD_WIDTH_DEFAULT &&
+											door_candidate.y >= 0 && door_candidate.y < WORLD_HEIGHT_DEFAULT &&
+											map[door_candidate.y][door_candidate.x] == (int)VISIBILITY_STATE::NOT_VISIBLE &&
+											reference_map[door_candidate.y][door_candidate.x] != -1) {
+											registry.visibilityTileInstanceData.get((Entity)reference_map[door_candidate.y][door_candidate.x]).alpha = 0.5;
+										}
+									}
+								}
 							}
 						}
 						curr_num--;
@@ -83,6 +98,7 @@ void VisibilitySystem::step(float elapsed_ms)
 			else {
 				// in a corridor
 				if (map[grid_pos.y][grid_pos.x] == (int)VISIBILITY_STATE::NOT_VISIBLE && next_pos.empty()) {
+					registry.visibilityTileInstanceData.get((Entity)reference_map[grid_pos.y][grid_pos.x]).alpha = 0.5;
 					is_door_found = false;
 					next_pos.push_back(grid_pos);
 					curr_num = 1;
@@ -102,11 +118,22 @@ void VisibilitySystem::step(float elapsed_ms)
 									candidate.y >= 0 && candidate.y < WORLD_HEIGHT_DEFAULT &&
 									map[candidate.y][candidate.x] == (int)VISIBILITY_STATE::NOT_VISIBLE &&
 									reference_map[candidate.y][candidate.x] != -1) {
+									registry.visibilityTileInstanceData.get((Entity)reference_map[candidate.y][candidate.x]).alpha = 0.5;
 									close_list.insert(candidate);
 									next_pos.push_back(candidate);
 									next_num++;
 									if (world_map[candidate.y][candidate.x] == (int)TILE_TYPE::DOOR) {
 										is_door_found = true;
+										// get adjacent neighbors and set their transparency
+										for (const coord& ACTION2 : ACTIONS_DIAGONALS) {
+											coord door_candidate = candidate + ACTION2;
+											if (door_candidate.x >= 0 && door_candidate.x < WORLD_WIDTH_DEFAULT &&
+												door_candidate.y >= 0 && door_candidate.y < WORLD_HEIGHT_DEFAULT &&
+												map[door_candidate.y][door_candidate.x] == (int)VISIBILITY_STATE::NOT_VISIBLE &&
+												reference_map[door_candidate.y][door_candidate.x] != -1) {
+												registry.visibilityTileInstanceData.get((Entity)reference_map[door_candidate.y][door_candidate.x]).alpha = 0.5;
+											}
+										}
 									}
 								}
 							}

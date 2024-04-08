@@ -883,7 +883,7 @@ void RenderSystem::drawVisibilityTilesInstanced(const glm::mat3& projection, con
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(visibility_tile_instance_program, "fcolor");
 	//const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
-	const vec3 color = vec3(1);
+	const vec3 color = vec3(0); // black tile
 	glUniform3fv(color_uloc, 1, (float*)&color);
 	gl_has_errors();
 

@@ -461,6 +461,7 @@ struct Door {
 
 struct VisibilityTileInstanceData {
 	mat3 transform;
+	float alpha;
 };
 
 // All data relevant to the shape and motion of entities

@@ -620,8 +620,9 @@ void MapSystem::generate_door_tiles(std::vector<std::vector<int>>& map) {
 	// Loops through all rooms and creates a door entity for every marked door
 	// door_info vec4 order: col, row, direction, room_index
 	for (const vec4& door : door_info) {
-		vec2 world_coord = convert_grid_to_world({ door[0], door[1] });
-		createDoor(renderer, world_coord, static_cast<DIRECTION>(door[2]), door[3]);
+		// let's convert grid to world inside the createDoor
+		// IMPORTANT: createDoor takes in grid coordinates
+		createDoor(renderer, { door[0], door[1] }, static_cast<DIRECTION>(door[2]), door[3]);
 	}
 }
 

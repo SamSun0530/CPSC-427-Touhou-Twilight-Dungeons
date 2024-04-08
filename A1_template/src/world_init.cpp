@@ -1147,12 +1147,13 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 	return entities;
 }
 
-Entity createDoor(RenderSystem* renderer, vec2 position, DIRECTION dir, int room_index) {
+// IMPORTANT: createDoor takes in grid coordinates
+Entity createDoor(RenderSystem* renderer, vec2 grid_position, DIRECTION dir, int room_index) {
 	auto entity = Entity();
 
 	// Initializes the motion
 	auto& motion = registry.motions.emplace(entity);
-	motion.position = position;
+	motion.position = convert_grid_to_world(grid_position);
 	motion.scale = vec2(world_tile_size, world_tile_size);
 
 	// Creates door
@@ -1162,6 +1163,7 @@ Entity createDoor(RenderSystem* renderer, vec2 position, DIRECTION dir, int room
 	door.room_index = room_index;
 
 	game_info.room_index[room_index].doors.push_back(entity);
+	game_info.room_index[room_index].door_locations.push_back(grid_position);
 
 	// Locked doors are collidable
 	auto& collidable = registry.collidables.emplace(entity);
@@ -1224,7 +1226,8 @@ Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, v
 	auto entity2 = Entity();
 	//registry.visibilityTiles.emplace(entity2); // TODO
 	registry.visibilityTileInstanceData.emplace(entity2) = {
-		t.mat
+		t.mat,
+		1.0
 	};
 	// add reference to entity in 2d array
 	// when removing visibility tile entities, we set it's corresponding grid position in reference map to -1

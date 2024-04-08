@@ -54,8 +54,16 @@ private:
 	int curr_num = 0; // current numbers left
 	std::unordered_set<coord> close_list; // prevent rechecking tiles already in deque
 
-	// list of actions for getting neighbor cells
+	// list of actions for getting neighbor cells - usually for rooms
 	const std::vector<coord> ACTIONS = {
+		vec2(0, -1),	// UP
+		vec2(0, 1),		// DOWN
+		vec2(-1, 0),	// LEFT
+		vec2(1, 0),		// RIGHT
+	};
+
+	// with diagonals - usually for door candidates
+	const std::vector<coord> ACTIONS_DIAGONALS = {
 		vec2(0, -1),	// UP
 		vec2(0, 1),		// DOWN
 		vec2(-1, 0),	// LEFT
@@ -71,7 +79,7 @@ private:
 
 	// Limit frequency of flood fill
 	float counter_ms = 0;
-	float counter_ms_default = 100;
+	float counter_ms_default = 60;
 
 	// set tile to be visible by removing visibility tile
 	void set_tile_visible(coord grid_pos);

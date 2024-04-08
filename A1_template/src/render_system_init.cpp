@@ -780,8 +780,20 @@ void RenderSystem::initializeVisibilityTileInstance() {
 	glVertexAttribDivisor(loc3, 1);
 	gl_has_errors();
 
+	// neighbors data
+	GLint in_alpha_loc = glGetAttribLocation(visibility_tile_instance_program, "in_alpha");
+	gl_has_errors();
+	assert(in_alpha_loc >= 0);
+	glEnableVertexAttribArray(in_alpha_loc);
+	glVertexAttribPointer(in_alpha_loc, 1, GL_FLOAT, GL_FALSE, sizeof(VisibilityTileInstanceData), (void*)(sizeof(vec3) * 3));
+	gl_has_errors();
+	glVertexAttribDivisor(in_alpha_loc, 1);
+	gl_has_errors();
+
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	gl_has_errors();
 }
+
