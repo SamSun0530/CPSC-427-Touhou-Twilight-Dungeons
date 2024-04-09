@@ -220,7 +220,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	while (registry.texts.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
 	while (registry.textsWorld.entities.size() > 0)
-		registry.remove_all_components_of(registry.texts.entities.back());
+		registry.remove_all_components_of(registry.textsWorld.entities.back());
 
 	// Create combo meter ui
 	createText({ window_width_px / 2.5f , window_height_px / 2.1f }, { 1, 1 }, std::to_string(combo_mode.combo_meter), { 0, 1, 0 }, false);
@@ -371,8 +371,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					registry.dummyEnemyLink.remove(entity);
 				}
 
-				if (number <= 0.1)
-					createHealth(renderer, registry.motions.get(entity).position);
+				if (number <= 1.0)
+					createFood(renderer, registry.motions.get(entity).position);
 				registry.remove_all_components_of(entity);
 			}
 			else {
@@ -553,10 +553,12 @@ void WorldSystem::handle_collisions() {
 			}
 			else if (registry.pickupables.has(entity_other)) {
 				if (!registry.realDeathTimers.has(entity)) {
-					registry.hps.get(entity).curr_hp += registry.pickupables.get(entity_other).health_change;
-					if (registry.hps.get(entity).curr_hp > registry.hps.get(entity).max_hp) {
-						registry.hps.get(entity).curr_hp = registry.hps.get(entity).max_hp;
-					}
+					HP& hp = registry.hps.get(entity);
+					Pickupable& pickupable = registry.pickupables.get(entity_other);
+					hp.curr_hp = min(hp.curr_hp + pickupable.health_change, hp.max_hp);
+					Motion& motion = registry.motions.get(player);
+					Entity text_entity = createText({ motion.position.x, motion.position.y - 40.f }, vec2(0.5f), "+" + std::to_string(pickupable.health_change) + " HP!", vec3(0.0f, 1.0f, 0.0f), true, true);
+					registry.realDeathTimers.emplace(text_entity).death_counter_ms = 2000;
 					registry.remove_all_components_of(entity_other);
 				}
 			}

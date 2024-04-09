@@ -91,7 +91,7 @@ Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float
 	return entity;
 }
 
-Entity createHealth(RenderSystem* renderer, vec2 position)
+Entity createFood(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);

@@ -59,6 +59,7 @@ public:
 	bool is_over()const;
 
 	// font and instructions
+	float get_HP_timer();
 	bool get_display_instruction();
 	int get_tutorial_counter();
 	bool get_show_fps();
