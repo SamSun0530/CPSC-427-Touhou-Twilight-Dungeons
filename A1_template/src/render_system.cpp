@@ -15,10 +15,10 @@ void RenderSystem::get_strings_delim(const std::string& input, char delim, std::
 }
 
 // Helper function to render text with new lines
-void RenderSystem::render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world, float padding_y = 25) {
+void RenderSystem::render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world, float padding_y, float transparency) {
 	// Prevent having to split string if there are no new lines
 	if (text.find('\n') == std::string::npos) {
-		renderText(text, x, y, scale, color, trans, in_world);
+		renderText(text, x, y, scale, color, trans, in_world, transparency);
 		return;
 	}
 	std::vector<std::string> segments;
@@ -29,7 +29,7 @@ void RenderSystem::render_text_newline(const std::string& text, float x, float y
 	//vec2 t_translate = { 0, scale * padding_y };
 	int segments_size = segments.size();
 	for (int i = 0; i < segments_size; ++i) {
-		renderText(segments[i], x, y + i * scale * padding_y, scale, color, trans, in_world);
+		renderText(segments[i], x, y + i * scale * padding_y, scale, color, trans, in_world, transparency);
 		//t.translate(t_translate);
 	}
 }
@@ -327,7 +327,7 @@ void RenderSystem::render_buttons(glm::mat3& projection_2D, glm::mat3& view_2D, 
 		rr.used_texture = button.is_hovered ? TEXTURE_ASSET_ID::BUTTON_HOVERED : TEXTURE_ASSET_ID::BUTTON;
 
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-		renderText(button.text, motion.position.x, motion.position.y, button.text_scale, button.is_hovered ? vec3(0.03f) : vec3(0.5f), trans, false);
+		renderText(button.text, motion.position.x, motion.position.y, button.text_scale, button.is_hovered ? vec3(0.03f) : vec3(0.5f), trans, false, 1.f);
 	}
 }
 
@@ -395,6 +395,11 @@ void RenderSystem::draw()
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
 
+		// Render player
+		for (Entity entity : registry.players.entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
 		// UIUX entities that in the world (e.g. tutorial keys that is before player)
 		for (Entity entity : uiux_world_entities) {
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
@@ -406,14 +411,23 @@ void RenderSystem::draw()
 			if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
 			vec3 text_color = registry.colors.get(entity);
 			RenderTextWorld& text_cont = registry.textsWorld.get(entity);
-			render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true);
+			render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true, 25.f, text_cont.transparency);
 		}
 		for (Entity entity : registry.textsPermWorld.entities) {
 			Motion& text_motion = registry.motions.get(entity);
 			if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
 			vec3 text_color = registry.colors.get(entity);
 			RenderTextPermanentWorld& text_cont = registry.textsPermWorld.get(entity);
-			render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true);
+
+			// Hardcoded only for item description
+			if (registry.realDeathTimers.has(entity)) {
+				DeathTimer& death_counter = registry.realDeathTimers.get(entity);
+				Motion& motion = registry.motions.get(registry.players.entities[0]);
+				text_cont.transparency = death_counter.death_counter_ms / 2000;
+				registry.motions.get(entity).position = { motion.position.x, motion.position.y + ((text_cont.transparency - 1) * 35) - 40.f };
+			}
+
+			render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true, 25.f, text_cont.transparency);
 		}
 
 		// Render player
@@ -444,6 +458,15 @@ void RenderSystem::draw()
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
 
+		for (Entity entity : registry.pickupables.entities) {
+			if (registry.motions.has(entity)) {
+				const Motion& motion = registry.motions.get(entity);
+				const Pickupable& food = registry.pickupables.get(entity);
+
+				renderText("HP Up+", motion.position.x, motion.position.y + 25, 0.5f, glm::vec3(0.0f, 0.8f, 0.0f), trans, true, 1.f);
+			}
+		}
+
 		if (menu.state != MENU_STATE::DIALOGUE) {
 			for (Entity entity : registry.UIUX.entities) {
 				drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
@@ -459,12 +482,12 @@ void RenderSystem::draw()
 
 		// Render user guide on screen
 		if (WorldSystem::getInstance().get_display_instruction() == true) {
-			renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.6f, 0.9f, glm::vec3(0, 0, 0), trans);
+			renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.6f, 0.9f, glm::vec3(0, 0, 0), trans, false, 1.f);
 		}
 
 		if (WorldSystem::getInstance().get_show_fps() == true) {
-			renderText("FPS:", window_width_px / 2.45f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans);
-			renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px / 2.2f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans);
+			renderText("FPS:", window_width_px / 2.45f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans, 1.f);
+			renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px / 2.2f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans, 1.f);
 		}
 
 		// On screen/ui texts:
@@ -473,13 +496,13 @@ void RenderSystem::draw()
 				Motion& text_motion = registry.motions.get(entity);
 				vec3 text_color = registry.colors.get(entity);
 				RenderText& text_cont = registry.texts.get(entity);
-				renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
+				renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, text_cont.transparency);
 			}
 			for (Entity entity : registry.textsPerm.entities) {
 				Motion& text_motion = registry.motions.get(entity);
 				vec3 text_color = registry.colors.get(entity);
 				RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
-				renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
+				renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, text_cont.transparency);
 			}
 		}
 		if (menu.state == MENU_STATE::DIALOGUE) {
@@ -490,13 +513,13 @@ void RenderSystem::draw()
 				Motion& text_motion = registry.motions.get(entity);
 				vec3 text_color = registry.colors.get(entity);
 				RenderText& text_cont = registry.texts.get(entity);
-				render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, 50.f);
+				render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, 50.f, text_cont.transparency);
 			}
 			for (Entity entity : registry.textsPerm.entities) {
 				Motion& text_motion = registry.motions.get(entity);
 				vec3 text_color = registry.colors.get(entity);
 				RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
-				render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, 50.f);
+				render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, 50.f, text_cont.transparency);
 			}
 		}
 
@@ -527,7 +550,8 @@ void RenderSystem::draw()
 }
 
 // This adapted from lecture material (Wednesday Feb 28th 2024)
-void RenderSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world) {
+// fully transparent when transparency_rate = 0
+void RenderSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world, float transparency_rate) {
 	// activate the shaders!
 	glUseProgram(m_font_shaderProgram);
 
@@ -538,6 +562,10 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
 		);
 	assert(textColor_location >= 0);
 	glUniform3f(textColor_location, color.x, color.y, color.z);
+
+	auto transparency_location = glGetUniformLocation(m_font_shaderProgram, "transparency");
+	assert(transparency_location > -1);
+	glUniform1f(transparency_location, transparency_rate);
 
 	// flip both y axis so translations will match opengl
 	y = -1 * y;

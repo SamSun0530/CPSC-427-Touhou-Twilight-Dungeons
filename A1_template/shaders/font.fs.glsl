@@ -6,9 +6,12 @@ out vec4 color;
 
 uniform sampler2D text;
 uniform vec3 textColor;
+uniform float transparency;
 
 void main()
 {
     vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, TextCoords).r);
-    color = vec4(textColor, 1.0) * sampled;
+    vec4 finalColor = vec4(textColor, 1.0) * sampled;
+    finalColor.a *= transparency; // Adjust alpha with transparency
+    color = finalColor;
 }
