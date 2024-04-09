@@ -169,9 +169,17 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 
 	Purchasableable& purchasableable = registry.purchasableables.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
-	purchasableable.cost = number * 10;
+	if (number == 0) {
+		purchasableable.cost = 1;
+		purchasableable.effect_strength = 1;
+	}
+	else {
+		purchasableable.cost = number * 10;
+		purchasableable.effect_strength = number * 10;
+	}
+
 	purchasableable.effect_type = type;
-	purchasableable.effect_strength = number * 10;
+	
 	if (type == 1) {
 		registry.renderRequests.insert(
 			entity,

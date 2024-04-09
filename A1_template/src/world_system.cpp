@@ -594,10 +594,10 @@ void WorldSystem::handle_collisions() {
 							}
 							// not sure how to faster fire_rate, need help from alan
 							else if (treasure.effect_type == 2) {
-								player_att.fire_rate += treasure.effect_strength;
+								player_att.fire_rate += float(treasure.effect_strength * 0.01);
 							}
 							else if (treasure.effect_type == 3) {
-								player_att.critical_hit += (treasure.effect_strength/100);
+								player_att.critical_hit += float(treasure.effect_strength*0.01);
 							}
 							std::cout << "-------------after---------------------" << std::endl;
 							std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
