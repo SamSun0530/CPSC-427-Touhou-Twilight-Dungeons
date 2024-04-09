@@ -62,8 +62,8 @@ Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float
 	auto& kinematic = registry.kinematics.emplace(entity);
 
 	// Set the collision box
-	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = abs(motion.scale);
+	//auto& collidable = registry.collidables.emplace(entity);
+	//collidable.size = abs(motion.scale);
 
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
@@ -459,7 +459,7 @@ Entity createCombo(RenderSystem* renderer)
 
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
-	motion.position = vec2(window_px_half.x, -window_px_half.y) - vec2(150,-150);
+	motion.position = vec2(window_px_half.x, -window_px_half.y) - vec2(150, -150);
 	motion.scale = vec2(160, 160);
 
 	registry.UIUX.emplace(entity);
@@ -1215,7 +1215,66 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 	return entities;
 }
 
-Entity createTile(RenderSystem* renderer, vec2 position, TILE_NAME_SANDSTONE tile_name, bool is_wall) {
+// IMPORTANT: createDoor takes in grid coordinates
+Entity createDoor(RenderSystem* renderer, vec2 grid_position, DIRECTION dir, int room_index) {
+	auto entity = Entity();
+
+	// Initializes the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = convert_grid_to_world(grid_position);
+	motion.scale = vec2(world_tile_size, world_tile_size);
+
+	// Creates door
+	auto& door = registry.doors.emplace(entity);
+	door.dir = dir;
+	door.room_index = room_index;
+
+	game_info.room_index[room_index].doors.push_back(entity);
+	game_info.room_index[room_index].door_locations.push_back(grid_position);
+
+	// Locked doors are collidable
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = { motion.scale.x, motion.scale.y };
+	collidable.shift = { 0, 0 };
+
+	if (dir == DIRECTION::LEFT || dir == DIRECTION::RIGHT) {
+		door.top_texture = createDoorUpTexture(renderer, grid_position + vec2(0, -1));
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::DOOR_VERTICAL_CLOSE_DOWN,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::DOOR_HORIZONTAL_CLOSE,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+	return entity;
+}
+
+// for vertical doors, aesthetic effect
+Entity createDoorUpTexture(RenderSystem* renderer, vec2 grid_position) {
+	auto entity = Entity();
+
+	// Initializes the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = convert_grid_to_world(grid_position);
+	motion.scale = vec2(world_tile_size, world_tile_size);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::DOOR_VERTICAL_CLOSE_UP,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, vec2 grid_position, TILE_NAME_SANDSTONE tile_name, bool is_wall) {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -1224,7 +1283,7 @@ Entity createTile(RenderSystem* renderer, vec2 position, TILE_NAME_SANDSTONE til
 
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
-	motion.position = position;
+	motion.position = convert_grid_to_world(grid_position);
 	motion.scale = vec2(world_tile_size, world_tile_size);
 
 	// Create wall or floor entity for physics collision
@@ -1247,6 +1306,27 @@ Entity createTile(RenderSystem* renderer, vec2 position, TILE_NAME_SANDSTONE til
 		renderer->get_spriteloc_sandstone(tile_name),
 		t.mat
 	};
+
+	// Add visibility tile
+	// We do it here bcause we have already calculated the transform matrix
+	/*
+	This entity has:
+
+	TEXTURE_ASSET_ID::TEXTURE_COUNT,
+	EFFECT_ASSET_ID::EGG,
+	GEOMETRY_BUFFER_ID::DEBUG_LINE2
+	*/
+	if (map_level.level == MapLevel::TUTORIAL) return entity;
+
+	auto entity2 = Entity();
+	//registry.visibilityTiles.emplace(entity2); // TODO
+	registry.visibilityTileInstanceData.emplace(entity2) = {
+		t.mat,
+		1.0
+	};
+	// add reference to entity in 2d array
+	// when removing visibility tile entities, we set it's corresponding grid position in reference map to -1
+	visibility_system->reference_map[grid_position.y][grid_position.x] = entity2;
 
 	return entity;
 }

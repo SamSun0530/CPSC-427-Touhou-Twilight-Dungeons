@@ -8,6 +8,7 @@
 #include <iostream>
 #include <sstream>
 
+VisibilityInfo visibility_info;
 GameInfo game_info;
 Menu menu;
 DialogueInfo dialogue_info;

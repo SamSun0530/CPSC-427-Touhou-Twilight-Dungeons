@@ -19,6 +19,7 @@
 #include "map_system.hpp"
 #include "ai_system.hpp"
 #include <map>
+#include <visibility_system.hpp>
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -38,7 +39,7 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai);
+	void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai, VisibilitySystem* visibility_arg);
 
 	// initialize the menu
 	void init_menu();
@@ -56,9 +57,11 @@ public:
 
 	// Check for collisions
 	void handle_collisions();
+	// handle_wall_collisions parameter entity IS WALL ENTITY!
+	void handle_wall_collisions(Entity& entity, Entity& entity_other);
 
 	// Should the game be over ?
-	bool is_over()const;
+	bool is_over() const;
 
 	// font and instructions
 	float get_HP_timer();
@@ -70,6 +73,7 @@ public:
 	void WorldSystem::dialogue_step(float elapsed_time);
 	void toggle_show_fps() { show_fps = !show_fps; }
 	// Updates focus mode position
+	// Should be called after physics step
 	// Fixes issue where dot lags behind player due to physics lerp step after setting position
 	void update_focus_dot();
 private:
@@ -106,6 +110,8 @@ private:
 
 	// Game state
 	RenderSystem* renderer;
+	VisibilitySystem* visibility_system;
+
 	float next_enemy_spawn;
 	Audio* audio;
 	int tutorial_counter = 10;

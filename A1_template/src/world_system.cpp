@@ -27,7 +27,7 @@ WorldSystem::WorldSystem()
 	, display_instruction(true) {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
-	loadScript("start.txt",start_script);
+	loadScript("start.txt", start_script);
 	loadScript("cirno.txt", cirno_script);
 }
 
@@ -122,11 +122,12 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai) {
+void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai, VisibilitySystem* visibility_arg) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
 	this->map = map;
 	this->ai = ai;
+	this->visibility_system = visibility_arg;
 	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
 	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
@@ -377,6 +378,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 				if (number <= 0.1)
 					createFood(renderer, registry.motions.get(entity).position);
+
+				auto& deadly_entities = game_info.room_index[game_info.in_room].enemies;
+				for (int i = 0; i < deadly_entities.size(); ++i) {
+					if (entity == deadly_entities[i]) {
+						std::swap(deadly_entities[i], deadly_entities[deadly_entities.size() - 1]);
+						deadly_entities.pop_back();
+						break;
+					}
+				}
+
 				registry.remove_all_components_of(entity);
 			}
 			else {
@@ -437,8 +448,8 @@ std::string replaceNewlines(std::string str) {
 	return str;
 }
 
-unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::string> & scripts) {
-	std::ifstream script_file("../../../script/"+file_name);
+unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::string>& scripts) {
+	std::ifstream script_file("../../../script/" + file_name);
 	if (script_file.is_open()) {
 		std::cout << "opened" << std::endl;
 		std::string line;
@@ -458,7 +469,7 @@ void WorldSystem::restart_game() {
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
 	start_pt = 0;
-	dialogue_info.cirno_pt =  1000;
+	dialogue_info.cirno_pt = 1000;
 	dialogue_info.cirno_played = false;
 	start_dialogue_timer = 1000.f;
 
@@ -478,7 +489,11 @@ void WorldSystem::restart_game() {
 	while (registry.motions.entities.size() > 0)
 		registry.remove_all_components_of(registry.motions.entities.back());
 
-	// TODO: decide whether to destroy buttons every time on menu entry or one set of buttons
+	// Since visibility tile do not have motion, iterate and remove here
+	while (registry.visibilityTileInstanceData.entities.size() > 0)
+		registry.remove_all_components_of(registry.visibilityTileInstanceData.entities.back());
+
+	// initialize menus
 	init_menu();
 	init_pause_menu();
 
@@ -489,21 +504,17 @@ void WorldSystem::restart_game() {
 	reset_world_default();
 	map->restart_map();
 
+	game_info.reset_room_info();
+
 	if (map_level.level == MapLevel::TUTORIAL) {
 		map->generateTutorialMap();
 		renderer->set_tiles_instance_buffer();
 		player = map->spawnPlayer(world_center);
 	}
 	else {
-		//map->generateBasicMap();
-		//map->spawnEnemies();
-		//map->generateBossRoom();
 		map->generateRandomMap();
-		//map->spawnEnemies();
-		map->spawnEnemiesInRoom();
+		//map->spawnEnemiesInRoom();
 		player = map->spawnPlayerInRoom(0);
-		//player = map->spawnPlayer(world_center);
-		renderer->set_tiles_instance_buffer();
 	}
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
@@ -517,9 +528,55 @@ void WorldSystem::restart_game() {
 	focus_mode.restart();
 	ai->restart_flow_field_map();
 	display_combo = createCombo(renderer);
+	game_info.set_player_id(player);
 
 	renderer->camera.setPosition({ 0, 0 });
-	
+
+}
+
+// handle_wall_collisions parameter entity IS WALL ENTITY!
+void WorldSystem::handle_wall_collisions(Entity& entity, Entity& entity_other) {
+	Motion& wall_motion = registry.motions.get(entity);
+	Motion& entity_motion = registry.motions.get(entity_other);
+	Kinematic& kinematic = registry.kinematics.get(entity_other);
+	Collidable& wall_collidable = registry.collidables.get(entity);
+	Collidable& entity_collidable = registry.collidables.get(entity_other);
+	vec2 wall_center = wall_motion.position + wall_collidable.shift;
+	vec2 entity_center = entity_motion.position + entity_collidable.shift;
+
+	// Minkowski Sum adapted from "sam hocevar": https://gamedev.stackexchange.com/a/24091
+	// Find the normal of object B, or the wall given two rectangles
+	float wy = (wall_collidable.size.x + entity_collidable.size.x) * (entity_center.y - wall_center.y);
+	float hx = (wall_collidable.size.y + entity_collidable.size.y) * (entity_center.x - wall_center.x);
+
+	if (wy > hx) {
+		if (wy > -hx) {
+			// top
+			entity_motion.position = { entity_motion.position.x , wall_center.y + wall_collidable.size.y / 2 + entity_collidable.size.y / 2 - entity_collidable.shift.y };
+			kinematic.direction = { kinematic.direction.x, 0 };
+			kinematic.velocity = { kinematic.velocity.x, 0 };
+		}
+		else {
+			// left
+			entity_motion.position = { wall_center.x - wall_collidable.size.x / 2 - entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
+			kinematic.direction = { 0, kinematic.direction.y };
+			kinematic.velocity = { 0, kinematic.velocity.y };
+		}
+	}
+	else {
+		if (wy > -hx) {
+			// right
+			entity_motion.position = { wall_center.x + wall_collidable.size.x / 2 + entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
+			kinematic.direction = { 0, kinematic.direction.y };
+			kinematic.velocity = { 0, kinematic.velocity.y };
+		}
+		else {
+			// bottom
+			entity_motion.position = { entity_motion.position.x , wall_center.y - wall_collidable.size.y / 2 - entity_collidable.size.y / 2 - entity_collidable.shift.y };
+			kinematic.direction = { kinematic.direction.x, 0 };
+			kinematic.velocity = { kinematic.velocity.x, 0 };
+		}
+	}
 }
 
 // Compute collisions between entities
@@ -531,6 +588,7 @@ void WorldSystem::handle_collisions() {
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other;
 
+		// Player collisions
 		if (registry.players.has(entity)) {
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
@@ -589,6 +647,7 @@ void WorldSystem::handle_collisions() {
 					}
 				}
 			}
+			// Checking player - Pick ups collisions
 			else if (registry.pickupables.has(entity_other)) {
 				if (!registry.realDeathTimers.has(entity)) {
 					HP& hp = registry.hps.get(entity);
@@ -600,12 +659,19 @@ void WorldSystem::handle_collisions() {
 					registry.remove_all_components_of(entity_other);
 				}
 			}
+			// Checking player - coins collisions
 			else if (registry.coins.has(entity_other)) {
 				if (!registry.realDeathTimers.has(entity)) {
 					registry.players.get(entity).coin_amount += registry.coins.get(entity_other).coin_amount;
 					registry.remove_all_components_of(entity_other);
 				}
 			}
+			// Checking player - keys collision
+			else if (registry.keys.has(entity_other)) {
+				registry.players.get(entity).key_amount++;
+				registry.remove_all_components_of(entity_other);
+			}
+			// Checking player - power up items collisions
 			else if (registry.maxhpIncreases.has(entity_other)) {
 
 				registry.hps.get(entity).max_hp += registry.maxhpIncreases.get(entity_other).max_health_increase;
@@ -620,11 +686,8 @@ void WorldSystem::handle_collisions() {
 				registry.players.get(entity).bullet_damage += 1;
 				registry.remove_all_components_of(entity_other);
 			}
-			else if (registry.keys.has(entity_other)) {
-				registry.players.get(entity).key_amount++;
-				registry.remove_all_components_of(entity_other);
-			}
 		}
+		// Checks enemy collisions
 		else if (registry.deadlys.has(entity)) {
 			if (registry.playerBullets.has(entity_other) && !registry.invulnerableTimers.has(entity)) {
 				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
@@ -715,63 +778,40 @@ void WorldSystem::handle_collisions() {
 				}
 			}
 		}
+		// Checks wall collisions
+		// Checks locked door collisions
 		else if (registry.walls.has(entity)) {
-			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
-				Motion& bullet_motion = registry.motions.get(entity_other);
-				if (registry.playerBullets.has(entity_other)) {
-					registry.realDeathTimers.emplace(createBulletDisappear(renderer, bullet_motion.position, bullet_motion.angle, true)).death_counter_ms = 200; ;
-				}
-				registry.remove_all_components_of(entity_other);
-			}
-			else if (registry.players.has(entity_other) || registry.deadlys.has(entity_other)) {
-				Motion& wall_motion = registry.motions.get(entity);
-				Motion& entity_motion = registry.motions.get(entity_other);
-				Kinematic& kinematic = registry.kinematics.get(entity_other);
-				Collidable& wall_collidable = registry.collidables.get(entity);
-				Collidable& entity_collidable = registry.collidables.get(entity_other);
-				vec2 wall_center = wall_motion.position + wall_collidable.shift;
-				vec2 entity_center = entity_motion.position + entity_collidable.shift;
-
-				// Minkowski Sum adapted from "sam hocevar": https://gamedev.stackexchange.com/a/24091
-				// Find the normal of object B, or the wall given two rectangles
-				float wy = (wall_collidable.size.x + entity_collidable.size.x) * (entity_center.y - wall_center.y);
-				float hx = (wall_collidable.size.y + entity_collidable.size.y) * (entity_center.x - wall_center.x);
-
-				if (wy > hx) {
-					if (wy > -hx) {
-						// top
-						entity_motion.position = { entity_motion.position.x , wall_center.y + wall_collidable.size.y / 2 + entity_collidable.size.y / 2 - entity_collidable.shift.y };
-						kinematic.direction = { kinematic.direction.x, 0 };
-						kinematic.velocity = { kinematic.velocity.x, 0 };
-					}
-					else {
-						// left
-						entity_motion.position = { wall_center.x - wall_collidable.size.x / 2 - entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
-						kinematic.direction = { 0, kinematic.direction.y };
-						kinematic.velocity = { 0, kinematic.velocity.y };
-					}
-				}
-				else {
-					if (wy > -hx) {
-						// right
-						entity_motion.position = { wall_center.x + wall_collidable.size.x / 2 + entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
-						kinematic.direction = { 0, kinematic.direction.y };
-						kinematic.velocity = { 0, kinematic.velocity.y };
-					}
-					else {
-						// bottom
-						entity_motion.position = { entity_motion.position.x , wall_center.y - wall_collidable.size.y / 2 - entity_collidable.size.y / 2 - entity_collidable.shift.y };
-						kinematic.direction = { kinematic.direction.x, 0 };
-						kinematic.velocity = { kinematic.velocity.x, 0 };
-					}
-				}
-
-
+			// enemy/player bullets to wall are handled in physics system 
+			if (registry.players.has(entity_other) || registry.deadlys.has(entity_other)) {
+				handle_wall_collisions(entity, entity_other);
 			}
 		}
-		else if (registry.enemyBullets.has(entity)) {
-			if (registry.walls.has(entity_other)) {
-				registry.remove_all_components_of(entity);
+		else if (registry.doors.has(entity)) {
+			if (registry.players.has(entity_other)) {
+				Door& door = registry.doors.get(entity);
+				if (door.is_locked) {
+					handle_wall_collisions(entity, entity_other);
+				}
+				else {
+					Room_struct& room = game_info.room_index[door.room_index];
+					if (room.need_to_spawn) {
+						room.need_to_spawn = false;
+						// spawn enemies in room
+						map->spawnEnemiesInRoom(room);
+					}
+
+					if (door.is_closed) {
+						renderer->switch_door_texture(entity, false);
+						door.is_closed = false;
+					}
+
+					if (!door.is_visited) {
+						door.is_visited = true;
+					}
+				}
+			}
+			else if (registry.deadlys.has(entity_other)) {
+				handle_wall_collisions(entity, entity_other);
 			}
 		}
 	}
@@ -1032,7 +1072,8 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	else if (start_pt == start_script.size()) {
 		start_pt += 1;
 		resume_game();
-	} else if (dialogue_info.cirno_pt < cirno_script.size()) {
+	}
+	else if (dialogue_info.cirno_pt < cirno_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		std::istringstream ss(cirno_script[dialogue_info.cirno_pt]);
