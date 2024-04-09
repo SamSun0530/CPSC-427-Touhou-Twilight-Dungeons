@@ -70,6 +70,7 @@ int main()
 
 		}
 		else if (menu.state == MENU_STATE::PLAY) {
+			world.dialogue_step(elapsed_ms);
 			elapsed_ms = combo_mode.combo_meter * elapsed_ms;
 			world.step(elapsed_ms);
 			boss_system.step(elapsed_ms);
@@ -82,6 +83,10 @@ int main()
 		}
 		else if (menu.state == MENU_STATE::PAUSE) {
 
+		}
+		else if (menu.state == MENU_STATE::DIALOGUE) {
+
+			world.dialogue_step(elapsed_ms);
 		}
 
 		// map.debug(); // Just to visualize the map

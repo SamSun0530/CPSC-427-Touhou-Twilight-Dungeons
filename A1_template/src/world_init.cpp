@@ -472,6 +472,74 @@ Entity createCombo(RenderSystem* renderer)
 	return entity;
 }
 
+void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2) {
+	auto reimu_entity = Entity();
+
+	// Setting initial motion values
+	Motion& motion_reimu = registry.motions.emplace(reimu_entity);
+	motion_reimu.position = vec2(-250,0);
+	motion_reimu.angle = 0.f;
+	motion_reimu.scale = vec2({ 550.f, 600.f });
+
+	registry.dialogueMenus.emplace(reimu_entity);
+	if (character == CHARACTER::REIMU) {
+		registry.renderRequests.insert(
+			reimu_entity,
+			{ TEXTURE_ASSET_ID::REIMU_PORTRAIT, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::UI,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		registry.renderRequests.insert(
+			reimu_entity,
+			{ TEXTURE_ASSET_ID::REIMU_PORTRAIT, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::GREY,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+	if (talk_2 != CHARACTER::NONE) {
+		auto other_entity = Entity();
+
+		// Setting initial motion values
+		Motion& motion_other = registry.motions.emplace(other_entity);
+		motion_other.position = vec2(250, 0);
+		motion_other.angle = 0.f;
+		motion_other.scale = vec2({ 550.f, 600.f });
+
+		registry.dialogueMenus.emplace(other_entity);
+		if (character == talk_2) {
+			registry.renderRequests.insert(
+				other_entity,
+				{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::REIMU_PORTRAIT + (int)talk_2), // TEXTURE_COUNT indicates that no txture is needed
+					EFFECT_ASSET_ID::UI,
+					GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else {
+			registry.renderRequests.insert(
+				other_entity,
+				{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::REIMU_PORTRAIT + (int)talk_2), // TEXTURE_COUNT indicates that no txture is needed
+					EFFECT_ASSET_ID::GREY,
+					GEOMETRY_BUFFER_ID::SPRITE });
+		}
+	}
+
+	auto dialogue_entity = Entity();
+	// Setting initial motion values
+	Motion& motion_dialogue = registry.motions.emplace(dialogue_entity);
+	motion_dialogue.position = vec2(0, window_px_half.y-130);
+	motion_dialogue.angle = 0.f;
+	motion_dialogue.scale = vec2({ 1.6 * 688.f, 1.2*224.f });
+
+	registry.dialogueMenus.emplace(dialogue_entity);
+	registry.renderRequests.insert(
+		dialogue_entity,
+		{ TEXTURE_ASSET_ID::DIALOGUE_BOX, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	
+	createText({ 0,window_px_half.y - 170 }, { 0.8,0.8 }, sentence, vec3(0, 0, 0), false, false);
+}
+
 Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui, bool is_active, float frame_rate)
 {
 	auto entity = Entity();

@@ -11,6 +11,8 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <SDL_mixer.h>
+#include <iostream>
+#include <sstream>
 
 #include "render_system.hpp"
 #include "audio.hpp"
@@ -65,6 +67,7 @@ public:
 	bool get_show_fps();
 	std::string get_fps_in_string();
 	void toggle_display_instruction() { display_instruction = !display_instruction; }
+	void WorldSystem::dialogue_step(float elapsed_time);
 	void toggle_show_fps() { show_fps = !show_fps; }
 	// Updates focus mode position
 	// Fixes issue where dot lags behind player due to physics lerp step after setting position
@@ -75,11 +78,19 @@ private:
 	void on_mouse_move(vec2 pos);
 	void on_mouse_key(int button, int action, int mods);
 	void on_scroll(vec2 scroll_offset);
+	unsigned int loadScript(std::string file_name, std::vector<std::string>& scripts);
 	//void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 
 	// State of keyboard
 	// Initial state is all false
 	std::array<bool, 512> pressed = { 0 };
+	std::vector<std::string> start_script;
+	std::vector<std::string> cirno_script;
+	unsigned int start_pt = 0;
+	float start_dialogue_timer = 1000.f;
+	float word_up_ms = 50.f;
+	unsigned int curr_word = 0;
+	std::string start_buffer;
 	// Update player direction based on pressed
 	void updatePlayerDirection(Kinematic& player_kinematic);
 
