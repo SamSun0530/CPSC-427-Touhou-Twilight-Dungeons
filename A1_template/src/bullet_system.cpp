@@ -88,9 +88,9 @@ void BulletSystem::step(float elapsed_ms)
 			}
 			// Spawn bullets
 			if (entity == player) {
-
-				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, damageBuff);
-				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true,  damageBuff);
+				//int damagebuff = bullet_spawner.damageBoost;
+				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, nullptr,bullet_spawner.damageBoost);
+				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, nullptr, bullet_spawner.damageBoost);
 			}
 			else if (registry.bosses.has(entity)) {
 				Boss& boss = registry.bosses.get(entity);

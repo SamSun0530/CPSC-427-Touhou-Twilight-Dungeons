@@ -655,6 +655,7 @@ void WorldSystem::handle_collisions() {
 					else {
 						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
 					}
+					std::cout << "bullet_dmg: " << std::to_string(registry.playerBullets.get(entity_other).damage) << std::endl;
 
 					if (!registry.bosses.has(entity)) {
 						// Knockback
