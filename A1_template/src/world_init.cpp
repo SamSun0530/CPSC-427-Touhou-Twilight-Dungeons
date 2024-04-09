@@ -1,7 +1,7 @@
 #include "world_init.hpp"
 #include <iostream>
 
-Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern)
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern, int damageBuff)
 {
 	auto entity = Entity();
 
@@ -26,7 +26,8 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	collidable.size = abs(motion.scale / 2.f);
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
-		registry.playerBullets.emplace(entity);
+		auto& playerBullet = registry.playerBullets.emplace(entity);
+		playerBullet.damage += damageBuff;
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::BULLET,
@@ -169,13 +170,13 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 
 	Purchasableable& purchasableable = registry.purchasableables.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
-	if (number == 0) {
+	
+	purchasableable.cost = number * 10;
+	purchasableable.effect_strength = number * 10;
+
+	if (purchasableable.cost == 0) {
 		purchasableable.cost = 1;
 		purchasableable.effect_strength = 1;
-	}
-	else {
-		purchasableable.cost = number * 10;
-		purchasableable.effect_strength = number * 10;
 	}
 
 	purchasableable.effect_type = type;

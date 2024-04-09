@@ -153,6 +153,7 @@ struct BulletPattern {
 // Inspiration/Credit from: https://youtu.be/whrInb6Z7QI
 struct BulletSpawner
 {
+	int damageBoost;
 	// determines if bullet can be fired
 	bool is_firing = false;
 	// set this to -1 so entity can fire immediately

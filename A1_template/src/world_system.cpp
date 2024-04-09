@@ -578,6 +578,7 @@ void WorldSystem::handle_collisions() {
 						Purchasableable& treasure = registry.purchasableables.get(entity_other);
 						const Motion& motion = registry.motions.get(entity_other);
 						Player& player_att = registry.players.get(player);
+						BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
 						treasure.player_overlap = true;
 						if (pressed[GLFW_KEY_E] && player_att.coin_amount >= treasure.cost) {
 							std::cout << "treasure.effect_type: " << std::to_string(treasure.effect_type) << std::endl;
@@ -587,21 +588,23 @@ void WorldSystem::handle_collisions() {
 							// treasure.effect_strength value between 0~1
 							std::cout << "--------------before------------------" << std::endl;
 							std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
-							std::cout << "player_att.fire_rate: " << std::to_string(player_att.fire_rate) << std::endl;
+							std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
 							std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
 							if (treasure.effect_type == 1) {
 								player_att.bullet_damage += treasure.effect_strength;
+								bullet_spawner.damageBoost = treasure.effect_strength;
 							}
-							// not sure how to faster fire_rate, need help from alan
 							else if (treasure.effect_type == 2) {
 								player_att.fire_rate += float(treasure.effect_strength * 0.01);
+								// bullet_spawner.fire_rate = 0.0001;
+								bullet_spawner.fire_rate *= (1-float(treasure.effect_strength * 0.1));
 							}
 							else if (treasure.effect_type == 3) {
 								player_att.critical_hit += float(treasure.effect_strength*0.01);
 							}
 							std::cout << "-------------after---------------------" << std::endl;
 							std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
-							std::cout << "player_att.fire_rate: " << std::to_string(player_att.fire_rate) << std::endl;
+							std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
 							std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
 							registry.remove_all_components_of(entity_other);
 						}

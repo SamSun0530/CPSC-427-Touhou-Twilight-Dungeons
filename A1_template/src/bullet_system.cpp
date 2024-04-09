@@ -88,8 +88,9 @@ void BulletSystem::step(float elapsed_ms)
 			}
 			// Spawn bullets
 			if (entity == player) {
-				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true);
-				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true);
+
+				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, damageBuff);
+				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true,  damageBuff);
 			}
 			else if (registry.bosses.has(entity)) {
 				Boss& boss = registry.bosses.get(entity);
@@ -249,10 +250,10 @@ void BulletSystem::step(float elapsed_ms)
 	}
 }
 
-void spawn_bullets(RenderSystem* renderer, std::vector<vec2>& initial_bullet_directions, float bullet_initial_speed, vec2 spawn_position, Kinematic& kinematic, bool is_player_bullet, BulletPattern* bullet_pattern)
+void spawn_bullets(RenderSystem* renderer, std::vector<vec2>& initial_bullet_directions, float bullet_initial_speed, vec2 spawn_position, Kinematic& kinematic, bool is_player_bullet, BulletPattern* bullet_pattern, int damageBuff)
 {
 	for (int i = 0; i < initial_bullet_directions.size(); ++i) {
-		createBullet(renderer, kinematic.speed_modified, spawn_position, 0, initial_bullet_directions[i], bullet_initial_speed, is_player_bullet, bullet_pattern);
+		createBullet(renderer, kinematic.speed_modified, spawn_position, 0, initial_bullet_directions[i], bullet_initial_speed, is_player_bullet, bullet_pattern, damageBuff);
 	}
 }
 
