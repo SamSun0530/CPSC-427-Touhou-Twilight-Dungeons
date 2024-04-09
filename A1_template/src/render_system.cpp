@@ -369,7 +369,6 @@ void RenderSystem::draw()
 
 		drawTilesInstanced(projection_2D, view_2D);
 
-
 		for (Entity entity : registry.renderRequests.entities)
 		{
 			if (registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::BOSS_HEALTH_BAR) {

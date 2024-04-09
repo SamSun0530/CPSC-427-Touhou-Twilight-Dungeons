@@ -55,9 +55,11 @@ public:
 
 	// Check for collisions
 	void handle_collisions();
+	// handle_wall_collisions parameter entity IS WALL ENTITY!
+	void handle_wall_collisions(Entity& entity, Entity& entity_other);
 
 	// Should the game be over ?
-	bool is_over()const;
+	bool is_over() const;
 
 	// font and instructions
 	bool get_display_instruction();

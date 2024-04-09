@@ -490,6 +490,51 @@ void WorldSystem::restart_game() {
 	renderer->camera.setPosition({ 0, 0 });
 }
 
+// handle_wall_collisions parameter entity IS WALL ENTITY!
+void WorldSystem::handle_wall_collisions(Entity& entity, Entity& entity_other) {
+	Motion& wall_motion = registry.motions.get(entity);
+	Motion& entity_motion = registry.motions.get(entity_other);
+	Kinematic& kinematic = registry.kinematics.get(entity_other);
+	Collidable& wall_collidable = registry.collidables.get(entity);
+	Collidable& entity_collidable = registry.collidables.get(entity_other);
+	vec2 wall_center = wall_motion.position + wall_collidable.shift;
+	vec2 entity_center = entity_motion.position + entity_collidable.shift;
+
+	// Minkowski Sum adapted from "sam hocevar": https://gamedev.stackexchange.com/a/24091
+	// Find the normal of object B, or the wall given two rectangles
+	float wy = (wall_collidable.size.x + entity_collidable.size.x) * (entity_center.y - wall_center.y);
+	float hx = (wall_collidable.size.y + entity_collidable.size.y) * (entity_center.x - wall_center.x);
+
+	if (wy > hx) {
+		if (wy > -hx) {
+			// top
+			entity_motion.position = { entity_motion.position.x , wall_center.y + wall_collidable.size.y / 2 + entity_collidable.size.y / 2 - entity_collidable.shift.y };
+			kinematic.direction = { kinematic.direction.x, 0 };
+			kinematic.velocity = { kinematic.velocity.x, 0 };
+		}
+		else {
+			// left
+			entity_motion.position = { wall_center.x - wall_collidable.size.x / 2 - entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
+			kinematic.direction = { 0, kinematic.direction.y };
+			kinematic.velocity = { 0, kinematic.velocity.y };
+		}
+	}
+	else {
+		if (wy > -hx) {
+			// right
+			entity_motion.position = { wall_center.x + wall_collidable.size.x / 2 + entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
+			kinematic.direction = { 0, kinematic.direction.y };
+			kinematic.velocity = { 0, kinematic.velocity.y };
+		}
+		else {
+			// bottom
+			entity_motion.position = { entity_motion.position.x , wall_center.y - wall_collidable.size.y / 2 - entity_collidable.size.y / 2 - entity_collidable.shift.y };
+			kinematic.direction = { kinematic.direction.x, 0 };
+			kinematic.velocity = { kinematic.velocity.x, 0 };
+		}
+	}
+}
+
 // Compute collisions between entities
 void WorldSystem::handle_collisions() {
 	// Loop over all collisions detected by the physics system
@@ -683,72 +728,37 @@ void WorldSystem::handle_collisions() {
 		}
 		// Checks wall collisions
 		// Checks locked door collisions
-		else if (registry.walls.has(entity) || (registry.doors.has(entity) && registry.doors.get(entity).is_shut)) {
-			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
-				Motion& bullet_motion = registry.motions.get(entity_other);
-				if (registry.playerBullets.has(entity_other)) {
-					registry.realDeathTimers.emplace(createBulletDisappear(renderer, bullet_motion.position, bullet_motion.angle, true)).death_counter_ms = 200; ;
-				}
-				registry.remove_all_components_of(entity_other);
-			}
-			else if (registry.players.has(entity_other) || registry.deadlys.has(entity_other)) {
-				Motion& wall_motion = registry.motions.get(entity);
-				Motion& entity_motion = registry.motions.get(entity_other);
-				Kinematic& kinematic = registry.kinematics.get(entity_other);
-				Collidable& wall_collidable = registry.collidables.get(entity);
-				Collidable& entity_collidable = registry.collidables.get(entity_other);
-				vec2 wall_center = wall_motion.position + wall_collidable.shift;
-				vec2 entity_center = entity_motion.position + entity_collidable.shift;
-
-				// Opens the door and prevents stopping once collided
-				if (registry.doors.has(entity) && !registry.deadlys.has(entity_other)) {
-					Door& door = registry.doors.get(entity);
-					if (!door.is_locked) {
-						door.is_shut = false;
-						break;
-					}
-				}
-
-				// Minkowski Sum adapted from "sam hocevar": https://gamedev.stackexchange.com/a/24091
-				// Find the normal of object B, or the wall given two rectangles
-				float wy = (wall_collidable.size.x + entity_collidable.size.x) * (entity_center.y - wall_center.y);
-				float hx = (wall_collidable.size.y + entity_collidable.size.y) * (entity_center.x - wall_center.x);
-
-				if (wy > hx) {
-					if (wy > -hx) {
-						// top
-						entity_motion.position = { entity_motion.position.x , wall_center.y + wall_collidable.size.y / 2 + entity_collidable.size.y / 2 - entity_collidable.shift.y };
-						kinematic.direction = { kinematic.direction.x, 0 };
-						kinematic.velocity = { kinematic.velocity.x, 0 };
-					}
-					else {
-						// left
-						entity_motion.position = { wall_center.x - wall_collidable.size.x / 2 - entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
-						kinematic.direction = { 0, kinematic.direction.y };
-						kinematic.velocity = { 0, kinematic.velocity.y };
-					}
-				}
-				else {
-					if (wy > -hx) {
-						// right
-						entity_motion.position = { wall_center.x + wall_collidable.size.x / 2 + entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
-						kinematic.direction = { 0, kinematic.direction.y };
-						kinematic.velocity = { 0, kinematic.velocity.y };
-					}
-					else {
-						// bottom
-						entity_motion.position = { entity_motion.position.x , wall_center.y - wall_collidable.size.y / 2 - entity_collidable.size.y / 2 - entity_collidable.shift.y };
-						kinematic.direction = { kinematic.direction.x, 0 };
-						kinematic.velocity = { kinematic.velocity.x, 0 };
-					}
-				}
-
-
+		else if (registry.walls.has(entity)) {
+			// enemy/player bullets to wall are handled in physics system 
+			if (registry.players.has(entity_other) || registry.deadlys.has(entity_other)) {
+				handle_wall_collisions(entity, entity_other);
 			}
 		}
-		else if (registry.enemyBullets.has(entity)) {
-			if (registry.walls.has(entity_other) || (registry.doors.has(entity_other) && registry.doors.get(entity_other).is_shut)) {
-				registry.remove_all_components_of(entity);
+		else if (registry.doors.has(entity)) {
+			if (registry.players.has(entity_other)) {
+				Door& door = registry.doors.get(entity);
+				if (door.is_locked) {
+					handle_wall_collisions(entity, entity_other);
+				}
+				else {
+					Room_struct& room = game_info.room_index[door.room_index];
+					if (room.need_to_spawn) {
+						room.need_to_spawn = false;
+						// spawn enemies in room
+						map->spawnEnemiesInRoom(room);
+					}
+
+					// TODO
+					if (door.is_closed) {
+						// render closed
+					}
+					else {
+						// render unclosed
+					}
+				}
+			}
+			else if (registry.deadlys.has(entity_other)) {
+				handle_wall_collisions(entity, entity_other);
 			}
 		}
 	}

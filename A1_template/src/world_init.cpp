@@ -62,8 +62,8 @@ Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float
 	auto& kinematic = registry.kinematics.emplace(entity);
 
 	// Set the collision box
-	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = abs(motion.scale);
+	//auto& collidable = registry.collidables.emplace(entity);
+	//collidable.size = abs(motion.scale);
 
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {

@@ -79,7 +79,9 @@ bool is_valid_cell(int x, int y);
 
 enum class ROOM_TYPE {
 	NORMAL,
-	BOSS
+	BOSS,
+	START,
+	SHOP
 };
 
 enum class DIRECTION {
@@ -94,8 +96,7 @@ struct Room_struct {
 	ROOM_TYPE type = ROOM_TYPE::NORMAL;
 	std::vector<Entity> enemies;
 	bool is_cleared = false;
-	bool need_to_spawn = false;
-	bool has_spawned = false;
+	bool need_to_spawn = true;
 	std::vector<coord> door_locations; // {x,y,direction}
 	std::vector<Entity> doors;
 	vec2 top_left;
