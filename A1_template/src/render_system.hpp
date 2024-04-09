@@ -91,7 +91,13 @@ class RenderSystem {
 			textures_path("C.png"),
 			textures_path("B.png"),
 			textures_path("A.png"),
-			textures_path("S.png")
+			textures_path("S.png"),
+			textures_path("DoorHorizontalOpen.png"),
+			textures_path("DoorHorizontalClose.png"),
+			textures_path("DoorVerticalOpenDown.png"),
+			textures_path("DoorVerticalOpenUp.png"),
+			textures_path("DoorVerticalCloseDown.png"),
+			textures_path("DoorVerticalcloseUp.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -160,8 +166,10 @@ public:
 	void set_visibility_tiles_instance_buffer();
 	// called once when generating new map
 	void set_visibility_tiles_instance_buffer_max();
-
+	// get sprite location of tile name sandstone atlas
 	vec4 get_spriteloc_sandstone(TILE_NAME_SANDSTONE tile_name);
+	// if is_close true, switch to closed texture, otherwise open texture
+	void switch_door_texture(Entity door_entity, bool is_close);
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);

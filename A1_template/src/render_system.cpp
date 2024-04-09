@@ -84,7 +84,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		(*render_request).used_effect == EFFECT_ASSET_ID::UI ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB ||
-		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER || 
+		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::COMBO)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
@@ -164,7 +164,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		float strength = 0.2f;
 		if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::C) {
 			strength = 0.2f;
-		} else if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::B) {
+		}
+		else if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::B) {
 			strength = 0.3f;
 		}
 		else if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::A) {
@@ -347,7 +348,7 @@ void RenderSystem::draw()
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
 	//glClearColor(0.674, 0.847, 1.0, 1.0);
-	glClearColor(0, 0, 0 , 1.0);
+	glClearColor(0, 0, 0, 1.0);
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
@@ -905,4 +906,29 @@ void RenderSystem::drawVisibilityTilesInstanced(const glm::mat3& projection, con
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	gl_has_errors();
+}
+
+// if is_close true, switch to closed texture, otherwise open texture
+void RenderSystem::switch_door_texture(Entity door_entity, bool is_close) {
+	Door& door = registry.doors.get(door_entity);
+	RenderRequest& request = registry.renderRequests.get(door_entity);
+	if (door.dir == DIRECTION::RIGHT || door.dir == DIRECTION::LEFT) {
+		RenderRequest& top_request = registry.renderRequests.get(door.top_texture);
+		if (is_close) {
+			top_request.used_texture = TEXTURE_ASSET_ID::DOOR_VERTICAL_CLOSE_UP;
+			request.used_texture = TEXTURE_ASSET_ID::DOOR_VERTICAL_CLOSE_DOWN;
+		}
+		else {
+			top_request.used_texture = TEXTURE_ASSET_ID::DOOR_VERTICAL_OPEN_UP;
+			request.used_texture = TEXTURE_ASSET_ID::DOOR_VERTICAL_OPEN_DOWN;
+		}
+	}
+	else {
+		if (is_close) {
+			request.used_texture = TEXTURE_ASSET_ID::DOOR_HORIZONTAL_CLOSE;
+		}
+		else {
+			request.used_texture = TEXTURE_ASSET_ID::DOOR_HORIZONTAL_OPEN;
+		}
+	}
 }

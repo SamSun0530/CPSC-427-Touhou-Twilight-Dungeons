@@ -757,16 +757,14 @@ void WorldSystem::handle_collisions() {
 						map->spawnEnemiesInRoom(room);
 					}
 
-					// TODO
-					/*
-					if (door.is_closed || door.is_locked) {
-						// render closed
-						registry.renderRequests.get(entity).used_texture = TEXTURE_ASSET_ID::MENU_TITLE;
+					if (door.is_closed) {
+						renderer->switch_door_texture(entity, false);
+						door.is_closed = false;
 					}
-					else {
-						// render unclosed
-						registry.renderRequests.get(entity).used_texture = TEXTURE_ASSET_ID::BOSS;
-					} */
+
+					if (!door.is_visited) {
+						door.is_visited = true;
+					}
 				}
 			}
 			else if (registry.deadlys.has(entity_other)) {

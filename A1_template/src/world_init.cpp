@@ -459,7 +459,7 @@ Entity createCombo(RenderSystem* renderer)
 
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
-	motion.position = vec2(window_px_half.x, -window_px_half.y) - vec2(150,-150);
+	motion.position = vec2(window_px_half.x, -window_px_half.y) - vec2(150, -150);
 	motion.scale = vec2(160, 160);
 
 	registry.UIUX.emplace(entity);
@@ -1169,9 +1169,37 @@ Entity createDoor(RenderSystem* renderer, vec2 grid_position, DIRECTION dir, int
 	collidable.size = { motion.scale.x, motion.scale.y };
 	collidable.shift = { 0, 0 };
 
+	if (dir == DIRECTION::LEFT || dir == DIRECTION::RIGHT) {
+		door.top_texture = createDoorUpTexture(renderer, grid_position + vec2(0, -1));
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::DOOR_VERTICAL_CLOSE_DOWN,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::DOOR_HORIZONTAL_CLOSE,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+	return entity;
+}
+
+// for vertical doors, aesthetic effect
+Entity createDoorUpTexture(RenderSystem* renderer, vec2 grid_position) {
+	auto entity = Entity();
+
+	// Initializes the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = convert_grid_to_world(grid_position);
+	motion.scale = vec2(world_tile_size, world_tile_size);
+
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::BOSS, // TEMP TEXTURE
+		{ TEXTURE_ASSET_ID::DOOR_VERTICAL_CLOSE_UP,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 

@@ -35,6 +35,10 @@ void MapSystem::step(float elapsed_ms_since_last_update) {
 				for (Entity& door_entity : cur_room.doors) {
 					Door& door = registry.doors.get(door_entity);
 					door.is_locked = false;
+
+					if (door.is_visited) {
+						renderer->switch_door_texture(door_entity, false);
+					}
 				}
 			}
 			else {
@@ -43,6 +47,7 @@ void MapSystem::step(float elapsed_ms_since_last_update) {
 				for (Entity& door_entity : cur_room.doors) {
 					Door& door = registry.doors.get(door_entity);
 					door.is_locked = true;
+					renderer->switch_door_texture(door_entity, true);
 				}
 			}
 		}

@@ -455,8 +455,10 @@ struct TileInstanceData {
 struct Door {
 	bool is_locked = false;
 	bool is_closed = true;
+	bool is_visited = false; // for doors to remain open
 	DIRECTION dir;
 	int room_index;
+	Entity top_texture; // none if dir is UP OR DOWN
 };
 
 struct VisibilityTileInstanceData {
@@ -733,7 +735,13 @@ enum class TEXTURE_ASSET_ID {
 	B = C + 1,
 	A = B + 1,
 	S = A + 1,
-	TEXTURE_COUNT = S + 1
+	DOOR_HORIZONTAL_OPEN = S + 1,
+	DOOR_HORIZONTAL_CLOSE = DOOR_HORIZONTAL_OPEN + 1,
+	DOOR_VERTICAL_OPEN_DOWN = DOOR_HORIZONTAL_CLOSE + 1,
+	DOOR_VERTICAL_OPEN_UP = DOOR_VERTICAL_OPEN_DOWN + 1,
+	DOOR_VERTICAL_CLOSE_DOWN = DOOR_VERTICAL_OPEN_UP + 1,
+	DOOR_VERTICAL_CLOSE_UP = DOOR_VERTICAL_CLOSE_DOWN + 1,
+	TEXTURE_COUNT = DOOR_VERTICAL_CLOSE_UP + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
