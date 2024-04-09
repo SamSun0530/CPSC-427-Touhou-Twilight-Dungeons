@@ -8,6 +8,9 @@
 
 int room_size = 11; // Must be at least >= 4
 
+void MapSystem::step(float elapsed_ms) {
+}
+
 MapSystem::MapSystem() {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -50,39 +53,55 @@ bool MapSystem::is_valid_map(std::vector<std::vector<int>>& map) {
 	return true;
 }
 
-void MapSystem::spawnEnemiesInRoom() {
+void MapSystem::spawnEnemiesInRooms() {
 	Room_struct room;
-
-	for (int room_num = 1; room_num < bsptree.rooms.size(); room_num++) {
+	for (int room_num = 0; room_num < bsptree.rooms.size(); room_num++) {
 		room = bsptree.rooms[room_num];
-		if (bsptree.rooms[room_num].type == ROOM_TYPE::NORMAL) {
-			std::vector<vec2> spawn_points;
-			spawn_points.push_back(convert_grid_to_world(room.top_left + 1.f));
-			spawn_points.push_back(convert_grid_to_world(room.bottom_right - 1.f));
-			spawn_points.push_back(convert_grid_to_world(vec2(room.bottom_right.x - 1.f, room.top_left.y + 1.f)));
-			spawn_points.push_back(convert_grid_to_world(vec2(room.top_left.x + 1.f, room.bottom_right.y - 1.f)));
+		spawnEnemiesInRoom(room);
+	}
+}
 
-			for (vec2 point : spawn_points) {
-				float random_numer = uniform_dist(rng);
-				if (random_numer <= 0.50) {
-					createBeeEnemy(renderer, point);
-				}
-				else if (random_numer <= 0.75) {
-					createWolfEnemy(renderer, point);
-				}
-				else if (random_numer <= 0.99) {
-					createBomberEnemy(renderer, point);
-				}
+// spawn enemies inside room
+void MapSystem::spawnEnemiesInRoom(Room_struct& room)
+{
+	Entity entity;
+	if (room.type == ROOM_TYPE::NORMAL) {
+		std::vector<vec2> spawn_points;
+		spawn_points.push_back(convert_grid_to_world(room.top_left + 1.f));
+		spawn_points.push_back(convert_grid_to_world(room.bottom_right - 1.f));
+		spawn_points.push_back(convert_grid_to_world(vec2(room.bottom_right.x - 1.f, room.top_left.y + 1.f)));
+		spawn_points.push_back(convert_grid_to_world(vec2(room.top_left.x + 1.f, room.bottom_right.y - 1.f)));
+		
+		for (vec2 point : spawn_points) {
+			float random_numer = uniform_dist(rng);
+			if (random_numer <= 0.50) {
+				entity = createBeeEnemy(renderer, point);
 			}
+			else if (random_numer <= 0.75) {
+				entity = createWolfEnemy(renderer, point);
+			}
+			else if (random_numer <= 0.99) {
+				entity = createBomberEnemy(renderer, point);
+			}
+			room.enemies.push_back(entity);
 		}
-		else if (bsptree.rooms[room_num].type == ROOM_TYPE::BOSS) {
-			createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f));
-		}
+	}
+	else if (room.type == ROOM_TYPE::BOSS) {
+		createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f));
+	}
+	else if (room.type == ROOM_TYPE::START) {
+		// spawn nothing
 	}
 }
 
 Entity MapSystem::spawnPlayerInRoom(int room_number) {
 	if (room_number < 0 || room_number >= bsptree.rooms.size()) assert(false && "Room number out of bounds");
+	bsptree.rooms[room_number].type = ROOM_TYPE::START;
+	Room_struct& room = game_info.room_index[room_number];
+	room.type = ROOM_TYPE::START;
+	room.is_cleared = true;
+	room.need_to_spawn = false;
+
 	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f));
 }
 

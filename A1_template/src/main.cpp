@@ -56,6 +56,7 @@ int main()
 	animation.init(&renderer, window);
 	world.init_menu();
 	visibility_system.init(&renderer);
+	physics.init(&renderer);
 
 	// variable timestep loop
 	auto t = Clock::now();
