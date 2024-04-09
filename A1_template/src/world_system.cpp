@@ -27,7 +27,7 @@ WorldSystem::WorldSystem()
 	, display_instruction(true) {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
-	loadScript("start.txt",start_script);
+	loadScript("start.txt", start_script);
 	loadScript("cirno.txt", cirno_script);
 }
 
@@ -255,14 +255,32 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	createText(-window_px_half + vec2(70, 310), { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(0, 0, 0), false);
 	createText(-window_px_half + vec2(70, 360), { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(0, 0, 0), false);
 
-	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
-	// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
-	// Adapted from: https://gamedev.stackexchange.com/questions/152465/smoothly-move-camera-to-follow-player
-	float sharpness_factor_camera = 0.95f;
-	float K = 1.0f - pow(1.0f - sharpness_factor_camera, elapsed_ms_since_last_update / 1000.f);
-
+	// Camera
 	vec2 player_position = registry.motions.get(player).position;
-	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), player_position, K));
+	if (shake_timer_ms < 0) {
+		// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
+		// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
+		// Adapted from: https://gamedev.stackexchange.com/questions/152465/smoothly-move-camera-to-follow-player
+		float sharpness_factor_camera = 0.95f;
+		float K = 1.0f - pow(1.0f - sharpness_factor_camera, elapsed_ms_since_last_update / 1000.f);
+		renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), player_position, K));
+		strength = strength_default;
+	}
+	else {
+		shake_update_ms -= elapsed_ms_since_last_update;
+
+		if (shake_update_ms < 0) {
+			// shake camera - https://gamedev.stackexchange.com/a/47565
+			std::uniform_real_distribution<> dis(-0.5, 0.5);
+			vec2 offset = vec2(sin(dis(rng)), cos(dis(rng))) * strength;
+			//renderer->camera.setPosition(player_position + vec2(dis(rng), dis(rng)));
+
+			renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), player_position + offset, 1.0f - pow(1.0f - 0.95, elapsed_ms_since_last_update / 1000.f)));
+			strength *= 0.9;
+			shake_timer_ms -= elapsed_ms_since_last_update;
+			shake_update_ms = shake_update_ms_default;
+		}
+	}
 
 	// Interpolate mouse-camera offset
 	// sharpness_factor_camera_offset possible values:
@@ -439,8 +457,8 @@ std::string replaceNewlines(std::string str) {
 	return str;
 }
 
-unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::string> & scripts) {
-	std::ifstream script_file("../../../script/"+file_name);
+unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::string>& scripts) {
+	std::ifstream script_file("../../../script/" + file_name);
 	if (script_file.is_open()) {
 		std::cout << "opened" << std::endl;
 		std::string line;
@@ -465,7 +483,7 @@ void WorldSystem::restart_game() {
 		dialogue_info.cirno_played = false;
 		start_dialogue_timer = 1000.f;
 	}
-	
+
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 	printf("Restarting\n");
@@ -523,7 +541,7 @@ void WorldSystem::restart_game() {
 	display_combo = createCombo(renderer);
 
 	renderer->camera.setPosition({ 0, 0 });
-	
+
 }
 
 // Compute collisions between entities
@@ -563,6 +581,7 @@ void WorldSystem::handle_collisions() {
 								registry.kinematics.get(entity_other).velocity = { 0,0 };
 								registry.kinematics.get(entity_other).direction = { 0,0 };
 							}
+							shake_timer_ms = shake_timer_ms_default;
 						}
 
 						registry.players.get(player).invulnerability = true;
@@ -586,6 +605,7 @@ void WorldSystem::handle_collisions() {
 
 						registry.players.get(player).invulnerability = true;
 						registry.invulnerableTimers.emplace(entity).invulnerable_counter_ms = registry.players.components[0].invulnerability_time_ms;
+						shake_timer_ms = shake_timer_ms_default;
 					}
 				}
 			}
@@ -1030,7 +1050,8 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	else if (start_pt == start_script.size()) {
 		start_pt += 1;
 		resume_game();
-	} else if (dialogue_info.cirno_pt < cirno_script.size()) {
+	}
+	else if (dialogue_info.cirno_pt < cirno_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		std::istringstream ss(cirno_script[dialogue_info.cirno_pt]);

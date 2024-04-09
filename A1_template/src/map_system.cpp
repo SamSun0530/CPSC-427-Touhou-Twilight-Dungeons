@@ -109,7 +109,6 @@ void MapSystem::spawnEnemiesInRoom() {
 
 Entity MapSystem::spawnPlayerInRoom(int room_number) {
 	if (room_number < 0 || room_number >= bsptree.rooms.size()) assert(false && "Room number out of bounds");
-	room_number = bsptree.rooms.size() - 1;
 	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_left) / 2.f));
 }
 
