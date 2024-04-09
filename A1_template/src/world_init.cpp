@@ -1319,7 +1319,7 @@ Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, v
 	EFFECT_ASSET_ID::EGG,
 	GEOMETRY_BUFFER_ID::DEBUG_LINE2
 	*/
-	if (map_info.level == map_info::TUTORIAL) return entity;
+	if (map_info.level == MAP_LEVEL::TUTORIAL) return entity;
 
 	auto entity2 = Entity();
 	//registry.visibilityTiles.emplace(entity2); // TODO

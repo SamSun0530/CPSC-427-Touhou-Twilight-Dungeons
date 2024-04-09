@@ -11,14 +11,14 @@ struct DialogueInfo {
 };
 extern DialogueInfo dialogue_info;
 
-enum class map_info {
+enum class MAP_LEVEL {
 	TUTORIAL,
 	MAIN
 };
 
 // World map loader
 struct MapInfo {
-	map_info level = map_info::MAIN;
+	MAP_LEVEL level = MAP_LEVEL::MAIN;
 };
 extern MapInfo map_info;
 
