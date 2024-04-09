@@ -388,14 +388,10 @@ void RenderSystem::draw()
 			if (registry.UIUX.has(entity)) continue;
 			if (registry.players.has(entity)) continue;
 			if (registry.dialogueMenus.has(entity)) continue;
+			if (registry.playerBullets.has(entity)) continue;
 
 			// Note, its not very efficient to access elements indirectly via the entity
 			// albeit iterating through all Sprites in sequence. A good point to optimize
-			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-		}
-
-		// Render player
-		for (Entity entity : registry.players.entities) {
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
 
@@ -434,6 +430,11 @@ void RenderSystem::draw()
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
 
+		for (Entity entity : registry.playerBullets.entities) {
+			if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
 		// Render instance of visible enemy bullets
 		std::vector<Entity> enemy_bullets;
 		for (Entity entity : registry.enemyBullets.entities) {
@@ -458,12 +459,11 @@ void RenderSystem::draw()
 		}
 
 		for (Entity entity : registry.pickupables.entities) {
-			if (registry.motions.has(entity)) {
-				const Motion& motion = registry.motions.get(entity);
-				const Pickupable& food = registry.pickupables.get(entity);
+			if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) continue;
+			const Motion& motion = registry.motions.get(entity);
+			const Pickupable& food = registry.pickupables.get(entity);
 
-				renderText("HP Up+", motion.position.x, motion.position.y + 25, 0.5f, glm::vec3(0.0f, 0.8f, 0.0f), trans, true, 1.f);
-			}
+			renderText("HP Up+", motion.position.x, motion.position.y + 25, 0.5f, glm::vec3(0.0f, 0.8f, 0.0f), trans, true, 1.f);
 		}
 
 		if (registry.visibilityTileInstanceData.components.size() > 0) {

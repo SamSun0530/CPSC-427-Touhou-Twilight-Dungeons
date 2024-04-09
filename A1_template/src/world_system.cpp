@@ -274,11 +274,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	float sharpness_factor_camera_offset = 10.0f;
 	renderer->camera.offset = vec2_lerp(renderer->camera.offset, renderer->camera.offset_target, elapsed_ms_since_last_update / 1000.f * sharpness_factor_camera_offset);
 
-	// User interface
+	// Render boss health bar ui boss name
 	for (Entity entity : registry.bossHealthBarUIs.entities) {
-		Motion& motion = registry.motions.get(entity);
-		vec2 padding = { 0, -60 };
-		motion.position = vec2(0, window_px_half.y) + padding;
+		BossHealthBarUI& bar = registry.bossHealthBarUIs.get(entity);
+		if (bar.is_visible) {
+			Motion& motion = registry.motions.get(entity);
+			createText(motion.position - vec2(100.f, 40.f), vec2(0.7f), bar.boss_name, vec3(1.f, 0.f, 0.f), false, false);
+		}
 	}
 
 	// Focus mode ui
@@ -299,7 +301,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// Tutorial dummy spawner
-	if (map_level.level == MapLevel::TUTORIAL) {
+	if (map_info.level == map_info::TUTORIAL) {
 		for (Entity entity : registry.dummyenemyspawners.entities) {
 			Motion& motion = registry.motions.get(entity);
 			DummyEnemySpawner& spawner = registry.dummyenemyspawners.get(entity);
@@ -468,11 +470,13 @@ unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::str
 void WorldSystem::restart_game() {
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
-	start_pt = 0;
-	dialogue_info.cirno_pt = 1000;
-	dialogue_info.cirno_played = false;
-	start_dialogue_timer = 1000.f;
-
+	if (map_info.level != map_info::TUTORIAL) {
+		start_pt = 0;
+		dialogue_info.cirno_pt = 1000;
+		dialogue_info.cirno_played = false;
+		start_dialogue_timer = 1000.f;
+	}
+	
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 	printf("Restarting\n");
@@ -506,7 +510,7 @@ void WorldSystem::restart_game() {
 
 	game_info.reset_room_info();
 
-	if (map_level.level == MapLevel::TUTORIAL) {
+	if (map_info.level == map_info::TUTORIAL) {
 		map->generateTutorialMap();
 		renderer->set_tiles_instance_buffer();
 		player = map->spawnPlayer(world_center);
@@ -861,7 +865,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 			int w, h;
 			glfwGetWindowSize(window, &w, &h);
-			map_level.level = MapLevel::MAIN;
+			map_info.level = map_info::MAIN;
 			restart_game();
 		}
 
@@ -969,7 +973,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// Toggle tutorial display
 		if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
 			getInstance().display_instruction = false;
-			map_level.level = MapLevel::TUTORIAL;
+			map_info.level = map_info::TUTORIAL;
 			restart_game();
 		}
 

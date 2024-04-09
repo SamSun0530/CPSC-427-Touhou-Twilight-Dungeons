@@ -11,14 +11,16 @@ struct DialogueInfo {
 };
 extern DialogueInfo dialogue_info;
 
-// World map loader
-struct MapLevel {
-	enum LEVEL {
-		TUTORIAL,
-		MAIN
-	} level = LEVEL::MAIN;
+enum class map_info {
+	TUTORIAL,
+	MAIN
 };
-extern MapLevel map_level;
+
+// World map loader
+struct MapInfo {
+	map_info level = map_info::MAIN;
+};
+extern MapInfo map_info;
 
 // Menu loader
 enum class MENU_STATE {
@@ -416,6 +418,7 @@ struct Key
 
 struct BossHealthBarUI {
 	bool is_visible = false;
+	std::string boss_name;
 };
 
 // keep track of which boss this ui belongs to

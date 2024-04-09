@@ -48,7 +48,7 @@ Entity createCriHit(RenderSystem* renderer, vec2 pos);
 std::vector<Entity> createAttributeUI(RenderSystem* renderer);
 Entity createHealthUI(RenderSystem*);
 Entity createFood(RenderSystem* renderer, vec2 position);
-Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss);
+Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name);
 // ui key
 Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true, bool is_active = true, float frame_rate = 500.f);
 // focus mode dot
@@ -74,7 +74,7 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position);
 // the grenade launcher enemy
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
 // boss enemy
-Entity createBoss(RenderSystem* renderer, vec2 position);
+Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name);
 // dummy enemy for tutorial
 Entity createDummyEnemy(RenderSystem* renderer, vec2 position);
 Entity createDummyEnemySpawner(RenderSystem* renderer, vec2 position);

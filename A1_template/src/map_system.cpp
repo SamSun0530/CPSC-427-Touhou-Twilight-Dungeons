@@ -120,7 +120,7 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		}
 	}
 	else if (room.type == ROOM_TYPE::BOSS) {
-		room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f)));
+		createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Cirno, the Ice Fairy");
 	}
 	else if (room.type == ROOM_TYPE::START) {
 		// spawn nothing
