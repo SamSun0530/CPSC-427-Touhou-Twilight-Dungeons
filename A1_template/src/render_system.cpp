@@ -83,8 +83,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		(*render_request).used_effect == EFFECT_ASSET_ID::UI ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB ||
-		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER || 
-		(*render_request).used_effect == EFFECT_ASSET_ID::COMBO || 
+		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER ||
+		(*render_request).used_effect == EFFECT_ASSET_ID::COMBO ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::GREY)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
@@ -164,7 +164,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		float strength = 0.2f;
 		if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::C) {
 			strength = 0.2f;
-		} else if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::B) {
+		}
+		else if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::B) {
 			strength = 0.3f;
 		}
 		else if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::A) {
@@ -347,7 +348,7 @@ void RenderSystem::draw()
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
 	//glClearColor(0.674, 0.847, 1.0, 1.0);
-	glClearColor(0, 0, 0 , 1.0);
+	glClearColor(0, 0, 0, 1.0);
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
@@ -442,18 +443,19 @@ void RenderSystem::draw()
 			}
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
-		if (menu.state != MENU_STATE::DIALOGUE)
-		for (Entity entity : registry.UIUX.entities) {
-			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-		}
 
-		for (Entity entity : boss_ui_entities) {
-			BossHealthBarUI& bhp = registry.bossHealthBarUIs.get(entity);
-			if (bhp.is_visible) {
+		if (menu.state != MENU_STATE::DIALOGUE) {
+			for (Entity entity : registry.UIUX.entities) {
 				drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 			}
-		}
 
+			for (Entity entity : boss_ui_entities) {
+				BossHealthBarUI& bhp = registry.bossHealthBarUIs.get(entity);
+				if (bhp.is_visible) {
+					drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+				}
+			}
+		}
 
 		// Render user guide on screen
 		if (WorldSystem::getInstance().get_display_instruction() == true) {
