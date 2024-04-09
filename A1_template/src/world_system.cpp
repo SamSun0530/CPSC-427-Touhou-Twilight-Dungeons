@@ -170,14 +170,12 @@ void WorldSystem::init_pause_menu() {
 
 	// create buttons
 	// vertically center the buttons
-	int num_buttons = 3;
+	int num_buttons = 2;
 	const float button_scale = 0.7f;
 	const float button_padding_y = 5.f;
 	const float offset_y_delta = BUTTON_HOVER_HEIGHT * button_scale + button_padding_y;
 	float offset_y = -(offset_y_delta * (num_buttons - 1) - button_padding_y) / 2.f;
 	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Resume", 0.9f, [&]() { resume_game(); });
-	offset_y += offset_y_delta;
-	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Restart", 0.9f, [&]() { restart_game(); });
 	offset_y += offset_y_delta;
 	createButton(renderer, { 0, offset_y }, button_scale * 1.1f, MENU_STATE::PAUSE, "Exit to Menu", 0.85f, [&]() {
 		Mix_PauseMusic();
