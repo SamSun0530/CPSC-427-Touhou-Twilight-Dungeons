@@ -486,8 +486,8 @@ void RenderSystem::draw()
 		}
 
 		if (WorldSystem::getInstance().get_show_fps() == true) {
-			renderText("FPS:", window_width_px / 2.45f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans, 1.f);
-			renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px / 2.2f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans, 1.f);
+			renderText("FPS:", window_width_px / 2.45f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans, false, 1.f);
+			renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px / 2.2f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans, false, 1.f);
 		}
 
 		// On screen/ui texts:

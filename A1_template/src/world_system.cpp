@@ -375,7 +375,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					registry.dummyEnemyLink.remove(entity);
 				}
 
-				if (number <= 1.0)
+				if (number <= 0.1)
 					createFood(renderer, registry.motions.get(entity).position);
 				registry.remove_all_components_of(entity);
 			}
