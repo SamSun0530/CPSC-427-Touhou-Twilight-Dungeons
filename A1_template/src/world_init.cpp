@@ -155,15 +155,24 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 	registry.kinematics.emplace(entity);
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = abs(motion.scale);
+
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<> distrib(0, 1);
 	double number = distrib(gen);
 	double number_y = distrib(gen) / 2;
+
+	// Generate a random number between 1 and 3 for type
+	// 1=bullet_damage, 2=fire_rate, or 3=critical_hit
+	std::uniform_int_distribution<> typeDistrib(1, 3);
+	int type = typeDistrib(gen);
+
 	Purchasableable& purchasableable = registry.purchasableables.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
-	if (number <= 0.6) {
-		purchasableable.cost = 2;
+	purchasableable.cost = number * 10;
+	purchasableable.effect_type = type;
+	purchasableable.effect_strength = number * 10;
+	if (type == 1) {
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::HEALTH_1, // TEXTURE_COUNT indicates that no txture is needed
@@ -171,8 +180,7 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 				GEOMETRY_BUFFER_ID::SPRITE });
 
 	}
-	else if (number <= 0.9) {
-		purchasableable.cost = 4;
+	else if (type == 2) {
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::HEALTH_2, // TEXTURE_COUNT indicates that no txture is needed
@@ -180,7 +188,6 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else {
-		purchasableable.cost = 6;
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::REGENERATE_HEALTH, // TEXTURE_COUNT indicates that no txture is needed

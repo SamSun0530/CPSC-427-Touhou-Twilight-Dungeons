@@ -72,8 +72,8 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	//window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", nullptr, nullptr);
-	window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", glfwGetPrimaryMonitor(), nullptr);
+	window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", nullptr, nullptr);
+	// window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", glfwGetPrimaryMonitor(), nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -247,10 +247,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	std::string critical_hit = std::to_string(player_att.critical_hit * 100);
 	std::string critical_dmg = std::to_string(player_att.critical_demage * 100);
 	createText(-window_px_half + vec2(70, 160), { 1,1 }, std::to_string(player_att.coin_amount), vec3(255, 255, 255), false);
-	createText(-window_px_half + vec2(70, 210), { 1,1 }, std::to_string(player_att.bullet_damage), vec3(0, 0, 0), false);
-	createText(-window_px_half + vec2(70, 260), { 1,1 }, fire_rate.substr(0, fire_rate.find(".") + 3), vec3(0, 0, 0), false);
-	createText(-window_px_half + vec2(70, 310), { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(0, 0, 0), false);
-	createText(-window_px_half + vec2(70, 360), { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(0, 0, 0), false);
+	createText(-window_px_half + vec2(70, 210), { 1,1 }, std::to_string(player_att.bullet_damage), vec3(255, 255, 255), false);
+	createText(-window_px_half + vec2(70, 260), { 1,1 }, fire_rate.substr(0, fire_rate.find(".") + 3), vec3(255, 255, 255), false);
+	createText(-window_px_half + vec2(70, 310), { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(255, 255, 255), false);
+	createText(-window_px_half + vec2(70, 360), { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(255, 255, 255), false);
 
 	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
 	// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
@@ -580,11 +580,30 @@ void WorldSystem::handle_collisions() {
 						Player& player_att = registry.players.get(player);
 						treasure.player_overlap = true;
 						if (pressed[GLFW_KEY_E] && player_att.coin_amount >= treasure.cost) {
-							std::cout << "player_prev_coin_amount: " << std::to_string(player_att.coin_amount) << std::endl;
-							std::cout << "treasure.cost: " << std::to_string(treasure.cost) << std::endl;
+							std::cout << "treasure.effect_type: " << std::to_string(treasure.effect_type) << std::endl;
+							std::cout << "treasure.effect_strength: " << std::to_string(treasure.effect_strength) << std::endl;
 							player_att.coin_amount -= treasure.cost;
+							// 1=bullet_damage, 2=fire_rate, or 3=critical_hit
+							// treasure.effect_strength value between 0~1
+							std::cout << "--------------before------------------" << std::endl;
+							std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
+							std::cout << "player_att.fire_rate: " << std::to_string(player_att.fire_rate) << std::endl;
+							std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
+							if (treasure.effect_type == 1) {
+								player_att.bullet_damage += treasure.effect_strength;
+							}
+							// not sure how to faster fire_rate, need help from alan
+							else if (treasure.effect_type == 2) {
+								player_att.fire_rate += treasure.effect_strength;
+							}
+							else if (treasure.effect_type == 3) {
+								player_att.critical_hit += (treasure.effect_strength/100);
+							}
+							std::cout << "-------------after---------------------" << std::endl;
+							std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
+							std::cout << "player_att.fire_rate: " << std::to_string(player_att.fire_rate) << std::endl;
+							std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
 							registry.remove_all_components_of(entity_other);
-							std::cout << "player_after_coin_amount: " << std::to_string(player_att.coin_amount) << std::endl;
 						}
 						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, "cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
 

@@ -375,9 +375,11 @@ struct Pickupable
 
 struct Purchasableable
 {
+	// 1=bullet_damage, 2=fire_rate, or 3=critical_hit
 	int effect_type;
 	int cost;
 	bool player_overlap = false;
+	int effect_strength;
 };
 
 // Tile set names specifically mapped from Sandstone Dungeon texture atlas
