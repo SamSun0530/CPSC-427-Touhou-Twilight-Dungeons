@@ -116,7 +116,8 @@ void Animation::step(float elapsed_ms)
 		if (!enemy_ani.is_active) continue;
 		if (registry.realDeathTimers.has(enemy)) {
 			if (registry.realDeathTimers.get(enemy).first_animation_frame == false) {
-				enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y + enemy_ani.render_pos.y;
+				float offset = registry.bomberEnemies.get(enemy).touch_player ? 8.f : 4.f;
+				enemy_ani.render_pos.y = offset * enemy_ani.spritesheet_scale.y + enemy_ani.render_pos.y;
 				enemy_ani.render_pos.x = enemy_ani.spritesheet_scale.x;
 				registry.realDeathTimers.get(enemy).first_animation_frame = true;
 			}

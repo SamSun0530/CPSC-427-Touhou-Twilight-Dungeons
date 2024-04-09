@@ -522,8 +522,12 @@ void WorldSystem::handle_collisions() {
 								if (registry.bulletSpawners.has(entity_other)) {
 									registry.bulletSpawners.get(entity_other).is_firing = false;
 								}
-								registry.kinematics.get(entity_other).velocity = { 0,0 };
-								registry.kinematics.get(entity_other).direction = { 0,0 };
+								Kinematic& kin = registry.kinematics.get(entity_other);
+								kin.velocity = { 0,0 };
+								kin.direction = { 0,0 };
+								kin.speed_modified = 0.f;
+								registry.motions.get(entity_other).scale = 2.f * vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+								registry.bomberEnemies.get(entity_other).touch_player = true;
 							}
 						}
 
@@ -628,8 +632,10 @@ void WorldSystem::handle_collisions() {
 							if (registry.bulletSpawners.has(entity)) {
 								registry.bulletSpawners.get(entity).is_firing = false;
 							}
-							registry.kinematics.get(entity).velocity = { 0,0 };
-							registry.kinematics.get(entity).direction = { 0,0 };
+							Kinematic& kin = registry.kinematics.get(entity);
+							kin.velocity = { 0,0 };
+							kin.direction = { 0,0 };
+							kin.speed_modified = 0.f;
 						}
 					}
 					registry.remove_all_components_of(entity_other);

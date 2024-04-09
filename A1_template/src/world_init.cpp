@@ -900,8 +900,8 @@ Entity createBomberEnemy(RenderSystem* renderer, vec2 position)
 
 	registry.bomberEnemies.emplace(entity);
 	EntityAnimation enemy_ani;
-	enemy_ani.spritesheet_scale = { 1.f / 6.f, 1.f / 11.f };
-	enemy_ani.render_pos = { 1.f / 6.f, 1.f / 11.f };
+	enemy_ani.spritesheet_scale = { 1.f / 6.f, 1.f / 12.f };
+	enemy_ani.render_pos = { 1.f / 6.f, 1.f / 12.f };
 	registry.animation.insert(entity, enemy_ani);
 	registry.renderRequests.insert(
 		entity,
