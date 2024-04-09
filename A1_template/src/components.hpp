@@ -557,18 +557,22 @@ struct TexturedVertex
 
 struct RenderText {
 	std::string content;
+	float transparency = 1.0;
 };
 
 struct RenderTextPermanent {
 	std::string content;
+	float transparency = 1.0;
 };
 
 struct RenderTextWorld {
 	std::string content;
+	float transparency = 1.0;
 };
 
 struct RenderTextPermanentWorld {
 	std::string content;
+	float transparency = 1.0;
 };
 
 // Mesh datastructure for storing vertex and index buffers

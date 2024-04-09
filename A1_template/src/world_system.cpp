@@ -212,12 +212,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		getInstance().display_instruction = false;
 	}
 
-	// HP increase frequency timer for transparency
-	getInstance().HP_timer -= getInstance().HP_timer <= 0 ? 0 : elapsed_ms_since_last_update;
-	if (getInstance().HP_timer < 0) {
-		getInstance().HP_timer = 0;
-	}
-
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
 		registry.remove_all_components_of(registry.debugComponents.entities.back());
@@ -226,7 +220,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	while (registry.texts.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
 	while (registry.textsWorld.entities.size() > 0)
-		registry.remove_all_components_of(registry.texts.entities.back());
+		registry.remove_all_components_of(registry.textsWorld.entities.back());
 
 	// Create combo meter ui
 	createText({ window_width_px / 2.5f , window_height_px / 2.1f }, { 1, 1 }, std::to_string(combo_mode.combo_meter), { 0, 1, 0 }, false);
@@ -559,11 +553,12 @@ void WorldSystem::handle_collisions() {
 			}
 			else if (registry.pickupables.has(entity_other)) {
 				if (!registry.realDeathTimers.has(entity)) {
-					getInstance().HP_timer = 2000.0f;
-					registry.hps.get(entity).curr_hp += registry.pickupables.get(entity_other).health_change;
-					if (registry.hps.get(entity).curr_hp > registry.hps.get(entity).max_hp) {
-						registry.hps.get(entity).curr_hp = registry.hps.get(entity).max_hp;
-					}
+					HP& hp = registry.hps.get(entity);
+					Pickupable& pickupable = registry.pickupables.get(entity_other);
+					hp.curr_hp = min(hp.curr_hp + pickupable.health_change, hp.max_hp);
+					Motion& motion = registry.motions.get(player);
+					Entity text_entity = createText({ motion.position.x, motion.position.y - 40.f }, vec2(0.5f), "+" + std::to_string(pickupable.health_change) + " HP!", vec3(0.0f, 1.0f, 0.0f), true, true);
+					registry.realDeathTimers.emplace(text_entity).death_counter_ms = 2000;
 					registry.remove_all_components_of(entity_other);
 				}
 			}
@@ -750,10 +745,6 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
-float WorldSystem::get_HP_timer()
-{
-	return HP_timer;
-}
 bool WorldSystem::get_display_instruction()
 {
 	return display_instruction;

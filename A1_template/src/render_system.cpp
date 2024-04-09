@@ -15,10 +15,10 @@ void RenderSystem::get_strings_delim(const std::string& input, char delim, std::
 }
 
 // Helper function to render text with new lines
-void RenderSystem::render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world) {
+void RenderSystem::render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world, float transparency) {
 	// Prevent having to split string if there are no new lines
 	if (text.find('\n') == std::string::npos) {
-		renderText(text, x, y, scale, color, trans, in_world);
+		renderText(text, x, y, scale, color, trans, in_world, transparency);
 		return;
 	}
 	std::vector<std::string> segments;
@@ -30,7 +30,7 @@ void RenderSystem::render_text_newline(const std::string& text, float x, float y
 	//vec2 t_translate = { 0, scale * padding_y };
 	int segments_size = segments.size();
 	for (int i = 0; i < segments_size; ++i) {
-		renderText(segments[i], x, y + i * scale * padding_y, scale, color, trans, in_world);
+		renderText(segments[i], x, y + i * scale * padding_y, scale, color, trans, in_world, transparency);
 		//t.translate(t_translate);
 	}
 }
@@ -397,12 +397,6 @@ void RenderSystem::draw()
 		// Render player
 		for (Entity entity : registry.players.entities) {
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-			float HP_timer = WorldSystem::getInstance().get_HP_timer(); // HP_timer should drop from 2000 to 0 in 2 seconds
-			if (HP_timer > 0) {
-				const Motion& motion = registry.motions.get(entity);
-				float transparency_rate = HP_timer / 2000;
-				renderText("HP++!", motion.position.x, motion.position.y + ((transparency_rate - 1) * 35) - 40, 0.5f, glm::vec3(0.0f, 1.0f, 0.0f), trans, true, transparency_rate);
-			}
 		}
 
 		// UIUX entities that in the world (e.g. tutorial keys that is before player)
@@ -416,14 +410,23 @@ void RenderSystem::draw()
 			if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
 			vec3 text_color = registry.colors.get(entity);
 			RenderTextWorld& text_cont = registry.textsWorld.get(entity);
-			render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true);
+			render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true, text_cont.transparency);
 		}
 		for (Entity entity : registry.textsPermWorld.entities) {
 			Motion& text_motion = registry.motions.get(entity);
 			if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
 			vec3 text_color = registry.colors.get(entity);
 			RenderTextPermanentWorld& text_cont = registry.textsPermWorld.get(entity);
-			render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true);
+
+			// Hardcoded only for item description
+			if (registry.realDeathTimers.has(entity)) {
+				DeathTimer& death_counter = registry.realDeathTimers.get(entity);
+				Motion& motion = registry.motions.get(registry.players.entities[0]);
+				text_cont.transparency = death_counter.death_counter_ms / 2000;
+				registry.motions.get(entity).position = { motion.position.x, motion.position.y + ((text_cont.transparency - 1) * 35) - 40.f };
+			}
+
+			render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true, text_cont.transparency);
 		}
 
 		// Render player
@@ -459,7 +462,7 @@ void RenderSystem::draw()
 				const Motion& motion = registry.motions.get(entity);
 				const Pickupable& food = registry.pickupables.get(entity);
 
-				renderText("HP Up+", motion.position.x - 30, motion.position.y + 25, 0.6f, glm::vec3(0.0f, 1.0f, 0.0f), trans, true);
+				renderText("HP Up+", motion.position.x, motion.position.y + 25, 0.5f, glm::vec3(0.0f, 0.8f, 0.0f), trans, true);
 			}
 		}
 
@@ -473,7 +476,6 @@ void RenderSystem::draw()
 				drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 			}
 		}
-
 
 		// Render user guide on screen
 		if (WorldSystem::getInstance().get_display_instruction() == true) {
@@ -490,13 +492,13 @@ void RenderSystem::draw()
 			Motion& text_motion = registry.motions.get(entity);
 			vec3 text_color = registry.colors.get(entity);
 			RenderText& text_cont = registry.texts.get(entity);
-			renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
+			renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, text_cont.transparency);
 		}
 		for (Entity entity : registry.textsPerm.entities) {
 			Motion& text_motion = registry.motions.get(entity);
 			vec3 text_color = registry.colors.get(entity);
 			RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
-			renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
+			renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, text_cont.transparency);
 		}
 
 		// Render this last, because it should be on top
