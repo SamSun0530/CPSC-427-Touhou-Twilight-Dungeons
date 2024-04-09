@@ -102,13 +102,14 @@ void MapSystem::spawnEnemiesInRoom() {
 			}
 		}
 		else if (bsptree.rooms[room_num].type == ROOM_TYPE::BOSS) {
-			createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_left) / 2.f));
+			createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_left) / 2.f), "Cirno, the Ice Fairy");
 		}
 	}
 }
 
 Entity MapSystem::spawnPlayerInRoom(int room_number) {
 	if (room_number < 0 || room_number >= bsptree.rooms.size()) assert(false && "Room number out of bounds");
+	room_number = bsptree.rooms.size() - 1;
 	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_left) / 2.f));
 }
 

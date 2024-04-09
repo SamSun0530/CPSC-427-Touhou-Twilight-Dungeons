@@ -273,11 +273,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	float sharpness_factor_camera_offset = 10.0f;
 	renderer->camera.offset = vec2_lerp(renderer->camera.offset, renderer->camera.offset_target, elapsed_ms_since_last_update / 1000.f * sharpness_factor_camera_offset);
 
-	// User interface
+	// Render boss health bar ui boss name
 	for (Entity entity : registry.bossHealthBarUIs.entities) {
-		Motion& motion = registry.motions.get(entity);
-		vec2 padding = { 0, -60 };
-		motion.position = vec2(0, window_px_half.y) + padding;
+		BossHealthBarUI& bar = registry.bossHealthBarUIs.get(entity);
+		if (bar.is_visible) {
+			Motion& motion = registry.motions.get(entity);
+			createText(motion.position - vec2(100.f, 40.f), vec2(0.7f), bar.boss_name, vec3(1.f, 0.f, 0.f), false, false);
+		}
 	}
 
 	// Focus mode ui

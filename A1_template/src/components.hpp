@@ -380,6 +380,7 @@ struct Key
 
 struct BossHealthBarUI {
 	bool is_visible = false;
+	std::string boss_name;
 };
 
 // keep track of which boss this ui belongs to

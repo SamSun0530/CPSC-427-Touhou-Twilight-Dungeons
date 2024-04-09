@@ -595,7 +595,7 @@ Entity createCriHit(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss) {
+Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name) {
 	// Reserve en entity
 	auto entity = Entity();
 
@@ -605,10 +605,13 @@ Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss) {
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
+	vec2 padding = { 0, -60 };
+	motion.position = vec2(0, window_px_half.y) + padding;
 	motion.scale = vec2({ BOSS_HEALTH_BAR_WIDTH, BOSS_HEALTH_BAR_HEIGHT });
 
 	BossHealthBarUI& hb = registry.bossHealthBarUIs.emplace(entity);
 	hb.is_visible = false;
+	hb.boss_name = boss_name;
 	registry.bossHealthBarLink.emplace(entity, boss);
 	registry.renderRequests.insert(
 		entity,
@@ -785,7 +788,7 @@ Entity createDummyEnemy(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
-Entity createBoss(RenderSystem* renderer, vec2 position)
+Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name)
 {
 	auto entity = Entity();
 
@@ -838,7 +841,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 	boss.phase_change_time = 1500;
 
 	// Boss health bar ui
-	Entity ui_entity = createBossHealthBarUI(renderer, entity);
+	Entity ui_entity = createBossHealthBarUI(renderer, entity, boss_name);
 	registry.bossHealthBarLink.emplace(entity, ui_entity);
 
 	// Decision tree ai
