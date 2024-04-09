@@ -298,7 +298,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// Tutorial dummy spawner
-	if (map_level.level == MapLevel::TUTORIAL) {
+	if (map_info.level == MAP_LEVEL::TUTORIAL) {
 		for (Entity entity : registry.dummyenemyspawners.entities) {
 			Motion& motion = registry.motions.get(entity);
 			DummyEnemySpawner& spawner = registry.dummyenemyspawners.get(entity);
@@ -457,11 +457,13 @@ unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::str
 void WorldSystem::restart_game() {
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
-	start_pt = 0;
-	dialogue_info.cirno_pt =  1000;
-	dialogue_info.cirno_played = false;
-	start_dialogue_timer = 1000.f;
-
+	if (map_info.level != MAP_LEVEL::TUTORIAL) {
+		start_pt = 0;
+		dialogue_info.cirno_pt = 1000;
+		dialogue_info.cirno_played = false;
+		start_dialogue_timer = 1000.f;
+	}
+	
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 	printf("Restarting\n");
@@ -489,7 +491,7 @@ void WorldSystem::restart_game() {
 	reset_world_default();
 	map->restart_map();
 
-	if (map_level.level == MapLevel::TUTORIAL) {
+	if (map_info.level == MAP_LEVEL::TUTORIAL) {
 		map->generateTutorialMap();
 		renderer->set_tiles_instance_buffer();
 		player = map->spawnPlayer(world_center);
@@ -815,7 +817,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 			int w, h;
 			glfwGetWindowSize(window, &w, &h);
-			map_level.level = MapLevel::MAIN;
+			map_info.level = MAP_LEVEL::MAIN;
 			restart_game();
 		}
 
@@ -923,7 +925,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// Toggle tutorial display
 		if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
 			getInstance().display_instruction = false;
-			map_level.level = MapLevel::TUTORIAL;
+			map_info.level = MAP_LEVEL::TUTORIAL;
 			restart_game();
 		}
 
