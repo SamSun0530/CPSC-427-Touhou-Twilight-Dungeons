@@ -82,6 +82,7 @@ int main()
 			visibility_system.step(elapsed_ms);
 			ai.step(elapsed_ms);
 			bullets.step(elapsed_ms);
+			map.step(elapsed_ms);
 			world.handle_collisions();
 		}
 		else if (menu.state == MENU_STATE::PAUSE) {

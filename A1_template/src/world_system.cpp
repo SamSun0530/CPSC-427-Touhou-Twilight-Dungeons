@@ -703,8 +703,10 @@ void WorldSystem::handle_collisions() {
 				// Opens the door and prevents stopping once collided
 				if (registry.doors.has(entity) && !registry.deadlys.has(entity_other)) {
 					Door& door = registry.doors.get(entity);
-					door.is_shut = false;
-					break;
+					if (!door.is_locked) {
+						door.is_shut = false;
+						break;
+					}
 				}
 
 				// Minkowski Sum adapted from "sam hocevar": https://gamedev.stackexchange.com/a/24091

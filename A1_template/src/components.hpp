@@ -453,7 +453,7 @@ struct TileInstanceData {
 };
 
 struct Door {
-	bool is_locked = true;
+	bool is_locked = false;
 	bool is_shut = true;
 	DIRECTION dir;
 	int room_index;

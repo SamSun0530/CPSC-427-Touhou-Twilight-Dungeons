@@ -1159,7 +1159,6 @@ Entity createDoor(RenderSystem* renderer, vec2 grid_position, DIRECTION dir, int
 	// Creates door
 	auto& door = registry.doors.emplace(entity);
 	door.dir = dir;
-	door.is_locked = true;
 	door.room_index = room_index;
 
 	game_info.room_index[room_index].doors.push_back(entity);

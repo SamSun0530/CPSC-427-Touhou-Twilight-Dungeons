@@ -40,6 +40,7 @@ void VisibilitySystem::step(float elapsed_ms)
 	counter_ms = counter_ms - elapsed_ms <= 0 ? 0 : counter_ms - elapsed_ms;
 
 	// unreadable code - maybe refactor
+	// MAYBE??????
 	if (counter_ms <= 0) {
 		Motion& player_motion = registry.motions.get(game_info.player_id);
 		vec2 grid_pos = convert_world_to_grid(player_motion.position);

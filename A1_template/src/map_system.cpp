@@ -3,6 +3,7 @@
 #include "map_system.hpp"
 #include "world_init.hpp"
 #include "common.hpp"
+#include "components.hpp"
 #include <iostream>
 
 
@@ -16,6 +17,37 @@ MapSystem::MapSystem() {
 void MapSystem::init(RenderSystem* renderer_arg, VisibilitySystem* visibility_arg) {
 	this->renderer = renderer_arg;
 	this->visibility_system = visibility_arg;
+}
+
+bool MapSystem::step(float elapsed_ms_since_last_update) {
+	if (game_info.in_room != -1) {
+		Room_struct& cur_room = game_info.room_index[game_info.in_room];
+
+		// Lock door when in uncleared room
+
+		// Marks room as cleared if it was uncleared and no enemies remain in room
+		if (!cur_room.is_cleared) {
+			if (cur_room.enemies.empty())
+			{
+				// Room is cleared
+				cur_room.is_cleared == true;
+				// Unlocks all doors
+				for (Entity& door_entity : cur_room.doors) {
+					Door& door = registry.doors.get(door_entity);
+					door.is_locked = false;
+				}
+			}
+			else {
+				// Room has just been entered
+				// Lock all doors
+				for (Entity& door_entity : cur_room.doors) {
+					Door& door = registry.doors.get(door_entity);
+					door.is_locked = true;
+				}
+			}
+		}
+	}
+	return true;
 }
 
 void MapSystem::restart_map() {

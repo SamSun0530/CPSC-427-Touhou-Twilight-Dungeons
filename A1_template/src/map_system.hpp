@@ -50,6 +50,7 @@ private:
 	bool is_valid_map(std::vector<std::vector<int>>& map);
 public:
 	MapSystem();
+	bool step(float elapsed_ms_since_last_update);
 	void restart_map();
 	void init(RenderSystem* renderer, VisibilitySystem* visibility_arg);
 	Room generateBossRoom();
