@@ -321,7 +321,7 @@ struct BeeEnemy {
 
 struct BomberEnemy
 {
-
+	bool touch_player = false;
 };
 
 struct WolfEnemy
