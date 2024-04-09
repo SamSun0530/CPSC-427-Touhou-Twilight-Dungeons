@@ -321,6 +321,9 @@ void AISystem::init() {
 			bs.is_firing = true;
 		}
 		if (!ui.is_visible) ui.is_visible = true;
+		if (!dialogue_info.cirno_played) {
+			dialogue_info.cirno_pt = 0;
+		}
 		};
 	void (*hideBossInfo)(Entity & entity) = [](Entity& entity) {
 		if (!registry.bosses.has(entity)) return;

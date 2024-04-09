@@ -97,7 +97,10 @@ class RenderSystem {
 			textures_path("DoorVerticalOpenDown.png"),
 			textures_path("DoorVerticalOpenUp.png"),
 			textures_path("DoorVerticalCloseDown.png"),
-			textures_path("DoorVerticalcloseUp.png")
+			textures_path("DoorVerticalcloseUp.png"),
+			textures_path("reimu_portrait.png"),
+			textures_path("cirno_portrait.png"),
+			textures_path("DialogueBox.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -112,7 +115,8 @@ class RenderSystem {
 		shader_path("font"),
 		shader_path("playerhealthbar"),
 		shader_path("bosshealthbar"),
-		shader_path("combo")
+		shader_path("combo"),
+		shader_path("grey"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -157,7 +161,7 @@ public:
 	bool initFont(GLFWwindow* window, const std::string& font_filename, unsigned int font_default_size);
 
 	// extra parameter in_world specifies whether or not text should be world or screen coordinate
-	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world = false);
+	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world = false, float transparency_rate = 1);
 
 	// tiles instancing
 	// called once when generating new map
@@ -230,23 +234,26 @@ private:
 
 	const char* fontFragmentShaderSource =
 		"#version 330 core\n"
-		"in vec2 TexCoords; \n"
-		"out vec4 color; \n"
+		"in vec2 TexCoords;\n"
+		"out vec4 color;\n"
 		"\n"
-		"uniform sampler2D text; \n"
-		"uniform vec3 textColor; \n"
+		"uniform sampler2D text;\n"
+		"uniform vec3 textColor;\n"
+		"uniform float transparency;\n"
 		"\n"
 		"void main()\n"
 		"{\n"
 		"    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, TexCoords).r);\n"
-		"    color = vec4(textColor, 1.0) * sampled;\n"
-		"}\0";
+		"    vec4 finalColor = vec4(textColor, 1.0) * sampled;\n"
+		"    finalColor.a *= transparency; // Adjust alpha with transparency\n"
+		"    color = finalColor;\n"
+		"}\n";
 
 	Entity screen_state_entity;
 
 	// Utilities/Helper functions
 	void get_strings_delim(const std::string& input, char delim, std::vector<std::string>& output);
-	void render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world);
+	void render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world, float padding_y = 25.f, float transparency = 1.f);
 };
 
 bool loadEffectFromFile(

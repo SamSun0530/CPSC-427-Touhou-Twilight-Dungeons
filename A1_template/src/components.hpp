@@ -5,6 +5,12 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 
+struct DialogueInfo {
+	unsigned int cirno_pt = 1000000;
+	bool cirno_played = false;
+};
+extern DialogueInfo dialogue_info;
+
 // World map loader
 struct MapLevel {
 	enum LEVEL {
@@ -18,7 +24,9 @@ extern MapLevel map_level;
 enum class MENU_STATE {
 	MAIN_MENU,
 	PLAY,
-	PAUSE
+	PAUSE,
+	DIALOGUE,
+	INVENTORY
 };
 
 struct Menu {
@@ -128,6 +136,10 @@ struct UIUX {
 
 };
 
+struct Dialogue {
+
+};
+
 struct UIUXWorld {
 
 };
@@ -165,6 +177,12 @@ enum class BULLET_ACTION {
 	DEL,
 	SPLIT,
 	DIRECTION
+};
+
+enum class CHARACTER {
+	REIMU,
+	CIRNO,
+	NONE,
 };
 
 struct BulletCommand {
@@ -341,7 +359,7 @@ struct BeeEnemy {
 
 struct BomberEnemy
 {
-
+	bool touch_player = false;
 };
 
 struct WolfEnemy
@@ -609,18 +627,22 @@ struct TexturedVertex
 
 struct RenderText {
 	std::string content;
+	float transparency = 1.0;
 };
 
 struct RenderTextPermanent {
 	std::string content;
+	float transparency = 1.0;
 };
 
 struct RenderTextWorld {
 	std::string content;
+	float transparency = 1.0;
 };
 
 struct RenderTextPermanentWorld {
 	std::string content;
+	float transparency = 1.0;
 };
 
 // Mesh datastructure for storing vertex and index buffers
@@ -741,7 +763,10 @@ enum class TEXTURE_ASSET_ID {
 	DOOR_VERTICAL_OPEN_UP = DOOR_VERTICAL_OPEN_DOWN + 1,
 	DOOR_VERTICAL_CLOSE_DOWN = DOOR_VERTICAL_OPEN_UP + 1,
 	DOOR_VERTICAL_CLOSE_UP = DOOR_VERTICAL_CLOSE_DOWN + 1,
-	TEXTURE_COUNT = DOOR_VERTICAL_CLOSE_UP + 1
+	REIMU_PORTRAIT = DOOR_VERTICAL_CLOSE_UP + 1,
+	CIRNO_PORTRAIT = REIMU_PORTRAIT + 1,
+	DIALOGUE_BOX = CIRNO_PORTRAIT + 1,
+	TEXTURE_COUNT = DIALOGUE_BOX + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -756,7 +781,8 @@ enum class EFFECT_ASSET_ID {
 	PLAYER_HB = FONT + 1,
 	BOSSHEALTHBAR = PLAYER_HB + 1,
 	COMBO = BOSSHEALTHBAR + 1,
-	EFFECT_COUNT = COMBO + 1
+	GREY = COMBO + 1,
+	EFFECT_COUNT = GREY + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
