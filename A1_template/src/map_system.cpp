@@ -115,7 +115,7 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		}
 	}
 	else if (room.type == ROOM_TYPE::BOSS) {
-		createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f));
+		room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f)));
 	}
 	else if (room.type == ROOM_TYPE::START) {
 		// spawn nothing

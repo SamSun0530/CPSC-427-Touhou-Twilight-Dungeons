@@ -374,6 +374,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 				if (number <= 0.1)
 					createHealth(renderer, registry.motions.get(entity).position);
+
+				auto& deadly_entities = game_info.room_index[game_info.in_room].enemies;
+				for (int i = 0; i < deadly_entities.size(); ++i) {
+					if (entity == deadly_entities[i]) {
+						std::swap(deadly_entities[i], deadly_entities[deadly_entities.size() - 1]);
+						deadly_entities.pop_back();
+						break;
+					}
+				}
 				registry.remove_all_components_of(entity);
 			}
 			else {
@@ -749,12 +758,15 @@ void WorldSystem::handle_collisions() {
 					}
 
 					// TODO
-					if (door.is_closed) {
+					/*
+					if (door.is_closed || door.is_locked) {
 						// render closed
+						registry.renderRequests.get(entity).used_texture = TEXTURE_ASSET_ID::MENU_TITLE;
 					}
 					else {
 						// render unclosed
-					}
+						registry.renderRequests.get(entity).used_texture = TEXTURE_ASSET_ID::BOSS;
+					} */
 				}
 			}
 			else if (registry.deadlys.has(entity_other)) {
