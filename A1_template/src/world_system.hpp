@@ -116,14 +116,6 @@ private:
 	float tutorial_timer = 10000.0f;
 	Entity display_combo;
 
-	// Camera shake
-	float shake_timer_ms = 0;
-	float shake_timer_ms_default = 300.f;
-	float shake_update_ms = 0;
-	float shake_update_ms_default = 90;
-	float strength = 15.f;
-	float strength_default = 15.f;
-
 	// fonts seting
 	//std::string font_filename = "..//..//..//data//fonts//OpenSans-Bold.ttf";
 	std::string font_filename = "..//..//..//data//fonts//pixelmix//pixelmix.ttf";
