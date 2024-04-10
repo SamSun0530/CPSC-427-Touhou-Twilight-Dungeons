@@ -19,7 +19,8 @@
 #include "map_system.hpp"
 #include "ai_system.hpp"
 #include <map>
-#include <visibility_system.hpp>
+#include "visibility_system.hpp"
+#include "boss_system.hpp"
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -39,13 +40,14 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai, VisibilitySystem* visibility_arg);
+	void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai, VisibilitySystem* visibility_arg, BossSystem* boss_arg);
 
 	// initialize the menu
 	void init_menu();
 	void init_pause_menu();
 	void init_win_menu();
 	void init_lose_menu();
+	void init_infographic_menu();
 	void resume_game();
 
 	// Releases all associated resources
@@ -53,6 +55,9 @@ public:
 
 	// Ai system - for restarting flow field
 	AISystem* ai;
+
+	// Bullet system - for initializing boss phases
+	BossSystem* boss_system;
 
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
@@ -91,7 +96,9 @@ private:
 	std::array<bool, 512> pressed = { 0 };
 	std::vector<std::string> start_script;
 	std::vector<std::string> cirno_script;
+	std::vector<std::string> flandre_script;
 	std::vector<std::string> cirno_after_script;
+	std::vector<std::string> flandre_after_script;
 	unsigned int start_pt = 0;
 	float start_dialogue_timer = 1000.f;
 	float word_up_ms = 50.f;
@@ -102,7 +109,7 @@ private:
 
 	// restart level
 	void restart_game();
-
+	void WorldSystem::next_level();
 	// OpenGL window handle
 	GLFWwindow* window;
 

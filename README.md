@@ -36,3 +36,4 @@ Alan Huang <br />
 - Sandstone texture - https://kartoy.itch.io/32x32sandstone-dungeon-and-character-pack
 - Font - https://www.dafont.com/pixelmix.font
 - Paper UI - https://humblepixel.itch.io/pocket-inventory-series-5-player-status
+- Teleporter - https://rafaelmatos.itch.io/epic-rpg-world-pack-free-demo-ancient-ruins-asset-tileset

@@ -79,8 +79,10 @@ public:
 	ComponentContainer<Purchasableable> purchasableables;
 	ComponentContainer<VisibilityTile> visibilityTiles;
 	ComponentContainer<Dialogue> dialogueMenus;
+	ComponentContainer<Teleporter> teleporters;
 	ComponentContainer<WinMenu> winMenus;
 	ComponentContainer<LoseMenu> loseMenus;
+	ComponentContainer<InfographicMenu> infographicsMenus;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -154,8 +156,10 @@ public:
 		registry_list.push_back(&purchasableables);
 		registry_list.push_back(&visibilityTiles);
 		registry_list.push_back(&dialogueMenus);
+		registry_list.push_back(&teleporters);
 		registry_list.push_back(&winMenus);
 		registry_list.push_back(&loseMenus);
+		registry_list.push_back(&infographicsMenus);
 	}
 
 	void clear_all_components() {

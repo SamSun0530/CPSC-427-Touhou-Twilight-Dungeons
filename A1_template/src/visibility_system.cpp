@@ -52,7 +52,6 @@ void VisibilitySystem::step(float elapsed_ms)
 				// check if it's the first tile that is not visible, otherwise expand on previous
 				if (map[grid_pos.y][grid_pos.x] == (int)VISIBILITY_STATE::NOT_VISIBLE && next_pos.empty()) {
 					registry.visibilityTileInstanceData.get((Entity)reference_map[grid_pos.y][grid_pos.x]).alpha = 0.5;
-					game_info.room_visited[game_info.in_room] = true;
 					next_pos.push_back(grid_pos);
 					curr_num = 1;
 				}

@@ -554,7 +554,7 @@ Entity createWin(RenderSystem* renderer) {
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	Motion& motion = registry.motions.emplace(entity);
-	motion.position = vec2(0,0);
+	motion.position = vec2(0, 0);
 	motion.scale = vec2(1000, 700);
 
 	registry.renderRequests.insert(
@@ -568,6 +568,46 @@ Entity createWin(RenderSystem* renderer) {
 	return entity;
 
 }
+
+Entity createInfographic(RenderSystem* renderer) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = vec2(0, 0);
+	motion.scale = vec2(1100, 690);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::WINDEATH_SCREEN,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.infographicsMenus.emplace(entity);
+
+	//Picture
+	auto entity2 = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh2 = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity2, &mesh2);
+
+	Motion& motion2 = registry.motions.emplace(entity2);
+	motion2.position = vec2(0, -25);
+	motion2.scale = vec2(886, 364);
+
+	registry.renderRequests.insert(
+		entity2,
+		{ TEXTURE_ASSET_ID::INFOGRAPHIC,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.infographicsMenus.emplace(entity2);
+
+	return entity;
+}
+
 Entity createLose(RenderSystem* renderer) {
 	// Pause menu background
 	auto entity = Entity();
@@ -577,7 +617,7 @@ Entity createLose(RenderSystem* renderer) {
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	Motion& motion = registry.motions.emplace(entity);
-	motion.position = vec2(0,0);
+	motion.position = vec2(0, 0);
 	motion.scale = vec2(1000, 700);
 
 	registry.renderRequests.insert(
@@ -597,14 +637,14 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2,
 
 	// Setting initial motion values
 	Motion& motion_reimu = registry.motions.emplace(reimu_entity);
-	motion_reimu.position = vec2(-250,0);
+	motion_reimu.position = vec2(-250, 0);
 	motion_reimu.angle = 0.f;
 	motion_reimu.scale = vec2({ 550.f, 600.f });
 	EntityAnimation& ani_reimu = registry.alwaysplayAni.emplace(reimu_entity);
-	ani_reimu.spritesheet_scale = { 1/6.f, 1};
+	ani_reimu.spritesheet_scale = { 1 / 6.f, 1 };
 	registry.dialogueMenus.emplace(reimu_entity);
 	if (character == CHARACTER::REIMU) {
-		ani_reimu.render_pos = { 1/6.f *(1+(int)emotion), 1};
+		ani_reimu.render_pos = { 1 / 6.f * (1 + (int)emotion), 1 };
 		registry.renderRequests.insert(
 			reimu_entity,
 			{ TEXTURE_ASSET_ID::REIMU_PORTRAIT, // TEXTURE_COUNT indicates that no txture is needed
@@ -653,9 +693,9 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2,
 	auto dialogue_entity = Entity();
 	// Setting initial motion values
 	Motion& motion_dialogue = registry.motions.emplace(dialogue_entity);
-	motion_dialogue.position = vec2(0, window_px_half.y-130);
+	motion_dialogue.position = vec2(0, window_px_half.y - 130);
 	motion_dialogue.angle = 0.f;
-	motion_dialogue.scale = vec2({ 1.6 * 688.f, 1.2*224.f });
+	motion_dialogue.scale = vec2({ 1.6 * 688.f, 1.2 * 224.f });
 
 	registry.dialogueMenus.emplace(dialogue_entity);
 	registry.renderRequests.insert(
@@ -663,7 +703,7 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2,
 		{ TEXTURE_ASSET_ID::DIALOGUE_BOX, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::UI,
 			GEOMETRY_BUFFER_ID::SPRITE });
-	
+
 	createText({ 0,window_px_half.y - 170 }, { 0.8,0.8 }, sentence, vec3(0, 0, 0), false, false);
 }
 
@@ -722,7 +762,7 @@ Entity createCriHit(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name) {
+Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name, vec3 name_color) {
 	// Reserve en entity
 	auto entity = Entity();
 
@@ -738,6 +778,7 @@ Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string bo
 
 	BossHealthBarUI& hb = registry.bossHealthBarUIs.emplace(entity);
 	hb.is_visible = false;
+	hb.name_color = name_color;
 	hb.boss_name = boss_name;
 	registry.bossHealthBarLink.emplace(entity, boss);
 	registry.renderRequests.insert(
@@ -915,7 +956,7 @@ Entity createDummyEnemy(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
-Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, BOSS_ID boss_id)
+Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, BOSS_ID boss_id, vec3 name_color)
 {
 	auto entity = Entity();
 
@@ -939,11 +980,6 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = abs(vec2(motion.scale.x / 1.4f, motion.scale.y / 1.2f));
 
-	// HP
-	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 5020;
-	hp.curr_hp = hp.max_hp;
-
 	// Collision damage
 	Deadly& deadly = registry.deadlys.emplace(entity);
 	deadly.damage = 1;
@@ -954,27 +990,52 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 	enemy_ani.render_pos = { 1.f / 4.f, 1.f / 4.f };
 	registry.animation.insert(entity, enemy_ani);
 
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::BOSS,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+	// HP
+	HP& hp = registry.hps.emplace(entity);
 
+	// Boss
 	Boss& boss = registry.bosses.emplace(entity);
 	boss.boss_id = boss_id;
-	// Boss bullet patterns
-	boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
 	boss.duration = 10000; // duration for each pattern
-	registry.colors.insert(entity, { 1,1,1 });
 	boss.phase_change_time = 1500;
 
+	if (boss_id == BOSS_ID::CIRNO) {
+		hp.max_hp = 5020;
+		hp.curr_hp = hp.max_hp;
+
+		boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
+
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::BOSS_CIRNO,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else if (boss_id == BOSS_ID::FLANDRE) {
+		hp.max_hp = 10020;
+		hp.curr_hp = hp.max_hp;
+
+		boss.health_phase_thresholds = { 10000, 7500, 5000, 2500, -1 }; // -1 for end of phase
+
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::BOSS_FLANDRE,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+
+	registry.colors.insert(entity, { 1,1,1 });
 	// Boss health bar ui
-	Entity ui_entity = createBossHealthBarUI(renderer, entity, boss_name);
+	Entity ui_entity = createBossHealthBarUI(renderer, entity, boss_name, name_color);
 	registry.bossHealthBarLink.emplace(entity, ui_entity);
+
+	// Add invulnerability
+	registry.invulnerableTimers.emplace(entity).invulnerable_counter_ms = 3600000;
 
 	// Decision tree ai
 	AiTimer& ai_timer = registry.aitimers.emplace(entity);
-	ai_timer.update_base = 3000;
+	ai_timer.update_base = 1000;
 
 	return entity;
 }
@@ -1026,7 +1087,7 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 
 	BulletSpawner bs;
 	bs.fire_rate = 35;
-	bs.is_firing = true;
+	bs.is_firing = false;
 	bs.bullet_initial_speed = 150;
 
 	registry.bulletSpawners.insert(entity, bs);
@@ -1166,7 +1227,7 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 
 	BulletSpawner bs;
 	bs.fire_rate = 60;
-	bs.is_firing = true;
+	bs.is_firing = false;
 	bs.bullet_initial_speed = 150;
 	bs.bullets_per_array = 3;
 	bs.spread_within_array = 30;
@@ -1366,7 +1427,7 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 	// Placeholder texure
 	registry.renderRequests.insert(
 		entity,
-		{ 
+		{
 		TEXTURE_ASSET_ID::ROCK,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
@@ -1697,6 +1758,35 @@ Entity createPauseMenu(RenderSystem* renderer, vec2 background_pos, float backgr
 			EFFECT_ASSET_ID::UI,
 			GEOMETRY_BUFFER_ID::SPRITE });
 	registry.pauseMenus.emplace(entity);
+
+	return entity;
+}
+
+Entity createTeleporter(RenderSystem* renderer, vec2 pos, float scale) {
+	auto entity = Entity();
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = scale * vec2(TELEPORTER_WIDTH, TELEPORTER_HEIGHT);
+
+	Collidable& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale / 6.f;
+
+	EntityAnimation key_ani;
+	key_ani.isCursor = false;
+	key_ani.spritesheet_scale = { 1 / 39.f, 1 };
+	key_ani.render_pos = { 1 / 39.f, 1 };
+	key_ani.frame_rate_ms = 100;
+	key_ani.full_rate_ms = 100;
+	key_ani.is_active = false;
+	registry.alwaysplayAni.insert(entity, key_ani);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TELEPORTER,
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::SPRITE });
+	registry.teleporters.emplace(entity);
 
 	return entity;
 }

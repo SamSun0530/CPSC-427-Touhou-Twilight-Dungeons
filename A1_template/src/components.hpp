@@ -8,7 +8,10 @@
 struct DialogueInfo {
 	unsigned int cirno_pt = 1000000;
 	unsigned int cirno_after_pt = 1000000;
+	unsigned int flandre_pt = 1000000;
+	unsigned int flandre_after_pt = 1000000;
 	bool cirno_played = false;
+	bool flandre_played = false;
 };
 extern DialogueInfo dialogue_info;
 
@@ -32,7 +35,8 @@ enum class MENU_STATE {
 	DIALOGUE,
 	INVENTORY,
 	WIN,
-	LOSE
+	LOSE,
+	INFOGRAPHIC
 };
 
 struct Menu {
@@ -92,26 +96,37 @@ struct GameInfo {
 		player_id = (Entity)player_actual;
 		is_player_id_set = true;
 	}
-	// TODO: store player current room (index or id?)
-	// TODO: store visited rooms (for doors)
+	bool is_player_frozen = false;
+
 	int in_room = -1; // -1 - not in room
+	int prev_in_room = -1; // used for out of bounds error
 	// each index represents a room
 	std::vector<Room_struct> room_index;
-	// same size as room_index, where each index corresponds to whether it's been visited
-	std::vector<bool> room_visited;
 
 	void add_room(Room_struct& room) {
 		room_index.push_back(room);
-		room_visited.push_back(false);
 	}
 
 	void reset_room_info() {
 		in_room = -1;
 		room_index.clear();
-		room_visited.clear();
 	}
 };
 extern GameInfo game_info;
+
+struct BossInfo {
+	bool should_use_flandre_bullet = false;
+
+	void reset() {
+		should_use_flandre_bullet = false;
+	}
+};
+extern BossInfo boss_info;
+
+struct Teleporter {
+	bool player_overlap = false;
+	bool is_teleporting = false;
+};
 
 // Menu stuff
 struct MainMenu {
@@ -188,6 +203,7 @@ enum class BULLET_ACTION {
 enum class CHARACTER {
 	REIMU,
 	CIRNO,
+	FlANDRE,
 	NONE,
 };
 
@@ -431,6 +447,7 @@ struct Key
 struct BossHealthBarUI {
 	bool is_visible = false;
 	std::string boss_name;
+	vec3 name_color;
 };
 
 // keep track of which boss this ui belongs to
@@ -584,6 +601,10 @@ struct WinMenu
 
 struct LoseMenu
 {
+
+};
+
+struct InfographicMenu {
 
 };
 
@@ -777,8 +798,8 @@ enum class TEXTURE_ASSET_ID {
 	HEALTH_1 = PILLAR_BOTTOM + 1,
 	HEALTH_2 = HEALTH_1 + 1,
 	REGENERATE_HEALTH = HEALTH_2 + 1,
-	BOSS = REGENERATE_HEALTH + 1,
-	BOSS_HEALTH_BAR = BOSS + 1,
+	BOSS_CIRNO = REGENERATE_HEALTH + 1,
+	BOSS_HEALTH_BAR = BOSS_CIRNO + 1,
 	REIMU_BULLET_DISAPPEAR = BOSS_HEALTH_BAR + 1,
 	FOCUS_DOT = REIMU_BULLET_DISAPPEAR + 1,
 	KEYS = FOCUS_DOT + 1,
@@ -812,9 +833,14 @@ enum class TEXTURE_ASSET_ID {
 	DOOR_VERTICAL_CLOSE_UP = DOOR_VERTICAL_CLOSE_DOWN + 1,
 	REIMU_PORTRAIT = DOOR_VERTICAL_CLOSE_UP + 1,
 	CIRNO_PORTRAIT = REIMU_PORTRAIT + 1,
-	DIALOGUE_BOX = CIRNO_PORTRAIT + 1,
-	WINDEATH_SCREEN = DIALOGUE_BOX + 1,
-	TEXTURE_COUNT = WINDEATH_SCREEN + 1,
+	FLANDRE_PORTRAIT = CIRNO_PORTRAIT + 1,
+	DIALOGUE_BOX = FLANDRE_PORTRAIT + 1,
+	TELEPORTER = DIALOGUE_BOX + 1,
+	WINDEATH_SCREEN = TELEPORTER + 1,
+	BOSS_FLANDRE = WINDEATH_SCREEN + 1,
+	FLANDRE_BULLET = BOSS_FLANDRE + 1,
+	INFOGRAPHIC = FLANDRE_BULLET + 1,
+	TEXTURE_COUNT = INFOGRAPHIC + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

@@ -363,7 +363,13 @@ void RenderSystem::draw()
 
 	camera.setCameraAABB();
 
-	if (menu.state == MENU_STATE::PLAY || menu.state == MENU_STATE::PAUSE || menu.state == MENU_STATE::DIALOGUE || menu.state == MENU_STATE::WIN || menu.state == MENU_STATE::LOSE) {
+	if (menu.state == MENU_STATE::PLAY || 
+		menu.state == MENU_STATE::PAUSE || 
+		menu.state == MENU_STATE::DIALOGUE || 
+		menu.state == MENU_STATE::WIN || 
+		menu.state == MENU_STATE::LOSE || 
+		menu.state == MENU_STATE::INFOGRAPHIC) {
+
 		// Draw all textured meshes that have a position and size component
 		std::vector<Entity> boss_ui_entities;
 		std::vector<Entity> uiux_world_entities;
@@ -391,6 +397,7 @@ void RenderSystem::draw()
 			if (registry.winMenus.has(entity)) continue;
 			if (registry.loseMenus.has(entity)) continue;
 			if (registry.playerBullets.has(entity)) continue;
+			if (registry.infographicsMenus.has(entity)) continue;
 
 			// Note, its not very efficient to access elements indirectly via the entity
 			// albeit iterating through all Sprites in sequence. A good point to optimize
@@ -531,7 +538,13 @@ void RenderSystem::draw()
 				render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, 50.f, text_cont.transparency);
 			}
 		}
+		if (menu.state == MENU_STATE::INFOGRAPHIC) {
+			for (Entity entity : registry.infographicsMenus.entities) {
+				drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+			}
 
+			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::INFOGRAPHIC);
+		}
 		// Render this last, because it should be on top
 		if (menu.state == MENU_STATE::PAUSE) {
 			for (Entity entity : registry.pauseMenus.entities) {
@@ -568,6 +581,7 @@ void RenderSystem::draw()
 			}
 			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::LOSE);
 		}
+
 	}
 	else if (menu.state == MENU_STATE::MAIN_MENU) {
 		for (Entity entity : registry.mainMenus.entities) {
@@ -748,7 +762,14 @@ void RenderSystem::drawBulletsInstanced(const std::vector<Entity>& entities, con
 	glActiveTexture(GL_TEXTURE0);
 	gl_has_errors();
 
-	GLuint texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::ENEMY_BULLET];
+	GLuint texture_id;
+
+	if (boss_info.should_use_flandre_bullet) {
+		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::FLANDRE_BULLET];
+	}
+	else {
+		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::ENEMY_BULLET];
+	}
 
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 	gl_has_errors();

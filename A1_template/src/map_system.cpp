@@ -30,7 +30,7 @@ void MapSystem::step(float elapsed_ms_since_last_update) {
 			if (cur_room.enemies.empty())
 			{
 				// Room is cleared
-				cur_room.is_cleared == true;
+				cur_room.is_cleared = true;
 				// Unlocks all doors
 				for (Entity& door_entity : cur_room.doors) {
 					Door& door = registry.doors.get(door_entity);
@@ -51,7 +51,17 @@ void MapSystem::step(float elapsed_ms_since_last_update) {
 				}
 			}
 		}
+		else {
+			if (cur_room.type == ROOM_TYPE::BOSS) {
+				// only one teleporter in the map at a time
+				if (registry.teleporters.size() < 1) {
+					createTeleporter(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f), 2.f);
+				}
+			}
+		}
+
 	}
+
 }
 
 void MapSystem::restart_map() {
@@ -104,7 +114,7 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		spawn_points.push_back(convert_grid_to_world(room.bottom_right - 1.f));
 		spawn_points.push_back(convert_grid_to_world(vec2(room.bottom_right.x - 1.f, room.top_left.y + 1.f)));
 		spawn_points.push_back(convert_grid_to_world(vec2(room.top_left.x + 1.f, room.bottom_right.y - 1.f)));
-		
+
 		for (vec2 point : spawn_points) {
 			float random_numer = uniform_dist(rng);
 			if (random_numer <= 0.50) {
@@ -121,10 +131,10 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 	}
 	else if (room.type == ROOM_TYPE::BOSS) {
 		if (map_info.level == MAP_LEVEL::LEVEL1) {
-			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Cirno, the Ice Fairy", BOSS_ID::CIRNO);
+			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Cirno, the Ice Fairy", BOSS_ID::CIRNO, vec3(0, 0, 1));
 		}
 		else if (map_info.level == MAP_LEVEL::LEVEL2) {
-			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "???????????", BOSS_ID::FLANDRE);
+			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Flandre, the Scarlet Devil", BOSS_ID::FLANDRE, vec3(1, 0, 0));
 		}
 		room.enemies.push_back(entity);
 	}
@@ -142,7 +152,7 @@ Entity MapSystem::spawnPlayerInRoom(int room_number) {
 	room.need_to_spawn = false;
 
 	//room_number = bsptree.rooms.size() - 1;
-	//return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left));
+	//return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left - vec2(2, 0)));
 	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f));
 }
 
@@ -190,7 +200,7 @@ void MapSystem::generateTutorialMap() {
 		{2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2}
 	};
 
-	//// temporarily disable walls to test placement of entities
+	////temporarily disable walls to test placement of entities
 	//for (int y = 0; y < grid.size(); ++y) {
 	//	for (int x = 0; x < grid[y].size(); ++x) {
 	//		if (grid[y][x] == 2) grid[y][x] = 1;
@@ -239,6 +249,8 @@ void MapSystem::generateTutorialMap() {
 	createKey(convert_grid_to_world({ 25.f, 10.f }), vec2(90), KEYS::MOUSE_1, false, true, 1500);
 	createText(convert_grid_to_world({ 24.f, 11.f }), vec3(1.f), "Hold to shoot", vec3(1, 1, 1), true, true);
 
+	createText(convert_grid_to_world({ 29.f, 10.f }), vec3(1.f), "Combo Meter on top right\nIncreases game speed", vec3(1, 1, 1), true, true);
+
 	// hardcoded dummy enemy spawn
 	Entity entity1 = createDummyEnemySpawner(renderer, convert_grid_to_world({ 29, 5 }));
 	DummyEnemySpawner& spawner1 = registry.dummyenemyspawners.get(entity1);
@@ -270,27 +282,52 @@ void MapSystem::generateTutorialMap() {
 Room MapSystem::generateBossRoom() {
 	rooms.clear();
 	Room room;
-	room.grid = {
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
-		{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
-		{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-	};
+	if (map_info.level == MAP_LEVEL::LEVEL2) {
+		room.grid = {
+			{1, 1, 1, 1, 1, 1, 2, 2, 0, 0, 0, 2, 2, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 2, 2, 0, 2, 2, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2},
+			{2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 2, 2, 0, 2, 2, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 2, 2, 0, 0, 0, 2, 2, 1, 1, 1, 1, 1, 1},
+		};
+	}
+	else {
+		room.grid = {
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+			{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+			{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		};
+	}
 	room.size = { room.grid[0].size(), room.grid.size() };
 	room.x = world_width - room.size.x - 1;
 	room.y = world_height / 2 - room.size.y / 2 - 1;
@@ -452,7 +489,20 @@ TILE_NAME_SANDSTONE MapSystem::get_tile_name_sandstone(int x, int y, std::vector
 	const int F = (int)TILE_TYPE::FLOOR;
 
 	if (type == E) return TILE_NAME_SANDSTONE::NONE;
-	else if (type == F) return TILE_NAME_SANDSTONE::AZTEC_FLOOR;
+	else if (type == F) {
+		TILE_NAME_SANDSTONE temp = TILE_NAME_SANDSTONE::CHECKER_FLOOR;
+		switch (map_info.level) {
+		case MAP_LEVEL::LEVEL1:
+			temp = TILE_NAME_SANDSTONE::AZTEC_FLOOR;
+			break;
+		case MAP_LEVEL::LEVEL2:
+			temp = TILE_NAME_SANDSTONE::ROCK_FLOOR;
+			break;
+		default:
+			break;
+		}
+		return temp;
+	}
 
 	// Specify neighbors for hardcoded checks
 	const int U = map[y - 1][x];	// Up
