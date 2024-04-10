@@ -1,5 +1,5 @@
-Reimu: Ow... i didn't expect to fall this far.
-Reimu: This this isn't the bottom of the well. \nWhere have I stumbled upon?
-Reimu: There's no turning back now. \nBesides, there's something off about this place...
-Reimu: It doesn't feel like any part of Gensokyo I know. \nBut if there's a problem here, it's my duty to resolve it.
-Reimu: Well, no use standing around. I got to find the source of this,\n and destroy it as soon as possible. \nLet's see what lies ahead.
+Reimu: (shock) Ow... i didn't expect to fall this far.
+Reimu: (shock) This this isn't the bottom of the well. \nWhere have I stumbled upon?
+Reimu: (normal) There's no turning back now. \nBesides, there's something off about this place...
+Reimu: (normal) It doesn't feel like any part of Gensokyo I know. \nBut if there's a problem here, it's my duty to resolve it.
+Reimu: (normal) Well, no use standing around. I got to find the source of this,\n and destroy it as soon as possible. \nLet's see what lies ahead.
