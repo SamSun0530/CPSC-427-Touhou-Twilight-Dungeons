@@ -927,10 +927,10 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 	boss.phase_change_time = 1500;
 
 	if (boss_id == BOSS_ID::CIRNO) {
-		hp.max_hp = 200;
+		hp.max_hp = 5020;
 		hp.curr_hp = hp.max_hp;
 
-		boss.health_phase_thresholds = { 5, 4, 3, 2, -1 }; // -1 for end of phase
+		boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
 
 		registry.renderRequests.insert(
 			entity,
@@ -939,10 +939,10 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else if (boss_id == BOSS_ID::FLANDRE) {
-		hp.max_hp = 220;
+		hp.max_hp = 10020;
 		hp.curr_hp = hp.max_hp;
 
-		boss.health_phase_thresholds = { 200, 100, 50, 20, -1 }; // -1 for end of phase
+		boss.health_phase_thresholds = { 10000, 7500, 5000, 2500, -1 }; // -1 for end of phase
 
 		registry.renderRequests.insert(
 			entity,
