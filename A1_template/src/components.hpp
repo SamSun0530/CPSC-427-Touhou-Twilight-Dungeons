@@ -7,18 +7,22 @@
 
 struct DialogueInfo {
 	unsigned int cirno_pt = 1000000;
+	unsigned int cirno_after_pt = 1000000;
 	bool cirno_played = false;
 };
 extern DialogueInfo dialogue_info;
 
-// World map loader
-struct MapLevel {
-	enum LEVEL {
-		TUTORIAL,
-		MAIN
-	} level = LEVEL::MAIN;
+enum class MAP_LEVEL {
+	TUTORIAL,
+	LEVEL1,
+	LEVEL2
 };
-extern MapLevel map_level;
+
+// World map loader
+struct MapInfo {
+	MAP_LEVEL level = MAP_LEVEL::LEVEL1;
+};
+extern MapInfo map_info;
 
 // Menu loader
 enum class MENU_STATE {
@@ -274,7 +278,14 @@ struct BulletSpawner
 	}
 };
 
+enum class BOSS_ID {
+	CIRNO,
+	FLANDRE
+};
+
 struct Boss {
+	// boss identifier
+	BOSS_ID boss_id;
 	// determines if boss system should process state
 	bool is_active = false;
 	// current pattern to use during phase
@@ -416,6 +427,7 @@ struct Key
 
 struct BossHealthBarUI {
 	bool is_visible = false;
+	std::string boss_name;
 };
 
 // keep track of which boss this ui belongs to
@@ -677,6 +689,15 @@ enum class TILE_TYPE {
 	FLOOR = EMPTY + 1,
 	WALL = FLOOR + 1,
 	DOOR = WALL + 1
+};
+
+enum class EMOTION {
+	ANGRY = 0,
+	CRY = ANGRY + 1,
+	SPECIAL = CRY + 1,
+	LAUGH = SPECIAL + 1,
+	NORMAL = LAUGH + 1,
+	SHOCK = NORMAL + 1,
 };
 
 /**

@@ -472,7 +472,7 @@ Entity createCombo(RenderSystem* renderer)
 	return entity;
 }
 
-void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2) {
+void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2, EMOTION emotion) {
 	auto reimu_entity = Entity();
 
 	// Setting initial motion values
@@ -480,9 +480,11 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2)
 	motion_reimu.position = vec2(-250,0);
 	motion_reimu.angle = 0.f;
 	motion_reimu.scale = vec2({ 550.f, 600.f });
-
+	EntityAnimation& ani_reimu = registry.alwaysplayAni.emplace(reimu_entity);
+	ani_reimu.spritesheet_scale = { 1/6.f, 1};
 	registry.dialogueMenus.emplace(reimu_entity);
 	if (character == CHARACTER::REIMU) {
+		ani_reimu.render_pos = { 1/6.f *(1+(int)emotion), 1};
 		registry.renderRequests.insert(
 			reimu_entity,
 			{ TEXTURE_ASSET_ID::REIMU_PORTRAIT, // TEXTURE_COUNT indicates that no txture is needed
@@ -490,6 +492,7 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2)
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else {
+		ani_reimu.render_pos = { 1 / 6.f * (1 + (int)EMOTION::NORMAL), 1 };
 		registry.renderRequests.insert(
 			reimu_entity,
 			{ TEXTURE_ASSET_ID::REIMU_PORTRAIT, // TEXTURE_COUNT indicates that no txture is needed
@@ -505,9 +508,12 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2)
 		motion_other.position = vec2(250, 0);
 		motion_other.angle = 0.f;
 		motion_other.scale = vec2({ 550.f, 600.f });
+		EntityAnimation& ani_other = registry.alwaysplayAni.emplace(other_entity);
+		ani_other.spritesheet_scale = { 1 / 6.f, 1 };
 
 		registry.dialogueMenus.emplace(other_entity);
 		if (character == talk_2) {
+			ani_other.render_pos = { 1 / 6.f * (1 + (int)emotion), 1 };
 			registry.renderRequests.insert(
 				other_entity,
 				{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::REIMU_PORTRAIT + (int)talk_2), // TEXTURE_COUNT indicates that no txture is needed
@@ -515,6 +521,7 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2)
 					GEOMETRY_BUFFER_ID::SPRITE });
 		}
 		else {
+			ani_other.render_pos = { 1 / 6.f * (1 + (int)EMOTION::NORMAL), 1 };
 			registry.renderRequests.insert(
 				other_entity,
 				{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::REIMU_PORTRAIT + (int)talk_2), // TEXTURE_COUNT indicates that no txture is needed
@@ -595,7 +602,7 @@ Entity createCriHit(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss) {
+Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name) {
 	// Reserve en entity
 	auto entity = Entity();
 
@@ -605,10 +612,13 @@ Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss) {
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
+	vec2 padding = { 0, -60 };
+	motion.position = vec2(0, window_px_half.y) + padding;
 	motion.scale = vec2({ BOSS_HEALTH_BAR_WIDTH, BOSS_HEALTH_BAR_HEIGHT });
 
 	BossHealthBarUI& hb = registry.bossHealthBarUIs.emplace(entity);
 	hb.is_visible = false;
+	hb.boss_name = boss_name;
 	registry.bossHealthBarLink.emplace(entity, boss);
 	registry.renderRequests.insert(
 		entity,
@@ -785,7 +795,7 @@ Entity createDummyEnemy(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
-Entity createBoss(RenderSystem* renderer, vec2 position)
+Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, BOSS_ID boss_id)
 {
 	auto entity = Entity();
 
@@ -831,6 +841,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	Boss& boss = registry.bosses.emplace(entity);
+	boss.boss_id = boss_id;
 	// Boss bullet patterns
 	boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
 	boss.duration = 10000; // duration for each pattern
@@ -838,7 +849,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position)
 	boss.phase_change_time = 1500;
 
 	// Boss health bar ui
-	Entity ui_entity = createBossHealthBarUI(renderer, entity);
+	Entity ui_entity = createBossHealthBarUI(renderer, entity, boss_name);
 	registry.bossHealthBarLink.emplace(entity, ui_entity);
 
 	// Decision tree ai
@@ -1316,7 +1327,7 @@ Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, v
 	EFFECT_ASSET_ID::EGG,
 	GEOMETRY_BUFFER_ID::DEBUG_LINE2
 	*/
-	if (map_level.level == MapLevel::TUTORIAL) return entity;
+	if (map_info.level == MAP_LEVEL::TUTORIAL) return entity;
 
 	auto entity2 = Entity();
 	//registry.visibilityTiles.emplace(entity2); // TODO

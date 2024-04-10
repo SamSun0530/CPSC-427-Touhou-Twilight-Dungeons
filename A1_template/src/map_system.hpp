@@ -53,7 +53,7 @@ public:
 	void restart_map();
 	void init(RenderSystem* renderer, VisibilitySystem* visibility_arg);
 	Room generateBossRoom();
-	void generateRandomMap();
+	void generateRandomMap(float room_size);
 	void generateTutorialMap();
 	void printMap();
 	void spawnEnemiesInRooms();

@@ -34,7 +34,7 @@ void VisibilitySystem::init(RenderSystem* renderer_arg)
 
 void VisibilitySystem::step(float elapsed_ms)
 {
-	if (map_level.level == MapLevel::TUTORIAL) return;
+	if (map_info.level == MAP_LEVEL::TUTORIAL) return;
 	if (!game_info.is_player_id_set) return;
 
 	counter_ms = counter_ms - elapsed_ms <= 0 ? 0 : counter_ms - elapsed_ms;

@@ -1,4 +1,4 @@
-Reimu: This... this isn't the bottom of the well. \nWhere have I stumbled upon?
-Reimu: There's no turning back now. \nBesides, there's something off about this place...
-Reimu: It doesn't feel like any part of Gensokyo I know. \nBut if there's a problem here, it's my duty to resolve it.
-Reimu: Well, no use standing around. If there's a mystery here,\n I'll uncover it and ensure the safety of Gensokyo. \nLet's see what lies ahead.
+Reimu: (shock) This... this isn't the bottom of the well. \nWhere have I stumbled upon?
+Reimu: (normal) There's no turning back now. \nBesides, there's something off about this place...
+Reimu: (normal) It doesn't feel like any part of Gensokyo I know. \nBut if there's a problem here, it's my duty to resolve it.
+Reimu: (normal) Well, no use standing around. If there's a mystery here,\n I'll uncover it and ensure the safety of Gensokyo. \nLet's see what lies ahead.
