@@ -54,6 +54,7 @@ Audio::Audio() {
 	damage_sound = Mix_LoadWAV(audio_path("damage_sound.wav").c_str());
 	hit_spell = Mix_LoadWAV(audio_path("hit_spell.wav").c_str());
 	pause_menu_sound = Mix_LoadWAV(audio_path("pause_menu_sound.wav").c_str());
+	open_gate_sound = Mix_LoadWAV(audio_path("open_gate_sound.wav").c_str());
 
 	// Set the music volume
 	Mix_VolumeMusic(15);
@@ -90,6 +91,8 @@ Audio::~Audio() {
 		Mix_FreeChunk(menu_music);
 	if (boss_music != nullptr)
 		Mix_FreeMusic(boss_music);
+	if (pause_menu_sound != nullptr)
+		Mix_FreeChunk(pause_menu_sound);
 
 	Mix_CloseAudio();
 }

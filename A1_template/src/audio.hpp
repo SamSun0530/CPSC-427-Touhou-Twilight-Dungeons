@@ -18,6 +18,7 @@ public:
 	// music references
 	Mix_Chunk* background_music;
 	Mix_Chunk* menu_music;
+	Mix_Chunk* open_gate_sound;
 	Mix_Music* boss_music;
 	Mix_Chunk* pause_menu_sound;
 	Mix_Chunk* game_ending_sound;
