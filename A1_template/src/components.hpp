@@ -32,7 +32,8 @@ enum class MENU_STATE {
 	DIALOGUE,
 	INVENTORY,
 	WIN,
-	LOSE
+	LOSE,
+	INFOGRAPHIC
 };
 
 struct Menu {
@@ -589,6 +590,10 @@ struct LoseMenu
 
 };
 
+struct InfographicMenu {
+
+};
+
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {
@@ -816,7 +821,8 @@ enum class TEXTURE_ASSET_ID {
 	WINDEATH_SCREEN = TELEPORTER + 1,
 	BOSS_FLANDRE = WINDEATH_SCREEN + 1,
 	FLANDRE_BULLET = BOSS_FLANDRE + 1,
-	TEXTURE_COUNT = FLANDRE_BULLET + 1,
+	INFOGRAPHIC = FLANDRE_BULLET + 1,
+	TEXTURE_COUNT = INFOGRAPHIC + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

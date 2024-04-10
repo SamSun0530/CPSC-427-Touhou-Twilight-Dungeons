@@ -81,6 +81,7 @@ public:
 	ComponentContainer<Teleporter> teleporters;
 	ComponentContainer<WinMenu> winMenus;
 	ComponentContainer<LoseMenu> loseMenus;
+	ComponentContainer<InfographicMenu> infographicsMenus;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -156,6 +157,7 @@ public:
 		registry_list.push_back(&teleporters);
 		registry_list.push_back(&winMenus);
 		registry_list.push_back(&loseMenus);
+		registry_list.push_back(&infographicsMenus);
 	}
 
 	void clear_all_components() {

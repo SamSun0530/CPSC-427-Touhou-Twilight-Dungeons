@@ -200,7 +200,7 @@ void MapSystem::generateTutorialMap() {
 		{2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2}
 	};
 
-	// temporarily disable walls to test placement of entities
+	////temporarily disable walls to test placement of entities
 	//for (int y = 0; y < grid.size(); ++y) {
 	//	for (int x = 0; x < grid[y].size(); ++x) {
 	//		if (grid[y][x] == 2) grid[y][x] = 1;
@@ -248,6 +248,8 @@ void MapSystem::generateTutorialMap() {
 	createText(convert_grid_to_world({ 24.f, 10.f }), vec3(3), "/", vec3(1, 1, 1), true, true);
 	createKey(convert_grid_to_world({ 25.f, 10.f }), vec2(90), KEYS::MOUSE_1, false, true, 1500);
 	createText(convert_grid_to_world({ 24.f, 11.f }), vec3(1.f), "Hold to shoot", vec3(1, 1, 1), true, true);
+
+	createText(convert_grid_to_world({ 29.f, 10.f }), vec3(1.f), "Combo Meter on top right\nIncreases game speed", vec3(1, 1, 1), true, true);
 
 	// hardcoded dummy enemy spawn
 	Entity entity1 = createDummyEnemySpawner(renderer, convert_grid_to_world({ 29, 5 }));
@@ -488,7 +490,7 @@ TILE_NAME_SANDSTONE MapSystem::get_tile_name_sandstone(int x, int y, std::vector
 
 	if (type == E) return TILE_NAME_SANDSTONE::NONE;
 	else if (type == F) {
-		TILE_NAME_SANDSTONE temp;
+		TILE_NAME_SANDSTONE temp = TILE_NAME_SANDSTONE::CHECKER_FLOOR;
 		switch (map_info.level) {
 		case MAP_LEVEL::LEVEL1:
 			temp = TILE_NAME_SANDSTONE::AZTEC_FLOOR;

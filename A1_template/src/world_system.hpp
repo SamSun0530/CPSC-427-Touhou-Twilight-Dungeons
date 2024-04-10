@@ -46,6 +46,7 @@ public:
 	void init_pause_menu();
 	void init_win_menu();
 	void init_lose_menu();
+	void init_infographic_menu();
 	void resume_game();
 
 	// Releases all associated resources
@@ -66,7 +67,6 @@ public:
 	bool is_over() const;
 
 	// font and instructions
-	float get_HP_timer();
 	bool get_display_instruction();
 	int get_tutorial_counter();
 	bool get_show_fps();

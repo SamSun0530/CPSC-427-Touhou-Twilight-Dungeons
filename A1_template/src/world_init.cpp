@@ -481,7 +481,7 @@ Entity createWin(RenderSystem* renderer) {
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	Motion& motion = registry.motions.emplace(entity);
-	motion.position = vec2(0,0);
+	motion.position = vec2(0, 0);
 	motion.scale = vec2(1000, 700);
 
 	registry.renderRequests.insert(
@@ -495,6 +495,46 @@ Entity createWin(RenderSystem* renderer) {
 	return entity;
 
 }
+
+Entity createInfographic(RenderSystem* renderer) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = vec2(0, 0);
+	motion.scale = vec2(1100, 690);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::WINDEATH_SCREEN,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.infographicsMenus.emplace(entity);
+
+	//Picture
+	auto entity2 = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh2 = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity2, &mesh2);
+
+	Motion& motion2 = registry.motions.emplace(entity2);
+	motion2.position = vec2(0, -25);
+	motion2.scale = vec2(886, 364);
+
+	registry.renderRequests.insert(
+		entity2,
+		{ TEXTURE_ASSET_ID::INFOGRAPHIC,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.infographicsMenus.emplace(entity2);
+
+	return entity;
+}
+
 Entity createLose(RenderSystem* renderer) {
 	// Pause menu background
 	auto entity = Entity();
@@ -504,7 +544,7 @@ Entity createLose(RenderSystem* renderer) {
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	Motion& motion = registry.motions.emplace(entity);
-	motion.position = vec2(0,0);
+	motion.position = vec2(0, 0);
 	motion.scale = vec2(1000, 700);
 
 	registry.renderRequests.insert(
@@ -528,10 +568,10 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2,
 	motion_reimu.angle = 0.f;
 	motion_reimu.scale = vec2({ 550.f, 600.f });
 	EntityAnimation& ani_reimu = registry.alwaysplayAni.emplace(reimu_entity);
-	ani_reimu.spritesheet_scale = { 1/6.f, 1};
+	ani_reimu.spritesheet_scale = { 1 / 6.f, 1 };
 	registry.dialogueMenus.emplace(reimu_entity);
 	if (character == CHARACTER::REIMU) {
-		ani_reimu.render_pos = { 1/6.f *(1+(int)emotion), 1};
+		ani_reimu.render_pos = { 1 / 6.f * (1 + (int)emotion), 1 };
 		registry.renderRequests.insert(
 			reimu_entity,
 			{ TEXTURE_ASSET_ID::REIMU_PORTRAIT, // TEXTURE_COUNT indicates that no txture is needed
@@ -1315,7 +1355,7 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 	// Placeholder texure
 	registry.renderRequests.insert(
 		entity,
-		{ 
+		{
 		TEXTURE_ASSET_ID::ROCK,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });

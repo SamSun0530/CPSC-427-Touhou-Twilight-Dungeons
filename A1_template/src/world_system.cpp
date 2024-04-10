@@ -174,7 +174,7 @@ void WorldSystem::init_pause_menu() {
 
 	// create buttons
 	// vertically center the buttons
-	int num_buttons = 2;
+	int num_buttons = 3;
 	const float button_scale = 0.7f;
 	const float button_padding_y = 5.f;
 	const float offset_y_delta = BUTTON_HOVER_HEIGHT * button_scale + button_padding_y;
@@ -183,12 +183,24 @@ void WorldSystem::init_pause_menu() {
 		resume_game();
 		});
 	offset_y += offset_y_delta;
+	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Help", 0.9f, [&]() {
+		menu.state = MENU_STATE::INFOGRAPHIC;
+		});
+	offset_y += offset_y_delta;
 	createButton(renderer, { 0, offset_y }, button_scale * 1.1f, MENU_STATE::PAUSE, "Exit to Menu", 0.85f, [&]() {
 		////Mix_ResumeMusic();
 		//Mix_HaltChannel(0);
 		//Mix_PlayChannel(1, audio->menu_music, -1);
 
 		menu.state = MENU_STATE::MAIN_MENU;
+		});
+}
+
+void WorldSystem::init_infographic_menu() {
+	createInfographic(renderer);
+	const float button_scale = 0.7f;
+	createButton(renderer, { 0, 225 }, button_scale * 1.1, MENU_STATE::INFOGRAPHIC, "Back", 0.85f, [&]() {
+		menu.state = MENU_STATE::PAUSE;
 		});
 }
 
@@ -578,6 +590,7 @@ void WorldSystem::restart_game() {
 	// initialize menus
 	init_menu();
 	init_pause_menu();
+	init_infographic_menu();
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -1128,6 +1141,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// back to game
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			resume_game();
+		}
+	}
+	else if (menu.state == MENU_STATE::INFOGRAPHIC) {
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+			menu.state = MENU_STATE::PAUSE;
 		}
 	}
 	else if (menu.state == MENU_STATE::DIALOGUE) {

@@ -106,6 +106,7 @@ class RenderSystem {
 			textures_path("WinDeathMenu.png"),
 			textures_path("Flandre-Figure.png"),
 			textures_path("Flandre-Bullet.png"),
+			textures_path("Infographic.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

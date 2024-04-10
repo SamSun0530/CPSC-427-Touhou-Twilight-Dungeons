@@ -52,6 +52,7 @@ Entity createHealthUI(RenderSystem*);
 Entity createFood(RenderSystem* renderer, vec2 position);
 Entity createWin(RenderSystem* renderer);
 Entity createLose(RenderSystem* renderer);
+Entity createInfographic(RenderSystem* renderer);
 Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name, vec3 name_color);
 // ui key
 Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true, bool is_active = true, float frame_rate = 500.f);
