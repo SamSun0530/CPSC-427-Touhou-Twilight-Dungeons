@@ -1215,6 +1215,33 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 	return entities;
 }
 
+Entity createRock(RenderSystem* renderer, vec2 grid_position) {
+	auto entity = Entity();
+
+	// Initializes the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = convert_grid_to_world(grid_position);
+	motion.scale = vec2(world_tile_size, world_tile_size);
+
+	// Rocks are collidable
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = { motion.scale.x, motion.scale.y };
+	collidable.shift = { 0, 0 };
+
+	// Rocks act like walls
+	registry.walls.emplace(entity);
+
+
+	// Placeholder texure
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BOSS,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 // IMPORTANT: createDoor takes in grid coordinates
 Entity createDoor(RenderSystem* renderer, vec2 grid_position, DIRECTION dir, int room_index) {
 	auto entity = Entity();

@@ -87,7 +87,7 @@ void BSPTree::generate_rooms_random(BSPNode* node) {
 		rooms.push_back(*node->room);
 
 		// Populates the map with floors
-
+		// With a chance of a floor being a rock
 		for (int i = node->room->top_left.y; i <= node->room->bottom_right.y; ++i) {
 			for (int j = node->room->top_left.x; j <= node->room->bottom_right.x; ++j) {
 				world_map[i][j] = (int)TILE_TYPE::FLOOR;
