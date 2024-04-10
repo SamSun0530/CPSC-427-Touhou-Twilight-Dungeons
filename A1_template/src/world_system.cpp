@@ -167,7 +167,9 @@ void WorldSystem::init_menu() {
 			});
 		offset_y += offset_y_delta;
 	}
-	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "New Game", 1.f, [&]() { restart_game(); });
+	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "New Game", 1.f, [&]() { 
+		map_info.level = MAP_LEVEL::LEVEL1;
+		restart_game(); });
 	offset_y += offset_y_delta;
 	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Exit", 1.f, [&]() { glfwSetWindowShouldClose(window, true); });
 }
