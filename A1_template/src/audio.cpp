@@ -19,6 +19,19 @@ void Audio::step(float elapsed) {
 			Mix_PlayChannel(2, background_music, -1);
 		}
 	}
+	else if (menu.state == MENU_STATE::PAUSE) {
+		if (Mix_Playing(2)) {
+			
+			Mix_HaltChannel(2);
+			Mix_PlayChannel(1, menu_music, -1);
+		}
+		else if (Mix_Playing(1)) {
+			
+		}
+		
+		
+	}
+
 }
 
 Audio::Audio() {
@@ -40,10 +53,14 @@ Audio::Audio() {
 	firing_sound = Mix_LoadWAV(audio_path("spell_sound.wav").c_str());
 	damage_sound = Mix_LoadWAV(audio_path("damage_sound.wav").c_str());
 	hit_spell = Mix_LoadWAV(audio_path("hit_spell.wav").c_str());
+	pause_menu_sound = Mix_LoadWAV(audio_path("pause_menu_sound.wav").c_str());
 
 	// Set the music volume
 	Mix_VolumeMusic(15);
-	Mix_Volume(-1, 30);
+	Mix_Volume(-1, 25);
+	Mix_Volume(2, 20);
+	Mix_Volume(1, 20);
+	Mix_Volume(3, 10);
 
 	if (background_music == nullptr || game_ending_sound == nullptr || firing_sound == nullptr || damage_sound == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",

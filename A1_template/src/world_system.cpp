@@ -178,7 +178,6 @@ void WorldSystem::init_pause_menu() {
 	const float offset_y_delta = BUTTON_HOVER_HEIGHT * button_scale + button_padding_y;
 	float offset_y = -(offset_y_delta * (num_buttons - 1) - button_padding_y) / 2.f;
 	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Resume", 0.9f, [&]() { 
-		//Mix_HaltChannel(1);
 		resume_game(); 
 		});
 	offset_y += offset_y_delta;
@@ -935,8 +934,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			// open pause menu
+			Mix_PlayChannel(3, audio->pause_menu_sound, 0);
 			menu.state = MENU_STATE::PAUSE;
-			Mix_PauseMusic();
 		}
 	}
 	else if (menu.state == MENU_STATE::MAIN_MENU) {
