@@ -402,8 +402,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (death_counter.death_counter_ms < 0) {
 			if (registry.players.has(entity)) {
 				registry.realDeathTimers.remove(entity);
-				screen.darken_screen_factor = 0;
-				menu.state = MENU_STATE::LOSE;
+
+				// TODO
+				restart_game();
+				//screen.darken_screen_factor = 0;
+				//menu.state = MENU_STATE::LOSE;
 				return true;
 			}
 			else if (registry.teleporters.has(entity)) {
@@ -1280,7 +1283,10 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	}
 	else if (dialogue_info.cirno_after_pt == cirno_after_script.size()) {
 		dialogue_info.cirno_after_pt += 1;
-		menu.state = MENU_STATE::WIN;
+
+		// TODO
+		resume_game();
+		//menu.state = MENU_STATE::WIN;
 	}
 
 }
