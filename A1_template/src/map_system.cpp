@@ -120,7 +120,13 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		}
 	}
 	else if (room.type == ROOM_TYPE::BOSS) {
-		createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Cirno, the Ice Fairy");
+		if (map_info.level == MAP_LEVEL::LEVEL1) {
+			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Cirno, the Ice Fairy", BOSS_ID::CIRNO);
+		}
+		else if (map_info.level == MAP_LEVEL::LEVEL2) {
+			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "???????????", BOSS_ID::FLANDRE);
+		}
+		room.enemies.push_back(entity);
 	}
 	else if (room.type == ROOM_TYPE::START) {
 		// spawn nothing
@@ -129,13 +135,15 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 
 Entity MapSystem::spawnPlayerInRoom(int room_number) {
 	if (room_number < 0 || room_number >= bsptree.rooms.size()) assert(false && "Room number out of bounds");
-	bsptree.rooms[room_number].type = ROOM_TYPE::START;
-	Room_struct& room = game_info.room_index[room_number];
-	room.type = ROOM_TYPE::START;
-	room.is_cleared = true;
-	room.need_to_spawn = false;
+	//bsptree.rooms[room_number].type = ROOM_TYPE::START;
+	//Room_struct& room = game_info.room_index[room_number];
+	//room.type = ROOM_TYPE::START;
+	//room.is_cleared = true;
+	//room.need_to_spawn = false;
 
-	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f));
+	room_number = bsptree.rooms.size() - 1;
+	return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left));
+	//return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f));
 }
 
 // Getting out of map results? Consider that there is empty padding in the world map.
@@ -292,7 +300,7 @@ Room MapSystem::generateBossRoom() {
 	return room;
 }
 
-void MapSystem::generateRandomMap() {
+void MapSystem::generateRandomMap(float room_size) {
 	assert(room_size > 3 && "Room too small!");
 	bool is_valid = false;
 

@@ -470,10 +470,6 @@ void RenderSystem::draw()
 			drawVisibilityTilesInstanced(projection_2D, view_2D);
 		}
 
-		for (Entity entity : registry.UIUX.entities) {
-			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-		}
-
 		if (menu.state != MENU_STATE::DIALOGUE) {
 			for (Entity entity : registry.UIUX.entities) {
 				drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);

@@ -74,7 +74,7 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position);
 // the grenade launcher enemy
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
 // boss enemy
-Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name);
+Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, BOSS_ID boss_id);
 // dummy enemy for tutorial
 Entity createDummyEnemy(RenderSystem* renderer, vec2 position);
 Entity createDummyEnemySpawner(RenderSystem* renderer, vec2 position);

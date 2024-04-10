@@ -13,12 +13,13 @@ extern DialogueInfo dialogue_info;
 
 enum class MAP_LEVEL {
 	TUTORIAL,
-	MAIN
+	LEVEL1,
+	LEVEL2
 };
 
 // World map loader
 struct MapInfo {
-	MAP_LEVEL level = MAP_LEVEL::MAIN;
+	MAP_LEVEL level = MAP_LEVEL::LEVEL1;
 };
 extern MapInfo map_info;
 
@@ -276,7 +277,14 @@ struct BulletSpawner
 	}
 };
 
+enum class BOSS_ID {
+	CIRNO,
+	FLANDRE
+};
+
 struct Boss {
+	// boss identifier
+	BOSS_ID boss_id;
 	// determines if boss system should process state
 	bool is_active = false;
 	// current pattern to use during phase

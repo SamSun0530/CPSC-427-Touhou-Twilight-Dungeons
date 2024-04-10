@@ -788,7 +788,7 @@ Entity createDummyEnemy(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
-Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name)
+Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, BOSS_ID boss_id)
 {
 	auto entity = Entity();
 
@@ -834,6 +834,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name)
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	Boss& boss = registry.bosses.emplace(entity);
+	boss.boss_id = boss_id;
 	// Boss bullet patterns
 	boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
 	boss.duration = 10000; // duration for each pattern

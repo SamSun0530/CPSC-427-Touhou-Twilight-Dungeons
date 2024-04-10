@@ -419,15 +419,15 @@ void PhysicsSystem::step(float elapsed_ms)
 		Motion& motion_i = motion_container.get(entity_i);
 
 		// Wall to player collision
-		for (Entity& entity_j : registry.players.entities) {
-			Collidable& collidable_j = registry.collidables.get(entity_j);
-			Motion& motion_j = registry.motions.get(entity_j);
-			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
-			{
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
-			}
-		}
+		//for (Entity& entity_j : registry.players.entities) {
+		//	Collidable& collidable_j = registry.collidables.get(entity_j);
+		//	Motion& motion_j = registry.motions.get(entity_j);
+		//	if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
+		//	{
+		//		registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+		//		registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+		//	}
+		//}
 
 		// Wall to enemy collision
 		for (Entity& entity_j : registry.deadlys.entities) {

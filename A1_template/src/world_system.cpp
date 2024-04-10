@@ -514,15 +514,13 @@ void WorldSystem::restart_game() {
 		player = map->spawnPlayer(world_center);
 	}
 	else {
-		map->generateRandomMap();
-		//map->spawnEnemiesInRoom();
+		map->generateRandomMap(11); // room_size must be > 3
 		player = map->spawnPlayerInRoom(0);
 	}
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
 	// Create a new player
-	//player = createPlayer(renderer, { 0, 0 });
 	is_alive = true;
 	createHealthUI(renderer);
 	createAttributeUI(renderer);
@@ -863,7 +861,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 			int w, h;
 			glfwGetWindowSize(window, &w, &h);
-			map_info.level = MAP_LEVEL::MAIN;
+			map_info.level = MAP_LEVEL::LEVEL1;
 			restart_game();
 		}
 
