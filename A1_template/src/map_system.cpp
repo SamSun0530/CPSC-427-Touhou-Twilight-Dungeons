@@ -190,12 +190,12 @@ void MapSystem::generateTutorialMap() {
 		{2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2}
 	};
 
-	// temporarily disable walls to test placement of entities
-	for (int y = 0; y < grid.size(); ++y) {
-		for (int x = 0; x < grid[y].size(); ++x) {
-			if (grid[y][x] == 2) grid[y][x] = 1;
-		}
-	}
+	//// temporarily disable walls to test placement of entities
+	//for (int y = 0; y < grid.size(); ++y) {
+	//	for (int x = 0; x < grid[y].size(); ++x) {
+	//		if (grid[y][x] == 2) grid[y][x] = 1;
+	//	}
+	//}
 
 	// get max width of grid
 	size_t max_width = 0;
