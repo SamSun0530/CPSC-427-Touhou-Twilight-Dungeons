@@ -472,7 +472,7 @@ Entity createCombo(RenderSystem* renderer)
 	return entity;
 }
 
-void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2) {
+void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2, EMOTION emotion) {
 	auto reimu_entity = Entity();
 
 	// Setting initial motion values
@@ -480,9 +480,11 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2)
 	motion_reimu.position = vec2(-250,0);
 	motion_reimu.angle = 0.f;
 	motion_reimu.scale = vec2({ 550.f, 600.f });
-
+	EntityAnimation& ani_reimu = registry.alwaysplayAni.emplace(reimu_entity);
+	ani_reimu.spritesheet_scale = { 1/6.f, 1};
 	registry.dialogueMenus.emplace(reimu_entity);
 	if (character == CHARACTER::REIMU) {
+		ani_reimu.render_pos = { 1/6.f *(1+(int)emotion), 1};
 		registry.renderRequests.insert(
 			reimu_entity,
 			{ TEXTURE_ASSET_ID::REIMU_PORTRAIT, // TEXTURE_COUNT indicates that no txture is needed
@@ -490,6 +492,7 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2)
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else {
+		ani_reimu.render_pos = { 1 / 6.f * (1 + (int)EMOTION::NORMAL), 1 };
 		registry.renderRequests.insert(
 			reimu_entity,
 			{ TEXTURE_ASSET_ID::REIMU_PORTRAIT, // TEXTURE_COUNT indicates that no txture is needed
@@ -505,9 +508,12 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2)
 		motion_other.position = vec2(250, 0);
 		motion_other.angle = 0.f;
 		motion_other.scale = vec2({ 550.f, 600.f });
+		EntityAnimation& ani_other = registry.alwaysplayAni.emplace(other_entity);
+		ani_other.spritesheet_scale = { 1 / 6.f, 1 };
 
 		registry.dialogueMenus.emplace(other_entity);
 		if (character == talk_2) {
+			ani_other.render_pos = { 1 / 6.f * (1 + (int)emotion), 1 };
 			registry.renderRequests.insert(
 				other_entity,
 				{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::REIMU_PORTRAIT + (int)talk_2), // TEXTURE_COUNT indicates that no txture is needed
@@ -515,6 +521,7 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2)
 					GEOMETRY_BUFFER_ID::SPRITE });
 		}
 		else {
+			ani_other.render_pos = { 1 / 6.f * (1 + (int)EMOTION::NORMAL), 1 };
 			registry.renderRequests.insert(
 				other_entity,
 				{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::REIMU_PORTRAIT + (int)talk_2), // TEXTURE_COUNT indicates that no txture is needed

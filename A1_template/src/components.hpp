@@ -691,6 +691,15 @@ enum class TILE_TYPE {
 	DOOR = WALL + 1
 };
 
+enum class EMOTION {
+	ANGRY = 0,
+	CRY = ANGRY + 1,
+	SPECIAL = CRY + 1,
+	LAUGH = SPECIAL + 1,
+	NORMAL = LAUGH + 1,
+	SHOCK = NORMAL + 1,
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

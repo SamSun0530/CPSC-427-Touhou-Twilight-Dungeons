@@ -1034,7 +1034,6 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	if (start_dialogue_timer > 0) {
 		return;
 	}
-
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
 		registry.remove_all_components_of(registry.debugComponents.entities.back());
@@ -1054,12 +1053,30 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	if (start_pt < start_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
-
+		EMOTION emotion = EMOTION::NORMAL;
 		std::istringstream ss(start_script[start_pt]);
 		std::string token;
 		std::getline(ss, token, ' ');
+
 		if (token == "Cirno:") {
 			speaking_chara = CHARACTER::CIRNO;
+		}
+
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)"){
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
 		}
 		if (word_up_ms < 0) {
 			unsigned int i = 0;
@@ -1073,7 +1090,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		menu.state = MENU_STATE::DIALOGUE;
-		createDialogue(speaking_chara, start_buffer, CHARACTER::NONE);
+		createDialogue(speaking_chara, start_buffer, CHARACTER::NONE, emotion);
 	}
 	else if (start_pt == start_script.size()) {
 		start_pt += 1;
@@ -1082,11 +1099,28 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	else if (dialogue_info.cirno_pt < cirno_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
 		std::istringstream ss(cirno_script[dialogue_info.cirno_pt]);
 		std::string token;
 		std::getline(ss, token, ' ');
 		if (token == "Cirno:") {
 			speaking_chara = CHARACTER::CIRNO;
+		}
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
 		}
 		if (word_up_ms < 0) {
 			unsigned int i = 0;
@@ -1100,7 +1134,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		menu.state = MENU_STATE::DIALOGUE;
-		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO);
+		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO, emotion);
 	}
 	else if (dialogue_info.cirno_pt == cirno_script.size()) {
 		dialogue_info.cirno_pt += 1;
@@ -1109,11 +1143,28 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	}else if (dialogue_info.cirno_after_pt < cirno_after_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
 		std::istringstream ss(cirno_after_script[dialogue_info.cirno_after_pt]);
 		std::string token;
 		std::getline(ss, token, ' ');
 		if (token == "Cirno:") {
 			speaking_chara = CHARACTER::CIRNO;
+		}
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
 		}
 		if (word_up_ms < 0) {
 			unsigned int i = 0;
@@ -1127,12 +1178,13 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		menu.state = MENU_STATE::DIALOGUE;
-		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO);
+		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO, emotion);
 	}
 	else if (dialogue_info.cirno_after_pt == cirno_after_script.size()) {
 		dialogue_info.cirno_after_pt += 1;
 		resume_game();
 	}
+
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
