@@ -11,14 +11,16 @@ bool is_valid_cell(int x, int y) {
 }
 
 // checks if entity has a line of sight of the player
-bool canSeePlayer(Entity& entity) {
-
+bool AISystem::canSeePlayer(Entity& entity) {
+	Motion& entity_motion = registry.motions.get(entity);
+	ivec2 e = convert_world_to_grid(entity_motion.position);
+	// check if entity is under a black visibility tile, if so, can't see player
+	printf("visibility_system->map[e.y][e.x] %d\n", visibility_system->map[e.y][e.x]);
+	if (visibility_system->map[e.y][e.x] == (int)VISIBILITY_STATE::NOT_VISIBLE) return false;
 
 	// assume we have a player
 	Entity& player_entity = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player_entity);
-	Motion& entity_motion = registry.motions.get(entity);
-	ivec2 e = convert_world_to_grid(entity_motion.position);
 	ivec2 p = convert_world_to_grid(player_motion.position);
 	// Bresenham's line Credit: https://www.codeproject.com/Articles/15604/Ray-casting-in-a-2D-tile-based-environment
 	// TODO: Optimize with better algorithm: raycast, others (?)
@@ -359,7 +361,9 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 		if (ui.is_visible) ui.is_visible = false;
 		};
 
-	ConditionalNode* can_see_player_bee = new ConditionalNode(canSeePlayer);
+	ConditionalNode* can_see_player_bee = new ConditionalNode([&](Entity& entity) {
+		return canSeePlayer(entity);
+		});
 	ConditionalNode* is_in_range_bee = new ConditionalNode(isInRangeRemoveFollow);
 	ConditionalNode* can_shoot_bee = new ConditionalNode(canShoot);
 
@@ -382,7 +386,9 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 	// the same node, resulting in error
 	// IMPORTANT: for now it's a quick fix, do not reuse nodes
 	// TODO: use shared_ptr instead
-	ConditionalNode* can_see_player_wolf = new ConditionalNode(canSeePlayer);
+	ConditionalNode* can_see_player_wolf = new ConditionalNode([&](Entity& entity) {
+		return canSeePlayer(entity);
+		});
 	ConditionalNode* is_in_range_wolf = new ConditionalNode(isInRange);
 	ConditionalNode* can_shoot_wolf = new ConditionalNode(canShoot);
 

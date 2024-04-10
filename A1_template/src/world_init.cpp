@@ -953,7 +953,7 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 
 	BulletSpawner bs;
 	bs.fire_rate = 35;
-	bs.is_firing = true;
+	bs.is_firing = false;
 	bs.bullet_initial_speed = 150;
 
 	registry.bulletSpawners.insert(entity, bs);
@@ -1093,7 +1093,7 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 
 	BulletSpawner bs;
 	bs.fire_rate = 60;
-	bs.is_firing = true;
+	bs.is_firing = false;
 	bs.bullet_initial_speed = 150;
 	bs.bullets_per_array = 3;
 	bs.spread_within_array = 30;
