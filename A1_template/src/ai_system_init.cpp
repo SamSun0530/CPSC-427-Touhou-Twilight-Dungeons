@@ -15,7 +15,6 @@ bool AISystem::canSeePlayer(Entity& entity) {
 	Motion& entity_motion = registry.motions.get(entity);
 	ivec2 e = convert_world_to_grid(entity_motion.position);
 	// check if entity is under a black visibility tile, if so, can't see player
-	printf("visibility_system->map[e.y][e.x] %d\n", visibility_system->map[e.y][e.x]);
 	if (visibility_system->map[e.y][e.x] == (int)VISIBILITY_STATE::NOT_VISIBLE) return false;
 
 	// assume we have a player
