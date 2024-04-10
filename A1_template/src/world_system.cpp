@@ -865,6 +865,22 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			restart_game();
 		}
 
+		// Debugging
+		if (key == GLFW_KEY_G) {
+			if (action == GLFW_RELEASE)
+				debugging.in_debug_mode = !debugging.in_debug_mode;
+		}
+
+		// Toggle FPS display
+		if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
+			getInstance().toggle_show_fps();
+		}
+
+		// Player can only act when alive
+		if (!is_alive) {
+			return;
+		}
+
 		// Handle player movement
 		// Added key checks at the beginning so don't have to fetch kinematics / update player direction for
 		// every key press that is not related to WASD
@@ -955,17 +971,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 
-		// Debugging
-		if (key == GLFW_KEY_G) {
-			if (action == GLFW_RELEASE)
-				debugging.in_debug_mode = !debugging.in_debug_mode;
-		}
-
-		// Toggle FPS display
-		if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
-			getInstance().toggle_show_fps();
-		}
-
 		// Toggle tutorial display
 		if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
 			getInstance().display_instruction = false;
@@ -974,29 +979,28 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 
 		// Hold for focus mode
-		if (is_alive) {
-			if (key == GLFW_KEY_LEFT_SHIFT &&
-				!pressed[key] &&
-				action == GLFW_PRESS &&
-				!focus_mode.in_focus_mode) {
-				focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
-				focus_mode.speed_constant = 0.5f;
-				Motion& motion = registry.motions.get(player);
-				CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
-				createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
-				pressed[key] = true;
-			}
-			else if (key == GLFW_KEY_LEFT_SHIFT &&
-				pressed[key] &&
-				action == GLFW_RELEASE &&
-				focus_mode.in_focus_mode) {
-				focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
-				focus_mode.speed_constant = 1.0f;
-				while (registry.focusdots.entities.size() > 0)
-					registry.remove_all_components_of(registry.focusdots.entities.back());
-				pressed[key] = false;
-			}
+		if (key == GLFW_KEY_LEFT_SHIFT &&
+			!pressed[key] &&
+			action == GLFW_PRESS &&
+			!focus_mode.in_focus_mode) {
+			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+			focus_mode.speed_constant = 0.5f;
+			Motion& motion = registry.motions.get(player);
+			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
+			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+			pressed[key] = true;
 		}
+		else if (key == GLFW_KEY_LEFT_SHIFT &&
+			pressed[key] &&
+			action == GLFW_RELEASE &&
+			focus_mode.in_focus_mode) {
+			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+			focus_mode.speed_constant = 1.0f;
+			while (registry.focusdots.entities.size() > 0)
+				registry.remove_all_components_of(registry.focusdots.entities.back());
+			pressed[key] = false;
+		}
+		
 
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			// open pause menu
