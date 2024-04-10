@@ -19,7 +19,8 @@
 #include "map_system.hpp"
 #include "ai_system.hpp"
 #include <map>
-#include <visibility_system.hpp>
+#include "visibility_system.hpp"
+#include "boss_system.hpp"
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -39,7 +40,7 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai, VisibilitySystem* visibility_arg);
+	void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai, VisibilitySystem* visibility_arg, BossSystem* boss_arg);
 
 	// initialize the menu
 	void init_menu();
@@ -54,6 +55,9 @@ public:
 
 	// Ai system - for restarting flow field
 	AISystem* ai;
+
+	// Bullet system - for initializing boss phases
+	BossSystem* boss_system;
 
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);

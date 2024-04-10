@@ -123,12 +123,13 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai, VisibilitySystem* visibility_arg) {
+void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai, VisibilitySystem* visibility_arg, BossSystem* boss_arg) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
 	this->map = map;
 	this->ai = ai;
 	this->visibility_system = visibility_arg;
+	this->boss_system = boss_arg;
 	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
 	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
@@ -557,6 +558,10 @@ unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::str
 
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
+	// TODO: TEMPORARY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	map_info.level = MAP_LEVEL::LEVEL2;
+	boss_system->init_phases();
+
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
 	if (map_info.level != MAP_LEVEL::TUTORIAL) {
