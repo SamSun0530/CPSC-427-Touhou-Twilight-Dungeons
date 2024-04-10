@@ -44,6 +44,8 @@ public:
 	// initialize the menu
 	void init_menu();
 	void init_pause_menu();
+	void init_win_menu();
+	void init_lose_menu();
 	void resume_game();
 
 	// Releases all associated resources
@@ -90,6 +92,7 @@ private:
 	std::array<bool, 512> pressed = { 0 };
 	std::vector<std::string> start_script;
 	std::vector<std::string> cirno_script;
+	std::vector<std::string> cirno_after_script;
 	unsigned int start_pt = 0;
 	float start_dialogue_timer = 1000.f;
 	float word_up_ms = 50.f;

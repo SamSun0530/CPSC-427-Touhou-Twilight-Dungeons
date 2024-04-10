@@ -57,6 +57,7 @@ class RenderSystem {
 			textures_path("LeftBottomCorner.png"),
 			textures_path("RightTopCorner.png"),
 			textures_path("RightBottomCorner.png"),
+			textures_path("Rock_1.png"),
 			textures_path("Reimu_HealthBar.png"),
 			textures_path("Reimu_Head.png"),
 			textures_path("EmptyHeart.png"),
@@ -102,6 +103,7 @@ class RenderSystem {
 			textures_path("cirno_portrait.png"),
 			textures_path("DialogueBox.png"),
 			textures_path("Teleporter.png"),
+			textures_path("WinDeathMenu.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

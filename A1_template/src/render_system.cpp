@@ -363,7 +363,7 @@ void RenderSystem::draw()
 
 	camera.setCameraAABB();
 
-	if (menu.state == MENU_STATE::PLAY || menu.state == MENU_STATE::PAUSE || menu.state == MENU_STATE::DIALOGUE) {
+	if (menu.state == MENU_STATE::PLAY || menu.state == MENU_STATE::PAUSE || menu.state == MENU_STATE::DIALOGUE || menu.state == MENU_STATE::WIN || menu.state == MENU_STATE::LOSE) {
 		// Draw all textured meshes that have a position and size component
 		std::vector<Entity> boss_ui_entities;
 		std::vector<Entity> uiux_world_entities;
@@ -388,6 +388,8 @@ void RenderSystem::draw()
 			if (registry.UIUX.has(entity)) continue;
 			if (registry.players.has(entity)) continue;
 			if (registry.dialogueMenus.has(entity)) continue;
+			if (registry.winMenus.has(entity)) continue;
+			if (registry.loseMenus.has(entity)) continue;
 			if (registry.playerBullets.has(entity)) continue;
 
 			// Note, its not very efficient to access elements indirectly via the entity
@@ -485,7 +487,7 @@ void RenderSystem::draw()
 
 		// Render user guide on screen
 		if (WorldSystem::getInstance().get_display_instruction() == true) {
-			renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.6f, 0.9f, glm::vec3(0, 0, 0), trans, false, 1.f);
+			renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.3f, 0.9f, glm::vec3(1), trans, false, 1.f);
 		}
 
 		if (WorldSystem::getInstance().get_show_fps() == true) {
@@ -502,6 +504,8 @@ void RenderSystem::draw()
 				renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, text_cont.transparency);
 			}
 			for (Entity entity : registry.textsPerm.entities) {
+				if (registry.winMenus.has(entity)) continue;
+				if (registry.loseMenus.has(entity)) continue;
 				Motion& text_motion = registry.motions.get(entity);
 				vec3 text_color = registry.colors.get(entity);
 				RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
@@ -519,6 +523,8 @@ void RenderSystem::draw()
 				render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, 50.f, text_cont.transparency);
 			}
 			for (Entity entity : registry.textsPerm.entities) {
+				if (registry.winMenus.has(entity)) continue;
+				if (registry.loseMenus.has(entity)) continue;
 				Motion& text_motion = registry.motions.get(entity);
 				vec3 text_color = registry.colors.get(entity);
 				RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
@@ -533,6 +539,34 @@ void RenderSystem::draw()
 			}
 
 			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::PAUSE);
+		}
+		if (menu.state == MENU_STATE::WIN) {
+			for (Entity entity : registry.winMenus.entities) {
+				if (registry.textsPerm.has(entity)) {
+					Motion& text_motion = registry.motions.get(entity);
+					vec3 text_color = registry.colors.get(entity);
+					RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
+					renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, text_cont.transparency);
+				}
+				else {
+					drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+				}
+			}
+			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::WIN);
+		}
+		if (menu.state == MENU_STATE::LOSE) {
+			for (Entity entity : registry.loseMenus.entities) {
+				if (registry.textsPerm.has(entity)) {
+					Motion& text_motion = registry.motions.get(entity);
+					vec3 text_color = registry.colors.get(entity);
+					RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
+					renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, text_cont.transparency);
+				}
+				else {
+					drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+				}
+			}
+			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::LOSE);
 		}
 	}
 	else if (menu.state == MENU_STATE::MAIN_MENU) {
