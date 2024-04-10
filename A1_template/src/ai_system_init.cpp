@@ -1,5 +1,6 @@
 #include "ai_system.hpp"
 #include "world_system.hpp"
+#include "visibility_system.hpp"
 
 // checks if (x,y) on the map grid is valid, this is not world coordinates
 bool is_valid_cell(int x, int y) {
@@ -11,6 +12,8 @@ bool is_valid_cell(int x, int y) {
 
 // checks if entity has a line of sight of the player
 bool canSeePlayer(Entity& entity) {
+
+
 	// assume we have a player
 	Entity& player_entity = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player_entity);
@@ -178,13 +181,15 @@ void set_follow_path(Entity& entity, coord from, coord to) {
 	fp.next_path_index = 0;
 }
 
-void AISystem::init() {
+void AISystem::init(VisibilitySystem* visibility_arg) {
+	this->visibility_system = visibility_arg;
+
 	// Initialize flow field
 	restart_flow_field_map();
 
 	// A list of function pointers for conditionals and actions
 	// checks if entity is within range of player
-	bool (*isInRangeRemoveFollow)(Entity & entity) = [](Entity& entity) {
+	std::function<bool(Entity& entity)> isInRangeRemoveFollow = [&](Entity& entity) {
 		float minimum_range_to_check = 360000; // sqrt(360000)=600 pixels
 		Motion& motion = registry.motions.get(entity);
 		// asume there is only one player
@@ -197,7 +202,7 @@ void AISystem::init() {
 		registry.followFlowField.remove(entity);
 		return false;
 		};
-	bool (*isInRange)(Entity & entity) = [](Entity& entity) {
+	std::function<bool(Entity& entity)> isInRange = [&](Entity& entity) {
 		float minimum_range_to_check = 850000; // sqrt(minimum_range_to_check) = x, where x = # of pixels
 		Motion& motion = registry.motions.get(entity);
 		// asume there is only one player
@@ -208,7 +213,7 @@ void AISystem::init() {
 		}
 		return false;
 		};
-	bool (*isInRangeBoss)(Entity & entity) = [](Entity& entity) {
+	std::function<bool(Entity& entity)> isInRangeBoss = [&](Entity& entity) {
 		float minimum_range_to_check = 150000; // sqrt(minimum_range_to_check) = x, where x = # of pixels
 		Motion& motion = registry.motions.get(entity);
 		// asume there is only one player
@@ -220,15 +225,15 @@ void AISystem::init() {
 		return false;
 		};
 	// checks if entity can shoot, throws error if entity does not have bullet spawner component
-	bool (*canShoot)(Entity & entity) = [](Entity& entity) {
+	std::function<bool(Entity& entity)> canShoot = [&](Entity& entity) {
 		float current_time = glfwGetTime();
 		BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
 		return current_time - bullet_spawner.last_fire_time >= bullet_spawner.fire_rate;
 		};
 	// do nothing
-	void (*doNothing)(Entity & entity) = [](Entity& entity) {};
+	std::function<void(Entity& entity)> doNothing = [&](Entity& entity) {};
 	// handles random idle movement, if entity do not have idlemoveactions -> do nothing
-	void (*moveRandomDirection)(Entity & entity) = [](Entity& entity) {
+	std::function<void(Entity& entity)> moveRandomDirection = [&](Entity& entity) {
 		if (registry.bulletSpawners.has(entity)) registry.bulletSpawners.get(entity).is_firing = false; // stop firing
 		if (!registry.idleMoveActions.has(entity)) return;
 		std::random_device ran;
@@ -254,18 +259,18 @@ void AISystem::init() {
 		}
 		};
 	// stops entity from firing, throws error if entity does not have bullet spawner component
-	void (*stopFiring)(Entity & entity) = [](Entity& entity) {
+	std::function<void(Entity& entity)> stopFiring = [&](Entity& entity) {
 		registry.bulletSpawners.get(entity).is_firing = false;
 		};
 	// make entity fire at player and stop motion
-	void (*fireAtPlayer)(Entity & entity) = [](Entity& entity) {
+	std::function<void(Entity& entity)> fireAtPlayer = [&](Entity& entity) {
 		registry.bulletSpawners.get(entity).is_firing = true;
 		registry.kinematics.get(entity).direction = { 0, 0 };
 		registry.followpaths.remove(entity);
 		registry.followFlowField.remove(entity);
 		};
 	// find player with a star and sets followpath component
-	void (*findPlayerAStar)(Entity & entity) = [](Entity& entity) {
+	std::function<void(Entity& entity)> findPlayerAStar = [&](Entity& entity) {
 		if (registry.bulletSpawners.has(entity)) registry.bulletSpawners.get(entity).is_firing = false;
 		Entity& player = registry.players.entities[0];
 		Motion& player_motion = registry.motions.get(player);
@@ -275,7 +280,7 @@ void AISystem::init() {
 		set_follow_path(entity, entity_motion.position + entity_collidable.shift, player_motion.position + player_collidable.shift);
 		};
 	// find player with a star only if outside of range, otherwise stop motion
-	void (*findPlayerThresholdAStar)(Entity & entity) = [](Entity& entity) {
+	std::function<void(Entity& entity)> findPlayerThresholdAStar = [&](Entity& entity) {
 		// does not find player if within a threshold
 		Entity& player = registry.players.entities[0];
 		Motion& player_motion = registry.motions.get(player);
@@ -293,14 +298,14 @@ void AISystem::init() {
 		}
 		};
 	// find player by following flow field
-	void (*followFlowField)(Entity & entity) = [](Entity& entity) {
+	std::function<void(Entity& entity)> followFlowField = [&](Entity& entity) {
 		if (registry.bulletSpawners.has(entity)) registry.bulletSpawners.get(entity).is_firing = false;
 		if (!registry.followFlowField.has(entity)) {
 			registry.followFlowField.emplace(entity);
 		}
 		};
 	// find player by following flow field if outside of range threshold
-	void (*followFlowFieldThreshold)(Entity & entity) = [](Entity& entity) {
+	std::function<void(Entity& entity)> followFlowFieldThreshold = [&](Entity& entity) {
 		if (registry.bulletSpawners.has(entity)) registry.bulletSpawners.get(entity).is_firing = false;
 		Entity& player = registry.players.entities[0];
 		Motion& player_motion = registry.motions.get(player);
@@ -321,7 +326,7 @@ void AISystem::init() {
 	// - boss is active -> process phase changes
 	// - bullet spawner -> firing
 	// - boss health bar ui
-	void (*showBossInfo)(Entity & entity) = [](Entity& entity) {
+	std::function<void(Entity& entity)> showBossInfo = [&](Entity& entity) {
 		if (!registry.bosses.has(entity)) return;
 		Boss& boss = registry.bosses.get(entity);
 		if (boss.is_active) return;
@@ -341,7 +346,7 @@ void AISystem::init() {
 		HP& hp = registry.hps.get(entity);
 		hp.curr_hp -= 20; // activate bullet firing
 		};
-	void (*hideBossInfo)(Entity & entity) = [](Entity& entity) {
+	std::function<void(Entity& entity)> hideBossInfo = [&](Entity& entity) {
 		if (!registry.bosses.has(entity)) return;
 		Boss& boss = registry.bosses.get(entity);
 		boss.is_active = false;

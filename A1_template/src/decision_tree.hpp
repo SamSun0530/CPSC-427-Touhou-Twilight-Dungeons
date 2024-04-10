@@ -11,12 +11,12 @@ public:
 // Action leaf node for executing actions
 class ActionNode : public IDecisionNode {
 	// Action function for entity acting
-	void (*action)(Entity& entity);
+	std::function<void(Entity& entity)> action;
 public:
-	ActionNode(void (*action)(Entity& entity));
+	ActionNode(std::function<void(Entity& entity)>);
 
 	IDecisionNode* process(Entity& entity) override;
-	void setAction(void (*action)(Entity& entity));
+	void setAction(std::function<void(Entity& entity)>);
 };
 
 // Conditional node for sensing environment
@@ -24,14 +24,15 @@ class ConditionalNode : public IDecisionNode {
 	IDecisionNode* true_node = nullptr;
 	IDecisionNode* false_node = nullptr;
 	// Conditional function for entity sensing environment
-	bool (*condition)(Entity& entity);
+	std::function<bool(Entity& entity)> condition;
+
 public:
-	ConditionalNode(bool (*condition)(Entity& entity));
-	ConditionalNode(IDecisionNode* true_node, IDecisionNode* false_node, bool (*condition)(Entity& entity));
+	ConditionalNode(std::function<bool(Entity& entity)> condition);
+	ConditionalNode(IDecisionNode* true_node, IDecisionNode* false_node, std::function<bool(Entity& entity)> condition);
 	~ConditionalNode();
 
 	IDecisionNode* process(Entity& entity) override;
-	void setCondition(bool (*condition)(Entity& entity));
+	void setCondition(std::function<bool(Entity& entity)> condition);
 	void setTrue(IDecisionNode* true_node);
 	void setFalse(IDecisionNode* false_node);
 };

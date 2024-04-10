@@ -12,6 +12,7 @@
 #include "tiny_ecs_registry.hpp"
 #include "common.hpp"
 #include "decision_tree.hpp"
+#include "visibility_system.hpp"
 
 class AISystem
 {
@@ -19,7 +20,7 @@ public:
 	AISystem();
 
 	// Initialize decision trees
-	void init();
+	void init(VisibilitySystem* visibility_arg);
 	// Initialize flow field - call this whenever a new map is generated
 	void restart_flow_field_map();
 	// Returns value at specified grid coordinates
@@ -27,6 +28,8 @@ public:
 
 	void step(float elapsed_ms);
 private:
+	VisibilitySystem* visibility_system;
+
 	// Decision trees for different ai entities
 	DecisionTree bee_tree;
 	DecisionTree bomber_tree;
