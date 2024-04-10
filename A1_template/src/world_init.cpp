@@ -712,7 +712,7 @@ std::vector<Entity> createAttributeUI(RenderSystem* renderer)
 		registry.UIUX.emplace(entity);
 		registry.renderRequests.insert(
 			entity,
-			{ static_cast<TEXTURE_ASSET_ID>(35 + i), // TEXTURE_COUNT indicates that no txture is needed
+			{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::ATTACKDMG + i), // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::UI,
 				GEOMETRY_BUFFER_ID::SPRITE });
 		registry.colors.insert(entity, { 1,1,1 });
@@ -1235,7 +1235,8 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 	// Placeholder texure
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::BOSS,
+		{ 
+		TEXTURE_ASSET_ID::ROCK,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
