@@ -101,6 +101,7 @@ class RenderSystem {
 			textures_path("DoorVerticalcloseUp.png"),
 			textures_path("reimu_portrait.png"),
 			textures_path("cirno_portrait.png"),
+			textures_path("flandre_portrait.png"),
 			textures_path("DialogueBox.png"),
 			textures_path("Teleporter.png"),
 			textures_path("WinDeathMenu.png"),

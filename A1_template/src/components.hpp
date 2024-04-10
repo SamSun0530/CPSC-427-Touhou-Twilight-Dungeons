@@ -8,7 +8,10 @@
 struct DialogueInfo {
 	unsigned int cirno_pt = 1000000;
 	unsigned int cirno_after_pt = 1000000;
+	unsigned int flandre_pt = 1000000;
+	unsigned int flandre_after_pt = 1000000;
 	bool cirno_played = false;
+	bool flandre_played = false;
 };
 extern DialogueInfo dialogue_info;
 
@@ -200,6 +203,7 @@ enum class BULLET_ACTION {
 enum class CHARACTER {
 	REIMU,
 	CIRNO,
+	FlANDRE,
 	NONE,
 };
 
@@ -816,7 +820,8 @@ enum class TEXTURE_ASSET_ID {
 	DOOR_VERTICAL_CLOSE_UP = DOOR_VERTICAL_CLOSE_DOWN + 1,
 	REIMU_PORTRAIT = DOOR_VERTICAL_CLOSE_UP + 1,
 	CIRNO_PORTRAIT = REIMU_PORTRAIT + 1,
-	DIALOGUE_BOX = CIRNO_PORTRAIT + 1,
+	FLANDRE_PORTRAIT = CIRNO_PORTRAIT + 1,
+	DIALOGUE_BOX = FLANDRE_PORTRAIT + 1,
 	TELEPORTER = DIALOGUE_BOX + 1,
 	WINDEATH_SCREEN = TELEPORTER + 1,
 	BOSS_FLANDRE = WINDEATH_SCREEN + 1,

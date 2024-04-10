@@ -346,6 +346,9 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 		}
 		else if (boss.boss_id == BOSS_ID::FLANDRE) {
 			boss_info.should_use_flandre_bullet = true;
+			if (!dialogue_info.flandre_played) {
+				dialogue_info.flandre_pt = 0;
+			}
 		}
 		HP& hp = registry.hps.get(entity);
 		hp.curr_hp -= 20; // activate bullet firing

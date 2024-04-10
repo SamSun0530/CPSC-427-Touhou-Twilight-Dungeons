@@ -96,7 +96,9 @@ private:
 	std::array<bool, 512> pressed = { 0 };
 	std::vector<std::string> start_script;
 	std::vector<std::string> cirno_script;
+	std::vector<std::string> flandre_script;
 	std::vector<std::string> cirno_after_script;
+	std::vector<std::string> flandre_after_script;
 	unsigned int start_pt = 0;
 	float start_dialogue_timer = 1000.f;
 	float word_up_ms = 50.f;
@@ -107,7 +109,7 @@ private:
 
 	// restart level
 	void restart_game();
-
+	void WorldSystem::next_level();
 	// OpenGL window handle
 	GLFWwindow* window;
 

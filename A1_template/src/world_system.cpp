@@ -30,6 +30,8 @@ WorldSystem::WorldSystem()
 	loadScript("start.txt", start_script);
 	loadScript("cirno.txt", cirno_script);
 	loadScript("cirno_after.txt", cirno_after_script);
+	loadScript("flandre_after.txt", flandre_after_script);
+	loadScript("flandre.txt", flandre_script);
 }
 
 WorldSystem::~WorldSystem() {
@@ -431,7 +433,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				default:
 					break;
 				}
-				restart_game();
+				next_level();
 				return true;
 			}
 			else if (registry.deadlys.has(entity)) {
@@ -556,19 +558,97 @@ unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::str
 	return 0;
 }
 
-// Reset the world state to its initial state
-void WorldSystem::restart_game() {
+void WorldSystem::next_level() {
 	// TODO: TEMPORARY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	map_info.level = MAP_LEVEL::LEVEL2;
 	boss_system->init_phases();
 
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
-	if (map_info.level != MAP_LEVEL::TUTORIAL) {
+
+	// Debugging for memory/component leaks
+	registry.list_all_components();
+	printf("To Next Level\n");
+
+	// Reset keyboard presses
+	pressed = { 0 };
+
+	// Reset bgm
+	//Mix_HaltChannel(1);
+	//Mix_PlayChannel(0, audio->background_music, -1);
+
+	// Remove all entities that we created
+	// All that have a motion, we could also iterate over all enemies, coins, ... but that would be more cumbersome
+	Player player_component;
+	while (registry.motions.entities.size() > 1) {
+		if (registry.players.has(registry.motions.entities.back())) player_component = registry.players.get(registry.motions.entities.back());
+		registry.remove_all_components_of(registry.motions.entities.back());
+	}
+
+	// Since visibility tile do not have motion, iterate and remove here
+	while (registry.visibilityTileInstanceData.entities.size() > 0)
+		registry.remove_all_components_of(registry.visibilityTileInstanceData.entities.back());
+
+	// initialize menus
+	init_menu();
+	init_pause_menu();
+	init_infographic_menu();
+
+	// Debugging for memory/component leaks
+	registry.list_all_components();
+
+	// Generate map
+	reset_world_default();
+	map->restart_map();
+
+	game_info.reset_room_info();
+
+	if (map_info.level == MAP_LEVEL::TUTORIAL) {
+		map->generateTutorialMap();
+		renderer->set_tiles_instance_buffer();
+		player = map->spawnPlayer(world_center);
+	}
+	else {
+		map->generateRandomMap(11); // room_size must be > 3
+		player = map->spawnPlayerInRoom(0);
+	}
+
+	registry.players.get(player) = player_component;
+
+	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
+
+	// Create a new player
+	is_alive = true;
+	createHealthUI(renderer);
+	createAttributeUI(renderer);
+	combo_mode.restart();
+	focus_mode.restart();
+	ai->restart_flow_field_map();
+	display_combo = createCombo(renderer);
+	game_info.set_player_id(player);
+	boss_info.reset();
+
+	init_win_menu();
+	init_lose_menu();
+	renderer->camera.setPosition({ 0, 0 });
+
+}
+
+// Reset the world state to its initial state
+void WorldSystem::restart_game() {
+	// TODO: TEMPORARY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	map_info.level = MAP_LEVEL::LEVEL1;
+	boss_system->init_phases();
+
+	menu.state = MENU_STATE::PLAY;
+	game_info.has_started = true;
+	if (map_info.level != MAP_LEVEL::TUTORIAL && map_info.level != MAP_LEVEL::LEVEL2) {
 		start_pt = 0;
 		dialogue_info.cirno_pt = 1000;
 		dialogue_info.cirno_after_pt = 1000;
 		dialogue_info.cirno_played = false;
+		dialogue_info.flandre_pt = 1000;
+		dialogue_info.flandre_after_pt = 1000;
+		dialogue_info.flandre_played = false;
 		start_dialogue_timer = 1000.f;
 	}
 
@@ -1157,7 +1237,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
 			start_pt += 1;
 			dialogue_info.cirno_pt += 1;
+			dialogue_info.flandre_pt += 1;
 			dialogue_info.cirno_after_pt += 1;
+			dialogue_info.flandre_after_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
 		}
@@ -1186,6 +1268,10 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		dialogue_info.cirno_played = false;
 		dialogue_info.cirno_after_pt = 0;
 	}
+	if (registry.bosses.size() == 0 && dialogue_info.flandre_played) {
+		dialogue_info.flandre_played = false;
+		dialogue_info.flandre_after_pt = 0;
+	}
 	if (start_pt < start_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
@@ -1196,6 +1282,8 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 
 		if (token == "Cirno:") {
 			speaking_chara = CHARACTER::CIRNO;
+		} else if(token == "Flandre:") {
+			speaking_chara = CHARACTER::FlANDRE;
 		}
 
 		std::getline(ss, token, ' ');
@@ -1242,6 +1330,9 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		if (token == "Cirno:") {
 			speaking_chara = CHARACTER::CIRNO;
 		}
+		else if (token == "Flandre:") {
+			speaking_chara = CHARACTER::FlANDRE;
+		}
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
 			emotion = EMOTION::LAUGH;
@@ -1287,6 +1378,9 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		if (token == "Cirno:") {
 			speaking_chara = CHARACTER::CIRNO;
 		}
+		else if (token == "Flandre:") {
+			speaking_chara = CHARACTER::FlANDRE;
+		}
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
 			emotion = EMOTION::LAUGH;
@@ -1320,9 +1414,101 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	else if (dialogue_info.cirno_after_pt == cirno_after_script.size()) {
 		dialogue_info.cirno_after_pt += 1;
 
-		// TODO
 		resume_game();
-		//menu.state = MENU_STATE::WIN;
+	}
+	else if (dialogue_info.flandre_pt < flandre_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
+		std::istringstream ss(flandre_script[dialogue_info.flandre_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		else if (token == "Flandre:") {
+			speaking_chara = CHARACTER::FlANDRE;
+		}
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		menu.state = MENU_STATE::DIALOGUE;
+		createDialogue(speaking_chara, start_buffer, CHARACTER::FlANDRE, emotion);
+		}
+	else if (dialogue_info.flandre_pt == flandre_script.size()) {
+			dialogue_info.flandre_pt += 1;
+			dialogue_info.flandre_played = true;
+			resume_game();
+	}else if (dialogue_info.flandre_after_pt < flandre_after_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
+		std::istringstream ss(flandre_after_script[dialogue_info.flandre_after_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		else if (token == "Flandre:") {
+			speaking_chara = CHARACTER::FlANDRE;
+		}
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		menu.state = MENU_STATE::DIALOGUE;
+		createDialogue(speaking_chara, start_buffer, CHARACTER::FlANDRE, emotion);
+		}
+	else if (dialogue_info.flandre_after_pt == flandre_after_script.size()) {
+			dialogue_info.flandre_after_pt += 1;
+			menu.state = MENU_STATE::WIN;
 	}
 
 }
@@ -1380,6 +1566,8 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 			start_pt += 1;
 			dialogue_info.cirno_pt += 1;
 			dialogue_info.cirno_after_pt += 1;
+			dialogue_info.flandre_pt += 1;
+			dialogue_info.flandre_after_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
 		}
