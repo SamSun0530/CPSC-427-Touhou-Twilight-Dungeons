@@ -185,7 +185,7 @@ void WorldSystem::init_pause_menu() {
 }
 
 void WorldSystem::init_win_menu() {
-	createWinDeath(renderer, MENU_STATE::WIN);
+	createWin(renderer);
 	const float button_scale = 0.7f;
 	createButton(renderer, { 0, 200 }, button_scale*1.1, MENU_STATE::WIN, "Exit to Menu", 0.85f, [&]() {
 		game_info.has_started = false;
@@ -202,7 +202,7 @@ void WorldSystem::init_win_menu() {
 }
 
 void WorldSystem::init_lose_menu() {
-	createWinDeath(renderer, MENU_STATE::LOSE);
+	createLose(renderer);
 	const float button_scale = 0.7f;
 	createButton(renderer, { 0, 200 }, button_scale*1.1, MENU_STATE::LOSE, "Exit to Menu", 0.85f, [&]() {
 		game_info.has_started = false;
@@ -1045,9 +1045,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			// open pause menu
 			menu.state = MENU_STATE::PAUSE;
 		}
-		if (key == GLFW_KEY_I && action == GLFW_PRESS) {
-			menu.state = MENU_STATE::WIN;
-		}
 	}
 	else if (menu.state == MENU_STATE::MAIN_MENU) {
 		// Exit the program
@@ -1226,7 +1223,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	}
 	else if (dialogue_info.cirno_after_pt == cirno_after_script.size()) {
 		dialogue_info.cirno_after_pt += 1;
-		resume_game();
+		menu.state = MENU_STATE::WIN;
 	}
 
 }

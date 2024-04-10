@@ -540,7 +540,7 @@ void RenderSystem::draw()
 
 			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::PAUSE);
 		}
-		else if (menu.state == MENU_STATE::WIN) {
+		if (menu.state == MENU_STATE::WIN) {
 			for (Entity entity : registry.winMenus.entities) {
 				if (registry.textsPerm.has(entity)) {
 					Motion& text_motion = registry.motions.get(entity);
@@ -553,7 +553,8 @@ void RenderSystem::draw()
 				}
 			}
 			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::WIN);
-		}else if (menu.state == MENU_STATE::LOSE) {
+		}
+		if (menu.state == MENU_STATE::LOSE) {
 			for (Entity entity : registry.loseMenus.entities) {
 				if (registry.textsPerm.has(entity)) {
 					Motion& text_motion = registry.motions.get(entity);
