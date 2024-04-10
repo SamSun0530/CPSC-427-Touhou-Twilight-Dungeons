@@ -423,7 +423,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (number <= 0.1) {
 					createHealth(renderer, registry.motions.get(entity).position);
 				}
-				else if (number <= 1.2) {
+				else if (number <= 0.2) {
 					createTreasure(renderer, registry.motions.get(entity).position);
 				}
 
