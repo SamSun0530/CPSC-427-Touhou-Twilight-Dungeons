@@ -249,7 +249,7 @@ struct Player
 	int coin_amount = 0;
 	int key_amount = 0;
 	float invulnerability_time_ms = 1000;
-	float fire_rate = 0.2;
+	float fire_rate = 3;
 	float critical_hit = 0.05;
 	float critical_demage = 1.5;
 };
@@ -692,7 +692,10 @@ enum class TEXTURE_ASSET_ID {
 	B = C + 1,
 	A = B + 1,
 	S = A + 1,
-	TEXTURE_COUNT = S + 1
+	ITEM_R = S + 1,
+	ITEM_G = ITEM_R + 1,
+	ITEM_B = ITEM_G + 1 ,
+	TEXTURE_COUNT = ITEM_B + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

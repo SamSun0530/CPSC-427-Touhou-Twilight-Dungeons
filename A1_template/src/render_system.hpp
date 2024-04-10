@@ -91,7 +91,10 @@ class RenderSystem {
 			textures_path("C.png"),
 			textures_path("B.png"),
 			textures_path("A.png"),
-			textures_path("S.png")
+			textures_path("S.png"),
+			textures_path("item_red.png"),
+			textures_path("item_green.png"),
+			textures_path("item_blue.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

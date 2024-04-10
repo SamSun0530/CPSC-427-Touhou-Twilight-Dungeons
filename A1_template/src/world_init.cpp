@@ -156,7 +156,7 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = position;
 	motion.angle = 0.f;
-	motion.scale = vec2({ HEALTH_WIDTH, HEALTH_HEIGHT });
+	motion.scale = vec2({ ITEM_WIDTH, ITEM_HEIGHT });
 	registry.kinematics.emplace(entity);
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = abs(motion.scale);
@@ -188,7 +188,7 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 	if (type == 1) {
 		registry.renderRequests.insert(
 			entity,
-			{ TEXTURE_ASSET_ID::HEALTH_1, // TEXTURE_COUNT indicates that no txture is needed
+			{ TEXTURE_ASSET_ID::ITEM_R, // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -196,14 +196,14 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 	else if (type == 2) {
 		registry.renderRequests.insert(
 			entity,
-			{ TEXTURE_ASSET_ID::HEALTH_2, // TEXTURE_COUNT indicates that no txture is needed
+			{ TEXTURE_ASSET_ID::ITEM_B, // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else {
 		registry.renderRequests.insert(
 			entity,
-			{ TEXTURE_ASSET_ID::REGENERATE_HEALTH, // TEXTURE_COUNT indicates that no txture is needed
+			{ TEXTURE_ASSET_ID::ITEM_G, // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}

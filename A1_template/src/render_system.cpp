@@ -458,7 +458,7 @@ void RenderSystem::draw()
 				const Motion& motion = registry.motions.get(entity);
 				//this can be removed when the sprite for the purchasableable items are done
 				// only trying to distinguish from regular sushi
-				renderText(".", motion.position.x+30, motion.position.y, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f), trans, true);
+				//renderText(".", motion.position.x+30, motion.position.y, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f), trans, true);
 
 				const Purchasableable& treasure = registry.purchasableables.get(entity);
 				if (treasure.player_overlap == true) {

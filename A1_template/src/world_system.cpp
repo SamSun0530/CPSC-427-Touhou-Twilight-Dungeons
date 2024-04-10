@@ -243,7 +243,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	//createText({ 128 * 1.3 + 70 - 4, window_height_px - 77 }, { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
 	createText(-window_px_half + vec2(230, 77), { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
 	Player& player_att = registry.players.get(player);
-	std::string fire_rate = std::to_string(1 / player_att.fire_rate);
+	std::string fire_rate = std::to_string(player_att.fire_rate);
 	std::string critical_hit = std::to_string(player_att.critical_hit * 100);
 	std::string critical_dmg = std::to_string(player_att.critical_demage * 100);
 	createText(-window_px_half + vec2(70, 160), { 1,1 }, std::to_string(player_att.coin_amount), vec3(255, 255, 255), false);
@@ -375,7 +375,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (number <= 0.1) {
 					createHealth(renderer, registry.motions.get(entity).position);
 				}
-				else {
+				else if (number <= 0.2) {
 					createTreasure(renderer, registry.motions.get(entity).position);
 				}
 				registry.remove_all_components_of(entity);

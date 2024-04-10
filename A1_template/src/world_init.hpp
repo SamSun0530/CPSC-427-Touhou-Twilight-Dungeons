@@ -33,6 +33,8 @@ const float MENU_BACKGROUND_WIDTH = 1.f * 1792.f;
 const float MENU_BACKGROUND_HEIGHT = 1.f * 1008.f;
 const float PAUSE_BACKGROUND_WIDTH = 1.f * 416.f;
 const float PAUSE_BACKGROUND_HEIGHT = 1.f * 448.f;
+const float ITEM_WIDTH = 0.5f * 128.f;
+const float ITEM_HEIGHT = 0.5f * 128.f;
 
 
 
