@@ -7,18 +7,22 @@
 
 struct DialogueInfo {
 	unsigned int cirno_pt = 1000000;
+	unsigned int cirno_after_pt = 1000000;
 	bool cirno_played = false;
 };
 extern DialogueInfo dialogue_info;
 
-// World map loader
-struct MapLevel {
-	enum LEVEL {
-		TUTORIAL,
-		MAIN
-	} level = LEVEL::MAIN;
+enum class MAP_LEVEL {
+	TUTORIAL,
+	LEVEL1,
+	LEVEL2
 };
-extern MapLevel map_level;
+
+// World map loader
+struct MapInfo {
+	MAP_LEVEL level = MAP_LEVEL::LEVEL1;
+};
+extern MapInfo map_info;
 
 // Menu loader
 enum class MENU_STATE {
@@ -69,9 +73,43 @@ struct ComboMode {
 };
 extern ComboMode combo_mode;
 
+struct VisibilityInfo {
+	// TODO: limit how fast tiles are revealed using flood fill
+	bool need_update = false;
+};
+extern VisibilityInfo visibility_info;
+
 // Game related information
 struct GameInfo {
+	// for "resume" in button
 	bool has_started = false;
+
+	// Player information
+	// store player entity id
+	Entity player_id;
+	bool is_player_id_set = false;
+	void set_player_id(unsigned int player_actual) {
+		player_id = (Entity)player_actual;
+		is_player_id_set = true;
+	}
+	// TODO: store player current room (index or id?)
+	// TODO: store visited rooms (for doors)
+	int in_room = -1; // -1 - not in room
+	// each index represents a room
+	std::vector<Room_struct> room_index;
+	// same size as room_index, where each index corresponds to whether it's been visited
+	std::vector<bool> room_visited;
+
+	void add_room(Room_struct& room) {
+		room_index.push_back(room);
+		room_visited.push_back(false);
+	}
+
+	void reset_room_info() {
+		in_room = -1;
+		room_index.clear();
+		room_visited.clear();
+	}
 };
 extern GameInfo game_info;
 
@@ -90,6 +128,10 @@ struct Button {
 	float text_scale = 1.f;
 	std::function<void()> func;
 	bool is_hovered = false;
+};
+
+struct VisibilityTile {
+
 };
 
 struct PlayerBullet {
@@ -238,7 +280,14 @@ struct BulletSpawner
 	}
 };
 
+enum class BOSS_ID {
+	CIRNO,
+	FLANDRE
+};
+
 struct Boss {
+	// boss identifier
+	BOSS_ID boss_id;
 	// determines if boss system should process state
 	bool is_active = false;
 	// current pattern to use during phase
@@ -380,6 +429,7 @@ struct Key
 
 struct BossHealthBarUI {
 	bool is_visible = false;
+	std::string boss_name;
 };
 
 // keep track of which boss this ui belongs to
@@ -432,6 +482,20 @@ struct Wall {
 struct TileInstanceData {
 	vec4 spriteloc;
 	mat3 transform;
+};
+
+struct Door {
+	bool is_locked = false;
+	bool is_closed = true;
+	bool is_visited = false; // for doors to remain open
+	DIRECTION dir;
+	int room_index;
+	Entity top_texture; // none if dir is UP OR DOWN
+};
+
+struct VisibilityTileInstanceData {
+	mat3 transform;
+	float alpha;
 };
 
 // All data relevant to the shape and motion of entities
@@ -635,7 +699,17 @@ enum class KEYS {
 enum class TILE_TYPE {
 	EMPTY = 0,
 	FLOOR = EMPTY + 1,
-	WALL = FLOOR + 1
+	WALL = FLOOR + 1,
+	DOOR = WALL + 1
+};
+
+enum class EMOTION {
+	ANGRY = 0,
+	CRY = ANGRY + 1,
+	SPECIAL = CRY + 1,
+	LAUGH = SPECIAL + 1,
+	NORMAL = LAUGH + 1,
+	SHOCK = NORMAL + 1,
 };
 
 /**
@@ -681,7 +755,8 @@ enum class TEXTURE_ASSET_ID {
 	LEFT_BOTTOM_CORNER_WALL = LEFT_TOP_CORNER_WALL + 1,
 	RIGHT_TOP_CORNER_WALL = LEFT_BOTTOM_CORNER_WALL + 1,
 	RIGHT_BOTTOM_CORNER_WALL = RIGHT_TOP_CORNER_WALL + 1,
-	REIMU_HEALTH = RIGHT_BOTTOM_CORNER_WALL + 1,
+	ROCK = RIGHT_BOTTOM_CORNER_WALL + 1,
+	REIMU_HEALTH = ROCK + 1,
 	REIMU_HEAD = REIMU_HEALTH + 1,
 	EMPTY_HEART = REIMU_HEAD + 1,
 	BOTTOM_WALL = EMPTY_HEART + 1,
@@ -716,7 +791,13 @@ enum class TEXTURE_ASSET_ID {
 	B = C + 1,
 	A = B + 1,
 	S = A + 1,
-	REIMU_PORTRAIT = S + 1,
+	DOOR_HORIZONTAL_OPEN = S + 1,
+	DOOR_HORIZONTAL_CLOSE = DOOR_HORIZONTAL_OPEN + 1,
+	DOOR_VERTICAL_OPEN_DOWN = DOOR_HORIZONTAL_CLOSE + 1,
+	DOOR_VERTICAL_OPEN_UP = DOOR_VERTICAL_OPEN_DOWN + 1,
+	DOOR_VERTICAL_CLOSE_DOWN = DOOR_VERTICAL_OPEN_UP + 1,
+	DOOR_VERTICAL_CLOSE_UP = DOOR_VERTICAL_CLOSE_DOWN + 1,
+	REIMU_PORTRAIT = DOOR_VERTICAL_CLOSE_UP + 1,
 	CIRNO_PORTRAIT = REIMU_PORTRAIT + 1,
 	DIALOGUE_BOX = CIRNO_PORTRAIT + 1,
 	WINDEATH_SCREEN = DIALOGUE_BOX + 1,

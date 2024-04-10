@@ -370,7 +370,6 @@ void RenderSystem::draw()
 
 		drawTilesInstanced(projection_2D, view_2D);
 
-
 		for (Entity entity : registry.renderRequests.entities)
 		{
 			if (registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::BOSS_HEALTH_BAR) {
@@ -391,14 +390,10 @@ void RenderSystem::draw()
 			if (registry.dialogueMenus.has(entity)) continue;
 			if (registry.winMenus.has(entity)) continue;
 			if (registry.loseMenus.has(entity)) continue;
+			if (registry.playerBullets.has(entity)) continue;
 
 			// Note, its not very efficient to access elements indirectly via the entity
 			// albeit iterating through all Sprites in sequence. A good point to optimize
-			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-		}
-
-		// Render player
-		for (Entity entity : registry.players.entities) {
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
 
@@ -437,6 +432,11 @@ void RenderSystem::draw()
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
 
+		for (Entity entity : registry.playerBullets.entities) {
+			if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
 		// Render instance of visible enemy bullets
 		std::vector<Entity> enemy_bullets;
 		for (Entity entity : registry.enemyBullets.entities) {
@@ -461,12 +461,15 @@ void RenderSystem::draw()
 		}
 
 		for (Entity entity : registry.pickupables.entities) {
-			if (registry.motions.has(entity)) {
-				const Motion& motion = registry.motions.get(entity);
-				const Pickupable& food = registry.pickupables.get(entity);
+			if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) continue;
+			const Motion& motion = registry.motions.get(entity);
+			const Pickupable& food = registry.pickupables.get(entity);
 
-				renderText("HP Up+", motion.position.x, motion.position.y + 25, 0.5f, glm::vec3(0.0f, 0.8f, 0.0f), trans, true, 1.f);
-			}
+			renderText("HP Up+", motion.position.x, motion.position.y + 25, 0.5f, glm::vec3(0.0f, 0.8f, 0.0f), trans, true, 1.f);
+		}
+
+		if (registry.visibilityTileInstanceData.components.size() > 0) {
+			drawVisibilityTilesInstanced(projection_2D, view_2D);
 		}
 
 		if (menu.state != MENU_STATE::DIALOGUE) {
@@ -926,4 +929,88 @@ void RenderSystem::drawTilesInstanced(const glm::mat3& projection, const glm::ma
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	gl_has_errors();
+}
+
+// called once when generating new map
+void RenderSystem::set_visibility_tiles_instance_buffer_max() {
+	glUseProgram(visibility_tile_instance_program);
+	glBindVertexArray(visibility_tile_instance_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, visibility_tile_instance_VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(VisibilityTileInstanceData) * registry.visibilityTileInstanceData.size(), registry.visibilityTileInstanceData.components.data(), GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
+// called when visibility map is decreased, we do this instead of glBufferData so don't realloc every time
+void RenderSystem::set_visibility_tiles_instance_buffer() {
+	glUseProgram(visibility_tile_instance_program);
+	glBindVertexArray(visibility_tile_instance_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, visibility_tile_instance_VBO);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(VisibilityTileInstanceData) * registry.visibilityTileInstanceData.size(), registry.visibilityTileInstanceData.components.data());
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
+void RenderSystem::drawVisibilityTilesInstanced(const glm::mat3& projection, const glm::mat3& view)
+{
+	const GLuint ibo = index_buffers[(GLuint)GEOMETRY_BUFFER_ID::DEBUG_LINE];
+
+	// Setting vertex and index buffers
+	glUseProgram(visibility_tile_instance_program);
+	glBindVertexArray(visibility_tile_instance_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, visibility_tile_instance_VBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+
+	// Getting uniform locations for glUniform* calls
+	GLint color_uloc = glGetUniformLocation(visibility_tile_instance_program, "fcolor");
+	//const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
+	const vec3 color = vec3(0); // black tile
+	glUniform3fv(color_uloc, 1, (float*)&color);
+	gl_has_errors();
+
+	// Get number of indices from index buffer, which has elements uint16_t
+	GLint size = 0;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	gl_has_errors();
+	GLsizei num_indices = size / sizeof(uint16_t);
+
+	GLint currProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&projection);
+	GLuint view_loc = glGetUniformLocation(currProgram, "view");
+	glUniformMatrix3fv(view_loc, 1, GL_FALSE, (float*)&view);
+	gl_has_errors();
+
+	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, 0, registry.visibilityTileInstanceData.size());
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	gl_has_errors();
+}
+
+// if is_close true, switch to closed texture, otherwise open texture
+void RenderSystem::switch_door_texture(Entity door_entity, bool is_close) {
+	Door& door = registry.doors.get(door_entity);
+	RenderRequest& request = registry.renderRequests.get(door_entity);
+	if (door.dir == DIRECTION::RIGHT || door.dir == DIRECTION::LEFT) {
+		RenderRequest& top_request = registry.renderRequests.get(door.top_texture);
+		if (is_close) {
+			top_request.used_texture = TEXTURE_ASSET_ID::DOOR_VERTICAL_CLOSE_UP;
+			request.used_texture = TEXTURE_ASSET_ID::DOOR_VERTICAL_CLOSE_DOWN;
+		}
+		else {
+			top_request.used_texture = TEXTURE_ASSET_ID::DOOR_VERTICAL_OPEN_UP;
+			request.used_texture = TEXTURE_ASSET_ID::DOOR_VERTICAL_OPEN_DOWN;
+		}
+	}
+	else {
+		if (is_close) {
+			request.used_texture = TEXTURE_ASSET_ID::DOOR_HORIZONTAL_CLOSE;
+		}
+		else {
+			request.used_texture = TEXTURE_ASSET_ID::DOOR_HORIZONTAL_OPEN;
+		}
+	}
 }

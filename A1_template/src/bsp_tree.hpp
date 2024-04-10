@@ -24,7 +24,7 @@ public:
 	vec2 max;
 
 	// Room associated with this node
-	Room2* room = nullptr;
+	Room_struct* room = nullptr;
 
 	BSPNode* left_node = nullptr;
 	BSPNode* right_node = nullptr;
@@ -53,16 +53,13 @@ public:
 	(2) Generate rooms (either random/premade)
 	(3) Generate corridors/hallways
 	*/
-	BSPNode* generate_partitions(BSPNode* node);
 	void generate_rooms_random(BSPNode* node); // sets world tiles when called
 	void generate_corridors(BSPNode* node); // sets world tiles when called
 	void generate_corridor_between_two_points(vec2 start, vec2 end);
-	void set_map_walls(std::vector<std::vector<int>>& map);
+	BSPNode* generate_partitions(BSPNode* node);
 	void print_tree(BSPNode* node); // for debugging
-
 	BSPNode* get_random_leaf_node(BSPNode* node);
-
-	std::vector<Room2> rooms;
+	std::vector<Room_struct> rooms;
 
 private:
 	// Utilities:

@@ -8,10 +8,11 @@
 #include <iostream>
 #include <sstream>
 
+VisibilityInfo visibility_info;
 GameInfo game_info;
 Menu menu;
 DialogueInfo dialogue_info;
-MapLevel map_level;
+MapInfo map_info;
 FocusMode focus_mode;
 ComboMode combo_mode;
 Debug debugging;

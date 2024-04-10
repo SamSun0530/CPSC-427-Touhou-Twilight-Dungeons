@@ -25,6 +25,7 @@ public:
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Floor> floors;
 	ComponentContainer<Wall> walls;
+	ComponentContainer<Door> doors;
 	ComponentContainer<EnemyBullet> enemyBullets;
 	ComponentContainer<InvulnerableTimer> invulnerableTimers;
 	ComponentContainer<HP> hps;
@@ -71,9 +72,11 @@ public:
 	ComponentContainer<DummyEnemySpawner> dummyenemyspawners;
 	ComponentContainer<DummyEnemyLink> dummyEnemyLink;
 	ComponentContainer<TileInstanceData> tileInstanceData;
+	ComponentContainer<VisibilityTileInstanceData> visibilityTileInstanceData;
 	ComponentContainer<Button> buttons;
 	ComponentContainer<MainMenu> mainMenus;
 	ComponentContainer<PauseMenu> pauseMenus;
+	ComponentContainer<VisibilityTile> visibilityTiles;
 	ComponentContainer<Dialogue> dialogueMenus;
 	ComponentContainer<WinMenu> winMenus;
 	ComponentContainer<LoseMenu> loseMenus;
@@ -96,6 +99,7 @@ public:
 		registry_list.push_back(&colors);
 		registry_list.push_back(&floors);
 		registry_list.push_back(&walls);
+		registry_list.push_back(&doors);
 		registry_list.push_back(&enemyBullets);
 		registry_list.push_back(&invulnerableTimers);
 		registry_list.push_back(&hps);
@@ -142,9 +146,11 @@ public:
 		registry_list.push_back(&dummyenemyspawners);
 		registry_list.push_back(&dummyEnemyLink);
 		registry_list.push_back(&tileInstanceData);
+		registry_list.push_back(&visibilityTileInstanceData);
 		registry_list.push_back(&buttons);
 		registry_list.push_back(&mainMenus);
 		registry_list.push_back(&pauseMenus);
+		registry_list.push_back(&visibilityTiles);
 		registry_list.push_back(&dialogueMenus);
 		registry_list.push_back(&winMenus);
 		registry_list.push_back(&loseMenus);

@@ -57,6 +57,7 @@ class RenderSystem {
 			textures_path("LeftBottomCorner.png"),
 			textures_path("RightTopCorner.png"),
 			textures_path("RightBottomCorner.png"),
+			textures_path("Rock_1.png"),
 			textures_path("Reimu_HealthBar.png"),
 			textures_path("Reimu_Head.png"),
 			textures_path("EmptyHeart.png"),
@@ -92,6 +93,12 @@ class RenderSystem {
 			textures_path("B.png"),
 			textures_path("A.png"),
 			textures_path("S.png"),
+			textures_path("DoorHorizontalOpen.png"),
+			textures_path("DoorHorizontalClose.png"),
+			textures_path("DoorVerticalOpenDown.png"),
+			textures_path("DoorVerticalOpenUp.png"),
+			textures_path("DoorVerticalCloseDown.png"),
+			textures_path("DoorVerticalcloseUp.png"),
 			textures_path("reimu_portrait.png"),
 			textures_path("cirno_portrait.png"),
 			textures_path("DialogueBox.png"),
@@ -159,14 +166,22 @@ public:
 	void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world = false, float transparency_rate = 1);
 
 	// tiles instancing
-	// called when generating new map
+	// called once when generating new map
 	void set_tiles_instance_buffer();
+	// called when visibility map is decreased
+	void set_visibility_tiles_instance_buffer();
+	// called once when generating new map
+	void set_visibility_tiles_instance_buffer_max();
+	// get sprite location of tile name sandstone atlas
 	vec4 get_spriteloc_sandstone(TILE_NAME_SANDSTONE tile_name);
+	// if is_close true, switch to closed texture, otherwise open texture
+	void switch_door_texture(Entity door_entity, bool is_close);
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, const mat3& view, const mat3& view_ui);
 	void drawBulletsInstanced(const std::vector<Entity>& entities, const glm::mat3& projection, const glm::mat3& view);
 	void drawTilesInstanced(const glm::mat3& projection, const glm::mat3& view);
+	void drawVisibilityTilesInstanced(const glm::mat3& projection, const glm::mat3& view);
 	void drawToScreen();
 
 	// Window handle
@@ -188,6 +203,12 @@ private:
 	GLuint tile_instance_program;
 	GLuint tiles_instance_VAO;
 	GLuint tiles_instance_VBO;
+
+	// Visibility tile instancing
+	void initializeVisibilityTileInstance();
+	GLuint visibility_tile_instance_program;
+	GLuint visibility_tile_instance_VAO;
+	GLuint visibility_tile_instance_VBO;
 
 	// Fonts
 	std::map<char, Character> m_ftCharacters;

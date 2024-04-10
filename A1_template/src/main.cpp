@@ -16,6 +16,7 @@
 #include "animation.hpp"
 #include "boss_system.hpp"
 #include "components.hpp"
+#include "visibility_system.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
 
@@ -31,6 +32,7 @@ int main()
 	MapSystem map;
 	Animation animation;
 	BossSystem boss_system;
+	VisibilitySystem visibility_system;
 
 	// Global classes
 	Audio audio;
@@ -47,12 +49,14 @@ int main()
 
 	// initialize the main systems
 	renderer.init(window);
-	world.init(&renderer, &audio, &map, &ai);
+	world.init(&renderer, &audio, &map, &ai, &visibility_system);
 	bullets.init(&renderer, window, &audio);
 	ai.init();
-	map.init(&renderer);
+	map.init(&renderer, &visibility_system);
 	animation.init(&renderer, window);
 	world.init_menu();
+	visibility_system.init(&renderer);
+	physics.init(&renderer);
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -77,8 +81,10 @@ int main()
 			animation.step(elapsed_ms);
 			physics.step(elapsed_ms);
 			world.update_focus_dot();
+			visibility_system.step(elapsed_ms);
 			ai.step(elapsed_ms);
 			bullets.step(elapsed_ms);
+			map.step(elapsed_ms);
 			world.handle_collisions();
 		}
 		else if (menu.state == MENU_STATE::PAUSE || menu.state == MENU_STATE::WIN) {

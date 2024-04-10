@@ -46,7 +46,7 @@ const int window_height_px = 720;
 const vec2 window_px_half = { window_width_px / 2, window_height_px / 2 };
 
 const vec2 WORLD_CENTER_DEFAULT = { 9, 9 };
-const int WORLD_WIDTH_DEFAULT = 60;
+const int WORLD_WIDTH_DEFAULT = 90;
 const int WORLD_HEIGHT_DEFAULT = 60;
 const int WORLD_TILE_SIZE_DEFAULT = 100;
 
@@ -79,12 +79,26 @@ bool is_valid_cell(int x, int y);
 
 enum class ROOM_TYPE {
 	NORMAL,
-	BOSS
+	BOSS,
+	START,
+	SHOP
 };
 
-// TEMPORARY
-struct Room2 {
+enum class DIRECTION {
+	UP,
+	RIGHT,
+	DOWN,
+	LEFT
+};
+
+// Generic Room container
+struct Room_struct {
 	ROOM_TYPE type = ROOM_TYPE::NORMAL;
+	std::vector<Entity> enemies;
+	bool is_cleared = false;
+	bool need_to_spawn = true;
+	std::vector<coord> door_locations; // {x,y,direction}
+	std::vector<Entity> doors;
 	vec2 top_left;
-	vec2 bottom_left;
+	vec2 bottom_right;
 };
