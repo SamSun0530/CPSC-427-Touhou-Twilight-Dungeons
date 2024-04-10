@@ -6,11 +6,14 @@
 
 // internal
 #include "common.hpp"
+#include "components.hpp"
 
 class Audio {
 public:
 	Audio();
 	~Audio();
+
+	void step(float elapsed);
 
 	// music references
 	Mix_Chunk* background_music;

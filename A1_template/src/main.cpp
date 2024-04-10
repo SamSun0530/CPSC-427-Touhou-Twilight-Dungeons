@@ -66,6 +66,8 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
+		audio.step(elapsed_ms);
+
 		if (menu.state == MENU_STATE::MAIN_MENU) {
 
 		}

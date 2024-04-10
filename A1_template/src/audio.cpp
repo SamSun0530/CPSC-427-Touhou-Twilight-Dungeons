@@ -1,5 +1,26 @@
 #include "audio.hpp"
 
+void Audio::step(float elapsed) {
+	if (menu.state == MENU_STATE::MAIN_MENU) {
+		if (Mix_Playing(2)) {
+			Mix_HaltChannel(2);
+			Mix_PlayChannel(1, menu_music, -1);
+		}
+		else if (Mix_Playing(1)) {
+
+		}
+	}
+	else if (menu.state == MENU_STATE::PLAY) {
+		if (Mix_Playing(2)) {
+
+		}
+		else if (Mix_Playing(1)) {
+			Mix_HaltChannel(1);
+			Mix_PlayChannel(2, background_music, -1);
+		}
+	}
+}
+
 Audio::Audio() {
 	//////////////////////////////////////
 	// Loading music and sounds with SDL

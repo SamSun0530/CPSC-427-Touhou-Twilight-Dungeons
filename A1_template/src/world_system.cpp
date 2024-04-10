@@ -210,26 +210,6 @@ void WorldSystem::resume_game() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-
-	if (menu.state == MENU_STATE::MAIN_MENU) {
-		if (Mix_Playing(2)) {
-			Mix_HaltChannel(2);
-			Mix_PlayChannel(1, audio->menu_music,-1);
-		}
-		else if (Mix_Playing(1)) {
-
-		}
-	}
-	else if (menu.state == MENU_STATE::PLAY) {
-		if (Mix_Playing(2)) {
-
-		}
-		else if (Mix_Playing(1)) {
-			Mix_HaltChannel(1);
-			Mix_PlayChannel(2, audio->background_music, -1);
-		}
-	}
-
 	tutorial_counter--;
 
 	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
