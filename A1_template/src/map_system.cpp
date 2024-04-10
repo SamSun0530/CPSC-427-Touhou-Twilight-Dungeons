@@ -222,7 +222,7 @@ void MapSystem::generateTutorialMap() {
 
 	// shift key focus mode
 	createKey(convert_grid_to_world({ 3.5, 8.5 }), vec2(150), KEYS::SHIFT, false, true, 1300);
-	createText(convert_grid_to_world({ 2.3, 9.5 }), vec3(0.8), "Hold to reduce\nhitbox to a dot", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 3.5, 9.5 }), vec3(0.8), "Hold to reduce\nhitbox to a dot", vec3(1, 1, 1), true, true);
 
 	// hardcoded bullet for this specific grid only
 	for (int j = 0; j < 7; ++j) {
@@ -246,16 +246,16 @@ void MapSystem::generateTutorialMap() {
 
 	// remaining buttons
 	createKey(convert_grid_to_world({ 38, 16 }), vec2(120), KEYS::SCROLL, false, true);
-	createText(convert_grid_to_world({ 36.f, 17.5f }), vec3(1.f), "Zoom camera in/out", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 38.f, 17.5f }), vec3(1.f), "Zoom camera in/out", vec3(1, 1, 1), true, true);
 
 	createKey(convert_grid_to_world({ 43, 16 }), vec2(120), KEYS::P, false, true);
-	createText(convert_grid_to_world({ 41.f, 17.5f }), vec3(1.f), "Toggle camera offset", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 43.f, 17.5f }), vec3(1.f), "Toggle camera offset", vec3(1, 1, 1), true, true);
 
 	createKey(convert_grid_to_world({ 48, 16 }), vec2(120), KEYS::F, false, true);
-	createText(convert_grid_to_world({ 47.f, 17.5f }), vec3(1.f), "Show fps", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 48.f, 17.5f }), vec3(1.f), "Show fps", vec3(1, 1, 1), true, true);
 
 	createKey(convert_grid_to_world({ 59, 16 }), vec2(120), KEYS::R, false, true);
-	createText(convert_grid_to_world({ 57.f, 17.5f }), vec3(1.f), "Return to main world", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 59.f, 17.5f }), vec3(1.f), "Return to main world", vec3(1, 1, 1), true, true);
 
 	// Add grid to map
 	for (int y = 0; y < grid.size(); ++y) {
