@@ -363,6 +363,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				restart_game();
 				return true;
 			}
+			else if (registry.teleporters.has(entity)) {
+				// load next level
+				switch (map_info.level) {
+				case MAP_LEVEL::LEVEL1:
+					map_info.level = MAP_LEVEL::LEVEL2;
+					break;
+				default:
+					break;
+				}
+				restart_game();
+				return true;
+			}
 			else if (registry.deadlys.has(entity)) {
 				std::random_device rd;
 				std::mt19937 gen(rd());
@@ -425,6 +437,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (registry.bossHealthBarLink.has(entity)) {
 					registry.remove_all_components_of(registry.bossHealthBarLink.get(entity).other);
 
+					auto& deadly_entities = game_info.room_index[game_info.in_room].enemies;
+					for (int i = 0; i < deadly_entities.size(); ++i) {
+						if (entity == deadly_entities[i]) {
+							std::swap(deadly_entities[i], deadly_entities[deadly_entities.size() - 1]);
+							deadly_entities.pop_back();
+							break;
+						}
+					}
+
 					// remove all bullets when boss hp < 0
 					while (registry.enemyBullets.entities.size() > 0)
 						registry.remove_all_components_of(registry.enemyBullets.entities.back());
@@ -474,7 +495,7 @@ void WorldSystem::restart_game() {
 		dialogue_info.cirno_played = false;
 		start_dialogue_timer = 1000.f;
 	}
-	
+
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 	printf("Restarting\n");
@@ -686,6 +707,22 @@ void WorldSystem::handle_collisions() {
 				registry.players.get(entity).bullet_damage += 1;
 				registry.remove_all_components_of(entity_other);
 			}
+			// Checking player - teleporter
+			else if (registry.teleporters.has(entity_other)) {
+				Teleporter& teleporter = registry.teleporters.get(entity_other);
+				Motion& motion = registry.motions.get(entity_other);
+				createText(motion.position + vec2(0, 20), vec2(1), "Press E to go to next level", vec3(0, 1, 0), false, true);
+				if (pressed[GLFW_KEY_E] && !teleporter.is_teleporting) {
+					EntityAnimation& ani = registry.alwaysplayAni.get(entity_other);
+					registry.realDeathTimers.emplace(entity_other).death_counter_ms = 2300;
+					Kinematic& player_kin = registry.kinematics.get(player);
+					player_kin.direction = { 0,0 };
+					player_kin.speed_modified = 0;
+					player_kin.velocity = { 0,0 };
+					ani.is_active = true;
+					teleporter.is_teleporting = true;
+				}
+			}
 		}
 		// Checks enemy collisions
 		else if (registry.deadlys.has(entity)) {
@@ -865,6 +902,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			restart_game();
 		}
 
+		if (key == GLFW_KEY_E) {
+			if (action == GLFW_PRESS) {
+				pressed[key] = true;
+			}
+			else if (action == GLFW_RELEASE) {
+				pressed[key] = false;
+			}
+		}
+
 		// Handle player movement
 		// Added key checks at the beginning so don't have to fetch kinematics / update player direction for
 		// every key press that is not related to WASD
@@ -1040,7 +1086,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	while (registry.texts.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
 	while (registry.textsWorld.entities.size() > 0)
-		registry.remove_all_components_of(registry.texts.entities.back());
+		registry.remove_all_components_of(registry.textsWorld.entities.back());
 	while (registry.dialogueMenus.entities.size() > 0)
 		registry.remove_all_components_of(registry.dialogueMenus.entities.back());
 

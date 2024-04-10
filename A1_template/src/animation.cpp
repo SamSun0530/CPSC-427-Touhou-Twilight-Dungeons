@@ -87,7 +87,7 @@ void Animation::step(float elapsed_ms)
 		if (!enemy_ani.is_active) continue;
 		if (registry.realDeathTimers.has(enemy)) {
 			if (registry.realDeathTimers.get(enemy).first_animation_frame == false) {
-				enemy_ani.render_pos.y = 4*enemy_ani.spritesheet_scale.y + enemy_ani.render_pos.y;
+				enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y + enemy_ani.render_pos.y;
 				enemy_ani.render_pos.x = enemy_ani.spritesheet_scale.x;
 				registry.realDeathTimers.get(enemy).first_animation_frame = true;
 			}
@@ -220,6 +220,15 @@ void Animation::step(float elapsed_ms)
 		}
 		else {
 			enemy_ani.render_pos.y = 2 * enemy_ani.spritesheet_scale.y;
+		}
+	}
+
+	for (Entity entity : registry.teleporters.entities) {
+		EntityAnimation& ani = registry.alwaysplayAni.get(entity);
+		if (!ani.is_active) continue;
+		if (ani.render_pos.x + ani.spritesheet_scale.x > 1.0) {
+			ani.render_pos.x = ani.spritesheet_scale.x;
+			ani.is_active = false;
 		}
 	}
 }

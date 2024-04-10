@@ -100,7 +100,8 @@ class RenderSystem {
 			textures_path("DoorVerticalcloseUp.png"),
 			textures_path("reimu_portrait.png"),
 			textures_path("cirno_portrait.png"),
-			textures_path("DialogueBox.png")
+			textures_path("DialogueBox.png"),
+			textures_path("Teleporter.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

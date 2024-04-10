@@ -340,6 +340,7 @@ void AISystem::init() {
 		}
 		HP& hp = registry.hps.get(entity);
 		hp.curr_hp -= 20; // activate bullet firing
+		if (registry.invulnerableTimers.has(entity)) registry.invulnerableTimers.remove(entity);
 		};
 	void (*hideBossInfo)(Entity & entity) = [](Entity& entity) {
 		if (!registry.bosses.has(entity)) return;

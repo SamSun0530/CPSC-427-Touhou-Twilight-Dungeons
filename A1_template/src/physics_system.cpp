@@ -407,6 +407,16 @@ void PhysicsSystem::step(float elapsed_ms)
 				registry.collisions.emplace_with_duplicates(key_entity, player_entity);
 			}
 		}
+
+		// Player to teleporter
+		for (Entity entity : registry.teleporters.entities) {
+			Motion& motion = registry.motions.get(entity);
+			Collidable& collidable = registry.collidables.get(entity);
+			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+				registry.collisions.emplace_with_duplicates(player_entity, entity);
+				registry.collisions.emplace_with_duplicates(entity, player_entity);
+			}
+		}
 	}
 
 	// Wall collisions - handled manually since wall to wall collisions has a huge performance hit

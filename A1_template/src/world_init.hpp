@@ -33,6 +33,8 @@ const float MENU_BACKGROUND_WIDTH = 1.f * 1792.f;
 const float MENU_BACKGROUND_HEIGHT = 1.f * 1008.f;
 const float PAUSE_BACKGROUND_WIDTH = 1.f * 416.f;
 const float PAUSE_BACKGROUND_HEIGHT = 1.f * 448.f;
+const float TELEPORTER_WIDTH = 1.f * 224.f;
+const float TELEPORTER_HEIGHT = 1.f * 288.f;
 
 // the bullet, takes into account entity's speed and position
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern* bullet_pattern = nullptr);
@@ -75,6 +77,8 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position);
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
 // boss enemy
 Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, BOSS_ID boss_id);
+// teleporter
+Entity createTeleporter(RenderSystem* renderer, vec2 pos, float scale);
 // dummy enemy for tutorial
 Entity createDummyEnemy(RenderSystem* renderer, vec2 position);
 Entity createDummyEnemySpawner(RenderSystem* renderer, vec2 position);

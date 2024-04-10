@@ -30,7 +30,7 @@ void MapSystem::step(float elapsed_ms_since_last_update) {
 			if (cur_room.enemies.empty())
 			{
 				// Room is cleared
-				cur_room.is_cleared == true;
+				cur_room.is_cleared = true;
 				// Unlocks all doors
 				for (Entity& door_entity : cur_room.doors) {
 					Door& door = registry.doors.get(door_entity);
@@ -51,7 +51,17 @@ void MapSystem::step(float elapsed_ms_since_last_update) {
 				}
 			}
 		}
+		else {
+			if (cur_room.type == ROOM_TYPE::BOSS) {
+				// only one teleporter in the map at a time
+				if (registry.teleporters.size() < 1) {
+					createTeleporter(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f), 2.f);
+				}
+			}
+		}
+
 	}
+
 }
 
 void MapSystem::restart_map() {
@@ -104,7 +114,7 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		spawn_points.push_back(convert_grid_to_world(room.bottom_right - 1.f));
 		spawn_points.push_back(convert_grid_to_world(vec2(room.bottom_right.x - 1.f, room.top_left.y + 1.f)));
 		spawn_points.push_back(convert_grid_to_world(vec2(room.top_left.x + 1.f, room.bottom_right.y - 1.f)));
-		
+
 		for (vec2 point : spawn_points) {
 			float random_numer = uniform_dist(rng);
 			if (random_numer <= 0.50) {
@@ -142,7 +152,7 @@ Entity MapSystem::spawnPlayerInRoom(int room_number) {
 	//room.need_to_spawn = false;
 
 	room_number = bsptree.rooms.size() - 1;
-	return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left));
+	return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left - vec2(2, 0)));
 	//return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f));
 }
 
@@ -450,7 +460,20 @@ TILE_NAME_SANDSTONE MapSystem::get_tile_name_sandstone(int x, int y, std::vector
 	const int F = (int)TILE_TYPE::FLOOR;
 
 	if (type == E) return TILE_NAME_SANDSTONE::NONE;
-	else if (type == F) return TILE_NAME_SANDSTONE::AZTEC_FLOOR;
+	else if (type == F) {
+		TILE_NAME_SANDSTONE temp;
+		switch (map_info.level) {
+		case MAP_LEVEL::LEVEL1:
+			temp = TILE_NAME_SANDSTONE::AZTEC_FLOOR;
+			break;
+		case MAP_LEVEL::LEVEL2:
+			temp = TILE_NAME_SANDSTONE::ROCK_FLOOR;
+			break;
+		default:
+			break;
+		}
+		return temp;
+	}
 
 	// Specify neighbors for hardcoded checks
 	const int U = map[y - 1][x];	// Up

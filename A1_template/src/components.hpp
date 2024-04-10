@@ -89,8 +89,8 @@ struct GameInfo {
 		player_id = (Entity)player_actual;
 		is_player_id_set = true;
 	}
-	// TODO: store player current room (index or id?)
-	// TODO: store visited rooms (for doors)
+	bool is_player_frozen = false;
+
 	int in_room = -1; // -1 - not in room
 	// each index represents a room
 	std::vector<Room_struct> room_index;
@@ -109,6 +109,11 @@ struct GameInfo {
 	}
 };
 extern GameInfo game_info;
+
+struct Teleporter {
+	bool player_overlap = false;
+	bool is_teleporting = false;
+};
 
 // Menu stuff
 struct MainMenu {
@@ -777,7 +782,8 @@ enum class TEXTURE_ASSET_ID {
 	REIMU_PORTRAIT = DOOR_VERTICAL_CLOSE_UP + 1,
 	CIRNO_PORTRAIT = REIMU_PORTRAIT + 1,
 	DIALOGUE_BOX = CIRNO_PORTRAIT + 1,
-	TEXTURE_COUNT = DIALOGUE_BOX + 1,
+	TELEPORTER = DIALOGUE_BOX + 1,
+	TEXTURE_COUNT = TELEPORTER + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

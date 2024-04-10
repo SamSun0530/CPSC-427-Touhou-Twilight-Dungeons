@@ -477,7 +477,7 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2)
 
 	// Setting initial motion values
 	Motion& motion_reimu = registry.motions.emplace(reimu_entity);
-	motion_reimu.position = vec2(-250,0);
+	motion_reimu.position = vec2(-250, 0);
 	motion_reimu.angle = 0.f;
 	motion_reimu.scale = vec2({ 550.f, 600.f });
 
@@ -526,9 +526,9 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2)
 	auto dialogue_entity = Entity();
 	// Setting initial motion values
 	Motion& motion_dialogue = registry.motions.emplace(dialogue_entity);
-	motion_dialogue.position = vec2(0, window_px_half.y-130);
+	motion_dialogue.position = vec2(0, window_px_half.y - 130);
 	motion_dialogue.angle = 0.f;
-	motion_dialogue.scale = vec2({ 1.6 * 688.f, 1.2*224.f });
+	motion_dialogue.scale = vec2({ 1.6 * 688.f, 1.2 * 224.f });
 
 	registry.dialogueMenus.emplace(dialogue_entity);
 	registry.renderRequests.insert(
@@ -536,7 +536,7 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2)
 		{ TEXTURE_ASSET_ID::DIALOGUE_BOX, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::UI,
 			GEOMETRY_BUFFER_ID::SPRITE });
-	
+
 	createText({ 0,window_px_half.y - 170 }, { 0.8,0.8 }, sentence, vec3(0, 0, 0), false, false);
 }
 
@@ -814,7 +814,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 5020;
+	hp.max_hp = 4;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -836,7 +836,8 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 	Boss& boss = registry.bosses.emplace(entity);
 	boss.boss_id = boss_id;
 	// Boss bullet patterns
-	boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
+	//boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
+	boss.health_phase_thresholds = { 4, 3, 2, 1, -1 }; // -1 for end of phase
 	boss.duration = 10000; // duration for each pattern
 	registry.colors.insert(entity, { 1,1,1 });
 	boss.phase_change_time = 1500;
@@ -844,6 +845,9 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 	// Boss health bar ui
 	Entity ui_entity = createBossHealthBarUI(renderer, entity, boss_name);
 	registry.bossHealthBarLink.emplace(entity, ui_entity);
+
+	// Add invulnerability
+	registry.invulnerableTimers.emplace(entity).invulnerable_counter_ms = 3600000;
 
 	// Decision tree ai
 	AiTimer& ai_timer = registry.aitimers.emplace(entity);
@@ -1542,6 +1546,35 @@ Entity createPauseMenu(RenderSystem* renderer, vec2 background_pos, float backgr
 			EFFECT_ASSET_ID::UI,
 			GEOMETRY_BUFFER_ID::SPRITE });
 	registry.pauseMenus.emplace(entity);
+
+	return entity;
+}
+
+Entity createTeleporter(RenderSystem* renderer, vec2 pos, float scale) {
+	auto entity = Entity();
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = scale * vec2(TELEPORTER_WIDTH, TELEPORTER_HEIGHT);
+
+	Collidable& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale / 6.f;
+
+	EntityAnimation key_ani;
+	key_ani.isCursor = false;
+	key_ani.spritesheet_scale = { 1 / 39.f, 1 };
+	key_ani.render_pos = { 1 / 39.f, 1 };
+	key_ani.frame_rate_ms = 100;
+	key_ani.full_rate_ms = 100;
+	key_ani.is_active = false;
+	registry.alwaysplayAni.insert(entity, key_ani);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TELEPORTER,
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::SPRITE });
+	registry.teleporters.emplace(entity);
 
 	return entity;
 }
