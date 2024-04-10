@@ -81,7 +81,7 @@ int main()
 			bullets.step(elapsed_ms);
 			world.handle_collisions();
 		}
-		else if (menu.state == MENU_STATE::PAUSE) {
+		else if (menu.state == MENU_STATE::PAUSE || menu.state == MENU_STATE::WIN) {
 
 		}
 		else if (menu.state == MENU_STATE::DIALOGUE) {

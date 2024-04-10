@@ -472,6 +472,36 @@ Entity createCombo(RenderSystem* renderer)
 	return entity;
 }
 
+Entity createWinDeath(RenderSystem* renderer, MENU_STATE state) {
+	// Pause menu background
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = vec2(0,0);
+	motion.scale = vec2(1000, 700);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::WINDEATH_SCREEN,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.winMenus.emplace(entity);
+	registry.loseMenus.emplace(entity);
+	if (state == MENU_STATE::WIN) {
+		registry.winMenus.emplace(createText(vec2(0, -200), vec2(1, 1), "You WIN !!!", vec3(0, 0, 0), true, false));
+	}
+	else {
+		registry.loseMenus.emplace(createText(vec2(0, -200), vec2(1, 1), "Game Over!", vec3(0, 0, 0), true, false));
+	}
+
+	return entity;
+
+}
+
 void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2) {
 	auto reimu_entity = Entity();
 

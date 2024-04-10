@@ -43,6 +43,8 @@ public:
 	// initialize the menu
 	void init_menu();
 	void init_pause_menu();
+	void init_win_menu();
+	void init_lose_menu();
 	void resume_game();
 
 	// Releases all associated resources

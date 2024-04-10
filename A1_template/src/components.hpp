@@ -26,7 +26,9 @@ enum class MENU_STATE {
 	PLAY,
 	PAUSE,
 	DIALOGUE,
-	INVENTORY
+	INVENTORY,
+	WIN,
+	LOSE
 };
 
 struct Menu {
@@ -501,6 +503,16 @@ struct ScreenState
 	float darken_screen_factor = -1;
 };
 
+struct WinMenu
+{
+
+};
+
+struct LoseMenu
+{
+
+};
+
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {
@@ -707,7 +719,8 @@ enum class TEXTURE_ASSET_ID {
 	REIMU_PORTRAIT = S + 1,
 	CIRNO_PORTRAIT = REIMU_PORTRAIT + 1,
 	DIALOGUE_BOX = CIRNO_PORTRAIT + 1,
-	TEXTURE_COUNT = DIALOGUE_BOX + 1,
+	WINDEATH_SCREEN = DIALOGUE_BOX + 1,
+	TEXTURE_COUNT = WINDEATH_SCREEN + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

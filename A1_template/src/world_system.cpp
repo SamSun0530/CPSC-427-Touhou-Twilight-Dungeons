@@ -184,6 +184,40 @@ void WorldSystem::init_pause_menu() {
 		});
 }
 
+void WorldSystem::init_win_menu() {
+	createWinDeath(renderer, MENU_STATE::WIN);
+	const float button_scale = 0.7f;
+	createButton(renderer, { 0, 200 }, button_scale*1.1, MENU_STATE::WIN, "Exit to Menu", 0.85f, [&]() {
+		game_info.has_started = false;
+		Mix_PauseMusic();
+		for (Entity entity : registry.buttons.entities) {
+			Button& button = registry.buttons.get(entity);
+			if (button.state == MENU_STATE::MAIN_MENU)
+				registry.remove_all_components_of(entity);
+		}
+		registry.mainMenus.clear();
+		init_menu();
+		menu.state = MENU_STATE::MAIN_MENU;
+		});
+}
+
+void WorldSystem::init_lose_menu() {
+	createWinDeath(renderer, MENU_STATE::LOSE);
+	const float button_scale = 0.7f;
+	createButton(renderer, { 0, 200 }, button_scale*1.1, MENU_STATE::LOSE, "Exit to Menu", 0.85f, [&]() {
+		game_info.has_started = false;
+		Mix_PauseMusic();
+		for (Entity entity : registry.buttons.entities) {
+			Button& button = registry.buttons.get(entity);
+			if (button.state == MENU_STATE::MAIN_MENU)
+				registry.remove_all_components_of(entity);
+		}
+		registry.mainMenus.clear();
+		init_menu();
+		menu.state = MENU_STATE::MAIN_MENU;
+		});
+}
+
 void WorldSystem::resume_game() {
 	menu.state = MENU_STATE::PLAY;
 	pressed = { 0 };
@@ -359,7 +393,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (death_counter.death_counter_ms < 0) {
 			if (registry.players.has(entity)) {
 				registry.realDeathTimers.remove(entity);
-				restart_game();
+				screen.darken_screen_factor = 0;
+				menu.state = MENU_STATE::LOSE;
 				return true;
 			}
 			else if (registry.deadlys.has(entity)) {
@@ -518,6 +553,8 @@ void WorldSystem::restart_game() {
 	ai->restart_flow_field_map();
 	display_combo = createCombo(renderer);
 
+	init_win_menu();
+	init_lose_menu();
 	renderer->camera.setPosition({ 0, 0 });
 	
 }
@@ -961,6 +998,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			// open pause menu
 			menu.state = MENU_STATE::PAUSE;
+		}
+		if (key == GLFW_KEY_I && action == GLFW_PRESS) {
+			menu.state = MENU_STATE::WIN;
 		}
 	}
 	else if (menu.state == MENU_STATE::MAIN_MENU) {
