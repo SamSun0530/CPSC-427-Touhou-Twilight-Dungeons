@@ -7,6 +7,7 @@
 
 struct DialogueInfo {
 	unsigned int cirno_pt = 1000000;
+	unsigned int cirno_after_pt = 1000000;
 	bool cirno_played = false;
 };
 extern DialogueInfo dialogue_info;

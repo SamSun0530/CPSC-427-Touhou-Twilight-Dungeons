@@ -29,6 +29,7 @@ WorldSystem::WorldSystem()
 	rng = std::default_random_engine(std::random_device()());
 	loadScript("start.txt", start_script);
 	loadScript("cirno.txt", cirno_script);
+	loadScript("cirno_after.txt", cirno_after_script);
 }
 
 WorldSystem::~WorldSystem() {
@@ -471,6 +472,7 @@ void WorldSystem::restart_game() {
 	if (map_info.level != MAP_LEVEL::TUTORIAL) {
 		start_pt = 0;
 		dialogue_info.cirno_pt = 1000;
+		dialogue_info.cirno_after_pt = 1000;
 		dialogue_info.cirno_played = false;
 		start_dialogue_timer = 1000.f;
 	}
@@ -1019,6 +1021,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
 			start_pt += 1;
 			dialogue_info.cirno_pt += 1;
+			dialogue_info.cirno_after_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
 		}
@@ -1044,7 +1047,10 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	while (registry.dialogueMenus.entities.size() > 0)
 		registry.remove_all_components_of(registry.dialogueMenus.entities.back());
 
-
+	if (registry.bosses.size() == 0 && dialogue_info.cirno_played) {
+		dialogue_info.cirno_played = false;
+		dialogue_info.cirno_after_pt = 0;
+	}
 	if (start_pt < start_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
@@ -1099,6 +1105,32 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	else if (dialogue_info.cirno_pt == cirno_script.size()) {
 		dialogue_info.cirno_pt += 1;
 		dialogue_info.cirno_played = true;
+		resume_game();
+	}else if (dialogue_info.cirno_after_pt < cirno_after_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		std::istringstream ss(cirno_after_script[dialogue_info.cirno_after_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		menu.state = MENU_STATE::DIALOGUE;
+		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO);
+	}
+	else if (dialogue_info.cirno_after_pt == cirno_after_script.size()) {
+		dialogue_info.cirno_after_pt += 1;
 		resume_game();
 	}
 }
@@ -1155,6 +1187,7 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 			start_pt += 1;
 			dialogue_info.cirno_pt += 1;
+			dialogue_info.cirno_after_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
 		}
