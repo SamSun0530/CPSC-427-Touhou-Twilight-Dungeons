@@ -507,6 +507,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		}
 	}
 	if (!has_set_room) {
+		game_info.prev_in_room = game_info.in_room == -1 ? game_info.prev_in_room : game_info.in_room;
 		game_info.in_room = -1;
 	}
 

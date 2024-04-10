@@ -95,20 +95,17 @@ struct GameInfo {
 	// TODO: store player current room (index or id?)
 	// TODO: store visited rooms (for doors)
 	int in_room = -1; // -1 - not in room
+	int prev_in_room = -1; // used for out of bounds error
 	// each index represents a room
 	std::vector<Room_struct> room_index;
-	// same size as room_index, where each index corresponds to whether it's been visited
-	std::vector<bool> room_visited;
 
 	void add_room(Room_struct& room) {
 		room_index.push_back(room);
-		room_visited.push_back(false);
 	}
 
 	void reset_room_info() {
 		in_room = -1;
 		room_index.clear();
-		room_visited.clear();
 	}
 };
 extern GameInfo game_info;
