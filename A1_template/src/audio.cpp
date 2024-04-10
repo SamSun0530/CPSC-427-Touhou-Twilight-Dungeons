@@ -12,7 +12,7 @@ Audio::Audio() {
 		assert(false && "Failed to open audio device");
 	}
 
-	background_music = Mix_LoadMUS(audio_path("regular_room_bgm.wav").c_str());
+	background_music = Mix_LoadWAV(audio_path("regular_room_bgm.wav").c_str());
 	menu_music = Mix_LoadWAV(audio_path("main_menu_bgm.wav").c_str());
 	boss_music = Mix_LoadMUS(audio_path("boss_fight_bgm.wav").c_str());
 	game_ending_sound = Mix_LoadWAV(audio_path("game_ending.wav").c_str());
@@ -39,7 +39,7 @@ Audio::Audio() {
 Audio::~Audio() {
 	// Destroy music components
 	if (background_music != nullptr)
-		Mix_FreeMusic(background_music);
+		Mix_FreeChunk(background_music);
 	if (game_ending_sound != nullptr)
 		Mix_FreeChunk(game_ending_sound);
 	if (firing_sound != nullptr)

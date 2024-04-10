@@ -13,7 +13,7 @@ public:
 	~Audio();
 
 	// music references
-	Mix_Music* background_music;
+	Mix_Chunk* background_music;
 	Mix_Chunk* menu_music;
 	Mix_Music* boss_music;
 	Mix_Chunk* game_ending_sound;
