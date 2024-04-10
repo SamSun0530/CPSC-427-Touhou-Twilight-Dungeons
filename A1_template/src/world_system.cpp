@@ -77,6 +77,7 @@ GLFWwindow* WorldSystem::create_window() {
 
 	// Create the main window (for rendering, keyboard, and mouse input)
 	window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", nullptr, nullptr);
+	// window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", glfwGetPrimaryMonitor(), nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -159,7 +160,7 @@ void WorldSystem::init_menu() {
 			//Mix_HaltChannel(1);
 			//Mix_PlayChannel(0, audio->background_music, -1);
 
-;			resume_game();
+			;			resume_game();
 			});
 		offset_y += offset_y_delta;
 	}
@@ -179,8 +180,8 @@ void WorldSystem::init_pause_menu() {
 	const float button_padding_y = 5.f;
 	const float offset_y_delta = BUTTON_HOVER_HEIGHT * button_scale + button_padding_y;
 	float offset_y = -(offset_y_delta * (num_buttons - 1) - button_padding_y) / 2.f;
-	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Resume", 0.9f, [&]() { 
-		resume_game(); 
+	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Resume", 0.9f, [&]() {
+		resume_game();
 		});
 	offset_y += offset_y_delta;
 	createButton(renderer, { 0, offset_y }, button_scale * 1.1f, MENU_STATE::PAUSE, "Exit to Menu", 0.85f, [&]() {
@@ -195,7 +196,7 @@ void WorldSystem::init_pause_menu() {
 void WorldSystem::init_win_menu() {
 	createWin(renderer);
 	const float button_scale = 0.7f;
-	createButton(renderer, { 0, 200 }, button_scale*1.1, MENU_STATE::WIN, "Exit to Menu", 0.85f, [&]() {
+	createButton(renderer, { 0, 200 }, button_scale * 1.1, MENU_STATE::WIN, "Exit to Menu", 0.85f, [&]() {
 		game_info.has_started = false;
 		Mix_PauseMusic();
 		for (Entity entity : registry.buttons.entities) {
@@ -212,7 +213,7 @@ void WorldSystem::init_win_menu() {
 void WorldSystem::init_lose_menu() {
 	createLose(renderer);
 	const float button_scale = 0.7f;
-	createButton(renderer, { 0, 200 }, button_scale*1.1, MENU_STATE::LOSE, "Exit to Menu", 0.85f, [&]() {
+	createButton(renderer, { 0, 200 }, button_scale * 1.1, MENU_STATE::LOSE, "Exit to Menu", 0.85f, [&]() {
 		game_info.has_started = false;
 		Mix_PauseMusic();
 		for (Entity entity : registry.buttons.entities) {
@@ -287,7 +288,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	//createText({ 128 * 1.3 + 70 - 4, window_height_px - 77 }, { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
 	createText(-window_px_half + vec2(260, 70), { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
 	Player& player_att = registry.players.get(player);
-	std::string fire_rate = std::to_string(1 / player_att.fire_rate);
+	std::string fire_rate = std::to_string(player_att.fire_rate);
 	std::string critical_hit = std::to_string(player_att.critical_hit * 100);
 	std::string critical_dmg = std::to_string(player_att.critical_demage * 100);
 	createText(-window_px_half + vec2(68, 153), { 1,1 }, std::to_string(player_att.coin_amount), vec3(1), false);
@@ -419,15 +420,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					registry.dummyEnemyLink.remove(entity);
 				}
 
-				if (number <= 0.1)
-					createFood(renderer, registry.motions.get(entity).position);
+				if (number <= 0.1) {
+					createHealth(renderer, registry.motions.get(entity).position);
+				}
+				else if (number <= 0.2) {
+					createTreasure(renderer, registry.motions.get(entity).position);
+				}
 
-				auto& deadly_entities = game_info.room_index[game_info.in_room].enemies;
-				for (int i = 0; i < deadly_entities.size(); ++i) {
-					if (entity == deadly_entities[i]) {
-						std::swap(deadly_entities[i], deadly_entities[deadly_entities.size() - 1]);
-						deadly_entities.pop_back();
-						break;
+				if (game_info.in_room != -1) {
+					auto& deadly_entities = game_info.room_index[game_info.in_room].enemies;
+					for (int i = 0; i < deadly_entities.size(); ++i) {
+						if (entity == deadly_entities[i]) {
+							std::swap(deadly_entities[i], deadly_entities[deadly_entities.size() - 1]);
+							deadly_entities.pop_back();
+							break;
+						}
 					}
 				}
 
@@ -518,7 +525,7 @@ void WorldSystem::restart_game() {
 		dialogue_info.cirno_played = false;
 		start_dialogue_timer = 1000.f;
 	}
-	
+
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 	printf("Restarting\n");
@@ -712,10 +719,49 @@ void WorldSystem::handle_collisions() {
 					registry.remove_all_components_of(entity_other);
 				}
 			}
-			// Checking player - keys collision
-			else if (registry.keys.has(entity_other)) {
-				registry.players.get(entity).key_amount++;
-				registry.remove_all_components_of(entity_other);
+			// shop system
+			else if (registry.purchasableables.has(entity_other)) {
+				if (!registry.realDeathTimers.has(entity)) {
+					if (registry.motions.has(entity_other)) {
+						Purchasableable& treasure = registry.purchasableables.get(entity_other);
+						const Motion& motion = registry.motions.get(entity_other);
+						Player& player_att = registry.players.get(player);
+						BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
+						treasure.player_overlap = true;
+						if (pressed[GLFW_KEY_E] && player_att.coin_amount >= treasure.cost) {
+							//std::cout << "treasure.effect_type: " << std::to_string(treasure.effect_type) << std::endl;
+							//std::cout << "treasure.effect_strength: " << std::to_string(treasure.effect_strength) << std::endl;
+							player_att.coin_amount -= treasure.cost;
+							// 1=bullet_damage, 2=fire_rate, or 3=critical_hit
+							// treasure.effect_strength value between 0~1
+							//std::cout << "--------------before------------------" << std::endl;
+							//std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
+							//std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
+							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
+							if (treasure.effect_type == 1) {
+								player_att.bullet_damage += treasure.effect_strength;
+
+							}
+							else if (treasure.effect_type == 2) {
+								player_att.fire_rate += float(treasure.effect_strength * 0.01);
+								// bullet_spawner.fire_rate = 0.0001;
+								bullet_spawner.fire_rate *= (1 - float(treasure.effect_strength * 0.1));
+							}
+							else if (treasure.effect_type == 3) {
+								player_att.critical_hit += float(treasure.effect_strength * 0.01);
+							}
+							//std::cout << "-------------after---------------------" << std::endl;
+							//std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
+							//std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
+							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
+							registry.remove_all_components_of(entity_other);
+						}
+						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, "cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
+
+						createText(vec2(motion.position.x, motion.position.y + 50), { 0.6f,0.6f }, "press \"E\" to buy this", vec3(0, 1, 0), false, true);
+						// std::cout << "Buy this" << std::endl;
+					}
+				}
 			}
 			// Checking player - power up items collisions
 			else if (registry.maxhpIncreases.has(entity_other)) {
@@ -755,6 +801,7 @@ void WorldSystem::handle_collisions() {
 					else {
 						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
 					}
+					//std::cout << "bullet_dmg: " << std::to_string(registry.playerBullets.get(entity_other).damage) << std::endl;
 
 					if (!registry.bosses.has(entity)) {
 						// Knockback
@@ -929,6 +976,16 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			return;
 		}
 
+		// buy item
+		if (key == GLFW_KEY_E) {
+			if (action == GLFW_PRESS) {
+				pressed[key] = true;
+			}
+			else if (action == GLFW_RELEASE) {
+				pressed[key] = false;
+			}
+		}
+
 		// Handle player movement
 		// Added key checks at the beginning so don't have to fetch kinematics / update player direction for
 		// every key press that is not related to WASD
@@ -1048,7 +1105,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				registry.remove_all_components_of(registry.focusdots.entities.back());
 			pressed[key] = false;
 		}
-		
+
 
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			// open pause menu
@@ -1093,7 +1150,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	while (registry.texts.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
 	while (registry.textsWorld.entities.size() > 0)
-		registry.remove_all_components_of(registry.texts.entities.back());
+		registry.remove_all_components_of(registry.textsWorld.entities.back());
 	while (registry.dialogueMenus.entities.size() > 0)
 		registry.remove_all_components_of(registry.dialogueMenus.entities.back());
 
@@ -1123,7 +1180,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		else if (token == "(special)") {
 			emotion = EMOTION::SPECIAL;
 		}
-		else if (token == "(shock)"){
+		else if (token == "(shock)") {
 			emotion = EMOTION::SHOCK;
 		}
 		else if (token == "(angry)") {
@@ -1191,7 +1248,8 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		dialogue_info.cirno_pt += 1;
 		dialogue_info.cirno_played = true;
 		resume_game();
-	}else if (dialogue_info.cirno_after_pt < cirno_after_script.size()) {
+	}
+	else if (dialogue_info.cirno_after_pt < cirno_after_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		EMOTION emotion = EMOTION::NORMAL;
