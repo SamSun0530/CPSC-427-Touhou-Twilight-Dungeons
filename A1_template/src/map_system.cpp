@@ -506,7 +506,7 @@ void MapSystem::generate_door_tiles(std::vector<std::vector<int>>& map) {
 
 // Sets wall tiles that act like rocks in a room
 void MapSystem::generate_rocks(std::vector<std::vector<int>>& map) {
-	float rock_spawn_chance = 0.2f;
+	float rock_spawn_chance = 0.01f;
 	float to_spawn = 0.f;
 	for (Room_struct& room : bsptree.rooms) {
 		if (room.type != ROOM_TYPE::NORMAL) {
