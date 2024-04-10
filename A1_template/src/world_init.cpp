@@ -722,7 +722,7 @@ std::vector<Entity> createAttributeUI(RenderSystem* renderer)
 		registry.UIUX.emplace(entity);
 		registry.renderRequests.insert(
 			entity,
-			{ static_cast<TEXTURE_ASSET_ID>(35 + i), // TEXTURE_COUNT indicates that no txture is needed
+			{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::ATTACKDMG + i), // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::UI,
 				GEOMETRY_BUFFER_ID::SPRITE });
 		registry.colors.insert(entity, { 1,1,1 });
@@ -1224,6 +1224,34 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 		entities.push_back(entity);
 	}
 	return entities;
+}
+
+Entity createRock(RenderSystem* renderer, vec2 grid_position) {
+	auto entity = Entity();
+
+	// Initializes the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = convert_grid_to_world(grid_position);
+	motion.scale = vec2(world_tile_size, world_tile_size);
+
+	// Rocks are collidable
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = { motion.scale.x, motion.scale.y };
+	collidable.shift = { 0, 0 };
+
+	// Rocks act like walls
+	registry.walls.emplace(entity);
+
+
+	// Placeholder texure
+	registry.renderRequests.insert(
+		entity,
+		{ 
+		TEXTURE_ASSET_ID::ROCK,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
 }
 
 // IMPORTANT: createDoor takes in grid coordinates

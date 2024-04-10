@@ -57,6 +57,7 @@ class RenderSystem {
 			textures_path("LeftBottomCorner.png"),
 			textures_path("RightTopCorner.png"),
 			textures_path("RightBottomCorner.png"),
+			textures_path("Rock_1.png"),
 			textures_path("Reimu_HealthBar.png"),
 			textures_path("Reimu_Head.png"),
 			textures_path("EmptyHeart.png"),
