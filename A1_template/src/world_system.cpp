@@ -641,7 +641,6 @@ void WorldSystem::next_level() {
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
 	// TODO: TEMPORARY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	map_info.level = MAP_LEVEL::LEVEL1;
 	boss_system->init_phases();
 
 	menu.state = MENU_STATE::PLAY;
