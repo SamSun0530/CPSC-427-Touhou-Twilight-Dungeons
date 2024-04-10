@@ -235,9 +235,9 @@ void MapSystem::generateTutorialMap() {
 
 	// space/mouse 1 key attack
 	createKey(convert_grid_to_world({ 23.f, 10.f }), vec2(150), KEYS::SPACE, false, true, 1300);
-	createText(convert_grid_to_world({ 24.f, 10.4f }), vec3(3), "/", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 24.f, 10.f }), vec3(3), "/", vec3(1, 1, 1), true, true);
 	createKey(convert_grid_to_world({ 25.f, 10.f }), vec2(90), KEYS::MOUSE_1, false, true, 1500);
-	createText(convert_grid_to_world({ 22.5f, 11.f }), vec3(1.f), "Hold to shoot", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 24.f, 11.f }), vec3(1.f), "Hold to shoot", vec3(1, 1, 1), true, true);
 
 	// hardcoded dummy enemy spawn
 	Entity entity1 = createDummyEnemySpawner(renderer, convert_grid_to_world({ 29, 5 }));
