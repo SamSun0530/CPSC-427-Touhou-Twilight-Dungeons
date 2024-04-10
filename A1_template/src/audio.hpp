@@ -6,21 +6,14 @@
 
 // internal
 #include "common.hpp"
-#include "components.hpp"
 
 class Audio {
 public:
 	Audio();
 	~Audio();
 
-	void step(float elapsed);
-
 	// music references
-	Mix_Chunk* background_music;
-	Mix_Chunk* menu_music;
-	Mix_Chunk* open_gate_sound;
-	Mix_Chunk* boss_music;
-	Mix_Chunk* pause_menu_sound;
+	Mix_Music* background_music;
 	Mix_Chunk* game_ending_sound;
 	Mix_Chunk* firing_sound;
 	Mix_Chunk* damage_sound;

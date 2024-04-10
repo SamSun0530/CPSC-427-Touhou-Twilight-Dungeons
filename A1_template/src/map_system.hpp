@@ -31,8 +31,6 @@ private:
 
 	// old version
 	void generate_door_tiles(std::vector<std::vector<int>>& map);
-	void generate_rocks(std::vector<std::vector<int>>& map);
-
 	std::vector<Room> rooms;
 
 	// sandstone tile atlas

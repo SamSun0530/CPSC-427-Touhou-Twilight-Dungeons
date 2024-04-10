@@ -428,7 +428,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		Collidable& collidable_i = registry.collidables.get(entity_i);
 		Motion& motion_i = motion_container.get(entity_i);
 
-		// //Wall to player collision
+		// Wall to player collision
 		//for (Entity& entity_j : registry.players.entities) {
 		//	Collidable& collidable_j = registry.collidables.get(entity_j);
 		//	Motion& motion_j = registry.motions.get(entity_j);

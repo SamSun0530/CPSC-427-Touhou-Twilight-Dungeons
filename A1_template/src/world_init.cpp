@@ -472,54 +472,7 @@ Entity createCombo(RenderSystem* renderer)
 	return entity;
 }
 
-Entity createWin(RenderSystem* renderer) {
-	// Pause menu background
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	Motion& motion = registry.motions.emplace(entity);
-	motion.position = vec2(0,0);
-	motion.scale = vec2(1000, 700);
-
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::WINDEATH_SCREEN,
-			EFFECT_ASSET_ID::UI,
-			GEOMETRY_BUFFER_ID::SPRITE });
-	registry.winMenus.emplace(entity);
-	registry.winMenus.emplace(createText(vec2(0, -200), vec2(2, 2), "You WIN !!!", vec3(0, 0, 0), true, false));
-
-	return entity;
-
-}
-Entity createLose(RenderSystem* renderer) {
-	// Pause menu background
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	Motion& motion = registry.motions.emplace(entity);
-	motion.position = vec2(0,0);
-	motion.scale = vec2(1000, 700);
-
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::WINDEATH_SCREEN,
-			EFFECT_ASSET_ID::UI,
-			GEOMETRY_BUFFER_ID::SPRITE });
-	registry.loseMenus.emplace(entity);
-	registry.loseMenus.emplace(createText(vec2(0, -200), vec2(1.5, 1.5), "Game Over!!!", vec3(0, 0, 0), true, false));
-
-	return entity;
-
-}
-
-void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2, EMOTION emotion) {
+void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2) {
 	auto reimu_entity = Entity();
 
 	// Setting initial motion values
@@ -527,11 +480,9 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2,
 	motion_reimu.position = vec2(-250, 0);
 	motion_reimu.angle = 0.f;
 	motion_reimu.scale = vec2({ 550.f, 600.f });
-	EntityAnimation& ani_reimu = registry.alwaysplayAni.emplace(reimu_entity);
-	ani_reimu.spritesheet_scale = { 1/6.f, 1};
+
 	registry.dialogueMenus.emplace(reimu_entity);
 	if (character == CHARACTER::REIMU) {
-		ani_reimu.render_pos = { 1/6.f *(1+(int)emotion), 1};
 		registry.renderRequests.insert(
 			reimu_entity,
 			{ TEXTURE_ASSET_ID::REIMU_PORTRAIT, // TEXTURE_COUNT indicates that no txture is needed
@@ -539,7 +490,6 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2,
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else {
-		ani_reimu.render_pos = { 1 / 6.f * (1 + (int)EMOTION::NORMAL), 1 };
 		registry.renderRequests.insert(
 			reimu_entity,
 			{ TEXTURE_ASSET_ID::REIMU_PORTRAIT, // TEXTURE_COUNT indicates that no txture is needed
@@ -555,12 +505,9 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2,
 		motion_other.position = vec2(250, 0);
 		motion_other.angle = 0.f;
 		motion_other.scale = vec2({ 550.f, 600.f });
-		EntityAnimation& ani_other = registry.alwaysplayAni.emplace(other_entity);
-		ani_other.spritesheet_scale = { 1 / 6.f, 1 };
 
 		registry.dialogueMenus.emplace(other_entity);
 		if (character == talk_2) {
-			ani_other.render_pos = { 1 / 6.f * (1 + (int)emotion), 1 };
 			registry.renderRequests.insert(
 				other_entity,
 				{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::REIMU_PORTRAIT + (int)talk_2), // TEXTURE_COUNT indicates that no txture is needed
@@ -568,7 +515,6 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2,
 					GEOMETRY_BUFFER_ID::SPRITE });
 		}
 		else {
-			ani_other.render_pos = { 1 / 6.f * (1 + (int)EMOTION::NORMAL), 1 };
 			registry.renderRequests.insert(
 				other_entity,
 				{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::REIMU_PORTRAIT + (int)talk_2), // TEXTURE_COUNT indicates that no txture is needed
@@ -769,7 +715,7 @@ std::vector<Entity> createAttributeUI(RenderSystem* renderer)
 		registry.UIUX.emplace(entity);
 		registry.renderRequests.insert(
 			entity,
-			{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::ATTACKDMG + i), // TEXTURE_COUNT indicates that no txture is needed
+			{ static_cast<TEXTURE_ASSET_ID>(35 + i), // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::UI,
 				GEOMETRY_BUFFER_ID::SPRITE });
 		registry.colors.insert(entity, { 1,1,1 });
@@ -1275,34 +1221,6 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 		entities.push_back(entity);
 	}
 	return entities;
-}
-
-Entity createRock(RenderSystem* renderer, vec2 grid_position) {
-	auto entity = Entity();
-
-	// Initializes the motion
-	auto& motion = registry.motions.emplace(entity);
-	motion.position = convert_grid_to_world(grid_position);
-	motion.scale = vec2(world_tile_size, world_tile_size);
-
-	// Rocks are collidable
-	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = { motion.scale.x, motion.scale.y };
-	collidable.shift = { 0, 0 };
-
-	// Rocks act like walls
-	registry.walls.emplace(entity);
-
-
-	// Placeholder texure
-	registry.renderRequests.insert(
-		entity,
-		{ 
-		TEXTURE_ASSET_ID::ROCK,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
-
-	return entity;
 }
 
 // IMPORTANT: createDoor takes in grid coordinates

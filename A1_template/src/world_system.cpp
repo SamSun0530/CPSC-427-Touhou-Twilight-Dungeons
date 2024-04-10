@@ -29,7 +29,6 @@ WorldSystem::WorldSystem()
 	rng = std::default_random_engine(std::random_device()());
 	loadScript("start.txt", start_script);
 	loadScript("cirno.txt", cirno_script);
-	loadScript("cirno_after.txt", cirno_after_script);
 }
 
 WorldSystem::~WorldSystem() {
@@ -132,7 +131,7 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map,
 	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
 	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
-	Mix_PlayChannel(1, audio->menu_music, -1);
+
 	// TODO: remove, redundant
 	if (menu.state == MENU_STATE::PLAY) {
 		// Set all states to default
@@ -155,11 +154,8 @@ void WorldSystem::init_menu() {
 
 	if (game_info.has_started) {
 		createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Resume", 0.9f, [&]() {
-			//Mix_ResumeMusic();
-			//Mix_HaltChannel(1);
-			//Mix_PlayChannel(0, audio->background_music, -1);
-
-			;			resume_game();
+			Mix_ResumeMusic();
+			resume_game();
 			});
 		offset_y += offset_y_delta;
 	}
@@ -179,55 +175,15 @@ void WorldSystem::init_pause_menu() {
 	const float button_padding_y = 5.f;
 	const float offset_y_delta = BUTTON_HOVER_HEIGHT * button_scale + button_padding_y;
 	float offset_y = -(offset_y_delta * (num_buttons - 1) - button_padding_y) / 2.f;
-	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Resume", 0.9f, [&]() {
-		resume_game();
-		});
+	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Resume", 0.9f, [&]() { resume_game(); });
 	offset_y += offset_y_delta;
 	createButton(renderer, { 0, offset_y }, button_scale * 1.1f, MENU_STATE::PAUSE, "Exit to Menu", 0.85f, [&]() {
-		////Mix_ResumeMusic();
-		//Mix_HaltChannel(0);
-		//Mix_PlayChannel(1, audio->menu_music, -1);
-
-		menu.state = MENU_STATE::MAIN_MENU;
-		});
-}
-
-void WorldSystem::init_win_menu() {
-	createWin(renderer);
-	const float button_scale = 0.7f;
-	createButton(renderer, { 0, 200 }, button_scale * 1.1, MENU_STATE::WIN, "Exit to Menu", 0.85f, [&]() {
-		game_info.has_started = false;
 		Mix_PauseMusic();
-		for (Entity entity : registry.buttons.entities) {
-			Button& button = registry.buttons.get(entity);
-			if (button.state == MENU_STATE::MAIN_MENU)
-				registry.remove_all_components_of(entity);
-		}
-		registry.mainMenus.clear();
-		init_menu();
-		menu.state = MENU_STATE::MAIN_MENU;
-		});
-}
-
-void WorldSystem::init_lose_menu() {
-	createLose(renderer);
-	const float button_scale = 0.7f;
-	createButton(renderer, { 0, 200 }, button_scale * 1.1, MENU_STATE::LOSE, "Exit to Menu", 0.85f, [&]() {
-		game_info.has_started = false;
-		Mix_PauseMusic();
-		for (Entity entity : registry.buttons.entities) {
-			Button& button = registry.buttons.get(entity);
-			if (button.state == MENU_STATE::MAIN_MENU)
-				registry.remove_all_components_of(entity);
-		}
-		registry.mainMenus.clear();
-		init_menu();
 		menu.state = MENU_STATE::MAIN_MENU;
 		});
 }
 
 void WorldSystem::resume_game() {
-	////Mix_ResumeMusic();
 	menu.state = MENU_STATE::PLAY;
 	pressed = { 0 };
 	registry.kinematics.get(player).direction = { 0, 0 };
@@ -243,6 +199,7 @@ void WorldSystem::resume_game() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+
 	tutorial_counter--;
 
 	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
@@ -291,11 +248,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	std::string fire_rate = std::to_string(1 / player_att.fire_rate);
 	std::string critical_hit = std::to_string(player_att.critical_hit * 100);
 	std::string critical_dmg = std::to_string(player_att.critical_demage * 100);
-	createText(-window_px_half + vec2(70, 160), { 1,1 }, std::to_string(player_att.coin_amount), vec3(1), false);
-	createText(-window_px_half + vec2(70, 210), { 1,1 }, std::to_string(player_att.bullet_damage), vec3(1), false);
-	createText(-window_px_half + vec2(70, 260), { 1,1 }, fire_rate.substr(0, fire_rate.find(".") + 3), vec3(1), false);
-	createText(-window_px_half + vec2(70, 310), { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(1), false);
-	createText(-window_px_half + vec2(70, 360), { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(1), false);
+	createText(-window_px_half + vec2(70, 160), { 1,1 }, std::to_string(player_att.coin_amount), vec3(0, 0, 0), false);
+	createText(-window_px_half + vec2(70, 210), { 1,1 }, std::to_string(player_att.bullet_damage), vec3(0, 0, 0), false);
+	createText(-window_px_half + vec2(70, 260), { 1,1 }, fire_rate.substr(0, fire_rate.find(".") + 3), vec3(0, 0, 0), false);
+	createText(-window_px_half + vec2(70, 310), { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(0, 0, 0), false);
+	createText(-window_px_half + vec2(70, 360), { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(0, 0, 0), false);
 
 	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
 	// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
@@ -403,11 +360,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (death_counter.death_counter_ms < 0) {
 			if (registry.players.has(entity)) {
 				registry.realDeathTimers.remove(entity);
-
-				// TODO
 				restart_game();
-				//screen.darken_screen_factor = 0;
-				//menu.state = MENU_STATE::LOSE;
 				return true;
 			}
 			else if (registry.teleporters.has(entity)) {
@@ -470,7 +423,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		is_alive = false;
 		pressed = { 0 };
 		registry.kinematics.get(player).direction = { 0,0 };
-		Mix_HaltChannel(-1);
+		Mix_HaltMusic();
 		Mix_PlayChannel(-1, audio->game_ending_sound, 0);
 		registry.realDeathTimers.emplace(player);
 	}
@@ -539,7 +492,6 @@ void WorldSystem::restart_game() {
 	if (map_info.level != MAP_LEVEL::TUTORIAL) {
 		start_pt = 0;
 		dialogue_info.cirno_pt = 1000;
-		dialogue_info.cirno_after_pt = 1000;
 		dialogue_info.cirno_played = false;
 		start_dialogue_timer = 1000.f;
 	}
@@ -552,8 +504,8 @@ void WorldSystem::restart_game() {
 	pressed = { 0 };
 
 	// Reset bgm
-	//Mix_HaltChannel(1);
-	//Mix_PlayChannel(0, audio->background_music, -1);
+	Mix_ResumeMusic();
+	Mix_PlayMusic(audio->background_music, -1);
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all enemies, coins, ... but that would be more cumbersome
@@ -599,8 +551,6 @@ void WorldSystem::restart_game() {
 	display_combo = createCombo(renderer);
 	game_info.set_player_id(player);
 
-	init_win_menu();
-	init_lose_menu();
 	renderer->camera.setPosition({ 0, 0 });
 
 }
@@ -885,12 +835,10 @@ void WorldSystem::handle_collisions() {
 						room.need_to_spawn = false;
 						// spawn enemies in room
 						map->spawnEnemiesInRoom(room);
-						Mix_PlayChannel(-1, audio->open_gate_sound, 0);
 					}
 
 					if (door.is_closed) {
 						renderer->switch_door_texture(entity, false);
-						Mix_PlayChannel(-1, audio->open_gate_sound, 0);
 						door.is_closed = false;
 					}
 
@@ -952,22 +900,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			glfwGetWindowSize(window, &w, &h);
 			map_info.level = MAP_LEVEL::LEVEL1;
 			restart_game();
-		}
-
-		// Debugging
-		if (key == GLFW_KEY_G) {
-			if (action == GLFW_RELEASE)
-				debugging.in_debug_mode = !debugging.in_debug_mode;
-		}
-
-		// Toggle FPS display
-		if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
-			getInstance().toggle_show_fps();
-		}
-
-		// Player can only act when alive
-		if (!is_alive) {
-			return;
 		}
 
 		if (key == GLFW_KEY_E) {
@@ -1069,6 +1001,17 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 
+		// Debugging
+		if (key == GLFW_KEY_G) {
+			if (action == GLFW_RELEASE)
+				debugging.in_debug_mode = !debugging.in_debug_mode;
+		}
+
+		// Toggle FPS display
+		if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
+			getInstance().toggle_show_fps();
+		}
+
 		// Toggle tutorial display
 		if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
 			getInstance().display_instruction = false;
@@ -1077,32 +1020,32 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 
 		// Hold for focus mode
-		if (key == GLFW_KEY_LEFT_SHIFT &&
-			!pressed[key] &&
-			action == GLFW_PRESS &&
-			!focus_mode.in_focus_mode) {
-			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
-			focus_mode.speed_constant = 0.5f;
-			Motion& motion = registry.motions.get(player);
-			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
-			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
-			pressed[key] = true;
+		if (is_alive) {
+			if (key == GLFW_KEY_LEFT_SHIFT &&
+				!pressed[key] &&
+				action == GLFW_PRESS &&
+				!focus_mode.in_focus_mode) {
+				focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+				focus_mode.speed_constant = 0.5f;
+				Motion& motion = registry.motions.get(player);
+				CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
+				createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+				pressed[key] = true;
+			}
+			else if (key == GLFW_KEY_LEFT_SHIFT &&
+				pressed[key] &&
+				action == GLFW_RELEASE &&
+				focus_mode.in_focus_mode) {
+				focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+				focus_mode.speed_constant = 1.0f;
+				while (registry.focusdots.entities.size() > 0)
+					registry.remove_all_components_of(registry.focusdots.entities.back());
+				pressed[key] = false;
+			}
 		}
-		else if (key == GLFW_KEY_LEFT_SHIFT &&
-			pressed[key] &&
-			action == GLFW_RELEASE &&
-			focus_mode.in_focus_mode) {
-			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
-			focus_mode.speed_constant = 1.0f;
-			while (registry.focusdots.entities.size() > 0)
-				registry.remove_all_components_of(registry.focusdots.entities.back());
-			pressed[key] = false;
-		}
-
 
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			// open pause menu
-			Mix_PlayChannel(3, audio->pause_menu_sound, 0);
 			menu.state = MENU_STATE::PAUSE;
 		}
 	}
@@ -1122,7 +1065,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
 			start_pt += 1;
 			dialogue_info.cirno_pt += 1;
-			dialogue_info.cirno_after_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
 		}
@@ -1135,6 +1077,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	if (start_dialogue_timer > 0) {
 		return;
 	}
+
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
 		registry.remove_all_components_of(registry.debugComponents.entities.back());
@@ -1147,37 +1090,16 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	while (registry.dialogueMenus.entities.size() > 0)
 		registry.remove_all_components_of(registry.dialogueMenus.entities.back());
 
-	if (registry.bosses.size() == 0 && dialogue_info.cirno_played) {
-		dialogue_info.cirno_played = false;
-		dialogue_info.cirno_after_pt = 0;
-	}
+
 	if (start_pt < start_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
-		EMOTION emotion = EMOTION::NORMAL;
+
 		std::istringstream ss(start_script[start_pt]);
 		std::string token;
 		std::getline(ss, token, ' ');
-
 		if (token == "Cirno:") {
 			speaking_chara = CHARACTER::CIRNO;
-		}
-
-		std::getline(ss, token, ' ');
-		if (token == "(laugh)") {
-			emotion = EMOTION::LAUGH;
-		}
-		else if (token == "(cry)") {
-			emotion = EMOTION::CRY;
-		}
-		else if (token == "(special)") {
-			emotion = EMOTION::SPECIAL;
-		}
-		else if (token == "(shock)") {
-			emotion = EMOTION::SHOCK;
-		}
-		else if (token == "(angry)") {
-			emotion = EMOTION::ANGRY;
 		}
 		if (word_up_ms < 0) {
 			unsigned int i = 0;
@@ -1191,7 +1113,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		menu.state = MENU_STATE::DIALOGUE;
-		createDialogue(speaking_chara, start_buffer, CHARACTER::NONE, emotion);
+		createDialogue(speaking_chara, start_buffer, CHARACTER::NONE);
 	}
 	else if (start_pt == start_script.size()) {
 		start_pt += 1;
@@ -1200,29 +1122,12 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	else if (dialogue_info.cirno_pt < cirno_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
-		EMOTION emotion = EMOTION::NORMAL;
 		std::istringstream ss(cirno_script[dialogue_info.cirno_pt]);
 		std::string token;
 		std::getline(ss, token, ' ');
 		if (token == "Cirno:") {
 			speaking_chara = CHARACTER::CIRNO;
 		}
-		std::getline(ss, token, ' ');
-		if (token == "(laugh)") {
-			emotion = EMOTION::LAUGH;
-		}
-		else if (token == "(cry)") {
-			emotion = EMOTION::CRY;
-		}
-		else if (token == "(special)") {
-			emotion = EMOTION::SPECIAL;
-		}
-		else if (token == "(shock)") {
-			emotion = EMOTION::SHOCK;
-		}
-		else if (token == "(angry)") {
-			emotion = EMOTION::ANGRY;
-		}
 		if (word_up_ms < 0) {
 			unsigned int i = 0;
 			while (std::getline(ss, token, ' ')) {
@@ -1235,61 +1140,13 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		menu.state = MENU_STATE::DIALOGUE;
-		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO, emotion);
+		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO);
 	}
 	else if (dialogue_info.cirno_pt == cirno_script.size()) {
 		dialogue_info.cirno_pt += 1;
 		dialogue_info.cirno_played = true;
 		resume_game();
 	}
-	else if (dialogue_info.cirno_after_pt < cirno_after_script.size()) {
-		word_up_ms -= elapsed_time;
-		CHARACTER speaking_chara = CHARACTER::REIMU;
-		EMOTION emotion = EMOTION::NORMAL;
-		std::istringstream ss(cirno_after_script[dialogue_info.cirno_after_pt]);
-		std::string token;
-		std::getline(ss, token, ' ');
-		if (token == "Cirno:") {
-			speaking_chara = CHARACTER::CIRNO;
-		}
-		std::getline(ss, token, ' ');
-		if (token == "(laugh)") {
-			emotion = EMOTION::LAUGH;
-		}
-		else if (token == "(cry)") {
-			emotion = EMOTION::CRY;
-		}
-		else if (token == "(special)") {
-			emotion = EMOTION::SPECIAL;
-		}
-		else if (token == "(shock)") {
-			emotion = EMOTION::SHOCK;
-		}
-		else if (token == "(angry)") {
-			emotion = EMOTION::ANGRY;
-		}
-		if (word_up_ms < 0) {
-			unsigned int i = 0;
-			while (std::getline(ss, token, ' ')) {
-				if (i == curr_word) {
-					start_buffer += " " + token;
-				}
-				i += 1;
-			}
-			word_up_ms = 50.f;
-			curr_word += 1;
-		}
-		menu.state = MENU_STATE::DIALOGUE;
-		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO, emotion);
-	}
-	else if (dialogue_info.cirno_after_pt == cirno_after_script.size()) {
-		dialogue_info.cirno_after_pt += 1;
-
-		// TODO
-		resume_game();
-		//menu.state = MENU_STATE::WIN;
-	}
-
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
@@ -1344,7 +1201,6 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 			start_pt += 1;
 			dialogue_info.cirno_pt += 1;
-			dialogue_info.cirno_after_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
 		}
