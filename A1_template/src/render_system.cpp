@@ -487,7 +487,7 @@ void RenderSystem::draw()
 
 		// Render user guide on screen
 		if (WorldSystem::getInstance().get_display_instruction() == true) {
-			renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.6f, 0.9f, glm::vec3(0, 0, 0), trans, false, 1.f);
+			renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.6f, 0.9f, glm::vec3(1), trans, false, 1.f);
 		}
 
 		if (WorldSystem::getInstance().get_show_fps() == true) {
