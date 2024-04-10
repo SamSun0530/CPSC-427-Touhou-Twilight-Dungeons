@@ -120,7 +120,13 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		}
 	}
 	else if (room.type == ROOM_TYPE::BOSS) {
-		room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f)));
+		if (map_info.level == MAP_LEVEL::LEVEL1) {
+			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Cirno, the Ice Fairy", BOSS_ID::CIRNO);
+		}
+		else if (map_info.level == MAP_LEVEL::LEVEL2) {
+			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "???????????", BOSS_ID::FLANDRE);
+		}
+		room.enemies.push_back(entity);
 	}
 	else if (room.type == ROOM_TYPE::START) {
 		// spawn nothing
@@ -135,6 +141,8 @@ Entity MapSystem::spawnPlayerInRoom(int room_number) {
 	room.is_cleared = true;
 	room.need_to_spawn = false;
 
+	//room_number = bsptree.rooms.size() - 1;
+	//return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left));
 	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f));
 }
 
@@ -292,7 +300,7 @@ Room MapSystem::generateBossRoom() {
 	return room;
 }
 
-void MapSystem::generateRandomMap() {
+void MapSystem::generateRandomMap(float room_size) {
 	assert(room_size > 3 && "Room too small!");
 	bool is_valid = false;
 
@@ -344,6 +352,8 @@ void MapSystem::generateRandomMap() {
 
 	// generates door info then the tiles
 	generate_door_tiles(world_map);
+	// Generates rocks in room
+	generate_rocks(world_map);
 }
 
 vec4 addSingleDoor(int row, int col, DIRECTION dir, int room_index, Room_struct& room, std::vector<std::vector<int>>& map) {
@@ -502,6 +512,28 @@ void MapSystem::generate_door_tiles(std::vector<std::vector<int>>& map) {
 	}
 }
 
+// Sets wall tiles that act like rocks in a room
+void MapSystem::generate_rocks(std::vector<std::vector<int>>& map) {
+	float rock_spawn_chance = 0.01f;
+	float to_spawn = 0.f;
+	for (Room_struct& room : bsptree.rooms) {
+		if (room.type != ROOM_TYPE::NORMAL) {
+			continue;
+		}
+		for (int row = room.top_left.y + 1; row < room.bottom_right.y; row++) {
+			for (int col = room.top_left.x + 1; col < room.bottom_right.x; col++) {
+				to_spawn = uniform_dist(rng);
+				//map[row][col] = (to_spawn < rock_spawn_chance) ? (int)TILE_TYPE::WALL : (int)TILE_TYPE::FLOOR;
+				if (to_spawn < rock_spawn_chance) {
+					createRock(renderer, { col, row });
+					map[row][col] = (int)TILE_TYPE::WALL;
+				}
+
+			}
+		}
+	}
+}
+
 void MapSystem::generate_all_tiles(std::vector<std::vector<int>>& map) {
 	int map_height = map.size();
 	int map_width = map[0].size();
@@ -522,6 +554,7 @@ void MapSystem::generate_all_tiles(std::vector<std::vector<int>>& map) {
 		}
 	}
 }
+
 
 void MapSystem::printMap() {
 	for (int i = 0; i < world_map.size(); i++) {

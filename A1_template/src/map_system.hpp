@@ -31,6 +31,8 @@ private:
 
 	// old version
 	void generate_door_tiles(std::vector<std::vector<int>>& map);
+	void generate_rocks(std::vector<std::vector<int>>& map);
+
 	std::vector<Room> rooms;
 
 	// sandstone tile atlas
@@ -53,7 +55,7 @@ public:
 	void restart_map();
 	void init(RenderSystem* renderer, VisibilitySystem* visibility_arg);
 	Room generateBossRoom();
-	void generateRandomMap();
+	void generateRandomMap(float room_size);
 	void generateTutorialMap();
 	void printMap();
 	void spawnEnemiesInRooms();

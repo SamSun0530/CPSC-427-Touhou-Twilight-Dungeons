@@ -78,6 +78,8 @@ public:
 	ComponentContainer<PauseMenu> pauseMenus;
 	ComponentContainer<VisibilityTile> visibilityTiles;
 	ComponentContainer<Dialogue> dialogueMenus;
+	ComponentContainer<WinMenu> winMenus;
+	ComponentContainer<LoseMenu> loseMenus;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -150,6 +152,8 @@ public:
 		registry_list.push_back(&pauseMenus);
 		registry_list.push_back(&visibilityTiles);
 		registry_list.push_back(&dialogueMenus);
+		registry_list.push_back(&winMenus);
+		registry_list.push_back(&loseMenus);
 	}
 
 	void clear_all_components() {
