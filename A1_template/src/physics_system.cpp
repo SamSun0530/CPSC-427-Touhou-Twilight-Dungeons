@@ -482,6 +482,28 @@ void PhysicsSystem::step(float elapsed_ms)
 		}
 	}
 
+	// Enemy to enemy collision
+	ComponentContainer<Deadly>& deadly_container = registry.deadlys;
+	for (uint i = 0; i < deadly_container.components.size(); i++)
+	{
+		Entity entity_i = deadly_container.entities[i];
+		Collidable& collidable_i = collidable_container.get(entity_i);
+		Motion& motion_i = motion_container.get(entity_i);
+
+		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
+		for (uint j = i + 1; j < deadly_container.components.size(); j++)
+		{
+			Entity entity_j = deadly_container.entities[j];
+			Collidable& collidable_j = collidable_container.get(entity_j);
+			Motion& motion_j = motion_container.get(entity_j);
+			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
+			{
+				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+			}
+		}
+	}
+
 	// Check and set room
 	Motion& motion = registry.motions.get(player);
 	Collidable& collidable = registry.collidables.get(player);
@@ -495,6 +517,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		}
 	}
 	if (!has_set_room) {
+		game_info.prev_in_room = game_info.in_room == -1 ? game_info.prev_in_room : game_info.in_room;
 		game_info.in_room = -1;
 	}
 

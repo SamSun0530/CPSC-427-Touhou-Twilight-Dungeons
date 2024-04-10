@@ -1,7 +1,7 @@
 #include "decision_tree.hpp"
 
 // ========== Action Node ==========
-ActionNode::ActionNode(void (*action)(Entity& entity) = nullptr) : action(action) {}
+ActionNode::ActionNode(std::function<void(Entity& entity)> action = nullptr) : action(action) {}
 
 IDecisionNode* ActionNode::process(Entity& entity) {
 	assert(this->action != nullptr && "No function set for an action node");
@@ -10,18 +10,18 @@ IDecisionNode* ActionNode::process(Entity& entity) {
 	return nullptr;
 }
 
-void ActionNode::setAction(void (*action)(Entity& entity)) {
+void ActionNode::setAction(std::function<void(Entity& entity)> action) {
 	this->action = action;
 }
 
 // ========== Conditional Node ==========
-ConditionalNode::ConditionalNode(bool (*condition)(Entity& entity)) : ConditionalNode(nullptr, nullptr, condition) {}
+ConditionalNode::ConditionalNode(std::function<bool(Entity& entity)> condition) : ConditionalNode(nullptr, nullptr, condition) {}
 ConditionalNode::ConditionalNode(IDecisionNode* true_node = nullptr,
 	IDecisionNode* false_node = nullptr,
-	bool (*condition)(Entity& entity) = nullptr) : true_node(true_node), false_node(false_node), condition(condition) {}
-ConditionalNode::~ConditionalNode() { 
-	delete true_node; 
-	delete false_node; 
+	std::function<bool(Entity& entity)> condition = nullptr) : true_node(true_node), false_node(false_node), condition(condition) {}
+ConditionalNode::~ConditionalNode() {
+	delete true_node;
+	delete false_node;
 };
 
 IDecisionNode* ConditionalNode::process(Entity& entity) {
@@ -32,7 +32,7 @@ IDecisionNode* ConditionalNode::process(Entity& entity) {
 	return this->condition(entity) ? this->true_node : this->false_node;
 }
 
-void ConditionalNode::setCondition(bool (*condition)(Entity& entity)) {
+void ConditionalNode::setCondition(std::function<bool(Entity& entity)> condition) {
 	this->condition = condition;
 }
 
@@ -45,7 +45,7 @@ void ConditionalNode::setFalse(IDecisionNode* false_node) {
 }
 
 // ========== Decision Tree ==========
-DecisionTree::~DecisionTree() { 
+DecisionTree::~DecisionTree() {
 	delete root;
 };
 
