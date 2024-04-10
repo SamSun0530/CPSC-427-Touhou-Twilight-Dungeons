@@ -942,7 +942,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 		hp.max_hp = 220;
 		hp.curr_hp = hp.max_hp;
 
-		boss.health_phase_thresholds = { 200, 100, 50, 10, -1 }; // -1 for end of phase
+		boss.health_phase_thresholds = { 200, 100, 50, 20, -1 }; // -1 for end of phase
 
 		registry.renderRequests.insert(
 			entity,

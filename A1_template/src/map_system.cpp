@@ -151,9 +151,9 @@ Entity MapSystem::spawnPlayerInRoom(int room_number) {
 	//room.is_cleared = true;
 	//room.need_to_spawn = false;
 
-	//room_number = bsptree.rooms.size() - 1;
-	//return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left - vec2(2, 0)));
-	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f));
+	room_number = bsptree.rooms.size() - 1;
+	return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left - vec2(2, 0)));
+	//return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f));
 }
 
 // Getting out of map results? Consider that there is empty padding in the world map.
