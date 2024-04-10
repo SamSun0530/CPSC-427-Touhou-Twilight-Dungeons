@@ -11,12 +11,15 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <SDL_mixer.h>
+#include <iostream>
+#include <sstream>
 
 #include "render_system.hpp"
 #include "audio.hpp"
 #include "map_system.hpp"
 #include "ai_system.hpp"
 #include <map>
+#include <visibility_system.hpp>
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -36,11 +39,13 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai);
+	void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai, VisibilitySystem* visibility_arg);
 
 	// initialize the menu
 	void init_menu();
 	void init_pause_menu();
+	void init_win_menu();
+	void init_lose_menu();
 	void resume_game();
 
 	// Releases all associated resources
@@ -54,9 +59,11 @@ public:
 
 	// Check for collisions
 	void handle_collisions();
+	// handle_wall_collisions parameter entity IS WALL ENTITY!
+	void handle_wall_collisions(Entity& entity, Entity& entity_other);
 
 	// Should the game be over ?
-	bool is_over()const;
+	bool is_over() const;
 
 	// font and instructions
 	bool get_display_instruction();
@@ -64,8 +71,10 @@ public:
 	bool get_show_fps();
 	std::string get_fps_in_string();
 	void toggle_display_instruction() { display_instruction = !display_instruction; }
+	void WorldSystem::dialogue_step(float elapsed_time);
 	void toggle_show_fps() { show_fps = !show_fps; }
 	// Updates focus mode position
+	// Should be called after physics step
 	// Fixes issue where dot lags behind player due to physics lerp step after setting position
 	void update_focus_dot();
 private:
@@ -74,11 +83,20 @@ private:
 	void on_mouse_move(vec2 pos);
 	void on_mouse_key(int button, int action, int mods);
 	void on_scroll(vec2 scroll_offset);
+	unsigned int loadScript(std::string file_name, std::vector<std::string>& scripts);
 	//void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 
 	// State of keyboard
 	// Initial state is all false
 	std::array<bool, 512> pressed = { 0 };
+	std::vector<std::string> start_script;
+	std::vector<std::string> cirno_script;
+	std::vector<std::string> cirno_after_script;
+	unsigned int start_pt = 0;
+	float start_dialogue_timer = 1000.f;
+	float word_up_ms = 50.f;
+	unsigned int curr_word = 0;
+	std::string start_buffer;
 	// Update player direction based on pressed
 	void updatePlayerDirection(Kinematic& player_kinematic);
 
@@ -94,6 +112,8 @@ private:
 
 	// Game state
 	RenderSystem* renderer;
+	VisibilitySystem* visibility_system;
+
 	float next_enemy_spawn;
 	Audio* audio;
 	int tutorial_counter = 10;

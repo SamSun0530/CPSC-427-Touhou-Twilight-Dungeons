@@ -69,6 +69,7 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 
 	initializeEnemyBulletInstance();
 	initializeTileInstance();
+	initializeVisibilityTileInstance();
 
 	return true;
 }
@@ -709,3 +710,90 @@ void RenderSystem::initializeTileInstance() {
 	glBindVertexArray(0);
 	gl_has_errors();
 }
+
+void RenderSystem::initializeVisibilityTileInstance() {
+	visibility_tile_instance_program = glCreateProgram();
+
+	// Load shaders
+	std::string path = shader_path("visibilitytiles_instance");
+
+	const std::string vertex_shader_name = path + ".vs.glsl";
+	const std::string fragment_shader_name = path + ".fs.glsl";
+
+	bool is_valid = loadEffectFromFile(vertex_shader_name, fragment_shader_name, visibility_tile_instance_program);
+	assert(is_valid && (GLuint)visibility_tile_instance_program != 0);
+
+	glUseProgram(visibility_tile_instance_program);
+	gl_has_errors();
+
+	glGenBuffers(1, &visibility_tile_instance_VBO);
+	glGenVertexArrays(1, &visibility_tile_instance_VAO);
+	gl_has_errors();
+
+	glBindVertexArray(visibility_tile_instance_VAO);
+	gl_has_errors();
+
+	// bind vbo for colored vertex
+	const GLuint vbo = vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::DEBUG_LINE];
+	const GLuint ibo = index_buffers[(GLuint)GEOMETRY_BUFFER_ID::DEBUG_LINE];
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+	// Input data location as in the vertex buffer
+	GLint in_position_loc = glGetAttribLocation(visibility_tile_instance_program, "in_position");
+	GLint in_color_loc = glGetAttribLocation(visibility_tile_instance_program, "in_color");
+	gl_has_errors();
+	assert(in_position_loc >= 0);
+	assert(in_color_loc >= 0);
+
+	glEnableVertexAttribArray(in_position_loc);
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(ColoredVertex), (void*)0);
+	gl_has_errors();
+
+	glEnableVertexAttribArray(in_color_loc);
+	glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE, sizeof(ColoredVertex), (void*)sizeof(vec3));
+	gl_has_errors();
+
+	// bind visbility tiles instance vbo for instance rendering
+	glBindBuffer(GL_ARRAY_BUFFER, visibility_tile_instance_VBO);
+	gl_has_errors();
+
+	// transform data
+	int loc = glGetAttribLocation(visibility_tile_instance_program, "in_transform");
+	assert(loc >= 0);
+	gl_has_errors();
+	int loc1 = loc;
+	int loc2 = loc + 1;
+	int loc3 = loc + 2;
+	glEnableVertexAttribArray(loc1);
+	glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_FALSE, sizeof(VisibilityTileInstanceData), (void*)(0));
+	gl_has_errors();
+	glEnableVertexAttribArray(loc2);
+	glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_FALSE, sizeof(VisibilityTileInstanceData), (void*)(sizeof(vec3)));
+	gl_has_errors();
+	glEnableVertexAttribArray(loc3);
+	glVertexAttribPointer(loc3, 3, GL_FLOAT, GL_FALSE, sizeof(VisibilityTileInstanceData), (void*)(sizeof(vec3) * 2));
+	gl_has_errors();
+	glVertexAttribDivisor(loc1, 1);
+	glVertexAttribDivisor(loc2, 1);
+	glVertexAttribDivisor(loc3, 1);
+	gl_has_errors();
+
+	// neighbors data
+	GLint in_alpha_loc = glGetAttribLocation(visibility_tile_instance_program, "in_alpha");
+	gl_has_errors();
+	assert(in_alpha_loc >= 0);
+	glEnableVertexAttribArray(in_alpha_loc);
+	glVertexAttribPointer(in_alpha_loc, 1, GL_FLOAT, GL_FALSE, sizeof(VisibilityTileInstanceData), (void*)(sizeof(vec3) * 3));
+	gl_has_errors();
+	glVertexAttribDivisor(in_alpha_loc, 1);
+	gl_has_errors();
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	gl_has_errors();
+}
+

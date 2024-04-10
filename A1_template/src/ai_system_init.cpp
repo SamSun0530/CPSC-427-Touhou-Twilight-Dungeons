@@ -5,7 +5,8 @@
 bool is_valid_cell(int x, int y) {
 	return !(y < 0 || x < 0 || y >= world_height || x >= world_width
 		|| world_map[y][x] == (int)TILE_TYPE::WALL
-		|| world_map[y][x] == (int)TILE_TYPE::EMPTY);
+		|| world_map[y][x] == (int)TILE_TYPE::EMPTY
+		|| world_map[y][x] == (int)TILE_TYPE::DOOR);
 }
 
 // checks if entity has a line of sight of the player
@@ -207,6 +208,17 @@ void AISystem::init() {
 		}
 		return false;
 		};
+	bool (*isInRangeBoss)(Entity & entity) = [](Entity& entity) {
+		float minimum_range_to_check = 150000; // sqrt(minimum_range_to_check) = x, where x = # of pixels
+		Motion& motion = registry.motions.get(entity);
+		// asume there is only one player
+		for (Entity& player_entity : registry.players.entities) {
+			Motion& player_motion = registry.motions.get(player_entity);
+			vec2 dp = player_motion.position - motion.position;
+			if (dot(dp, dp) < minimum_range_to_check) return true;
+		}
+		return false;
+		};
 	// checks if entity can shoot, throws error if entity does not have bullet spawner component
 	bool (*canShoot)(Entity & entity) = [](Entity& entity) {
 		float current_time = glfwGetTime();
@@ -312,6 +324,7 @@ void AISystem::init() {
 	void (*showBossInfo)(Entity & entity) = [](Entity& entity) {
 		if (!registry.bosses.has(entity)) return;
 		Boss& boss = registry.bosses.get(entity);
+		if (boss.is_active) return;
 		boss.is_active = true;
 		BossHealthBarLink& link = registry.bossHealthBarLink.get(entity);
 		BossHealthBarUI& ui = registry.bossHealthBarUIs.get(link.other);
@@ -320,6 +333,13 @@ void AISystem::init() {
 			bs.is_firing = true;
 		}
 		if (!ui.is_visible) ui.is_visible = true;
+		if (boss.boss_id == BOSS_ID::CIRNO) {
+			if (!dialogue_info.cirno_played) {
+				dialogue_info.cirno_pt = 0;
+			}
+		}
+		HP& hp = registry.hps.get(entity);
+		hp.curr_hp -= 20; // activate bullet firing
 		};
 	void (*hideBossInfo)(Entity & entity) = [](Entity& entity) {
 		if (!registry.bosses.has(entity)) return;
@@ -410,8 +430,9 @@ void AISystem::init() {
 		T -> show boss health bar
 	*/
 	ActionNode* show_boss_health_bar_cirno = new ActionNode(showBossInfo);
-	ActionNode* hide_boss_health_bar_cirno = new ActionNode(hideBossInfo);
-	ConditionalNode* is_in_range_cirno = new ConditionalNode(show_boss_health_bar_cirno, hide_boss_health_bar_cirno, isInRange);
+	//ActionNode* hide_boss_health_bar_cirno = new ActionNode(hideBossInfo);
+	ActionNode* do_nothing_cirno = new ActionNode(doNothing); // player can't go out of range in new door system
+	ConditionalNode* is_in_range_cirno = new ConditionalNode(show_boss_health_bar_cirno, do_nothing_cirno, isInRangeBoss);
 	this->cirno_boss_tree.setRoot(is_in_range_cirno);
 
 	// TODO: create decision trees/condition/action functions here for different enemies

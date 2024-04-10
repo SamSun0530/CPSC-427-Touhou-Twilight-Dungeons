@@ -9,6 +9,7 @@
 #include <glm/trigonometric.hpp>
 #include <iostream>
 #include <GLFW/glfw3.h>
+#include <fstream>
 #include <map>
 #include <string>
 #include <SDL_opengl.h>
@@ -26,6 +27,9 @@ WorldSystem::WorldSystem()
 	, display_instruction(true) {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
+	loadScript("start.txt", start_script);
+	loadScript("cirno.txt", cirno_script);
+	loadScript("cirno_after.txt", cirno_after_script);
 }
 
 WorldSystem::~WorldSystem() {
@@ -120,15 +124,16 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai) {
+void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map, AISystem* ai, VisibilitySystem* visibility_arg) {
 	this->renderer = renderer_arg;
 	this->audio = audio;
 	this->map = map;
 	this->ai = ai;
+	this->visibility_system = visibility_arg;
 	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
 	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
-
+	Mix_PlayChannel(1, audio->menu_music, -1);
 	// TODO: remove, redundant
 	if (menu.state == MENU_STATE::PLAY) {
 		// Set all states to default
@@ -151,8 +156,11 @@ void WorldSystem::init_menu() {
 
 	if (game_info.has_started) {
 		createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Resume", 0.9f, [&]() {
-			Mix_ResumeMusic();
-			resume_game();
+			//Mix_ResumeMusic();
+			//Mix_HaltChannel(1);
+			//Mix_PlayChannel(0, audio->background_music, -1);
+
+			;			resume_game();
 			});
 		offset_y += offset_y_delta;
 	}
@@ -167,22 +175,60 @@ void WorldSystem::init_pause_menu() {
 
 	// create buttons
 	// vertically center the buttons
-	int num_buttons = 3;
+	int num_buttons = 2;
 	const float button_scale = 0.7f;
 	const float button_padding_y = 5.f;
 	const float offset_y_delta = BUTTON_HOVER_HEIGHT * button_scale + button_padding_y;
 	float offset_y = -(offset_y_delta * (num_buttons - 1) - button_padding_y) / 2.f;
-	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Resume", 0.9f, [&]() { resume_game(); });
-	offset_y += offset_y_delta;
-	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Restart", 0.9f, [&]() { restart_game(); });
+	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Resume", 0.9f, [&]() {
+		resume_game();
+		});
 	offset_y += offset_y_delta;
 	createButton(renderer, { 0, offset_y }, button_scale * 1.1f, MENU_STATE::PAUSE, "Exit to Menu", 0.85f, [&]() {
+		////Mix_ResumeMusic();
+		//Mix_HaltChannel(0);
+		//Mix_PlayChannel(1, audio->menu_music, -1);
+
+		menu.state = MENU_STATE::MAIN_MENU;
+		});
+}
+
+void WorldSystem::init_win_menu() {
+	createWin(renderer);
+	const float button_scale = 0.7f;
+	createButton(renderer, { 0, 200 }, button_scale * 1.1, MENU_STATE::WIN, "Exit to Menu", 0.85f, [&]() {
+		game_info.has_started = false;
 		Mix_PauseMusic();
+		for (Entity entity : registry.buttons.entities) {
+			Button& button = registry.buttons.get(entity);
+			if (button.state == MENU_STATE::MAIN_MENU)
+				registry.remove_all_components_of(entity);
+		}
+		registry.mainMenus.clear();
+		init_menu();
+		menu.state = MENU_STATE::MAIN_MENU;
+		});
+}
+
+void WorldSystem::init_lose_menu() {
+	createLose(renderer);
+	const float button_scale = 0.7f;
+	createButton(renderer, { 0, 200 }, button_scale * 1.1, MENU_STATE::LOSE, "Exit to Menu", 0.85f, [&]() {
+		game_info.has_started = false;
+		Mix_PauseMusic();
+		for (Entity entity : registry.buttons.entities) {
+			Button& button = registry.buttons.get(entity);
+			if (button.state == MENU_STATE::MAIN_MENU)
+				registry.remove_all_components_of(entity);
+		}
+		registry.mainMenus.clear();
+		init_menu();
 		menu.state = MENU_STATE::MAIN_MENU;
 		});
 }
 
 void WorldSystem::resume_game() {
+	////Mix_ResumeMusic();
 	menu.state = MENU_STATE::PLAY;
 	pressed = { 0 };
 	registry.kinematics.get(player).direction = { 0, 0 };
@@ -198,7 +244,6 @@ void WorldSystem::resume_game() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-
 	tutorial_counter--;
 
 	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
@@ -224,7 +269,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.remove_all_components_of(registry.textsWorld.entities.back());
 
 	// Create combo meter ui
-	createText({ window_width_px / 2.5f , window_height_px / 2.1f }, { 1, 1 }, std::to_string(combo_mode.combo_meter), { 0, 1, 0 }, false);
 	if (combo_mode.combo_meter <= 1.04) {
 		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::C;
 	}
@@ -238,19 +282,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::S;
 	}
 
+
 	// Create on screen player attributes ui
 	HP& player_hp = registry.hps.get(player);
 	//createText({ 128 * 1.3 + 70 - 4, window_height_px - 77 }, { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
-	createText(-window_px_half + vec2(230, 77), { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
+	createText(-window_px_half + vec2(260, 70), { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
 	Player& player_att = registry.players.get(player);
 	std::string fire_rate = std::to_string(player_att.fire_rate);
 	std::string critical_hit = std::to_string(player_att.critical_hit * 100);
 	std::string critical_dmg = std::to_string(player_att.critical_demage * 100);
-	createText(-window_px_half + vec2(70, 160), { 1,1 }, std::to_string(player_att.coin_amount), vec3(255, 255, 255), false);
-	createText(-window_px_half + vec2(70, 210), { 1,1 }, std::to_string(player_att.bullet_damage), vec3(255, 255, 255), false);
-	createText(-window_px_half + vec2(70, 260), { 1,1 }, fire_rate.substr(0, fire_rate.find(".") + 3), vec3(255, 255, 255), false);
-	createText(-window_px_half + vec2(70, 310), { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(255, 255, 255), false);
-	createText(-window_px_half + vec2(70, 360), { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(255, 255, 255), false);
+	createText(-window_px_half + vec2(68, 153), { 1,1 }, std::to_string(player_att.coin_amount), vec3(1), false);
+	createText(-window_px_half + vec2(72, 200), { 1,1 }, std::to_string(player_att.bullet_damage), vec3(1), false);
+	createText(-window_px_half + vec2(86, 250), { 1,1 }, fire_rate.substr(0, fire_rate.find(".") + 3), vec3(1), false);
+	createText(-window_px_half + vec2(86, 300), { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(1), false);
+	createText(-window_px_half + vec2(103, 350), { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(1), false);
 
 	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
 	// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
@@ -270,11 +315,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	float sharpness_factor_camera_offset = 10.0f;
 	renderer->camera.offset = vec2_lerp(renderer->camera.offset, renderer->camera.offset_target, elapsed_ms_since_last_update / 1000.f * sharpness_factor_camera_offset);
 
-	// User interface
+	// Render boss health bar ui boss name
 	for (Entity entity : registry.bossHealthBarUIs.entities) {
-		Motion& motion = registry.motions.get(entity);
-		vec2 padding = { 0, -60 };
-		motion.position = vec2(0, window_px_half.y) + padding;
+		BossHealthBarUI& bar = registry.bossHealthBarUIs.get(entity);
+		if (bar.is_visible) {
+			Motion& motion = registry.motions.get(entity);
+			createText(motion.position - vec2(100.f, 40.f), vec2(0.7f), bar.boss_name, vec3(1.f, 0.f, 0.f), false, false);
+		}
 	}
 
 	// Focus mode ui
@@ -295,7 +342,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// Tutorial dummy spawner
-	if (map_level.level == MapLevel::TUTORIAL) {
+	if (map_info.level == MAP_LEVEL::TUTORIAL) {
 		for (Entity entity : registry.dummyenemyspawners.entities) {
 			Motion& motion = registry.motions.get(entity);
 			DummyEnemySpawner& spawner = registry.dummyenemyspawners.get(entity);
@@ -356,7 +403,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (death_counter.death_counter_ms < 0) {
 			if (registry.players.has(entity)) {
 				registry.realDeathTimers.remove(entity);
-				restart_game();
+				screen.darken_screen_factor = 0;
+				menu.state = MENU_STATE::LOSE;
 				return true;
 			}
 			else if (registry.deadlys.has(entity)) {
@@ -375,9 +423,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (number <= 0.1) {
 					createHealth(renderer, registry.motions.get(entity).position);
 				}
-				else if (number <= 0.2) {
+				else if (number <= 1.2) {
 					createTreasure(renderer, registry.motions.get(entity).position);
 				}
+
+				if (game_info.in_room != -1) {
+					auto& deadly_entities = game_info.room_index[game_info.in_room].enemies;
+					for (int i = 0; i < deadly_entities.size(); ++i) {
+						if (entity == deadly_entities[i]) {
+							std::swap(deadly_entities[i], deadly_entities[deadly_entities.size() - 1]);
+							deadly_entities.pop_back();
+							break;
+						}
+					}
+				}
+
 				registry.remove_all_components_of(entity);
 			}
 			else {
@@ -401,7 +461,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		is_alive = false;
 		pressed = { 0 };
 		registry.kinematics.get(player).direction = { 0,0 };
-		Mix_HaltMusic();
+		Mix_HaltChannel(-1);
 		Mix_PlayChannel(-1, audio->game_ending_sound, 0);
 		registry.realDeathTimers.emplace(player);
 	}
@@ -429,10 +489,42 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	return true;
 }
 
+std::string replaceNewlines(std::string str) {
+	size_t start_pos = 0;
+	while ((start_pos = str.find("\\n", start_pos)) != std::string::npos) {
+		str.replace(start_pos, 2, "\n");
+		start_pos += 1;
+	}
+	return str;
+}
+
+unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::string>& scripts) {
+	std::ifstream script_file("../../../script/" + file_name);
+	if (script_file.is_open()) {
+		std::cout << "opened" << std::endl;
+		std::string line;
+		while (getline(script_file, line)) {
+			scripts.push_back(replaceNewlines(line));
+		}
+		script_file.close();
+	}
+	else {
+		std::cout << "Unable to open file" << std::endl;
+	}
+	return 0;
+}
+
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
+	if (map_info.level != MAP_LEVEL::TUTORIAL) {
+		start_pt = 0;
+		dialogue_info.cirno_pt = 1000;
+		dialogue_info.cirno_after_pt = 1000;
+		dialogue_info.cirno_played = false;
+		start_dialogue_timer = 1000.f;
+	}
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -442,15 +534,19 @@ void WorldSystem::restart_game() {
 	pressed = { 0 };
 
 	// Reset bgm
-	Mix_ResumeMusic();
-	Mix_PlayMusic(audio->background_music, -1);
+	//Mix_HaltChannel(1);
+	//Mix_PlayChannel(0, audio->background_music, -1);
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all enemies, coins, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
 		registry.remove_all_components_of(registry.motions.entities.back());
 
-	// TODO: decide whether to destroy buttons every time on menu entry or one set of buttons
+	// Since visibility tile do not have motion, iterate and remove here
+	while (registry.visibilityTileInstanceData.entities.size() > 0)
+		registry.remove_all_components_of(registry.visibilityTileInstanceData.entities.back());
+
+	// initialize menus
 	init_menu();
 	init_pause_menu();
 
@@ -461,27 +557,21 @@ void WorldSystem::restart_game() {
 	reset_world_default();
 	map->restart_map();
 
-	if (map_level.level == MapLevel::TUTORIAL) {
+	game_info.reset_room_info();
+
+	if (map_info.level == MAP_LEVEL::TUTORIAL) {
 		map->generateTutorialMap();
 		renderer->set_tiles_instance_buffer();
 		player = map->spawnPlayer(world_center);
 	}
 	else {
-		//map->generateBasicMap();
-		//map->spawnEnemies();
-		//map->generateBossRoom();
-		map->generateRandomMap();
-		//map->spawnEnemies();
-		map->spawnEnemiesInRoom();
+		map->generateRandomMap(11); // room_size must be > 3
 		player = map->spawnPlayerInRoom(0);
-		//player = map->spawnPlayer(world_center);
-		renderer->set_tiles_instance_buffer();
 	}
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
 	// Create a new player
-	//player = createPlayer(renderer, { 0, 0 });
 	is_alive = true;
 	createHealthUI(renderer);
 	createAttributeUI(renderer);
@@ -489,8 +579,57 @@ void WorldSystem::restart_game() {
 	focus_mode.restart();
 	ai->restart_flow_field_map();
 	display_combo = createCombo(renderer);
+	game_info.set_player_id(player);
 
+	init_win_menu();
+	init_lose_menu();
 	renderer->camera.setPosition({ 0, 0 });
+
+}
+
+// handle_wall_collisions parameter entity IS WALL ENTITY!
+void WorldSystem::handle_wall_collisions(Entity& entity, Entity& entity_other) {
+	Motion& wall_motion = registry.motions.get(entity);
+	Motion& entity_motion = registry.motions.get(entity_other);
+	Kinematic& kinematic = registry.kinematics.get(entity_other);
+	Collidable& wall_collidable = registry.collidables.get(entity);
+	Collidable& entity_collidable = registry.collidables.get(entity_other);
+	vec2 wall_center = wall_motion.position + wall_collidable.shift;
+	vec2 entity_center = entity_motion.position + entity_collidable.shift;
+
+	// Minkowski Sum adapted from "sam hocevar": https://gamedev.stackexchange.com/a/24091
+	// Find the normal of object B, or the wall given two rectangles
+	float wy = (wall_collidable.size.x + entity_collidable.size.x) * (entity_center.y - wall_center.y);
+	float hx = (wall_collidable.size.y + entity_collidable.size.y) * (entity_center.x - wall_center.x);
+
+	if (wy > hx) {
+		if (wy > -hx) {
+			// top
+			entity_motion.position = { entity_motion.position.x , wall_center.y + wall_collidable.size.y / 2 + entity_collidable.size.y / 2 - entity_collidable.shift.y };
+			kinematic.direction = { kinematic.direction.x, 0 };
+			kinematic.velocity = { kinematic.velocity.x, 0 };
+		}
+		else {
+			// left
+			entity_motion.position = { wall_center.x - wall_collidable.size.x / 2 - entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
+			kinematic.direction = { 0, kinematic.direction.y };
+			kinematic.velocity = { 0, kinematic.velocity.y };
+		}
+	}
+	else {
+		if (wy > -hx) {
+			// right
+			entity_motion.position = { wall_center.x + wall_collidable.size.x / 2 + entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
+			kinematic.direction = { 0, kinematic.direction.y };
+			kinematic.velocity = { 0, kinematic.velocity.y };
+		}
+		else {
+			// bottom
+			entity_motion.position = { entity_motion.position.x , wall_center.y - wall_collidable.size.y / 2 - entity_collidable.size.y / 2 - entity_collidable.shift.y };
+			kinematic.direction = { kinematic.direction.x, 0 };
+			kinematic.velocity = { kinematic.velocity.x, 0 };
+		}
+	}
 }
 
 // Compute collisions between entities
@@ -502,6 +641,7 @@ void WorldSystem::handle_collisions() {
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other;
 
+		// Player collisions
 		if (registry.players.has(entity)) {
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
@@ -527,8 +667,12 @@ void WorldSystem::handle_collisions() {
 								if (registry.bulletSpawners.has(entity_other)) {
 									registry.bulletSpawners.get(entity_other).is_firing = false;
 								}
-								registry.kinematics.get(entity_other).velocity = { 0,0 };
-								registry.kinematics.get(entity_other).direction = { 0,0 };
+								Kinematic& kin = registry.kinematics.get(entity_other);
+								kin.velocity = { 0,0 };
+								kin.direction = { 0,0 };
+								kin.speed_modified = 0.f;
+								registry.motions.get(entity_other).scale = 2.f * vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+								registry.bomberEnemies.get(entity_other).touch_player = true;
 							}
 						}
 
@@ -556,15 +700,19 @@ void WorldSystem::handle_collisions() {
 					}
 				}
 			}
+			// Checking player - Pick ups collisions
 			else if (registry.pickupables.has(entity_other)) {
 				if (!registry.realDeathTimers.has(entity)) {
-					registry.hps.get(entity).curr_hp += registry.pickupables.get(entity_other).health_change;
-					if (registry.hps.get(entity).curr_hp > registry.hps.get(entity).max_hp) {
-						registry.hps.get(entity).curr_hp = registry.hps.get(entity).max_hp;
-					}
+					HP& hp = registry.hps.get(entity);
+					Pickupable& pickupable = registry.pickupables.get(entity_other);
+					hp.curr_hp = min(hp.curr_hp + pickupable.health_change, hp.max_hp);
+					Motion& motion = registry.motions.get(player);
+					Entity text_entity = createText({ motion.position.x, motion.position.y - 40.f }, vec2(0.5f), "+" + std::to_string(pickupable.health_change) + " HP!", vec3(0.0f, 1.0f, 0.0f), true, true);
+					registry.realDeathTimers.emplace(text_entity).death_counter_ms = 2000;
 					registry.remove_all_components_of(entity_other);
 				}
 			}
+			// Checking player - coins collisions
 			else if (registry.coins.has(entity_other)) {
 				if (!registry.realDeathTimers.has(entity)) {
 					registry.players.get(entity).coin_amount += registry.coins.get(entity_other).coin_amount;
@@ -581,40 +729,41 @@ void WorldSystem::handle_collisions() {
 						BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
 						treasure.player_overlap = true;
 						if (pressed[GLFW_KEY_E] && player_att.coin_amount >= treasure.cost) {
-							std::cout << "treasure.effect_type: " << std::to_string(treasure.effect_type) << std::endl;
-							std::cout << "treasure.effect_strength: " << std::to_string(treasure.effect_strength) << std::endl;
+							//std::cout << "treasure.effect_type: " << std::to_string(treasure.effect_type) << std::endl;
+							//std::cout << "treasure.effect_strength: " << std::to_string(treasure.effect_strength) << std::endl;
 							player_att.coin_amount -= treasure.cost;
 							// 1=bullet_damage, 2=fire_rate, or 3=critical_hit
 							// treasure.effect_strength value between 0~1
-							std::cout << "--------------before------------------" << std::endl;
-							std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
-							std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
-							std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
+							//std::cout << "--------------before------------------" << std::endl;
+							//std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
+							//std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
+							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
 							if (treasure.effect_type == 1) {
 								player_att.bullet_damage += treasure.effect_strength;
-								
+
 							}
 							else if (treasure.effect_type == 2) {
 								player_att.fire_rate += float(treasure.effect_strength * 0.01);
 								// bullet_spawner.fire_rate = 0.0001;
-								bullet_spawner.fire_rate *= (1-float(treasure.effect_strength * 0.1));
+								bullet_spawner.fire_rate *= (1 - float(treasure.effect_strength * 0.1));
 							}
 							else if (treasure.effect_type == 3) {
-								player_att.critical_hit += float(treasure.effect_strength*0.01);
+								player_att.critical_hit += float(treasure.effect_strength * 0.01);
 							}
-							std::cout << "-------------after---------------------" << std::endl;
-							std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
-							std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
-							std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
+							//std::cout << "-------------after---------------------" << std::endl;
+							//std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
+							//std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
+							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
 							registry.remove_all_components_of(entity_other);
 						}
 						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, "cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
 
-						createText(vec2(motion.position.x, motion.position.y + 50), {0.6f,0.6f}, "press \"E\" to buy this", vec3(0, 1, 0), false, true);
+						createText(vec2(motion.position.x, motion.position.y + 50), { 0.6f,0.6f }, "press \"E\" to buy this", vec3(0, 1, 0), false, true);
 						// std::cout << "Buy this" << std::endl;
 					}
 				}
 			}
+			// Checking player - power up items collisions
 			else if (registry.maxhpIncreases.has(entity_other)) {
 
 				registry.hps.get(entity).max_hp += registry.maxhpIncreases.get(entity_other).max_health_increase;
@@ -629,11 +778,8 @@ void WorldSystem::handle_collisions() {
 				registry.players.get(entity).bullet_damage += 1;
 				registry.remove_all_components_of(entity_other);
 			}
-			else if (registry.keys.has(entity_other)) {
-				registry.players.get(entity).key_amount++;
-				registry.remove_all_components_of(entity_other);
-			}
 		}
+		// Checks enemy collisions
 		else if (registry.deadlys.has(entity)) {
 			if (registry.playerBullets.has(entity_other) && !registry.invulnerableTimers.has(entity)) {
 				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
@@ -655,7 +801,7 @@ void WorldSystem::handle_collisions() {
 					else {
 						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
 					}
-					std::cout << "bullet_dmg: " << std::to_string(registry.playerBullets.get(entity_other).damage) << std::endl;
+					//std::cout << "bullet_dmg: " << std::to_string(registry.playerBullets.get(entity_other).damage) << std::endl;
 
 					if (!registry.bosses.has(entity)) {
 						// Knockback
@@ -678,8 +824,10 @@ void WorldSystem::handle_collisions() {
 							if (registry.bulletSpawners.has(entity)) {
 								registry.bulletSpawners.get(entity).is_firing = false;
 							}
-							registry.kinematics.get(entity).velocity = { 0,0 };
-							registry.kinematics.get(entity).direction = { 0,0 };
+							Kinematic& kin = registry.kinematics.get(entity);
+							kin.velocity = { 0,0 };
+							kin.direction = { 0,0 };
+							kin.speed_modified = 0.f;
 						}
 					}
 					registry.remove_all_components_of(entity_other);
@@ -723,63 +871,42 @@ void WorldSystem::handle_collisions() {
 				}
 			}
 		}
+		// Checks wall collisions
+		// Checks locked door collisions
 		else if (registry.walls.has(entity)) {
-			if (registry.playerBullets.has(entity_other) || registry.enemyBullets.has(entity_other)) {
-				Motion& bullet_motion = registry.motions.get(entity_other);
-				if (registry.playerBullets.has(entity_other)) {
-					registry.realDeathTimers.emplace(createBulletDisappear(renderer, bullet_motion.position, bullet_motion.angle, true)).death_counter_ms = 200; ;
-				}
-				registry.remove_all_components_of(entity_other);
-			}
-			else if (registry.players.has(entity_other) || registry.deadlys.has(entity_other)) {
-				Motion& wall_motion = registry.motions.get(entity);
-				Motion& entity_motion = registry.motions.get(entity_other);
-				Kinematic& kinematic = registry.kinematics.get(entity_other);
-				Collidable& wall_collidable = registry.collidables.get(entity);
-				Collidable& entity_collidable = registry.collidables.get(entity_other);
-				vec2 wall_center = wall_motion.position + wall_collidable.shift;
-				vec2 entity_center = entity_motion.position + entity_collidable.shift;
-
-				// Minkowski Sum adapted from "sam hocevar": https://gamedev.stackexchange.com/a/24091
-				// Find the normal of object B, or the wall given two rectangles
-				float wy = (wall_collidable.size.x + entity_collidable.size.x) * (entity_center.y - wall_center.y);
-				float hx = (wall_collidable.size.y + entity_collidable.size.y) * (entity_center.x - wall_center.x);
-
-				if (wy > hx) {
-					if (wy > -hx) {
-						// top
-						entity_motion.position = { entity_motion.position.x , wall_center.y + wall_collidable.size.y / 2 + entity_collidable.size.y / 2 - entity_collidable.shift.y };
-						kinematic.direction = { kinematic.direction.x, 0 };
-						kinematic.velocity = { kinematic.velocity.x, 0 };
-					}
-					else {
-						// left
-						entity_motion.position = { wall_center.x - wall_collidable.size.x / 2 - entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
-						kinematic.direction = { 0, kinematic.direction.y };
-						kinematic.velocity = { 0, kinematic.velocity.y };
-					}
-				}
-				else {
-					if (wy > -hx) {
-						// right
-						entity_motion.position = { wall_center.x + wall_collidable.size.x / 2 + entity_collidable.size.x / 2 - entity_collidable.shift.x, entity_motion.position.y };
-						kinematic.direction = { 0, kinematic.direction.y };
-						kinematic.velocity = { 0, kinematic.velocity.y };
-					}
-					else {
-						// bottom
-						entity_motion.position = { entity_motion.position.x , wall_center.y - wall_collidable.size.y / 2 - entity_collidable.size.y / 2 - entity_collidable.shift.y };
-						kinematic.direction = { kinematic.direction.x, 0 };
-						kinematic.velocity = { kinematic.velocity.x, 0 };
-					}
-				}
-
-
+			// enemy/player bullets to wall are handled in physics system 
+			if (registry.players.has(entity_other) || registry.deadlys.has(entity_other)) {
+				handle_wall_collisions(entity, entity_other);
 			}
 		}
-		else if (registry.enemyBullets.has(entity)) {
-			if (registry.walls.has(entity_other)) {
-				registry.remove_all_components_of(entity);
+		else if (registry.doors.has(entity)) {
+			if (registry.players.has(entity_other)) {
+				Door& door = registry.doors.get(entity);
+				if (door.is_locked) {
+					handle_wall_collisions(entity, entity_other);
+				}
+				else {
+					Room_struct& room = game_info.room_index[door.room_index];
+					if (room.need_to_spawn) {
+						room.need_to_spawn = false;
+						// spawn enemies in room
+						map->spawnEnemiesInRoom(room);
+						Mix_PlayChannel(-1, audio->open_gate_sound, 0);
+					}
+
+					if (door.is_closed) {
+						renderer->switch_door_texture(entity, false);
+						Mix_PlayChannel(-1, audio->open_gate_sound, 0);
+						door.is_closed = false;
+					}
+
+					if (!door.is_visited) {
+						door.is_visited = true;
+					}
+				}
+			}
+			else if (registry.deadlys.has(entity_other)) {
+				handle_wall_collisions(entity, entity_other);
 			}
 		}
 	}
@@ -829,8 +956,24 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 			int w, h;
 			glfwGetWindowSize(window, &w, &h);
-			map_level.level = MapLevel::MAIN;
+			map_info.level = MAP_LEVEL::LEVEL1;
 			restart_game();
+		}
+
+		// Debugging
+		if (key == GLFW_KEY_G) {
+			if (action == GLFW_RELEASE)
+				debugging.in_debug_mode = !debugging.in_debug_mode;
+		}
+
+		// Toggle FPS display
+		if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
+			getInstance().toggle_show_fps();
+		}
+
+		// Player can only act when alive
+		if (!is_alive) {
+			return;
 		}
 
 		// buy item
@@ -842,6 +985,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				pressed[key] = false;
 			}
 		}
+
 		// Handle player movement
 		// Added key checks at the beginning so don't have to fetch kinematics / update player direction for
 		// every key press that is not related to WASD
@@ -932,51 +1076,40 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 
-		// Debugging
-		if (key == GLFW_KEY_G) {
-			if (action == GLFW_RELEASE)
-				debugging.in_debug_mode = !debugging.in_debug_mode;
-		}
-
-		// Toggle FPS display
-		if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
-			getInstance().toggle_show_fps();
-		}
-
 		// Toggle tutorial display
 		if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
 			getInstance().display_instruction = false;
-			map_level.level = MapLevel::TUTORIAL;
+			map_info.level = MAP_LEVEL::TUTORIAL;
 			restart_game();
 		}
 
 		// Hold for focus mode
-		if (is_alive) {
-			if (key == GLFW_KEY_LEFT_SHIFT &&
-				!pressed[key] &&
-				action == GLFW_PRESS &&
-				!focus_mode.in_focus_mode) {
-				focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
-				focus_mode.speed_constant = 0.5f;
-				Motion& motion = registry.motions.get(player);
-				CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
-				createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
-				pressed[key] = true;
-			}
-			else if (key == GLFW_KEY_LEFT_SHIFT &&
-				pressed[key] &&
-				action == GLFW_RELEASE &&
-				focus_mode.in_focus_mode) {
-				focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
-				focus_mode.speed_constant = 1.0f;
-				while (registry.focusdots.entities.size() > 0)
-					registry.remove_all_components_of(registry.focusdots.entities.back());
-				pressed[key] = false;
-			}
+		if (key == GLFW_KEY_LEFT_SHIFT &&
+			!pressed[key] &&
+			action == GLFW_PRESS &&
+			!focus_mode.in_focus_mode) {
+			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+			focus_mode.speed_constant = 0.5f;
+			Motion& motion = registry.motions.get(player);
+			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
+			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+			pressed[key] = true;
 		}
+		else if (key == GLFW_KEY_LEFT_SHIFT &&
+			pressed[key] &&
+			action == GLFW_RELEASE &&
+			focus_mode.in_focus_mode) {
+			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
+			focus_mode.speed_constant = 1.0f;
+			while (registry.focusdots.entities.size() > 0)
+				registry.remove_all_components_of(registry.focusdots.entities.back());
+			pressed[key] = false;
+		}
+
 
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			// open pause menu
+			Mix_PlayChannel(3, audio->pause_menu_sound, 0);
 			menu.state = MENU_STATE::PAUSE;
 		}
 	}
@@ -992,6 +1125,175 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			resume_game();
 		}
 	}
+	else if (menu.state == MENU_STATE::DIALOGUE) {
+		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+			start_pt += 1;
+			dialogue_info.cirno_pt += 1;
+			dialogue_info.cirno_after_pt += 1;
+			curr_word = 0;
+			start_buffer = "";
+		}
+	}
+}
+
+void WorldSystem::dialogue_step(float elapsed_time) {
+	start_dialogue_timer -= elapsed_time;
+
+	if (start_dialogue_timer > 0) {
+		return;
+	}
+	// Remove debug info from the last step
+	while (registry.debugComponents.entities.size() > 0)
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
+
+	// Remove texts in ui and world that are not permanent
+	while (registry.texts.entities.size() > 0)
+		registry.remove_all_components_of(registry.texts.entities.back());
+	while (registry.textsWorld.entities.size() > 0)
+		registry.remove_all_components_of(registry.textsWorld.entities.back());
+	while (registry.dialogueMenus.entities.size() > 0)
+		registry.remove_all_components_of(registry.dialogueMenus.entities.back());
+
+	if (registry.bosses.size() == 0 && dialogue_info.cirno_played) {
+		dialogue_info.cirno_played = false;
+		dialogue_info.cirno_after_pt = 0;
+	}
+	if (start_pt < start_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
+		std::istringstream ss(start_script[start_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		menu.state = MENU_STATE::DIALOGUE;
+		createDialogue(speaking_chara, start_buffer, CHARACTER::NONE, emotion);
+	}
+	else if (start_pt == start_script.size()) {
+		start_pt += 1;
+		resume_game();
+	}
+	else if (dialogue_info.cirno_pt < cirno_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
+		std::istringstream ss(cirno_script[dialogue_info.cirno_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		menu.state = MENU_STATE::DIALOGUE;
+		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO, emotion);
+	}
+	else if (dialogue_info.cirno_pt == cirno_script.size()) {
+		dialogue_info.cirno_pt += 1;
+		dialogue_info.cirno_played = true;
+		resume_game();
+	}
+	else if (dialogue_info.cirno_after_pt < cirno_after_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
+		std::istringstream ss(cirno_after_script[dialogue_info.cirno_after_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		menu.state = MENU_STATE::DIALOGUE;
+		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO, emotion);
+	}
+	else if (dialogue_info.cirno_after_pt == cirno_after_script.size()) {
+		dialogue_info.cirno_after_pt += 1;
+		menu.state = MENU_STATE::WIN;
+	}
+
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
@@ -1040,6 +1342,15 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 				// Stop firing
 				bullet_spawner.is_firing = false;
 			}
+		}
+	}
+	else if (menu.state == MENU_STATE::DIALOGUE) {
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+			start_pt += 1;
+			dialogue_info.cirno_pt += 1;
+			dialogue_info.cirno_after_pt += 1;
+			curr_word = 0;
+			start_buffer = "";
 		}
 	}
 	else {

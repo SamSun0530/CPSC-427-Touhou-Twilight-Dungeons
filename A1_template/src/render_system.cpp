@@ -15,22 +15,21 @@ void RenderSystem::get_strings_delim(const std::string& input, char delim, std::
 }
 
 // Helper function to render text with new lines
-void RenderSystem::render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world) {
+void RenderSystem::render_text_newline(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world, float padding_y, float transparency) {
 	// Prevent having to split string if there are no new lines
 	if (text.find('\n') == std::string::npos) {
-		renderText(text, x, y, scale, color, trans, in_world);
+		renderText(text, x, y, scale, color, trans, in_world, transparency);
 		return;
 	}
 	std::vector<std::string> segments;
 	get_strings_delim(text, '\n', segments);
-	float padding_y = 25.f;
 	// Either use x, y OR Transform t. t.mat will not work together with x, y
 	//Transform t;
 	//t.mat = trans;
 	//vec2 t_translate = { 0, scale * padding_y };
 	int segments_size = segments.size();
 	for (int i = 0; i < segments_size; ++i) {
-		renderText(segments[i], x, y + i * scale * padding_y, scale, color, trans, in_world);
+		renderText(segments[i], x, y + i * scale * padding_y, scale, color, trans, in_world, transparency);
 		//t.translate(t_translate);
 	}
 }
@@ -84,8 +83,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		(*render_request).used_effect == EFFECT_ASSET_ID::UI ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::BOSSHEALTHBAR ||
 		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER_HB ||
-		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER || 
-		(*render_request).used_effect == EFFECT_ASSET_ID::COMBO)
+		(*render_request).used_effect == EFFECT_ASSET_ID::PLAYER ||
+		(*render_request).used_effect == EFFECT_ASSET_ID::COMBO ||
+		(*render_request).used_effect == EFFECT_ASSET_ID::GREY)
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -164,7 +164,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		float strength = 0.2f;
 		if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::C) {
 			strength = 0.2f;
-		} else if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::B) {
+		}
+		else if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::B) {
 			strength = 0.3f;
 		}
 		else if ((*render_request).used_effect == EFFECT_ASSET_ID::COMBO && (*render_request).used_texture == TEXTURE_ASSET_ID::A) {
@@ -326,7 +327,7 @@ void RenderSystem::render_buttons(glm::mat3& projection_2D, glm::mat3& view_2D, 
 		rr.used_texture = button.is_hovered ? TEXTURE_ASSET_ID::BUTTON_HOVERED : TEXTURE_ASSET_ID::BUTTON;
 
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-		renderText(button.text, motion.position.x, motion.position.y, button.text_scale, button.is_hovered ? vec3(0.03f) : vec3(0.5f), trans, false);
+		renderText(button.text, motion.position.x, motion.position.y, button.text_scale, button.is_hovered ? vec3(0.03f) : vec3(0.5f), trans, false, 1.f);
 	}
 }
 
@@ -347,7 +348,7 @@ void RenderSystem::draw()
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
 	//glClearColor(0.674, 0.847, 1.0, 1.0);
-	glClearColor(0, 0, 0 , 1.0);
+	glClearColor(0, 0, 0, 1.0);
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
@@ -362,13 +363,12 @@ void RenderSystem::draw()
 
 	camera.setCameraAABB();
 
-	if (menu.state == MENU_STATE::PLAY || menu.state == MENU_STATE::PAUSE) {
+	if (menu.state == MENU_STATE::PLAY || menu.state == MENU_STATE::PAUSE || menu.state == MENU_STATE::DIALOGUE || menu.state == MENU_STATE::WIN || menu.state == MENU_STATE::LOSE) {
 		// Draw all textured meshes that have a position and size component
 		std::vector<Entity> boss_ui_entities;
 		std::vector<Entity> uiux_world_entities;
 
 		drawTilesInstanced(projection_2D, view_2D);
-
 
 		for (Entity entity : registry.renderRequests.entities)
 		{
@@ -387,6 +387,10 @@ void RenderSystem::draw()
 			if (registry.focusdots.has(entity)) continue;
 			if (registry.UIUX.has(entity)) continue;
 			if (registry.players.has(entity)) continue;
+			if (registry.dialogueMenus.has(entity)) continue;
+			if (registry.winMenus.has(entity)) continue;
+			if (registry.loseMenus.has(entity)) continue;
+			if (registry.playerBullets.has(entity)) continue;
 
 			// Note, its not very efficient to access elements indirectly via the entity
 			// albeit iterating through all Sprites in sequence. A good point to optimize
@@ -404,18 +408,32 @@ void RenderSystem::draw()
 			if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
 			vec3 text_color = registry.colors.get(entity);
 			RenderTextWorld& text_cont = registry.textsWorld.get(entity);
-			render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true);
+			render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true, 25.f, text_cont.transparency);
 		}
 		for (Entity entity : registry.textsPermWorld.entities) {
 			Motion& text_motion = registry.motions.get(entity);
 			if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
 			vec3 text_color = registry.colors.get(entity);
 			RenderTextPermanentWorld& text_cont = registry.textsPermWorld.get(entity);
-			render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true);
+
+			// Hardcoded only for item description
+			if (registry.realDeathTimers.has(entity)) {
+				DeathTimer& death_counter = registry.realDeathTimers.get(entity);
+				Motion& motion = registry.motions.get(registry.players.entities[0]);
+				text_cont.transparency = death_counter.death_counter_ms / 2000;
+				registry.motions.get(entity).position = { motion.position.x, motion.position.y + ((text_cont.transparency - 1) * 35) - 40.f };
+			}
+
+			render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, true, 25.f, text_cont.transparency);
 		}
 
 		// Render player
 		for (Entity entity : registry.players.entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
+		for (Entity entity : registry.playerBullets.entities) {
+			if (!camera.isInCameraView(registry.motions.get(entity).position)) continue;
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
 
@@ -442,53 +460,76 @@ void RenderSystem::draw()
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
 
-		for (Entity entity : registry.UIUX.entities) {
-			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		for (Entity entity : registry.pickupables.entities) {
+			if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) continue;
+			const Motion& motion = registry.motions.get(entity);
+			const Pickupable& food = registry.pickupables.get(entity);
+
+			renderText("HP Up+", motion.position.x, motion.position.y + 25, 0.5f, glm::vec3(0.0f, 0.8f, 0.0f), trans, true, 1.f);
 		}
 
-		for (Entity entity : boss_ui_entities) {
-			BossHealthBarUI& bhp = registry.bossHealthBarUIs.get(entity);
-			if (bhp.is_visible) {
+		if (registry.visibilityTileInstanceData.components.size() > 0) {
+			drawVisibilityTilesInstanced(projection_2D, view_2D);
+		}
+
+		if (menu.state != MENU_STATE::DIALOGUE) {
+			for (Entity entity : registry.UIUX.entities) {
 				drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 			}
-		}
 
-		for (Entity entity : registry.purchasableables.entities) {
-			if (registry.motions.has(entity)) {
-				const Motion& motion = registry.motions.get(entity);
-				//this can be removed when the sprite for the purchasableable items are done
-				// only trying to distinguish from regular sushi
-				//renderText(".", motion.position.x+30, motion.position.y, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f), trans, true);
-
-				const Purchasableable& treasure = registry.purchasableables.get(entity);
-				if (treasure.player_overlap == true) {
-					// renderText("Buy this", motion.position.x - 30, motion.position.y + 25, 0.6f, glm::vec3(0.0f, 1.0f, 0.0f), trans, true);
+			for (Entity entity : boss_ui_entities) {
+				BossHealthBarUI& bhp = registry.bossHealthBarUIs.get(entity);
+				if (bhp.is_visible) {
+					drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 				}
 			}
 		}
 
 		// Render user guide on screen
 		if (WorldSystem::getInstance().get_display_instruction() == true) {
-			renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.6f, 0.9f, glm::vec3(0, 0, 0), trans);
+			renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.3f, 0.9f, glm::vec3(1), trans, false, 1.f);
 		}
 
 		if (WorldSystem::getInstance().get_show_fps() == true) {
-			renderText("FPS:", window_width_px / 2.45f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans);
-			renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px / 2.2f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans);
+			renderText("FPS:", window_width_px / 2.45f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans, false, 1.f);
+			renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px / 2.2f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans, false, 1.f);
 		}
 
 		// On screen/ui texts:
-		for (Entity entity : registry.texts.entities) {
-			Motion& text_motion = registry.motions.get(entity);
-			vec3 text_color = registry.colors.get(entity);
-			RenderText& text_cont = registry.texts.get(entity);
-			renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
+		if (menu.state != MENU_STATE::DIALOGUE) {
+			for (Entity entity : registry.texts.entities) {
+				Motion& text_motion = registry.motions.get(entity);
+				vec3 text_color = registry.colors.get(entity);
+				RenderText& text_cont = registry.texts.get(entity);
+				renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, text_cont.transparency);
+			}
+			for (Entity entity : registry.textsPerm.entities) {
+				if (registry.winMenus.has(entity)) continue;
+				if (registry.loseMenus.has(entity)) continue;
+				Motion& text_motion = registry.motions.get(entity);
+				vec3 text_color = registry.colors.get(entity);
+				RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
+				renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, text_cont.transparency);
+			}
 		}
-		for (Entity entity : registry.textsPerm.entities) {
-			Motion& text_motion = registry.motions.get(entity);
-			vec3 text_color = registry.colors.get(entity);
-			RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
-			renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false);
+		if (menu.state == MENU_STATE::DIALOGUE) {
+			for (Entity entity : registry.dialogueMenus.entities) {
+				drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+			}
+			for (Entity entity : registry.texts.entities) {
+				Motion& text_motion = registry.motions.get(entity);
+				vec3 text_color = registry.colors.get(entity);
+				RenderText& text_cont = registry.texts.get(entity);
+				render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, 50.f, text_cont.transparency);
+			}
+			for (Entity entity : registry.textsPerm.entities) {
+				if (registry.winMenus.has(entity)) continue;
+				if (registry.loseMenus.has(entity)) continue;
+				Motion& text_motion = registry.motions.get(entity);
+				vec3 text_color = registry.colors.get(entity);
+				RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
+				render_text_newline(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, 50.f, text_cont.transparency);
+			}
 		}
 
 		// Render this last, because it should be on top
@@ -498,6 +539,34 @@ void RenderSystem::draw()
 			}
 
 			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::PAUSE);
+		}
+		if (menu.state == MENU_STATE::WIN) {
+			for (Entity entity : registry.winMenus.entities) {
+				if (registry.textsPerm.has(entity)) {
+					Motion& text_motion = registry.motions.get(entity);
+					vec3 text_color = registry.colors.get(entity);
+					RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
+					renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, text_cont.transparency);
+				}
+				else {
+					drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+				}
+			}
+			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::WIN);
+		}
+		if (menu.state == MENU_STATE::LOSE) {
+			for (Entity entity : registry.loseMenus.entities) {
+				if (registry.textsPerm.has(entity)) {
+					Motion& text_motion = registry.motions.get(entity);
+					vec3 text_color = registry.colors.get(entity);
+					RenderTextPermanent& text_cont = registry.textsPerm.get(entity);
+					renderText(text_cont.content, text_motion.position.x, text_motion.position.y, text_motion.scale.x, text_color, trans, false, text_cont.transparency);
+				}
+				else {
+					drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+				}
+			}
+			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::LOSE);
 		}
 	}
 	else if (menu.state == MENU_STATE::MAIN_MENU) {
@@ -518,7 +587,8 @@ void RenderSystem::draw()
 }
 
 // This adapted from lecture material (Wednesday Feb 28th 2024)
-void RenderSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world) {
+// fully transparent when transparency_rate = 0
+void RenderSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world, float transparency_rate) {
 	// activate the shaders!
 	glUseProgram(m_font_shaderProgram);
 
@@ -529,6 +599,10 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
 		);
 	assert(textColor_location >= 0);
 	glUniform3f(textColor_location, color.x, color.y, color.z);
+
+	auto transparency_location = glGetUniformLocation(m_font_shaderProgram, "transparency");
+	assert(transparency_location > -1);
+	glUniform1f(transparency_location, transparency_rate);
 
 	// flip both y axis so translations will match opengl
 	y = -1 * y;
@@ -856,4 +930,88 @@ void RenderSystem::drawTilesInstanced(const glm::mat3& projection, const glm::ma
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	gl_has_errors();
+}
+
+// called once when generating new map
+void RenderSystem::set_visibility_tiles_instance_buffer_max() {
+	glUseProgram(visibility_tile_instance_program);
+	glBindVertexArray(visibility_tile_instance_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, visibility_tile_instance_VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(VisibilityTileInstanceData) * registry.visibilityTileInstanceData.size(), registry.visibilityTileInstanceData.components.data(), GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
+// called when visibility map is decreased, we do this instead of glBufferData so don't realloc every time
+void RenderSystem::set_visibility_tiles_instance_buffer() {
+	glUseProgram(visibility_tile_instance_program);
+	glBindVertexArray(visibility_tile_instance_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, visibility_tile_instance_VBO);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(VisibilityTileInstanceData) * registry.visibilityTileInstanceData.size(), registry.visibilityTileInstanceData.components.data());
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
+void RenderSystem::drawVisibilityTilesInstanced(const glm::mat3& projection, const glm::mat3& view)
+{
+	const GLuint ibo = index_buffers[(GLuint)GEOMETRY_BUFFER_ID::DEBUG_LINE];
+
+	// Setting vertex and index buffers
+	glUseProgram(visibility_tile_instance_program);
+	glBindVertexArray(visibility_tile_instance_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, visibility_tile_instance_VBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+
+	// Getting uniform locations for glUniform* calls
+	GLint color_uloc = glGetUniformLocation(visibility_tile_instance_program, "fcolor");
+	//const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
+	const vec3 color = vec3(0); // black tile
+	glUniform3fv(color_uloc, 1, (float*)&color);
+	gl_has_errors();
+
+	// Get number of indices from index buffer, which has elements uint16_t
+	GLint size = 0;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	gl_has_errors();
+	GLsizei num_indices = size / sizeof(uint16_t);
+
+	GLint currProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&projection);
+	GLuint view_loc = glGetUniformLocation(currProgram, "view");
+	glUniformMatrix3fv(view_loc, 1, GL_FALSE, (float*)&view);
+	gl_has_errors();
+
+	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, 0, registry.visibilityTileInstanceData.size());
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	gl_has_errors();
+}
+
+// if is_close true, switch to closed texture, otherwise open texture
+void RenderSystem::switch_door_texture(Entity door_entity, bool is_close) {
+	Door& door = registry.doors.get(door_entity);
+	RenderRequest& request = registry.renderRequests.get(door_entity);
+	if (door.dir == DIRECTION::RIGHT || door.dir == DIRECTION::LEFT) {
+		RenderRequest& top_request = registry.renderRequests.get(door.top_texture);
+		if (is_close) {
+			top_request.used_texture = TEXTURE_ASSET_ID::DOOR_VERTICAL_CLOSE_UP;
+			request.used_texture = TEXTURE_ASSET_ID::DOOR_VERTICAL_CLOSE_DOWN;
+		}
+		else {
+			top_request.used_texture = TEXTURE_ASSET_ID::DOOR_VERTICAL_OPEN_UP;
+			request.used_texture = TEXTURE_ASSET_ID::DOOR_VERTICAL_OPEN_DOWN;
+		}
+	}
+	else {
+		if (is_close) {
+			request.used_texture = TEXTURE_ASSET_ID::DOOR_HORIZONTAL_CLOSE;
+		}
+		else {
+			request.used_texture = TEXTURE_ASSET_ID::DOOR_HORIZONTAL_OPEN;
+		}
+	}
 }
