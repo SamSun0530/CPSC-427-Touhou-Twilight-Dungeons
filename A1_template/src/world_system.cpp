@@ -132,7 +132,7 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map,
 	renderer->initFont(window, font_filename, font_default_size);
 	//Sets the size of the empty world
 	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
-
+	Mix_PlayChannel(1, audio->menu_music, -1);
 	// TODO: remove, redundant
 	if (menu.state == MENU_STATE::PLAY) {
 		// Set all states to default
@@ -155,8 +155,11 @@ void WorldSystem::init_menu() {
 
 	if (game_info.has_started) {
 		createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Resume", 0.9f, [&]() {
-			Mix_ResumeMusic();
-			resume_game();
+			//Mix_ResumeMusic();
+			//Mix_HaltChannel(1);
+			//Mix_PlayChannel(0, audio->background_music, -1);
+
+;			resume_game();
 			});
 		offset_y += offset_y_delta;
 	}
@@ -176,10 +179,15 @@ void WorldSystem::init_pause_menu() {
 	const float button_padding_y = 5.f;
 	const float offset_y_delta = BUTTON_HOVER_HEIGHT * button_scale + button_padding_y;
 	float offset_y = -(offset_y_delta * (num_buttons - 1) - button_padding_y) / 2.f;
-	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Resume", 0.9f, [&]() { resume_game(); });
+	createButton(renderer, { 0, offset_y }, button_scale, MENU_STATE::PAUSE, "Resume", 0.9f, [&]() { 
+		resume_game(); 
+		});
 	offset_y += offset_y_delta;
 	createButton(renderer, { 0, offset_y }, button_scale * 1.1f, MENU_STATE::PAUSE, "Exit to Menu", 0.85f, [&]() {
-		Mix_PauseMusic();
+		////Mix_ResumeMusic();
+		//Mix_HaltChannel(0);
+		//Mix_PlayChannel(1, audio->menu_music, -1);
+
 		menu.state = MENU_STATE::MAIN_MENU;
 		});
 }
@@ -219,6 +227,7 @@ void WorldSystem::init_lose_menu() {
 }
 
 void WorldSystem::resume_game() {
+	////Mix_ResumeMusic();
 	menu.state = MENU_STATE::PLAY;
 	pressed = { 0 };
 	registry.kinematics.get(player).direction = { 0, 0 };
@@ -234,7 +243,6 @@ void WorldSystem::resume_game() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-
 	tutorial_counter--;
 
 	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
@@ -447,7 +455,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		is_alive = false;
 		pressed = { 0 };
 		registry.kinematics.get(player).direction = { 0,0 };
-		Mix_HaltMusic();
+		Mix_HaltChannel(-1);
 		Mix_PlayChannel(-1, audio->game_ending_sound, 0);
 		registry.realDeathTimers.emplace(player);
 	}
@@ -520,8 +528,8 @@ void WorldSystem::restart_game() {
 	pressed = { 0 };
 
 	// Reset bgm
-	Mix_ResumeMusic();
-	Mix_PlayMusic(audio->background_music, -1);
+	//Mix_HaltChannel(1);
+	//Mix_PlayChannel(0, audio->background_music, -1);
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all enemies, coins, ... but that would be more cumbersome
@@ -837,10 +845,12 @@ void WorldSystem::handle_collisions() {
 						room.need_to_spawn = false;
 						// spawn enemies in room
 						map->spawnEnemiesInRoom(room);
+						Mix_PlayChannel(-1, audio->open_gate_sound, 0);
 					}
 
 					if (door.is_closed) {
 						renderer->switch_door_texture(entity, false);
+						Mix_PlayChannel(-1, audio->open_gate_sound, 0);
 						door.is_closed = false;
 					}
 
@@ -1043,6 +1053,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			// open pause menu
+			Mix_PlayChannel(3, audio->pause_menu_sound, 0);
 			menu.state = MENU_STATE::PAUSE;
 		}
 	}
