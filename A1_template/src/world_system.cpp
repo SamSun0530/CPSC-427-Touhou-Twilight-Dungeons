@@ -319,7 +319,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		BossHealthBarUI& bar = registry.bossHealthBarUIs.get(entity);
 		if (bar.is_visible) {
 			Motion& motion = registry.motions.get(entity);
-			createText(motion.position - vec2(100.f, 40.f), vec2(0.7f), bar.boss_name, vec3(1.f, 0.f, 0.f), false, false);
+			createText(motion.position - vec2(100.f, 40.f), vec2(0.7f), bar.boss_name, bar.name_color, false, false);
 		}
 	}
 
@@ -438,6 +438,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					createFood(renderer, registry.motions.get(entity).position);
 
 				if (map_info.level != MAP_LEVEL::TUTORIAL) {
+					// prevent -1 out of bounds access
 					int to_check = game_info.in_room == -1 ? game_info.prev_in_room : game_info.in_room;
 					auto& deadly_entities = game_info.room_index[to_check].enemies;
 					for (int i = 0; i < deadly_entities.size(); ++i) {
@@ -485,8 +486,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				// remove boss health bar ui
 				if (registry.bossHealthBarLink.has(entity)) {
 					registry.remove_all_components_of(registry.bossHealthBarLink.get(entity).other);
+					if (registry.bosses.has(entity)) {
+						Boss& boss = registry.bosses.get(entity);
+						if (boss.boss_id == BOSS_ID::FLANDRE) {
+							boss_info.should_use_flandre_bullet = false;
+						}
+					}
 
-					auto& deadly_entities = game_info.room_index[game_info.in_room].enemies;
+					// prevent -1 out of bounds access
+					int to_check = game_info.in_room == -1 ? game_info.prev_in_room : game_info.in_room;
+					auto& deadly_entities = game_info.room_index[to_check].enemies;
 					for (int i = 0; i < deadly_entities.size(); ++i) {
 						if (entity == deadly_entities[i]) {
 							std::swap(deadly_entities[i], deadly_entities[deadly_entities.size() - 1]);
@@ -600,6 +609,7 @@ void WorldSystem::restart_game() {
 	ai->restart_flow_field_map();
 	display_combo = createCombo(renderer);
 	game_info.set_player_id(player);
+	boss_info.reset();
 
 	init_win_menu();
 	init_lose_menu();

@@ -344,6 +344,9 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 				dialogue_info.cirno_pt = 0;
 			}
 		}
+		else if (boss.boss_id == BOSS_ID::FLANDRE) {
+			boss_info.should_use_flandre_bullet = true;
+		}
 		HP& hp = registry.hps.get(entity);
 		hp.curr_hp -= 20; // activate bullet firing
 		if (registry.invulnerableTimers.has(entity)) registry.invulnerableTimers.remove(entity);
@@ -445,6 +448,18 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 	ActionNode* do_nothing_cirno = new ActionNode(doNothing); // player can't go out of range in new door system
 	ConditionalNode* is_in_range_cirno = new ConditionalNode(show_boss_health_bar_cirno, do_nothing_cirno, isInRangeBoss);
 	this->cirno_boss_tree.setRoot(is_in_range_cirno);
+
+	/*
+	Flandre boss decision tree (same as cirno)
+	COND in range global?
+		F -> hide boss health bar
+		T -> show boss health bar
+	*/
+	ActionNode* show_boss_health_bar_flandre = new ActionNode(showBossInfo);
+	//ActionNode* hide_boss_health_bar_flandre = new ActionNode(hideBossInfo);
+	ActionNode* do_nothing_flandre = new ActionNode(doNothing); // player can't go out of range in new door system
+	ConditionalNode* is_in_range_flandre = new ConditionalNode(show_boss_health_bar_flandre, do_nothing_flandre, isInRangeBoss);
+	this->flandre_boss_tree.setRoot(is_in_range_flandre);
 
 	// TODO: create decision trees/condition/action functions here for different enemies
 }

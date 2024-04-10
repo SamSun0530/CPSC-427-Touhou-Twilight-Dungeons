@@ -110,6 +110,15 @@ struct GameInfo {
 };
 extern GameInfo game_info;
 
+struct BossInfo {
+	bool should_use_flandre_bullet = false;
+
+	void reset() {
+		should_use_flandre_bullet = false;
+	}
+};
+extern BossInfo boss_info;
+
 struct Teleporter {
 	bool player_overlap = false;
 	bool is_teleporting = false;
@@ -432,6 +441,7 @@ struct Key
 struct BossHealthBarUI {
 	bool is_visible = false;
 	std::string boss_name;
+	vec3 name_color;
 };
 
 // keep track of which boss this ui belongs to
@@ -769,8 +779,8 @@ enum class TEXTURE_ASSET_ID {
 	HEALTH_1 = PILLAR_BOTTOM + 1,
 	HEALTH_2 = HEALTH_1 + 1,
 	REGENERATE_HEALTH = HEALTH_2 + 1,
-	BOSS = REGENERATE_HEALTH + 1,
-	BOSS_HEALTH_BAR = BOSS + 1,
+	BOSS_CIRNO = REGENERATE_HEALTH + 1,
+	BOSS_HEALTH_BAR = BOSS_CIRNO + 1,
 	REIMU_BULLET_DISAPPEAR = BOSS_HEALTH_BAR + 1,
 	FOCUS_DOT = REIMU_BULLET_DISAPPEAR + 1,
 	KEYS = FOCUS_DOT + 1,
@@ -804,7 +814,9 @@ enum class TEXTURE_ASSET_ID {
 	DIALOGUE_BOX = CIRNO_PORTRAIT + 1,
 	TELEPORTER = DIALOGUE_BOX + 1,
 	WINDEATH_SCREEN = TELEPORTER + 1,
-	TEXTURE_COUNT = WINDEATH_SCREEN + 1,
+	BOSS_FLANDRE = WINDEATH_SCREEN + 1,
+	FLANDRE_BULLET = BOSS_FLANDRE + 1,
+	TEXTURE_COUNT = FLANDRE_BULLET + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

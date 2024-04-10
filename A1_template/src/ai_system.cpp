@@ -55,6 +55,9 @@ void AISystem::step(float elapsed_ms)
 				if (boss.boss_id == BOSS_ID::CIRNO) {
 					cirno_boss_tree.update(entity);
 				}
+				else if (boss.boss_id == BOSS_ID::FLANDRE) {
+					flandre_boss_tree.update(entity);
+				}
 			}
 			aitimer.update_timer_ms = aitimer.update_base;
 		}

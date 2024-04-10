@@ -649,7 +649,7 @@ Entity createCriHit(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name) {
+Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name, vec3 name_color) {
 	// Reserve en entity
 	auto entity = Entity();
 
@@ -665,6 +665,7 @@ Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string bo
 
 	BossHealthBarUI& hb = registry.bossHealthBarUIs.emplace(entity);
 	hb.is_visible = false;
+	hb.name_color = name_color;
 	hb.boss_name = boss_name;
 	registry.bossHealthBarLink.emplace(entity, boss);
 	registry.renderRequests.insert(
@@ -842,7 +843,7 @@ Entity createDummyEnemy(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
-Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, BOSS_ID boss_id)
+Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, BOSS_ID boss_id, vec3 name_color)
 {
 	auto entity = Entity();
 
@@ -866,11 +867,6 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = abs(vec2(motion.scale.x / 1.4f, motion.scale.y / 1.2f));
 
-	// HP
-	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 4;
-	hp.curr_hp = hp.max_hp;
-
 	// Collision damage
 	Deadly& deadly = registry.deadlys.emplace(entity);
 	deadly.damage = 1;
@@ -881,23 +877,45 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 	enemy_ani.render_pos = { 1.f / 4.f, 1.f / 4.f };
 	registry.animation.insert(entity, enemy_ani);
 
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::BOSS,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+	// HP
+	HP& hp = registry.hps.emplace(entity);
 
+	// Boss
 	Boss& boss = registry.bosses.emplace(entity);
 	boss.boss_id = boss_id;
-	// Boss bullet patterns
-	//boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
-	boss.health_phase_thresholds = { 4, 3, 2, 1, -1 }; // -1 for end of phase
 	boss.duration = 10000; // duration for each pattern
-	registry.colors.insert(entity, { 1,1,1 });
 	boss.phase_change_time = 1500;
 
+	if (boss_id == BOSS_ID::CIRNO) {
+		hp.max_hp = 100;
+		hp.curr_hp = hp.max_hp;
+
+		//boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
+		boss.health_phase_thresholds = { 4, 3, 2, 1, -1 }; // -1 for end of phase
+
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::BOSS_CIRNO,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else if (boss_id == BOSS_ID::FLANDRE) {
+		hp.max_hp = 220;
+		hp.curr_hp = hp.max_hp;
+
+		boss.health_phase_thresholds = { 200, 100, 50, 10, -1 }; // -1 for end of phase
+
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::BOSS_FLANDRE,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+
+	registry.colors.insert(entity, { 1,1,1 });
 	// Boss health bar ui
-	Entity ui_entity = createBossHealthBarUI(renderer, entity, boss_name);
+	Entity ui_entity = createBossHealthBarUI(renderer, entity, boss_name, name_color);
 	registry.bossHealthBarLink.emplace(entity, ui_entity);
 
 	// Add invulnerability
@@ -905,7 +923,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 
 	// Decision tree ai
 	AiTimer& ai_timer = registry.aitimers.emplace(entity);
-	ai_timer.update_base = 3000;
+	ai_timer.update_base = 1000;
 
 	return entity;
 }

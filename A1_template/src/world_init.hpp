@@ -10,7 +10,7 @@
 #include "global.hpp"
 
 
-// These are ahrd coded to the dimensions of the entity texture
+// These are ahrd coded to the dimensions of the entity 
 const float BULLET_BB_WIDTH = 1.0f * 27.f;
 const float BULLET_BB_HEIGHT = 1.0f * 27.f;
 const float PLAYER_BB_WIDTH = 0.5f * 128.f;
@@ -52,7 +52,7 @@ Entity createHealthUI(RenderSystem*);
 Entity createFood(RenderSystem* renderer, vec2 position);
 Entity createWin(RenderSystem* renderer);
 Entity createLose(RenderSystem* renderer);
-Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name);
+Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name, vec3 name_color);
 // ui key
 Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true, bool is_active = true, float frame_rate = 500.f);
 // focus mode dot
@@ -78,7 +78,7 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position);
 // the grenade launcher enemy
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
 // boss enemy
-Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, BOSS_ID boss_id);
+Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, BOSS_ID boss_id, vec3 name_color);
 // teleporter
 Entity createTeleporter(RenderSystem* renderer, vec2 pos, float scale);
 // dummy enemy for tutorial

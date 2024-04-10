@@ -748,7 +748,14 @@ void RenderSystem::drawBulletsInstanced(const std::vector<Entity>& entities, con
 	glActiveTexture(GL_TEXTURE0);
 	gl_has_errors();
 
-	GLuint texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::ENEMY_BULLET];
+	GLuint texture_id;
+
+	if (boss_info.should_use_flandre_bullet) {
+		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::FLANDRE_BULLET];
+	}
+	else {
+		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::ENEMY_BULLET];
+	}
 
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 	gl_has_errors();
