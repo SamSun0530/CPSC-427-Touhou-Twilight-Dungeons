@@ -418,7 +418,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		Collidable& collidable_i = registry.collidables.get(entity_i);
 		Motion& motion_i = motion_container.get(entity_i);
 
-		 //Wall to player collision
+		//Wall to player collision
 		for (Entity& entity_j : registry.players.entities) {
 			Collidable& collidable_j = registry.collidables.get(entity_j);
 			Motion& motion_j = registry.motions.get(entity_j);
@@ -464,6 +464,28 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity& entity_j : registry.deadlys.entities) {
 			Collidable& collidable_j = registry.collidables.get(entity_j);
 			Motion& motion_j = registry.motions.get(entity_j);
+			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
+			{
+				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+			}
+		}
+	}
+
+	// Enemy to enemy collision
+	ComponentContainer<Deadly>& deadly_container = registry.deadlys;
+	for (uint i = 0; i < deadly_container.components.size(); i++)
+	{
+		Entity entity_i = deadly_container.entities[i];
+		Collidable& collidable_i = collidable_container.get(entity_i);
+		Motion& motion_i = motion_container.get(entity_i);
+
+		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
+		for (uint j = i + 1; j < deadly_container.components.size(); j++)
+		{
+			Entity entity_j = deadly_container.entities[j];
+			Collidable& collidable_j = collidable_container.get(entity_j);
+			Motion& motion_j = motion_container.get(entity_j);
 			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
 			{
 				registry.collisions.emplace_with_duplicates(entity_i, entity_j);

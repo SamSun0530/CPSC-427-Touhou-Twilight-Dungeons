@@ -422,12 +422,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (number <= 0.1)
 					createFood(renderer, registry.motions.get(entity).position);
 
-				auto& deadly_entities = game_info.room_index[game_info.in_room].enemies;
-				for (int i = 0; i < deadly_entities.size(); ++i) {
-					if (entity == deadly_entities[i]) {
-						std::swap(deadly_entities[i], deadly_entities[deadly_entities.size() - 1]);
-						deadly_entities.pop_back();
-						break;
+				if (game_info.in_room != -1) {
+					auto& deadly_entities = game_info.room_index[game_info.in_room].enemies;
+					for (int i = 0; i < deadly_entities.size(); ++i) {
+						if (entity == deadly_entities[i]) {
+							std::swap(deadly_entities[i], deadly_entities[deadly_entities.size() - 1]);
+							deadly_entities.pop_back();
+							break;
+						}
 					}
 				}
 
