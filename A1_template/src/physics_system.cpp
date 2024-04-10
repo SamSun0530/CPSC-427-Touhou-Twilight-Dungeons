@@ -417,6 +417,16 @@ void PhysicsSystem::step(float elapsed_ms)
 				registry.collisions.emplace_with_duplicates(entity, player_entity);
 			}
 		}
+
+		// Player to purchasable
+		for (Entity treasure_entity : registry.purchasableables.entities) {
+			Motion& motion = registry.motions.get(treasure_entity);
+			Collidable& collidable = registry.collidables.get(treasure_entity);
+			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+				registry.collisions.emplace_with_duplicates(player_entity, treasure_entity);
+				registry.collisions.emplace_with_duplicates(treasure_entity, player_entity);
+			}
+		}
 	}
 
 	// Wall collisions - handled manually since wall to wall collisions has a huge performance hit

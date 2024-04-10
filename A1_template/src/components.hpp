@@ -231,6 +231,7 @@ struct BulletPattern {
 // Inspiration/Credit from: https://youtu.be/whrInb6Z7QI
 struct BulletSpawner
 {
+	int damageBoost =0;
 	// determines if bullet can be fired
 	bool is_firing = false;
 	// set this to -1 so entity can fire immediately
@@ -333,7 +334,7 @@ struct Player
 	int coin_amount = 0;
 	int key_amount = 0;
 	float invulnerability_time_ms = 1000;
-	float fire_rate = 0.2;
+	float fire_rate = 3;
 	float critical_hit = 0.05;
 	float critical_demage = 1.5;
 };
@@ -458,6 +459,15 @@ struct BossHealthBarLink {
 struct Pickupable
 {
 	int health_change = 1;
+};
+
+struct Purchasableable
+{
+	// 1=bullet_damage, 2=fire_rate, or 3=critical_hit
+	int effect_type;
+	int cost;
+	bool player_overlap = false;
+	int effect_strength;
 };
 
 // Tile set names specifically mapped from Sandstone Dungeon texture atlas
@@ -812,7 +822,10 @@ enum class TEXTURE_ASSET_ID {
 	B = C + 1,
 	A = B + 1,
 	S = A + 1,
-	DOOR_HORIZONTAL_OPEN = S + 1,
+	ITEM_R = S + 1,
+	ITEM_G = ITEM_R + 1,
+	ITEM_B = ITEM_G + 1 ,
+	DOOR_HORIZONTAL_OPEN = ITEM_B + 1,
 	DOOR_HORIZONTAL_CLOSE = DOOR_HORIZONTAL_OPEN + 1,
 	DOOR_VERTICAL_OPEN_DOWN = DOOR_HORIZONTAL_CLOSE + 1,
 	DOOR_VERTICAL_OPEN_UP = DOOR_VERTICAL_OPEN_DOWN + 1,

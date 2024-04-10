@@ -35,9 +35,12 @@ const float PAUSE_BACKGROUND_WIDTH = 1.f * 416.f;
 const float PAUSE_BACKGROUND_HEIGHT = 1.f * 448.f;
 const float TELEPORTER_WIDTH = 1.f * 224.f;
 const float TELEPORTER_HEIGHT = 1.f * 288.f;
+const float ITEM_WIDTH = 0.5f * 128.f;
+const float ITEM_HEIGHT = 0.5f * 128.f;
+
 
 // the bullet, takes into account entity's speed and position
-Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern* bullet_pattern = nullptr);
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern* bullet_pattern = nullptr, int damageBuff = 0);
 Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet);
 
 Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm, bool in_world = false);
@@ -49,11 +52,14 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2,
 Entity createCriHit(RenderSystem* renderer, vec2 pos);
 std::vector<Entity> createAttributeUI(RenderSystem* renderer);
 Entity createHealthUI(RenderSystem*);
-Entity createFood(RenderSystem* renderer, vec2 position);
+
+Entity createHealth(RenderSystem* renderer, vec2 position);
+Entity createTreasure(RenderSystem* renderer, vec2 position);
 Entity createWin(RenderSystem* renderer);
 Entity createLose(RenderSystem* renderer);
 Entity createInfographic(RenderSystem* renderer);
 Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name, vec3 name_color);
+
 // ui key
 Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true, bool is_active = true, float frame_rate = 500.f);
 // focus mode dot

@@ -1,7 +1,9 @@
 #include "world_init.hpp"
 #include <iostream>
 
-Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern)
+//int playerBullet_damage_playerBullet_damage = 10;
+
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern, int damageBoost)
 {
 	auto entity = Entity();
 
@@ -26,7 +28,10 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	collidable.size = abs(motion.scale / 2.f);
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
-		registry.playerBullets.emplace(entity);
+		auto& playerBullet = registry.playerBullets.emplace(entity);
+
+		playerBullet.damage = registry.players.components[0].bullet_damage;
+
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::BULLET,
@@ -91,7 +96,7 @@ Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float
 	return entity;
 }
 
-Entity createFood(RenderSystem* renderer, vec2 position)
+Entity createHealth(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -131,6 +136,74 @@ Entity createFood(RenderSystem* renderer, vec2 position)
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::REGENERATE_HEALTH, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	vec2 dir = { 60 * (number - 0.5), 50 * (number_y) };
+	BezierCurve curve;
+	curve.bezier_pts.push_back(position);
+	curve.bezier_pts.push_back(position + vec2(0, -20));
+	curve.bezier_pts.push_back(position + dir);
+	registry.bezierCurves.insert(entity, curve);
+	return entity;
+}
+
+// creat purchase able items (boost/buff)
+Entity createTreasure(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.angle = 0.f;
+	motion.scale = vec2({ ITEM_WIDTH, ITEM_HEIGHT });
+	registry.kinematics.emplace(entity);
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = abs(motion.scale);
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> distrib(0, 1);
+	double number = distrib(gen);
+	double number_y = distrib(gen) / 2;
+
+	// Generate a random number between 1 and 3 for type
+	// 1=bullet_damage, 2=fire_rate, or 3=critical_hit
+	std::uniform_int_distribution<> typeDistrib(1, 3);
+	int type = typeDistrib(gen);
+
+	Purchasableable& purchasableable = registry.purchasableables.emplace(entity);
+	registry.colors.insert(entity, { 1,1,1 });
+	
+	purchasableable.cost = number * 10;
+	purchasableable.effect_strength = number * 10;
+
+	if (purchasableable.cost == 0) {
+		purchasableable.cost = 1;
+		purchasableable.effect_strength = 1;
+	}
+
+	purchasableable.effect_type = type;
+	
+	if (type == 1) {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ITEM_R, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+
+	}
+	else if (type == 2) {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ITEM_B, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ITEM_G, // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}

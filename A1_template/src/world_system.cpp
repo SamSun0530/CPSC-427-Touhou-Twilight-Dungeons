@@ -79,6 +79,7 @@ GLFWwindow* WorldSystem::create_window() {
 
 	// Create the main window (for rendering, keyboard, and mouse input)
 	window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", nullptr, nullptr);
+	// window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", glfwGetPrimaryMonitor(), nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -302,7 +303,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	//createText({ 128 * 1.3 + 70 - 4, window_height_px - 77 }, { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
 	createText(-window_px_half + vec2(260, 70), { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
 	Player& player_att = registry.players.get(player);
-	std::string fire_rate = std::to_string(1 / player_att.fire_rate);
+	std::string fire_rate = std::to_string(player_att.fire_rate);
 	std::string critical_hit = std::to_string(player_att.critical_hit * 100);
 	std::string critical_dmg = std::to_string(player_att.critical_demage * 100);
 	createText(-window_px_half + vec2(68, 153), { 1,1 }, std::to_string(player_att.coin_amount), vec3(1), false);
@@ -449,8 +450,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					registry.dummyEnemyLink.remove(entity);
 				}
 
-				if (number <= 0.1)
-					createFood(renderer, registry.motions.get(entity).position);
+				if (number <= 0.1) {
+					createHealth(renderer, registry.motions.get(entity).position);
+				}
+				else if (number <= 0.2) {
+					createTreasure(renderer, registry.motions.get(entity).position);
+				}
 
 				if (map_info.level != MAP_LEVEL::TUTORIAL) {
 					// prevent -1 out of bounds access
@@ -847,10 +852,49 @@ void WorldSystem::handle_collisions() {
 					registry.remove_all_components_of(entity_other);
 				}
 			}
-			// Checking player - keys collision
-			else if (registry.keys.has(entity_other)) {
-				registry.players.get(entity).key_amount++;
-				registry.remove_all_components_of(entity_other);
+			// shop system
+			else if (registry.purchasableables.has(entity_other)) {
+				if (!registry.realDeathTimers.has(entity)) {
+					if (registry.motions.has(entity_other)) {
+						Purchasableable& treasure = registry.purchasableables.get(entity_other);
+						const Motion& motion = registry.motions.get(entity_other);
+						Player& player_att = registry.players.get(player);
+						BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
+						treasure.player_overlap = true;
+						if (pressed[GLFW_KEY_E] && player_att.coin_amount >= treasure.cost) {
+							//std::cout << "treasure.effect_type: " << std::to_string(treasure.effect_type) << std::endl;
+							//std::cout << "treasure.effect_strength: " << std::to_string(treasure.effect_strength) << std::endl;
+							player_att.coin_amount -= treasure.cost;
+							// 1=bullet_damage, 2=fire_rate, or 3=critical_hit
+							// treasure.effect_strength value between 0~1
+							//std::cout << "--------------before------------------" << std::endl;
+							//std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
+							//std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
+							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
+							if (treasure.effect_type == 1) {
+								player_att.bullet_damage += treasure.effect_strength;
+
+							}
+							else if (treasure.effect_type == 2) {
+								player_att.fire_rate += float(treasure.effect_strength * 0.01);
+								// bullet_spawner.fire_rate = 0.0001;
+								bullet_spawner.fire_rate *= (1 - float(treasure.effect_strength * 0.1));
+							}
+							else if (treasure.effect_type == 3) {
+								player_att.critical_hit += float(treasure.effect_strength * 0.01);
+							}
+							//std::cout << "-------------after---------------------" << std::endl;
+							//std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
+							//std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
+							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
+							registry.remove_all_components_of(entity_other);
+						}
+						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, "cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
+
+						createText(vec2(motion.position.x, motion.position.y + 50), { 0.6f,0.6f }, "press \"E\" to buy this", vec3(0, 1, 0), false, true);
+						// std::cout << "Buy this" << std::endl;
+					}
+				}
 			}
 			// Checking player - power up items collisions
 			else if (registry.maxhpIncreases.has(entity_other)) {
@@ -906,6 +950,7 @@ void WorldSystem::handle_collisions() {
 					else {
 						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
 					}
+					//std::cout << "bullet_dmg: " << std::to_string(registry.playerBullets.get(entity_other).damage) << std::endl;
 
 					if (!registry.bosses.has(entity)) {
 						// Knockback
