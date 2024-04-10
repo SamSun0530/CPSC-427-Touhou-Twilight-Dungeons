@@ -1,7 +1,7 @@
 #include "world_init.hpp"
 #include <iostream>
 
-int playerBullet_damage_playerBullet_damage = 10;
+//int playerBullet_damage_playerBullet_damage = 10;
 
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern, int damageBoost)
 {
@@ -30,7 +30,7 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	if (is_player_bullet) {
 		auto& playerBullet = registry.playerBullets.emplace(entity);
 
-		playerBullet.damage = BulletConstants::getPlayerBulletDamage();
+		playerBullet.damage = registry.players.components[0].bullet_damage;
 
 		registry.renderRequests.insert(
 			entity,
