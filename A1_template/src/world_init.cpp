@@ -1,7 +1,9 @@
 #include "world_init.hpp"
 #include <iostream>
 
-Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern, int damageBuff)
+int playerBullet_damage_playerBullet_damage = 10;
+
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern, int damageBoost)
 {
 	auto entity = Entity();
 
@@ -27,7 +29,9 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
 		auto& playerBullet = registry.playerBullets.emplace(entity);
-		playerBullet.damage += damageBuff;
+
+		playerBullet.damage = BulletConstants::getPlayerBulletDamage();
+
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::BULLET,

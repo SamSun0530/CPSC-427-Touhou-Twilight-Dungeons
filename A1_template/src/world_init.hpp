@@ -34,6 +34,21 @@ const float MENU_BACKGROUND_HEIGHT = 1.f * 1008.f;
 const float PAUSE_BACKGROUND_WIDTH = 1.f * 416.f;
 const float PAUSE_BACKGROUND_HEIGHT = 1.f * 448.f;
 
+class BulletConstants {
+private:
+    static int playerBullet_damage_playerBullet_damage;
+
+public:
+
+    static int getPlayerBulletDamage() {
+        return playerBullet_damage_playerBullet_damage;
+    }
+
+    static void setPlayerBulletDamage(int damage) {
+        playerBullet_damage_playerBullet_damage = damage;
+    }
+};
+
 // the bullet, takes into account entity's speed and position
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern* bullet_pattern = nullptr, int damageBuff = 0);
 Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet);

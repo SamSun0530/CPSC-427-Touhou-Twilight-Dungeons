@@ -592,7 +592,8 @@ void WorldSystem::handle_collisions() {
 							std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
 							if (treasure.effect_type == 1) {
 								player_att.bullet_damage += treasure.effect_strength;
-								bullet_spawner.damageBoost = treasure.effect_strength;
+								//bullet_spawner.damageBoost = treasure.effect_strength;
+								BulletConstants::setPlayerBulletDamage(treasure.effect_strength + BulletConstants::getPlayerBulletDamage());
 							}
 							else if (treasure.effect_type == 2) {
 								player_att.fire_rate += float(treasure.effect_strength * 0.01);
