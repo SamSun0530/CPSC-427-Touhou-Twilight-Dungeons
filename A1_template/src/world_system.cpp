@@ -419,8 +419,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		is_alive = false;
 		pressed = { 0 };
 		registry.kinematics.get(player).direction = { 0,0 };
-		//Mix_HaltMusic();
-		//Mix_PlayChannel(-1, audio->game_ending_sound, 0);
+		Mix_HaltChannel(-1);
+		Mix_PlayChannel(-1, audio->game_ending_sound, 0);
 		registry.realDeathTimers.emplace(player);
 	}
 
@@ -806,10 +806,12 @@ void WorldSystem::handle_collisions() {
 						room.need_to_spawn = false;
 						// spawn enemies in room
 						map->spawnEnemiesInRoom(room);
+						Mix_PlayChannel(-1, audio->open_gate_sound, 0);
 					}
 
 					if (door.is_closed) {
 						renderer->switch_door_texture(entity, false);
+						Mix_PlayChannel(-1, audio->open_gate_sound, 0);
 						door.is_closed = false;
 					}
 

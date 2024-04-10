@@ -48,8 +48,8 @@ Audio::Audio() {
 
 	background_music = Mix_LoadWAV(audio_path("regular_room_bgm.wav").c_str());
 	menu_music = Mix_LoadWAV(audio_path("main_menu_bgm.wav").c_str());
-	boss_music = Mix_LoadMUS(audio_path("boss_fight_bgm.wav").c_str());
-	game_ending_sound = Mix_LoadWAV(audio_path("game_ending.wav").c_str());
+	boss_music = Mix_LoadWAV(audio_path("boss_fight_bgm.wav").c_str());
+	game_ending_sound = Mix_LoadWAV(audio_path("game_ending_sound.wav").c_str());
 	firing_sound = Mix_LoadWAV(audio_path("spell_sound.wav").c_str());
 	damage_sound = Mix_LoadWAV(audio_path("damage_sound.wav").c_str());
 	hit_spell = Mix_LoadWAV(audio_path("hit_spell.wav").c_str());
@@ -58,9 +58,9 @@ Audio::Audio() {
 
 	// Set the music volume
 	Mix_VolumeMusic(15);
-	Mix_Volume(-1, 25);
-	Mix_Volume(2, 20);
-	Mix_Volume(1, 20);
+	Mix_Volume(-1, 35);
+	Mix_Volume(2, 10);
+	Mix_Volume(1, 10);
 	Mix_Volume(3, 10);
 
 	if (background_music == nullptr || game_ending_sound == nullptr || firing_sound == nullptr || damage_sound == nullptr) {
@@ -90,9 +90,11 @@ Audio::~Audio() {
 	if (menu_music != nullptr)
 		Mix_FreeChunk(menu_music);
 	if (boss_music != nullptr)
-		Mix_FreeMusic(boss_music);
+		Mix_FreeChunk(boss_music);
 	if (pause_menu_sound != nullptr)
 		Mix_FreeChunk(pause_menu_sound);
+	if (open_gate_sound != nullptr)
+		Mix_FreeChunk(open_gate_sound);
 
 	Mix_CloseAudio();
 }

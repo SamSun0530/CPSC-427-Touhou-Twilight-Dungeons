@@ -19,7 +19,7 @@ public:
 	Mix_Chunk* background_music;
 	Mix_Chunk* menu_music;
 	Mix_Chunk* open_gate_sound;
-	Mix_Music* boss_music;
+	Mix_Chunk* boss_music;
 	Mix_Chunk* pause_menu_sound;
 	Mix_Chunk* game_ending_sound;
 	Mix_Chunk* firing_sound;
