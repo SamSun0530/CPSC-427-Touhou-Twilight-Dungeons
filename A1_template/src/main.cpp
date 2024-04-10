@@ -70,6 +70,8 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
+		audio.step(elapsed_ms);
+
 		if (menu.state == MENU_STATE::MAIN_MENU) {
 
 		}
@@ -87,7 +89,7 @@ int main()
 			map.step(elapsed_ms);
 			world.handle_collisions();
 		}
-		else if (menu.state == MENU_STATE::PAUSE) {
+		else if (menu.state == MENU_STATE::PAUSE || menu.state == MENU_STATE::WIN) {
 
 		}
 		else if (menu.state == MENU_STATE::DIALOGUE) {

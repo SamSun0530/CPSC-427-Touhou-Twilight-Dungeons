@@ -7,6 +7,7 @@
 
 struct DialogueInfo {
 	unsigned int cirno_pt = 1000000;
+	unsigned int cirno_after_pt = 1000000;
 	bool cirno_played = false;
 };
 extern DialogueInfo dialogue_info;
@@ -29,7 +30,9 @@ enum class MENU_STATE {
 	PLAY,
 	PAUSE,
 	DIALOGUE,
-	INVENTORY
+	INVENTORY,
+	WIN,
+	LOSE
 };
 
 struct Menu {
@@ -569,6 +572,16 @@ struct ScreenState
 	float darken_screen_factor = -1;
 };
 
+struct WinMenu
+{
+
+};
+
+struct LoseMenu
+{
+
+};
+
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {
@@ -695,6 +708,15 @@ enum class TILE_TYPE {
 	DOOR = WALL + 1
 };
 
+enum class EMOTION {
+	ANGRY = 0,
+	CRY = ANGRY + 1,
+	SPECIAL = CRY + 1,
+	LAUGH = SPECIAL + 1,
+	NORMAL = LAUGH + 1,
+	SHOCK = NORMAL + 1,
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -738,7 +760,8 @@ enum class TEXTURE_ASSET_ID {
 	LEFT_BOTTOM_CORNER_WALL = LEFT_TOP_CORNER_WALL + 1,
 	RIGHT_TOP_CORNER_WALL = LEFT_BOTTOM_CORNER_WALL + 1,
 	RIGHT_BOTTOM_CORNER_WALL = RIGHT_TOP_CORNER_WALL + 1,
-	REIMU_HEALTH = RIGHT_BOTTOM_CORNER_WALL + 1,
+	ROCK = RIGHT_BOTTOM_CORNER_WALL + 1,
+	REIMU_HEALTH = ROCK + 1,
 	REIMU_HEAD = REIMU_HEALTH + 1,
 	EMPTY_HEART = REIMU_HEAD + 1,
 	BOTTOM_WALL = EMPTY_HEART + 1,
@@ -783,7 +806,8 @@ enum class TEXTURE_ASSET_ID {
 	CIRNO_PORTRAIT = REIMU_PORTRAIT + 1,
 	DIALOGUE_BOX = CIRNO_PORTRAIT + 1,
 	TELEPORTER = DIALOGUE_BOX + 1,
-	TEXTURE_COUNT = TELEPORTER + 1,
+	WINDEATH_SCREEN = TELEPORTER + 1,
+	TEXTURE_COUNT = WINDEATH_SCREEN + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
