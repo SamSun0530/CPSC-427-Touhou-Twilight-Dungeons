@@ -5,6 +5,12 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 
+struct DialogueInfo {
+	unsigned int cirno_pt = 1000000;
+	bool cirno_played = false;
+};
+extern DialogueInfo dialogue_info;
+
 // World map loader
 struct MapLevel {
 	enum LEVEL {
@@ -18,7 +24,9 @@ extern MapLevel map_level;
 enum class MENU_STATE {
 	MAIN_MENU,
 	PLAY,
-	PAUSE
+	PAUSE,
+	DIALOGUE,
+	INVENTORY
 };
 
 struct Menu {
@@ -59,9 +67,43 @@ struct ComboMode {
 };
 extern ComboMode combo_mode;
 
+struct VisibilityInfo {
+	// TODO: limit how fast tiles are revealed using flood fill
+	bool need_update = false;
+};
+extern VisibilityInfo visibility_info;
+
 // Game related information
 struct GameInfo {
+	// for "resume" in button
 	bool has_started = false;
+
+	// Player information
+	// store player entity id
+	Entity player_id;
+	bool is_player_id_set = false;
+	void set_player_id(unsigned int player_actual) {
+		player_id = (Entity)player_actual;
+		is_player_id_set = true;
+	}
+	// TODO: store player current room (index or id?)
+	// TODO: store visited rooms (for doors)
+	int in_room = -1; // -1 - not in room
+	// each index represents a room
+	std::vector<Room_struct> room_index;
+	// same size as room_index, where each index corresponds to whether it's been visited
+	std::vector<bool> room_visited;
+
+	void add_room(Room_struct& room) {
+		room_index.push_back(room);
+		room_visited.push_back(false);
+	}
+
+	void reset_room_info() {
+		in_room = -1;
+		room_index.clear();
+		room_visited.clear();
+	}
 };
 extern GameInfo game_info;
 
@@ -82,11 +124,19 @@ struct Button {
 	bool is_hovered = false;
 };
 
+struct VisibilityTile {
+
+};
+
 struct PlayerBullet {
 	int damage = 10;
 };
 
 struct UIUX {
+
+};
+
+struct Dialogue {
 
 };
 
@@ -127,6 +177,12 @@ enum class BULLET_ACTION {
 	DEL,
 	SPLIT,
 	DIRECTION
+};
+
+enum class CHARACTER {
+	REIMU,
+	CIRNO,
+	NONE,
 };
 
 struct BulletCommand {
@@ -303,7 +359,7 @@ struct BeeEnemy {
 
 struct BomberEnemy
 {
-
+	bool touch_player = false;
 };
 
 struct WolfEnemy
@@ -373,6 +429,32 @@ struct Pickupable
 	int health_change = 1;
 };
 
+// Tile set names specifically mapped from Sandstone Dungeon texture atlas
+// comments are in (x,y), indexed by 0
+enum class TILE_NAME_SANDSTONE {
+	NONE,
+	AZTEC_FLOOR, // 1,0
+	ROCK_FLOOR, // 2,0
+	BONE_FLOOR, // 3,0
+	CHOCOLATE_FLOOR, // 0,1
+	BRICK_FLOOR, // 1,1
+	CANDY_FLOOR, // 2,1
+	CHECKER_FLOOR, // 3,1
+	LEFT_WALL, // 0,2
+	TOP_WALL, // 1,2 - Corridors included
+	RIGHT_WALL, // 2,2
+	CORRIDOR_BOTTOM_RIGHT, // 0,5
+	CORRIDOR_BOTTOM_LEFT, // 2,5
+	BOTTOM_LEFT, // 0,6
+	BOTTOM_WALL, // 1,6
+	BOTTOM_RIGHT, // 2,6
+	CORRIDOR_BOTTOM_RIGHT_LIGHT, // 0,3
+	CORRIDOR_BOTTOM_LEFT_LIGHT, // 2,3
+	BOTTOM_LEFT_LIGHT, // 0,4
+	// BOTTOM_WALL_LIGHT -> use TOP_WALL
+	BOTTOM_RIGHT_LIGHT, // 2,4
+};
+
 // A non interactable tile of the map
 struct Floor
 {
@@ -380,6 +462,26 @@ struct Floor
 
 // A interactable tile of the map
 struct Wall {
+};
+
+// Tile data to be instance rendered
+struct TileInstanceData {
+	vec4 spriteloc;
+	mat3 transform;
+};
+
+struct Door {
+	bool is_locked = false;
+	bool is_closed = true;
+	bool is_visited = false; // for doors to remain open
+	DIRECTION dir;
+	int room_index;
+	Entity top_texture; // none if dir is UP OR DOWN
+};
+
+struct VisibilityTileInstanceData {
+	mat3 transform;
+	float alpha;
 };
 
 // All data relevant to the shape and motion of entities
@@ -525,18 +627,22 @@ struct TexturedVertex
 
 struct RenderText {
 	std::string content;
+	float transparency = 1.0;
 };
 
 struct RenderTextPermanent {
 	std::string content;
+	float transparency = 1.0;
 };
 
 struct RenderTextWorld {
 	std::string content;
+	float transparency = 1.0;
 };
 
 struct RenderTextPermanentWorld {
 	std::string content;
+	float transparency = 1.0;
 };
 
 // Mesh datastructure for storing vertex and index buffers
@@ -569,7 +675,8 @@ enum class KEYS {
 enum class TILE_TYPE {
 	EMPTY = 0,
 	FLOOR = EMPTY + 1,
-	WALL = FLOOR + 1
+	WALL = FLOOR + 1,
+	DOOR = WALL + 1
 };
 
 /**
@@ -639,7 +746,8 @@ enum class TEXTURE_ASSET_ID {
 	CRTHITICON = CRTDMG + 1,
 	FOCUS_BAR = CRTHITICON + 1,
 	COIN_STATIC = FOCUS_BAR + 1,
-	BUTTON = COIN_STATIC + 1,
+	TILES_ATLAS_SANDSTONE = COIN_STATIC + 1,
+	BUTTON = TILES_ATLAS_SANDSTONE + 1,
 	BUTTON_HOVERED = BUTTON + 1,
 	NONE = BUTTON_HOVERED + 1,
 	MENU_TITLE = NONE + 1,
@@ -649,7 +757,16 @@ enum class TEXTURE_ASSET_ID {
 	B = C + 1,
 	A = B + 1,
 	S = A + 1,
-	TEXTURE_COUNT = S + 1
+	DOOR_HORIZONTAL_OPEN = S + 1,
+	DOOR_HORIZONTAL_CLOSE = DOOR_HORIZONTAL_OPEN + 1,
+	DOOR_VERTICAL_OPEN_DOWN = DOOR_HORIZONTAL_CLOSE + 1,
+	DOOR_VERTICAL_OPEN_UP = DOOR_VERTICAL_OPEN_DOWN + 1,
+	DOOR_VERTICAL_CLOSE_DOWN = DOOR_VERTICAL_OPEN_UP + 1,
+	DOOR_VERTICAL_CLOSE_UP = DOOR_VERTICAL_CLOSE_DOWN + 1,
+	REIMU_PORTRAIT = DOOR_VERTICAL_CLOSE_UP + 1,
+	CIRNO_PORTRAIT = REIMU_PORTRAIT + 1,
+	DIALOGUE_BOX = CIRNO_PORTRAIT + 1,
+	TEXTURE_COUNT = DIALOGUE_BOX + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -664,7 +781,8 @@ enum class EFFECT_ASSET_ID {
 	PLAYER_HB = FONT + 1,
 	BOSSHEALTHBAR = PLAYER_HB + 1,
 	COMBO = BOSSHEALTHBAR + 1,
-	EFFECT_COUNT = COMBO + 1
+	GREY = COMBO + 1,
+	EFFECT_COUNT = GREY + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

@@ -42,10 +42,12 @@ Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bo
 
 Entity createCombo(RenderSystem* renderer);
 
+void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2);
+
 Entity createCriHit(RenderSystem* renderer, vec2 pos);
 std::vector<Entity> createAttributeUI(RenderSystem* renderer);
 Entity createHealthUI(RenderSystem*);
-Entity createHealth(RenderSystem* renderer, vec2 position);
+Entity createFood(RenderSystem* renderer, vec2 position);
 Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss);
 // ui key
 Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true, bool is_active = true, float frame_rate = 500.f);
@@ -84,6 +86,13 @@ std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vect
 std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 // Pillar tile
 std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std::vector<TEXTURE_ASSET_ID> textureIDs);
+// Door tile that can be open or closed
+Entity createDoor(RenderSystem* renderer, vec2 position, DIRECTION dir, int room_index);
+// Top texture of vertical doors for aesthetic effects
+Entity createDoorUpTexture(RenderSystem* renderer, vec2 grid_position);
+// Tile for instance rendering
+// Note: different than other create* calls where it is GRID position argument
+Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, vec2 grid_position, TILE_NAME_SANDSTONE tile_name, bool is_wall);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);

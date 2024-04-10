@@ -10,6 +10,10 @@ struct CollisionInfo {
 	float penetrationDepth = 0.0f;
 };
 
+void PhysicsSystem::init(RenderSystem* renderer_arg) {
+	this->renderer = renderer_arg;
+}
+
 // Collision test between circle and AABB
 // Credit to "Ghoster": https://gamedev.stackexchange.com/a/178154
 bool collides_circle_AABB(const Motion& circleMotion, const CircleCollidable& circleCollidable, const Motion& AABBMotion, const Collidable& AABB)
@@ -165,6 +169,23 @@ bool collides_mesh_AABB(const Entity& e1, const Motion& motion1, const Motion& m
 	return false;
 }
 
+bool is_in_room(Room_struct& room, Collidable& collidable, Motion& motion) {
+	const vec2 bounding_box = collidable.size / 2.f;
+	const vec2 box_center = motion.position + collidable.shift;
+
+	const float top = box_center.y - bounding_box.y;
+	const float bottom = box_center.y + bounding_box.y;
+	const float left = box_center.x - bounding_box.x;
+	const float right = box_center.x + bounding_box.x;
+
+	coord top_left_world = convert_grid_to_world(room.top_left - 0.5f);
+	coord bottom_right_world = convert_grid_to_world(room.bottom_right + 0.5f);
+
+	if (top >= top_left_world.y && bottom <= bottom_right_world.y && left >= top_left_world.x && right <= bottom_right_world.x)
+		return true;
+	return false;
+}
+
 void PhysicsSystem::step(float elapsed_ms)
 {
 	// Assume there exists a player
@@ -202,48 +223,85 @@ void PhysicsSystem::step(float elapsed_ms)
 		motion.position = get_bezier_point(bezier_curve.bezier_pts, bezier_curve.t);
 	}
 
-	// Check for collisions between all collidable entities
-	// Ignores wall collisions as it is checked after
 	ComponentContainer<Collidable>& collidable_container = registry.collidables;
 	ComponentContainer<Motion>& motion_container = registry.motions;
-	for (uint i = 0; i < collidable_container.components.size(); i++)
-	{
-		Entity entity_i = collidable_container.entities[i];
-		if (registry.walls.has(entity_i) || registry.enemyBullets.has(entity_i)) continue;
-		Collidable& collidable_i = collidable_container.components[i];
-		Motion& motion_i = motion_container.get(entity_i);
 
-		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
-		for (uint j = i + 1; j < collidable_container.components.size(); j++)
-		{
-			Entity entity_j = collidable_container.entities[j];
-			if (registry.walls.has(entity_j)) continue;
-			if (focus_mode.in_focus_mode && ((registry.players.has(entity_i) && registry.enemyBullets.has(entity_j)) || (registry.players.has(entity_j) && registry.enemyBullets.has(entity_i)))) {
-				continue;
+	//// Check for collisions between all collidable entities
+	//// Ignores wall collisions as it is checked after
+	//ComponentContainer<Collidable>& collidable_container = registry.collidables;
+	//ComponentContainer<Motion>& motion_container = registry.motions;
+	//for (uint i = 0; i < collidable_container.components.size(); i++)
+	//{
+	//	Entity entity_i = collidable_container.entities[i];
+	//	if (registry.walls.has(entity_i) ||
+	//		registry.enemyBullets.has(entity_i) ||
+	//		registry.doors.has(entity_i)) continue;
+	//	Collidable& collidable_i = collidable_container.components[i];
+	//	Motion& motion_i = motion_container.get(entity_i);
+
+	//	// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
+	//	for (uint j = i + 1; j < collidable_container.components.size(); j++)
+	//	{
+	//		Entity entity_j = collidable_container.entities[j];
+	//		if (registry.walls.has(entity_j) ||
+	//			registry.doors.has(entity_i)) continue;
+	//		if (focus_mode.in_focus_mode && ((registry.players.has(entity_i) && registry.enemyBullets.has(entity_j)) || (registry.players.has(entity_j) && registry.enemyBullets.has(entity_i)))) {
+	//			continue;
+	//		}
+	//		if (registry.enemyBullets.has(entity_j)) continue;
+
+	//		Collidable& collidable_j = collidable_container.components[j];
+	//		Motion& motion_j = motion_container.get(entity_j);
+
+	//		if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
+	//		{
+	//			if (registry.players.has(entity_i)) {
+	//				if (collides_mesh_AABB(entity_i, motion_i, motion_j, collidable_j)) {
+	//					registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+	//					registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+	//				}
+	//			}
+	//			else if (registry.players.has(entity_j)) {
+	//				if (collides_mesh_AABB(entity_j, motion_j, motion_i, collidable_i)) {
+	//					registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+	//					registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+	//				}
+	//			}
+	//			else {
+	//				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+	//				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+	//			}
+	//		}
+	//	}
+	//}
+
+	// Player bullet to wall/door
+	for (Entity entity : registry.playerBullets.entities) {
+		Motion& motion = registry.motions.get(entity);
+		Collidable& collidable = registry.collidables.get(entity);
+		coord grid_coord = convert_world_to_grid(motion.position);
+
+		if (!is_valid_cell(grid_coord.x, grid_coord.y)) {
+			if (registry.playerBullets.has(entity)) {
+				registry.realDeathTimers.emplace(createBulletDisappear(renderer, motion.position, motion.angle, true)).death_counter_ms = 200;
 			}
-			if (registry.enemyBullets.has(entity_j)) continue;
+			registry.remove_all_components_of(entity);
+		}
+	}
 
-			Collidable& collidable_j = collidable_container.components[j];
-			Motion& motion_j = motion_container.get(entity_j);
-
-			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
-			{
-				if (registry.players.has(entity_i)) {
-					if (collides_mesh_AABB(entity_i, motion_i, motion_j, collidable_j)) {
-						registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-						registry.collisions.emplace_with_duplicates(entity_j, entity_i);
-					}
-				}
-				else if (registry.players.has(entity_j)) {
-					if (collides_mesh_AABB(entity_j, motion_j, motion_i, collidable_i)) {
-						registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-						registry.collisions.emplace_with_duplicates(entity_j, entity_i);
-					}
-				}
-				else {
-					registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-					registry.collisions.emplace_with_duplicates(entity_j, entity_i);
-				}
+	// Player bullet to enemy
+	ComponentContainer<PlayerBullet>& playerbullet_container = registry.playerBullets;
+	for (uint i = 0; i < playerbullet_container.components.size(); i++)
+	{
+		Entity playerbullet_entity = playerbullet_container.entities[i];
+		Motion& playerbullet_motion = motion_container.get(playerbullet_entity);
+		Collidable& playerbullet_collidable = collidable_container.get(playerbullet_entity);
+		for (Entity entity : registry.deadlys.entities) {
+			Motion& motion = motion_container.get(entity);
+			Collidable& collidable = collidable_container.get(entity);
+			if (collides_AABB_AABB(motion, playerbullet_motion, collidable, playerbullet_collidable)) {
+				registry.collisions.emplace_with_duplicates(playerbullet_entity, entity);
+				registry.collisions.emplace_with_duplicates(entity, playerbullet_entity);
 			}
 		}
 	}
@@ -256,10 +314,12 @@ void PhysicsSystem::step(float elapsed_ms)
 		Collidable& player_collidable = registry.collidables.get(player_entity);
 		CircleCollidable& playerCircleCollidable = registry.circleCollidables.get(player_entity);
 
+		// Player to enemy bullet
 		for (Entity bullet_entity : registry.enemyBullets.entities) {
 			Motion& motion = registry.motions.get(bullet_entity);
 			Collidable& collidable = registry.collidables.get(bullet_entity);
 			coord grid_coord = convert_world_to_grid(motion.position);
+
 			if (!is_valid_cell(grid_coord.x, grid_coord.y)) {
 				//registry.collisions.emplace(bullet_entity, wall_entity); // causes bullet to go through walls
 				registry.remove_all_components_of(bullet_entity);
@@ -275,6 +335,76 @@ void PhysicsSystem::step(float elapsed_ms)
 			//	collides_mesh_AABB(player_entity, player_motion, motion, collidable)) {
 			else if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
 				registry.collisions.emplace_with_duplicates(player_entity, bullet_entity);
+			}
+		}
+
+		// Player to deadly
+		for (Entity deadly_entity : registry.deadlys.entities) {
+			Motion& motion = registry.motions.get(deadly_entity);
+			Collidable& collidable = registry.collidables.get(deadly_entity);
+			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+				registry.collisions.emplace_with_duplicates(player_entity, deadly_entity);
+				registry.collisions.emplace_with_duplicates(deadly_entity, player_entity);
+			}
+		}
+
+		// Player to pickupable
+		for (Entity pickupable_entity : registry.pickupables.entities) {
+			Motion& motion = registry.motions.get(pickupable_entity);
+			Collidable& collidable = registry.collidables.get(pickupable_entity);
+			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+				registry.collisions.emplace_with_duplicates(player_entity, pickupable_entity);
+				registry.collisions.emplace_with_duplicates(pickupable_entity, player_entity);
+			}
+		}
+
+		// Player to coins
+		for (Entity coin_entity : registry.coins.entities) {
+			Motion& motion = registry.motions.get(coin_entity);
+			Collidable& collidable = registry.collidables.get(coin_entity);
+			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+				registry.collisions.emplace_with_duplicates(player_entity, coin_entity);
+				registry.collisions.emplace_with_duplicates(coin_entity, player_entity);
+			}
+		}
+
+		// Player to maxHpIncrease
+		for (Entity maxHpIncrease_entity : registry.maxhpIncreases.entities) {
+			Motion& motion = registry.motions.get(maxHpIncrease_entity);
+			Collidable& collidable = registry.collidables.get(maxHpIncrease_entity);
+			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+				registry.collisions.emplace_with_duplicates(player_entity, maxHpIncrease_entity);
+				registry.collisions.emplace_with_duplicates(maxHpIncrease_entity, player_entity);
+			}
+		}
+
+		// Player to attackUp
+		for (Entity attackUp_entity : registry.attackUps.entities) {
+			Motion& motion = registry.motions.get(attackUp_entity);
+			Collidable& collidable = registry.collidables.get(attackUp_entity);
+			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+				registry.collisions.emplace_with_duplicates(player_entity, attackUp_entity);
+				registry.collisions.emplace_with_duplicates(attackUp_entity, player_entity);
+			}
+		}
+
+		// Player to chest
+		for (Entity chest_entity : registry.chests.entities) {
+			Motion& motion = registry.motions.get(chest_entity);
+			Collidable& collidable = registry.collidables.get(chest_entity);
+			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+				registry.collisions.emplace_with_duplicates(player_entity, chest_entity);
+				registry.collisions.emplace_with_duplicates(chest_entity, player_entity);
+			}
+		}
+
+		// Player to key
+		for (Entity key_entity : registry.keys.entities) {
+			Motion& motion = registry.motions.get(key_entity);
+			Collidable& collidable = registry.collidables.get(key_entity);
+			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+				registry.collisions.emplace_with_duplicates(player_entity, key_entity);
+				registry.collisions.emplace_with_duplicates(key_entity, player_entity);
 			}
 		}
 	}
@@ -309,9 +439,29 @@ void PhysicsSystem::step(float elapsed_ms)
 				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
 			}
 		}
+	}
 
-		// Wall to player bullet collision
-		for (Entity& entity_j : registry.playerBullets.entities) {
+	// Door collisions
+	ComponentContainer<Door>& door_container = registry.doors;
+	for (uint i = 0; i < door_container.components.size(); i++)
+	{
+		Entity entity_i = door_container.entities[i];
+		Collidable& collidable_i = registry.collidables.get(entity_i);
+		Motion& motion_i = motion_container.get(entity_i);
+
+		// Door to player collision
+		for (Entity& entity_j : registry.players.entities) {
+			Collidable& collidable_j = registry.collidables.get(entity_j);
+			Motion& motion_j = registry.motions.get(entity_j);
+			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
+			{
+				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+			}
+		}
+
+		// Door to enemy collision
+		for (Entity& entity_j : registry.deadlys.entities) {
 			Collidable& collidable_j = registry.collidables.get(entity_j);
 			Motion& motion_j = registry.motions.get(entity_j);
 			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
@@ -321,6 +471,23 @@ void PhysicsSystem::step(float elapsed_ms)
 			}
 		}
 	}
+
+	// Check and set room
+	Motion& motion = registry.motions.get(player);
+	Collidable& collidable = registry.collidables.get(player);
+	int room_index_size = game_info.room_index.size();
+	bool has_set_room = false;
+	for (int i = 0; i < room_index_size; ++i) {
+		has_set_room = is_in_room(game_info.room_index[i], collidable, motion);
+		if (has_set_room) {
+			game_info.in_room = i;
+			break;
+		}
+	}
+	if (!has_set_room) {
+		game_info.in_room = -1;
+	}
+
 	// Visualize bounding boxes
 	if (debugging.in_debug_mode) {
 		for (Entity& entity : registry.collidables.entities) {

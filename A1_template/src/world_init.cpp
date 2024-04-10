@@ -62,8 +62,8 @@ Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float
 	auto& kinematic = registry.kinematics.emplace(entity);
 
 	// Set the collision box
-	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = abs(motion.scale);
+	//auto& collidable = registry.collidables.emplace(entity);
+	//collidable.size = abs(motion.scale);
 
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
@@ -91,7 +91,7 @@ Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float
 	return entity;
 }
 
-Entity createHealth(RenderSystem* renderer, vec2 position)
+Entity createFood(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -459,7 +459,7 @@ Entity createCombo(RenderSystem* renderer)
 
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
-	motion.position = vec2(window_px_half.x, -window_px_half.y) - vec2(150,-150);
+	motion.position = vec2(window_px_half.x, -window_px_half.y) - vec2(150, -150);
 	motion.scale = vec2(160, 160);
 
 	registry.UIUX.emplace(entity);
@@ -470,6 +470,74 @@ Entity createCombo(RenderSystem* renderer)
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
+}
+
+void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2) {
+	auto reimu_entity = Entity();
+
+	// Setting initial motion values
+	Motion& motion_reimu = registry.motions.emplace(reimu_entity);
+	motion_reimu.position = vec2(-250,0);
+	motion_reimu.angle = 0.f;
+	motion_reimu.scale = vec2({ 550.f, 600.f });
+
+	registry.dialogueMenus.emplace(reimu_entity);
+	if (character == CHARACTER::REIMU) {
+		registry.renderRequests.insert(
+			reimu_entity,
+			{ TEXTURE_ASSET_ID::REIMU_PORTRAIT, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::UI,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		registry.renderRequests.insert(
+			reimu_entity,
+			{ TEXTURE_ASSET_ID::REIMU_PORTRAIT, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::GREY,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+	if (talk_2 != CHARACTER::NONE) {
+		auto other_entity = Entity();
+
+		// Setting initial motion values
+		Motion& motion_other = registry.motions.emplace(other_entity);
+		motion_other.position = vec2(250, 0);
+		motion_other.angle = 0.f;
+		motion_other.scale = vec2({ 550.f, 600.f });
+
+		registry.dialogueMenus.emplace(other_entity);
+		if (character == talk_2) {
+			registry.renderRequests.insert(
+				other_entity,
+				{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::REIMU_PORTRAIT + (int)talk_2), // TEXTURE_COUNT indicates that no txture is needed
+					EFFECT_ASSET_ID::UI,
+					GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else {
+			registry.renderRequests.insert(
+				other_entity,
+				{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::REIMU_PORTRAIT + (int)talk_2), // TEXTURE_COUNT indicates that no txture is needed
+					EFFECT_ASSET_ID::GREY,
+					GEOMETRY_BUFFER_ID::SPRITE });
+		}
+	}
+
+	auto dialogue_entity = Entity();
+	// Setting initial motion values
+	Motion& motion_dialogue = registry.motions.emplace(dialogue_entity);
+	motion_dialogue.position = vec2(0, window_px_half.y-130);
+	motion_dialogue.angle = 0.f;
+	motion_dialogue.scale = vec2({ 1.6 * 688.f, 1.2*224.f });
+
+	registry.dialogueMenus.emplace(dialogue_entity);
+	registry.renderRequests.insert(
+		dialogue_entity,
+		{ TEXTURE_ASSET_ID::DIALOGUE_BOX, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	
+	createText({ 0,window_px_half.y - 170 }, { 0.8,0.8 }, sentence, vec3(0, 0, 0), false, false);
 }
 
 Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui, bool is_active, float frame_rate)
@@ -900,8 +968,8 @@ Entity createBomberEnemy(RenderSystem* renderer, vec2 position)
 
 	registry.bomberEnemies.emplace(entity);
 	EntityAnimation enemy_ani;
-	enemy_ani.spritesheet_scale = { 1.f / 6.f, 1.f / 11.f };
-	enemy_ani.render_pos = { 1.f / 6.f, 1.f / 11.f };
+	enemy_ani.spritesheet_scale = { 1.f / 6.f, 1.f / 12.f };
+	enemy_ani.render_pos = { 1.f / 6.f, 1.f / 12.f };
 	registry.animation.insert(entity, enemy_ani);
 	registry.renderRequests.insert(
 		entity,
@@ -1088,49 +1156,51 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 
 		// Set the collision box
 		auto& collidable = registry.collidables.emplace(entity);
+		collidable.size = { motion.scale.x, motion.scale.y };
+		collidable.shift = { 0, 0 };
 
-		if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_WALL) {
-			collidable.size = { motion.scale.x, motion.scale.y };
-			collidable.shift = { 0, 0 };
-		}
-		else if (textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_WALL) {
-			collidable.size = { motion.scale.x, motion.scale.y };
-			collidable.shift = { 0, 0 };
-		}
-		else if (textureIDs[i] == TEXTURE_ASSET_ID::BOTTOM_WALL) {
-			collidable.size = { motion.scale.x, motion.scale.y };
-			collidable.shift = { 0, 0 };
-		}
-		else if (textureIDs[i] == TEXTURE_ASSET_ID::WALL_SURFACE) {
-			collidable.size = { motion.scale.x, motion.scale.y };
-			collidable.shift = { 0, 0 };
-		}
-		else if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL ||
-			textureIDs[i] == TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL ||
-			textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL ||
-			textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL) {
-			collidable.size = { motion.scale.x, motion.scale.y };
-			collidable.shift = { 0, 0 };
-		}
-		else
-			// TODO: remove this, used for testing ai can see player
-			if (textureIDs[i] == TEXTURE_ASSET_ID::PILLAR_BOTTOM) {
-				collidable.size = { motion.scale.x, motion.scale.y / 2 };
-				collidable.shift = { 0, -motion.scale.y / 4 };
-			}
-			else {
-				// Temporary
-				// TODO: Maybe change/refactor this since it's adding floors when its in createWall
-				registry.collidables.remove(entity);
-				registry.floors.emplace(entity);
-				registry.renderRequests.insert(
-					entity,
-					{ textureIDs[i],
-					 EFFECT_ASSET_ID::TEXTURED,
-					 GEOMETRY_BUFFER_ID::SPRITE });
-				entities.push_back(entity);
-				continue;
-			}
+		//if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_WALL) {
+		//	collidable.size = { motion.scale.x, motion.scale.y };
+		//	collidable.shift = { 0, 0 };
+		//}
+		//else if (textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_WALL) {
+		//	collidable.size = { motion.scale.x, motion.scale.y };
+		//	collidable.shift = { 0, 0 };
+		//}
+		//else if (textureIDs[i] == TEXTURE_ASSET_ID::BOTTOM_WALL) {
+		//	collidable.size = { motion.scale.x, motion.scale.y };
+		//	collidable.shift = { 0, 0 };
+		//}
+		//else if (textureIDs[i] == TEXTURE_ASSET_ID::WALL_SURFACE) {
+		//	collidable.size = { motion.scale.x, motion.scale.y };
+		//	collidable.shift = { 0, 0 };
+		//}
+		//else if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL ||
+		//	textureIDs[i] == TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL ||
+		//	textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL ||
+		//	textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL) {
+		//	collidable.size = { motion.scale.x, motion.scale.y };
+		//	collidable.shift = { 0, 0 };
+		//}
+		//else
+		//	// TODO: remove this, used for testing ai can see player
+		//	if (textureIDs[i] == TEXTURE_ASSET_ID::PILLAR_BOTTOM) {
+		//		collidable.size = { motion.scale.x, motion.scale.y / 2 };
+		//		collidable.shift = { 0, -motion.scale.y / 4 };
+		//	}
+		//	else {
+		//		// Temporary
+		//		// TODO: Maybe change/refactor this since it's adding floors when its in createWall
+		//		registry.collidables.remove(entity);
+		//		registry.floors.emplace(entity);
+		//		registry.renderRequests.insert(
+		//			entity,
+		//			{ textureIDs[i],
+		//			 EFFECT_ASSET_ID::TEXTURED,
+		//			 GEOMETRY_BUFFER_ID::SPRITE });
+		//		entities.push_back(entity);
+		//		continue;
+		//	}
 
 		// Create and (empty) Tile component to be able to refer to all physical tiles
 		registry.walls.emplace(entity);
@@ -1144,6 +1214,123 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 	}
 	return entities;
 }
+
+// IMPORTANT: createDoor takes in grid coordinates
+Entity createDoor(RenderSystem* renderer, vec2 grid_position, DIRECTION dir, int room_index) {
+	auto entity = Entity();
+
+	// Initializes the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = convert_grid_to_world(grid_position);
+	motion.scale = vec2(world_tile_size, world_tile_size);
+
+	// Creates door
+	auto& door = registry.doors.emplace(entity);
+	door.dir = dir;
+	door.room_index = room_index;
+
+	game_info.room_index[room_index].doors.push_back(entity);
+	game_info.room_index[room_index].door_locations.push_back(grid_position);
+
+	// Locked doors are collidable
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = { motion.scale.x, motion.scale.y };
+	collidable.shift = { 0, 0 };
+
+	if (dir == DIRECTION::LEFT || dir == DIRECTION::RIGHT) {
+		door.top_texture = createDoorUpTexture(renderer, grid_position + vec2(0, -1));
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::DOOR_VERTICAL_CLOSE_DOWN,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::DOOR_HORIZONTAL_CLOSE,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+	return entity;
+}
+
+// for vertical doors, aesthetic effect
+Entity createDoorUpTexture(RenderSystem* renderer, vec2 grid_position) {
+	auto entity = Entity();
+
+	// Initializes the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = convert_grid_to_world(grid_position);
+	motion.scale = vec2(world_tile_size, world_tile_size);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::DOOR_VERTICAL_CLOSE_UP,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, vec2 grid_position, TILE_NAME_SANDSTONE tile_name, bool is_wall) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	//Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	//registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = convert_grid_to_world(grid_position);
+	motion.scale = vec2(world_tile_size, world_tile_size);
+
+	// Create wall or floor entity for physics collision
+	if (is_wall) {
+		registry.walls.emplace(entity);
+		// Set the collision box
+		auto& collidable = registry.collidables.emplace(entity);
+		collidable.size = { motion.scale.x, motion.scale.y };
+		collidable.shift = { 0, 0 };
+	}
+	else {
+		registry.floors.emplace(entity);
+	}
+
+	// Set up instance data
+	Transform t;
+	t.translate(motion.position);
+	t.scale(motion.scale);
+	registry.tileInstanceData.emplace(entity) = {
+		renderer->get_spriteloc_sandstone(tile_name),
+		t.mat
+	};
+
+	// Add visibility tile
+	// We do it here bcause we have already calculated the transform matrix
+	/*
+	This entity has:
+
+	TEXTURE_ASSET_ID::TEXTURE_COUNT,
+	EFFECT_ASSET_ID::EGG,
+	GEOMETRY_BUFFER_ID::DEBUG_LINE2
+	*/
+	if (map_level.level == MapLevel::TUTORIAL) return entity;
+
+	auto entity2 = Entity();
+	//registry.visibilityTiles.emplace(entity2); // TODO
+	registry.visibilityTileInstanceData.emplace(entity2) = {
+		t.mat,
+		1.0
+	};
+	// add reference to entity in 2d array
+	// when removing visibility tile entities, we set it's corresponding grid position in reference map to -1
+	visibility_system->reference_map[grid_position.y][grid_position.x] = entity2;
+
+	return entity;
+}
+
 
 // IMPORTANT: creates pillar using grid coordinates, NOT world coorindates
 // textureIDs[0] == bottom, textureIDs[1] == top
@@ -1180,7 +1367,7 @@ std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std
 	bottom_collidable.size = { bottom_motion.scale.x, bottom_motion.scale.y };
 	bottom_collidable.shift = { 0, 0 };
 
-	WorldSystem::world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+	world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
 
 	registry.walls.emplace(bottom_entity);
 	registry.floors.emplace(top_entity); // TODO: maybe foreground.emplace
