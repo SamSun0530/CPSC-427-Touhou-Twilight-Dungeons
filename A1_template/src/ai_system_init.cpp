@@ -342,12 +342,14 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 		if (boss.boss_id == BOSS_ID::CIRNO) {
 			if (!dialogue_info.cirno_played) {
 				dialogue_info.cirno_pt = 0;
+				boss_info.has_cirno_talked = true;
 			}
 		}
 		else if (boss.boss_id == BOSS_ID::FLANDRE) {
 			boss_info.should_use_flandre_bullet = true;
 			if (!dialogue_info.flandre_played) {
 				dialogue_info.flandre_pt = 0;
+				boss_info.has_flandre_talked = true;
 			}
 		}
 		HP& hp = registry.hps.get(entity);
