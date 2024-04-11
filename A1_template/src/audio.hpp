@@ -7,6 +7,22 @@
 // internal
 #include "common.hpp"
 #include "components.hpp"
+#include "tiny_ecs_registry.hpp"
+
+struct audio {
+	int channel = -1;
+	bool is_playing = false;
+
+	void play() {
+		is_playing = true;
+		Mix_Resume(channel);
+	}
+
+	void pause() {
+		is_playing = false;
+		Mix_Pause(channel);
+	}
+};
 
 class Audio {
 public:
@@ -25,4 +41,10 @@ public:
 	Mix_Chunk* firing_sound;
 	Mix_Chunk* damage_sound;
 	Mix_Chunk* hit_spell;
+	Mix_Chunk* flandre_boss_music;
+
+	audio abackground_music;
+	audio amenu_music;
+	audio aflandre_boss_music;
+	audio aboss_music;
 };

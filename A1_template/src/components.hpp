@@ -117,8 +117,13 @@ extern GameInfo game_info;
 struct BossInfo {
 	bool should_use_flandre_bullet = false;
 
+	bool has_cirno_talked = false;
+	bool has_flandre_talked = false;
+
 	void reset() {
 		should_use_flandre_bullet = false;
+		has_cirno_talked = false;
+		has_flandre_talked = false;
 	}
 };
 extern BossInfo boss_info;

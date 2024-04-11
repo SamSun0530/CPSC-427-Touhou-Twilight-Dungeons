@@ -127,6 +127,10 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 				entity = createBomberEnemy(renderer, point);
 			}
 			room.enemies.push_back(entity);
+
+			// TODO: game breaking bug - only 3 enemies spawn locking player out of room
+			//printf("pushed entity %d to rooms\n", entity);
+			//printf("size %d\n", room.enemies.size());
 		}
 	}
 	else if (room.type == ROOM_TYPE::BOSS) {
