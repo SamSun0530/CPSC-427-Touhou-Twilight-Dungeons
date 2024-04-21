@@ -96,6 +96,7 @@ private:
 	std::array<bool, 512> pressed = { 0 };
 	std::vector<std::string> start_script;
 	std::vector<std::string> cirno_script;
+	std::vector<std::string> marisa_script;
 	std::vector<std::string> flandre_script;
 	std::vector<std::string> cirno_after_script;
 	std::vector<std::string> flandre_after_script;

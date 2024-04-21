@@ -105,12 +105,14 @@ class RenderSystem {
 			textures_path("reimu_portrait.png"),
 			textures_path("cirno_portrait.png"),
 			textures_path("flandre_portrait.png"),
+			textures_path("marisa_portrait.png"),
 			textures_path("DialogueBox.png"),
 			textures_path("Teleporter.png"),
 			textures_path("WinDeathMenu.png"),
 			textures_path("Flandre-Figure.png"),
 			textures_path("Flandre-Bullet.png"),
 			textures_path("Infographic.png"),
+			textures_path("Marisa-Figure.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

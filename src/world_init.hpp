@@ -55,6 +55,7 @@ Entity createHealthUI(RenderSystem*);
 
 Entity createHealth(RenderSystem* renderer, vec2 position);
 Entity createTreasure(RenderSystem* renderer, vec2 position);
+Entity createNPC(RenderSystem* renderer, vec2 pos);
 Entity createWin(RenderSystem* renderer);
 Entity createLose(RenderSystem* renderer);
 Entity createInfographic(RenderSystem* renderer);
