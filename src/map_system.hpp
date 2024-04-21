@@ -36,7 +36,7 @@ private:
 	std::vector<Room> rooms;
 
 	// sandstone tile atlas
-	TILE_NAME_SANDSTONE get_tile_name_sandstone(int x, int y, std::vector<std::vector<int>>& map);
+	TILE_NAME get_tile_name(int x, int y, std::vector<std::vector<int>>& map);
 	void generate_all_tiles(std::vector<std::vector<int>>& map);
 
 	// C++ random number generator

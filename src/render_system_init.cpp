@@ -146,8 +146,8 @@ void RenderSystem::initializeGlTextures()
 		}
 		glBindTexture(GL_TEXTURE_2D, texture_gl_handles[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dimensions.x, dimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		gl_has_errors();
 		stbi_image_free(data);
 	}
@@ -314,13 +314,20 @@ void RenderSystem::initializeGlGeometryBuffers()
 
 	constexpr float depth = 0.5f;
 	constexpr vec3 red = { 0.8,0.1,0.1 };
+	constexpr vec3 white = { 1.0,1.0,1.0 };
 
 	// Corner points
+	//line_vertices = {
+	//	{{-0.5,-0.5, depth}, red},
+	//	{{-0.5, 0.5, depth}, red},
+	//	{{ 0.5, 0.5, depth}, red},
+	//	{{ 0.5,-0.5, depth}, red},
+	//};	
 	line_vertices = {
-		{{-0.5,-0.5, depth}, red},
-		{{-0.5, 0.5, depth}, red},
-		{{ 0.5, 0.5, depth}, red},
-		{{ 0.5,-0.5, depth}, red},
+		{{-0.5,-0.5, depth}, white},
+		{{-0.5, 0.5, depth}, white},
+		{{ 0.5, 0.5, depth}, white},
+		{{ 0.5,-0.5, depth}, white},
 	};
 
 	// Two triangles

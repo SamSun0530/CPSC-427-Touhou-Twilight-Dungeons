@@ -501,23 +501,45 @@ void MapSystem::set_map_walls(std::vector<std::vector<int>>& map) {
 	}
 }
 
-TILE_NAME_SANDSTONE MapSystem::get_tile_name_sandstone(int x, int y, std::vector<std::vector<int>>& map) {
+TILE_NAME MapSystem::get_tile_name(int x, int y, std::vector<std::vector<int>>& map) {
 	int type = map[y][x];
 	// Specify int casted enums
 	const int E = (int)TILE_TYPE::EMPTY;
 	const int W = (int)TILE_TYPE::WALL;
 	const int F = (int)TILE_TYPE::FLOOR;
 
-	if (type == E) return TILE_NAME_SANDSTONE::NONE;
+	if (type == E) return TILE_NAME::NONE;
 	else if (type == F) {
-		TILE_NAME_SANDSTONE temp = TILE_NAME_SANDSTONE::CHECKER_FLOOR;
+		TILE_NAME temp = TILE_NAME::FLOOR_3_1;
 		switch (map_info.level) {
 		case MAP_LEVEL::LEVEL1:
-			temp = TILE_NAME_SANDSTONE::AZTEC_FLOOR;
+			temp = TILE_NAME::FLOOR_1_0;
 			break;
-		case MAP_LEVEL::LEVEL2:
-			temp = TILE_NAME_SANDSTONE::ROCK_FLOOR;
+		case MAP_LEVEL::LEVEL2: {
+			std::random_device ran;
+			std::mt19937 gen(ran());
+			std::uniform_real_distribution<> dis(0.f, 1.f);
+			float random_number = dis(gen);
+			if (random_number < 0.4f) {
+				temp = TILE_NAME::DEFAULT_FLOOR;
+			}
+			else if (random_number < 0.5) {
+				temp = TILE_NAME::FLOOR_1_0;
+			}
+			else if (random_number < 0.6) {
+				temp = TILE_NAME::FLOOR_2_0;
+			}
+			else if (random_number < 0.7) {
+				temp = TILE_NAME::FLOOR_3_0;
+			}
+			else if (random_number < 0.8) {
+				temp = TILE_NAME::FLOOR_3_1;
+			}
+			else {
+				temp = TILE_NAME::FLOOR_0_1;
+			}
 			break;
+		}
 		default:
 			break;
 		}
@@ -534,37 +556,37 @@ TILE_NAME_SANDSTONE MapSystem::get_tile_name_sandstone(int x, int y, std::vector
 	const int DL = map[y + 1][x - 1];	// Down left
 	const int DR = map[y + 1][x + 1];	// Down right
 
-	TILE_NAME_SANDSTONE result = TILE_NAME_SANDSTONE::NONE;
+	TILE_NAME result = TILE_NAME::NONE;
 
 	if (UR == F && U == W && R == W && D != F) {
-		result = TILE_NAME_SANDSTONE::BOTTOM_LEFT;
+		result = TILE_NAME::BOTTOM_LEFT;
 	}
 	else if (UL == F && U == W && L == W && D != F) {
-		result = TILE_NAME_SANDSTONE::BOTTOM_RIGHT;
+		result = TILE_NAME::BOTTOM_RIGHT;
 	}
 	else if ((U == F && L == F && R == W && D == W) ||
 		(U == F && L == W && R == W && D == W && DL == F && DR == E)) {
-		result = TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_LEFT;
+		result = TILE_NAME::CORRIDOR_BOTTOM_LEFT;
 	}
 	else if ((U == F && L == W && R == F && D == W) ||
 		(U == F && L == W && R == W && D == W && DR == F && DL == E)) {
-		result = TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_RIGHT;
+		result = TILE_NAME::CORRIDOR_BOTTOM_RIGHT;
 	}
 	else if (D == F ||
 		(U == W && L == W && D == F && R == F) ||
 		(U == W && L == F && D == F && R == W)) {
-		result = TILE_NAME_SANDSTONE::TOP_WALL;
+		result = TILE_NAME::TOP_WALL;
 	}
 	else if (L == F ||
 		(L == W && DL == F && D == W)) {
-		result = TILE_NAME_SANDSTONE::RIGHT_WALL;
+		result = TILE_NAME::RIGHT_WALL;
 	}
 	else if (R == F ||
 		(R == W && DR == F && D == W)) {
-		result = TILE_NAME_SANDSTONE::LEFT_WALL;
+		result = TILE_NAME::LEFT_WALL;
 	}
 	else if (U == F) {
-		result = TILE_NAME_SANDSTONE::BOTTOM_WALL;
+		result = TILE_NAME::BOTTOM_WALL;
 	}
 
 	return result;
@@ -618,8 +640,8 @@ void MapSystem::generate_all_tiles(std::vector<std::vector<int>>& map) {
 
 	for (int y = 0; y < map_height; ++y) {
 		for (int x = 0; x < map_width; ++x) {
-			TILE_NAME_SANDSTONE result = get_tile_name_sandstone(x + 1, y + 1, map_copy);
-			if (result == TILE_NAME_SANDSTONE::NONE) continue;
+			TILE_NAME result = get_tile_name(x + 1, y + 1, map_copy);
+			if (result == TILE_NAME::NONE) continue;
 			createTile(renderer, visibility_system, { x, y }, result, map[y][x] == (int)TILE_TYPE::WALL);
 		}
 	}

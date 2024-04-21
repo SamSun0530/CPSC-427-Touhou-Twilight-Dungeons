@@ -1000,10 +1000,11 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 	boss.phase_change_time = 1500;
 
 	if (boss_id == BOSS_ID::CIRNO) {
-		hp.max_hp = 5020;
+		hp.max_hp = 5;
 		hp.curr_hp = hp.max_hp;
 
-		boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
+		boss.health_phase_thresholds = { 5, 4, 3, 2, -1 }; // -1 for end of phase
+		//boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
 
 		registry.renderRequests.insert(
 			entity,
@@ -1494,7 +1495,7 @@ Entity createDoorUpTexture(RenderSystem* renderer, vec2 grid_position) {
 	return entity;
 }
 
-Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, vec2 grid_position, TILE_NAME_SANDSTONE tile_name, bool is_wall) {
+Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, vec2 grid_position, TILE_NAME tile_name, bool is_wall) {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -1523,7 +1524,7 @@ Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, v
 	t.translate(motion.position);
 	t.scale(motion.scale);
 	registry.tileInstanceData.emplace(entity) = {
-		renderer->get_spriteloc_sandstone(tile_name),
+		renderer->get_spriteloc(tile_name),
 		t.mat
 	};
 

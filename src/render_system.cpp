@@ -348,7 +348,12 @@ void RenderSystem::draw()
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
 	//glClearColor(0.674, 0.847, 1.0, 1.0);
-	glClearColor(0, 0, 0, 1.0);
+	if (map_info.level == MAP_LEVEL::LEVEL2) {
+		glClearColor(131.f / 255.f, 164.f / 255.f, 72.f / 255.f, 1.f);
+	}
+	else {
+		glClearColor(0, 0, 0, 1.0);
+	}
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
@@ -363,11 +368,11 @@ void RenderSystem::draw()
 
 	camera.setCameraAABB();
 
-	if (menu.state == MENU_STATE::PLAY || 
-		menu.state == MENU_STATE::PAUSE || 
-		menu.state == MENU_STATE::DIALOGUE || 
-		menu.state == MENU_STATE::WIN || 
-		menu.state == MENU_STATE::LOSE || 
+	if (menu.state == MENU_STATE::PLAY ||
+		menu.state == MENU_STATE::PAUSE ||
+		menu.state == MENU_STATE::DIALOGUE ||
+		menu.state == MENU_STATE::WIN ||
+		menu.state == MENU_STATE::LOSE ||
 		menu.state == MENU_STATE::INFOGRAPHIC) {
 
 		// Draw all textured meshes that have a position and size component
@@ -819,74 +824,77 @@ void RenderSystem::drawBulletsInstanced(const std::vector<Entity>& entities, con
 	delete[] instance_transforms;
 }
 
-vec4 RenderSystem::get_spriteloc_sandstone(TILE_NAME_SANDSTONE tile_name) {
+vec4 RenderSystem::get_spriteloc(TILE_NAME tile_name) {
 	// Adapted from: https://gamedev.stackexchange.com/a/86356
 	// spriteloc = { offset_x, offset_y, sprite_width, sprite_height }
 	// Note:
 	// spriteloc will be scaled by (x,y)=(sprite_width/atlas_width, sprite_height/atlas_height)
 	// e.g. (1.f/2.f, 1.f/3.f) is the same as (32.f/64.f, 32.f/96.f) assuming each texture is 32x32. Also works for any texture size in atlas
 	// then shifted by (x,y)=(offset_x/atlas_width, offset_y/atlas_height), works the same with above example
-	const float ATLAS_WIDTH = 9.f;
+	const float ATLAS_WIDTH = 4.f;
 	const float ATLAS_HEIGHT = 7.f;
 	const vec4 DIVISOR = vec4(ATLAS_WIDTH, ATLAS_HEIGHT, ATLAS_WIDTH, ATLAS_HEIGHT);
 	vec4 spriteloc = { -1.f, -1.f, -1.f, -1.f };
 	// switch is faster than unordered_map in this case, no need to hash
 	switch (tile_name) {
-	case TILE_NAME_SANDSTONE::AZTEC_FLOOR:
+	case TILE_NAME::DEFAULT_FLOOR:
+		spriteloc = { 0.f, 0.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME::FLOOR_1_0:
 		spriteloc = { 1.f, 0.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::ROCK_FLOOR:
+	case TILE_NAME::FLOOR_2_0:
 		spriteloc = { 2.f, 0.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::BONE_FLOOR:
+	case TILE_NAME::FLOOR_3_0:
 		spriteloc = { 3.f, 0.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::CHOCOLATE_FLOOR:
+	case TILE_NAME::FLOOR_0_1:
 		spriteloc = { 0.f, 1.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::BRICK_FLOOR:
+	case TILE_NAME::FLOOR_1_1:
 		spriteloc = { 1.f, 1.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::CANDY_FLOOR:
+	case TILE_NAME::FLOOR_2_1:
 		spriteloc = { 2.f, 1.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::CHECKER_FLOOR:
+	case TILE_NAME::FLOOR_3_1:
 		spriteloc = { 3.f, 1.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::LEFT_WALL:
+	case TILE_NAME::LEFT_WALL:
 		spriteloc = { 0.f, 2.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::TOP_WALL:
+	case TILE_NAME::TOP_WALL:
 		spriteloc = { 1.f, 2.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::RIGHT_WALL:
+	case TILE_NAME::RIGHT_WALL:
 		spriteloc = { 2.f, 2.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_RIGHT:
+	case TILE_NAME::CORRIDOR_BOTTOM_RIGHT:
 		spriteloc = { 0.f, 5.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_LEFT:
+	case TILE_NAME::CORRIDOR_BOTTOM_LEFT:
 		spriteloc = { 2.f, 5.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::BOTTOM_LEFT:
+	case TILE_NAME::BOTTOM_LEFT:
 		spriteloc = { 0.f, 6.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::BOTTOM_WALL:
+	case TILE_NAME::BOTTOM_WALL:
 		spriteloc = { 1.f, 6.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::BOTTOM_RIGHT:
+	case TILE_NAME::BOTTOM_RIGHT:
 		spriteloc = { 2.f, 6.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_RIGHT_LIGHT:
+	case TILE_NAME::CORRIDOR_BOTTOM_RIGHT_LIGHT:
 		spriteloc = { 0.f, 3.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::CORRIDOR_BOTTOM_LEFT_LIGHT:
+	case TILE_NAME::CORRIDOR_BOTTOM_LEFT_LIGHT:
 		spriteloc = { 2.f, 3.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::BOTTOM_LEFT_LIGHT:
+	case TILE_NAME::BOTTOM_LEFT_LIGHT:
 		spriteloc = { 0.f, 4.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME_SANDSTONE::BOTTOM_RIGHT_LIGHT:
+	case TILE_NAME::BOTTOM_RIGHT_LIGHT:
 		spriteloc = { 2.f, 4.f, 1.0, 1.0 };
 		break;
 	default:
@@ -921,7 +929,13 @@ void RenderSystem::drawTilesInstanced(const glm::mat3& projection, const glm::ma
 	glActiveTexture(GL_TEXTURE0);
 	gl_has_errors();
 
-	GLuint texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::TILES_ATLAS_SANDSTONE];
+	GLuint texture_id;
+	if (map_info.level == MAP_LEVEL::LEVEL2) {
+		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::TILES_ATLAS_RUINS];
+	}
+	else {
+		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::TILES_ATLAS_SANDSTONE];
+	}
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 	gl_has_errors();
 
@@ -987,7 +1001,13 @@ void RenderSystem::drawVisibilityTilesInstanced(const glm::mat3& projection, con
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(visibility_tile_instance_program, "fcolor");
 	//const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
-	const vec3 color = vec3(0); // black tile
+	vec3 color;
+	if (map_info.level == MAP_LEVEL::LEVEL2) {
+		color = vec3(131.f / 255.f, 164.f / 255.f, 72.f / 255.f);
+	}
+	else {
+		color = vec3(0);
+	}
 	glUniform3fv(color_uloc, 1, (float*)&color);
 	gl_has_errors();
 
