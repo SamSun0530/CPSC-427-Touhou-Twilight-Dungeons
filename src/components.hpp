@@ -475,17 +475,18 @@ struct Purchasableable
 	int effect_strength;
 };
 
-// Tile set names specifically mapped from Sandstone Dungeon texture atlas
+// Tile set names specifically mapped from texture atlas
 // comments are in (x,y), indexed by 0
-enum class TILE_NAME_SANDSTONE {
+enum class TILE_NAME {
 	NONE,
-	AZTEC_FLOOR, // 1,0
-	ROCK_FLOOR, // 2,0
-	BONE_FLOOR, // 3,0
-	CHOCOLATE_FLOOR, // 0,1
-	BRICK_FLOOR, // 1,1
-	CANDY_FLOOR, // 2,1
-	CHECKER_FLOOR, // 3,1
+	DEFAULT_FLOOR, // 0,0
+	FLOOR_1_0, // 1,0
+	FLOOR_2_0, // 2,0
+	FLOOR_3_0, // 3,0
+	FLOOR_0_1, // 0,1
+	FLOOR_1_1, // 1,1
+	FLOOR_2_1, // 2,1
+	FLOOR_3_1, // 3,1
 	LEFT_WALL, // 0,2
 	TOP_WALL, // 1,2 - Corridors included
 	RIGHT_WALL, // 2,2
@@ -817,7 +818,8 @@ enum class TEXTURE_ASSET_ID {
 	FOCUS_BAR = CRTHITICON + 1,
 	COIN_STATIC = FOCUS_BAR + 1,
 	TILES_ATLAS_SANDSTONE = COIN_STATIC + 1,
-	BUTTON = TILES_ATLAS_SANDSTONE + 1,
+	TILES_ATLAS_RUINS = TILES_ATLAS_SANDSTONE + 1,
+	BUTTON = TILES_ATLAS_RUINS + 1,
 	BUTTON_HOVERED = BUTTON + 1,
 	NONE = BUTTON_HOVERED + 1,
 	MENU_TITLE = NONE + 1,

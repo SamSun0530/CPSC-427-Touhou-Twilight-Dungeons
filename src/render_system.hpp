@@ -83,6 +83,7 @@ class RenderSystem {
 			textures_path("FocusBar.png"),
 			textures_path("Coins-Static.png"),
 			textures_path("TileAtlasSandstone.png"),
+			textures_path("TileAtlasRuins.png"),
 			textures_path("Button.png"),
 			textures_path("ButtonHover.png"),
 			textures_path("None.png"),
@@ -181,7 +182,7 @@ public:
 	// called once when generating new map
 	void set_visibility_tiles_instance_buffer_max();
 	// get sprite location of tile name sandstone atlas
-	vec4 get_spriteloc_sandstone(TILE_NAME_SANDSTONE tile_name);
+	vec4 get_spriteloc(TILE_NAME tile_name);
 	// if is_close true, switch to closed texture, otherwise open texture
 	void switch_door_texture(Entity door_entity, bool is_close);
 private:
