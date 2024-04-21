@@ -29,6 +29,9 @@ public:
 	Audio();
 	~Audio();
 
+	// restart audio to level 1 playing
+	void restart_audio_level1();
+
 	void step(float elapsed);
 
 	// music references
