@@ -107,7 +107,6 @@ void MapSystem::spawnEnemiesInRooms() {
 // spawn enemies inside room
 void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 {
-	Entity entity;
 	if (room.type == ROOM_TYPE::NORMAL) {
 		std::vector<vec2> spawn_points;
 		spawn_points.push_back(convert_grid_to_world(room.top_left + 1.f));
@@ -118,29 +117,23 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		for (vec2 point : spawn_points) {
 			float random_numer = uniform_dist(rng);
 			if (random_numer <= 0.50) {
-				entity = createBeeEnemy(renderer, point);
+				room.enemies.push_back(createBeeEnemy(renderer, point));
 			}
 			else if (random_numer <= 0.75) {
-				entity = createWolfEnemy(renderer, point);
+				room.enemies.push_back(createWolfEnemy(renderer, point));
 			}
-			else if (random_numer <= 0.99) {
-				entity = createBomberEnemy(renderer, point);
+			else if (random_numer <= 1.0) {
+				room.enemies.push_back(createBomberEnemy(renderer, point));
 			}
-			room.enemies.push_back(entity);
-
-			// TODO: game breaking bug - only 3 enemies spawn locking player out of room
-			//printf("pushed entity %d to rooms\n", entity);
-			//printf("size %d\n", room.enemies.size());
 		}
 	}
 	else if (room.type == ROOM_TYPE::BOSS) {
 		if (map_info.level == MAP_LEVEL::LEVEL1) {
-			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Cirno, the Ice Fairy", BOSS_ID::CIRNO, vec3(0, 0, 1));
+			room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Cirno, the Ice Fairy", BOSS_ID::CIRNO, vec3(0, 0, 1)));
 		}
 		else if (map_info.level == MAP_LEVEL::LEVEL2) {
-			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Flandre, the Scarlet Devil", BOSS_ID::FLANDRE, vec3(1, 0, 0));
+			room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Flandre, the Scarlet Devil", BOSS_ID::FLANDRE, vec3(1, 0, 0)));
 		}
-		room.enemies.push_back(entity);
 	}
 	else if (room.type == ROOM_TYPE::START) {
 		// spawn nothing
