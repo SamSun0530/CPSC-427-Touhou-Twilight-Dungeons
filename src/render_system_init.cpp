@@ -329,8 +329,7 @@ void RenderSystem::initializeGlGeometryBuffers()
 		{{ 0.5, 0.5, depth}, white},
 		{{ 0.5,-0.5, depth}, white},
 	};
-	std::default_random_engine rng;
-	std::uniform_real_distribution<float> uniform_dist{ -1,1 }; // number between -1..1
+
 	// Two triangles
 	line_indices = { 0, 1, 3, 1, 2, 3 };
 
