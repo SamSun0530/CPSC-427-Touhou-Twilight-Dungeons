@@ -10,8 +10,10 @@ struct DialogueInfo {
 	unsigned int cirno_after_pt = 1000000;
 	unsigned int flandre_pt = 1000000;
 	unsigned int flandre_after_pt = 1000000;
+	unsigned int marisa_pt = 1000000;
 	bool cirno_played = false;
 	bool flandre_played = false;
+	bool marisa_played = false;
 };
 extern DialogueInfo dialogue_info;
 
@@ -209,6 +211,7 @@ enum class CHARACTER {
 	REIMU,
 	CIRNO,
 	FlANDRE,
+	MARISA,
 	NONE,
 };
 
@@ -339,7 +342,7 @@ struct Player
 	int coin_amount = 0;
 	int key_amount = 0;
 	float invulnerability_time_ms = 1000;
-	float fire_rate = 3;
+	float fire_rate = 1/3.f;
 	float critical_hit = 0.05;
 	float critical_demage = 1.5;
 };
@@ -398,6 +401,11 @@ struct BomberEnemy
 };
 
 struct WolfEnemy
+{
+
+};
+
+struct NPC
 {
 
 };
@@ -829,7 +837,7 @@ enum class TEXTURE_ASSET_ID {
 	S = A + 1,
 	ITEM_R = S + 1,
 	ITEM_G = ITEM_R + 1,
-	ITEM_B = ITEM_G + 1 ,
+	ITEM_B = ITEM_G + 1,
 	DOOR_HORIZONTAL_OPEN = ITEM_B + 1,
 	DOOR_HORIZONTAL_CLOSE = DOOR_HORIZONTAL_OPEN + 1,
 	DOOR_VERTICAL_OPEN_DOWN = DOOR_HORIZONTAL_CLOSE + 1,
@@ -839,13 +847,15 @@ enum class TEXTURE_ASSET_ID {
 	REIMU_PORTRAIT = DOOR_VERTICAL_CLOSE_UP + 1,
 	CIRNO_PORTRAIT = REIMU_PORTRAIT + 1,
 	FLANDRE_PORTRAIT = CIRNO_PORTRAIT + 1,
-	DIALOGUE_BOX = FLANDRE_PORTRAIT + 1,
+	MARISA_PORTRAIT = FLANDRE_PORTRAIT + 1,
+	DIALOGUE_BOX = MARISA_PORTRAIT + 1,
 	TELEPORTER = DIALOGUE_BOX + 1,
 	WINDEATH_SCREEN = TELEPORTER + 1,
 	BOSS_FLANDRE = WINDEATH_SCREEN + 1,
 	FLANDRE_BULLET = BOSS_FLANDRE + 1,
 	INFOGRAPHIC = FLANDRE_BULLET + 1,
-	TEXTURE_COUNT = INFOGRAPHIC + 1,
+	NPC_MARISA = INFOGRAPHIC + 1,
+	TEXTURE_COUNT = NPC_MARISA + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

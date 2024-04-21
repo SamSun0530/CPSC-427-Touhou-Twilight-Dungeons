@@ -358,6 +358,16 @@ void PhysicsSystem::step(float elapsed_ms)
 			}
 		}
 
+		// Player to NPCs
+		for (Entity npc_entity : registry.npcs.entities) {
+			Motion& motion = registry.motions.get(npc_entity);
+			Collidable& collidable = registry.collidables.get(npc_entity);
+			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+				registry.collisions.emplace_with_duplicates(player_entity, npc_entity);
+				registry.collisions.emplace_with_duplicates(npc_entity, player_entity);
+			}
+		}
+
 		// Player to coins
 		for (Entity coin_entity : registry.coins.entities) {
 			Motion& motion = registry.motions.get(coin_entity);

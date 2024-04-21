@@ -1,7 +1,7 @@
 #include "audio.hpp"
 
 void Audio::step(float elapsed) {
-	if (menu.state == MENU_STATE::MAIN_MENU) {
+	if (menu.state == MENU_STATE::MAIN_MENU || menu.state == MENU_STATE::WIN || menu.state == MENU_STATE::LOSE) {
 		if (abackground_music.is_playing ||
 			aboss_music.is_playing ||
 			aflandre_boss_music.is_playing) {

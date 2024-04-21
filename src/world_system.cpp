@@ -32,6 +32,7 @@ WorldSystem::WorldSystem()
 	loadScript("cirno_after.txt", cirno_after_script);
 	loadScript("flandre_after.txt", flandre_after_script);
 	loadScript("flandre.txt", flandre_script);
+	loadScript("marisa.txt", marisa_script);
 }
 
 WorldSystem::~WorldSystem() {
@@ -224,17 +225,8 @@ void WorldSystem::init_win_menu() {
 void WorldSystem::init_lose_menu() {
 	createLose(renderer);
 	const float button_scale = 0.7f;
-	createButton(renderer, { 0, 200 }, button_scale * 1.1, MENU_STATE::LOSE, "Exit to Menu", 0.85f, [&]() {
-		game_info.has_started = false;
-		Mix_PauseMusic();
-		for (Entity entity : registry.buttons.entities) {
-			Button& button = registry.buttons.get(entity);
-			if (button.state == MENU_STATE::MAIN_MENU)
-				registry.remove_all_components_of(entity);
-		}
-		registry.mainMenus.clear();
-		init_menu();
-		menu.state = MENU_STATE::MAIN_MENU;
+	createButton(renderer, { 0, 200 }, button_scale * 1.1, MENU_STATE::LOSE, "Restart", 0.85f, [&]() {
+		restart_game();
 		});
 }
 
@@ -451,11 +443,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					registry.dummyEnemyLink.remove(entity);
 				}
 
-				if (number <= 0.1) {
+				if (number <= 0.05) {
 					createHealth(renderer, registry.motions.get(entity).position);
-				}
-				else if (number <= 0.3 * combo_mode.combo_meter) {
-					createTreasure(renderer, registry.motions.get(entity).position);
 				}
 
 				if (map_info.level != MAP_LEVEL::TUTORIAL) {
@@ -581,8 +570,14 @@ void WorldSystem::next_level() {
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all enemies, coins, ... but that would be more cumbersome
 	Player player_component;
+	BulletSpawner player_bs;
+	HP player_hp;
 	while (registry.motions.entities.size() > 1) {
-		if (registry.players.has(registry.motions.entities.back())) player_component = registry.players.get(registry.motions.entities.back());
+		if (registry.players.has(registry.motions.entities.back())) {
+			player_component = registry.players.get(registry.motions.entities.back());
+			player_bs = registry.bulletSpawners.get(registry.motions.entities.back());
+			player_hp = registry.hps.get(registry.motions.entities.back());
+		}
 		registry.remove_all_components_of(registry.motions.entities.back());
 	}
 
@@ -615,6 +610,8 @@ void WorldSystem::next_level() {
 	}
 
 	registry.players.get(player) = player_component;
+	registry.bulletSpawners.get(player) = player_bs;
+	registry.hps.get(player) = player_hp;
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
 
@@ -650,8 +647,10 @@ void WorldSystem::restart_game() {
 		dialogue_info.cirno_after_pt = 1000;
 		dialogue_info.cirno_played = false;
 		dialogue_info.flandre_pt = 1000;
+		dialogue_info.marisa_pt = 1000;
 		dialogue_info.flandre_after_pt = 1000;
 		dialogue_info.flandre_played = false;
+		dialogue_info.marisa_played = false;
 		start_dialogue_timer = 1000.f;
 	}
 
@@ -846,6 +845,11 @@ void WorldSystem::handle_collisions() {
 					registry.remove_all_components_of(entity_other);
 				}
 			}
+			else if (registry.npcs.has(entity_other)) {
+				if (!registry.realDeathTimers.has(entity) && !dialogue_info.marisa_played) {
+					dialogue_info.marisa_pt = 0;
+				}
+			}
 			// shop system
 			else if (registry.purchasableables.has(entity_other)) {
 				if (!registry.realDeathTimers.has(entity)) {
@@ -870,9 +874,9 @@ void WorldSystem::handle_collisions() {
 
 							}
 							else if (treasure.effect_type == 2) {
-								player_att.fire_rate += float(treasure.effect_strength * 0.01);
 								// bullet_spawner.fire_rate = 0.0001;
-								bullet_spawner.fire_rate *= (1 - float(treasure.effect_strength * 0.1));
+								bullet_spawner.fire_rate *= (1 - float(treasure.effect_strength * 0.05));
+								player_att.fire_rate = 1/bullet_spawner.fire_rate;
 							}
 							else if (treasure.effect_type == 3) {
 								player_att.critical_hit += float(treasure.effect_strength * 0.01);
@@ -1277,6 +1281,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			start_pt += 1;
 			dialogue_info.cirno_pt += 1;
 			dialogue_info.flandre_pt += 1;
+			dialogue_info.marisa_pt += 1;
 			dialogue_info.cirno_after_pt += 1;
 			dialogue_info.flandre_after_pt += 1;
 			curr_word = 0;
@@ -1325,6 +1330,9 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		else if (token == "Flandre:") {
 			speaking_chara = CHARACTER::FlANDRE;
 		}
+		else if (token == "Marisa:") {
+			speaking_chara = CHARACTER::MARISA;
+		}
 
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
@@ -1361,6 +1369,60 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	else if (start_pt == start_script.size()) {
 		start_pt += 1;
 		resume_game();
+	} else if (dialogue_info.marisa_pt < marisa_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
+		std::istringstream ss(marisa_script[dialogue_info.marisa_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		else if (token == "Flandre:") {
+			speaking_chara = CHARACTER::FlANDRE;
+		}
+		else if (token == "Marisa:") {
+			speaking_chara = CHARACTER::MARISA;
+		}
+
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		if (menu.state != MENU_STATE::LOSE)
+		menu.state = MENU_STATE::DIALOGUE;
+
+		createDialogue(speaking_chara, start_buffer, CHARACTER::MARISA, emotion);
+	}
+	else if (dialogue_info.marisa_pt == marisa_script.size()) {
+		dialogue_info.marisa_pt += 1;
+		dialogue_info.marisa_played = true;
+		resume_game();
 	}
 	else if (dialogue_info.cirno_pt < cirno_script.size()) {
 		word_up_ms -= elapsed_time;
@@ -1374,6 +1436,9 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		}
 		else if (token == "Flandre:") {
 			speaking_chara = CHARACTER::FlANDRE;
+		}
+		else if (token == "Marisa:") {
+			speaking_chara = CHARACTER::MARISA;
 		}
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
@@ -1425,6 +1490,9 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		else if (token == "Flandre:") {
 			speaking_chara = CHARACTER::FlANDRE;
 		}
+		else if (token == "Marisa:") {
+			speaking_chara = CHARACTER::MARISA;
+		}
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
 			emotion = EMOTION::LAUGH;
@@ -1475,6 +1543,9 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		else if (token == "Flandre:") {
 			speaking_chara = CHARACTER::FlANDRE;
 		}
+		else if (token == "Marisa:") {
+			speaking_chara = CHARACTER::MARISA;
+		}
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
 			emotion = EMOTION::LAUGH;
@@ -1524,6 +1595,9 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		}
 		else if (token == "Flandre:") {
 			speaking_chara = CHARACTER::FlANDRE;
+		}
+		else if (token == "Marisa:") {
+			speaking_chara = CHARACTER::MARISA;
 		}
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
@@ -1619,6 +1693,7 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 			dialogue_info.cirno_after_pt += 1;
 			dialogue_info.flandre_pt += 1;
 			dialogue_info.flandre_after_pt += 1;
+			dialogue_info.marisa_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
 		}
