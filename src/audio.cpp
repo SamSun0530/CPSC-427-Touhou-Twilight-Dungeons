@@ -60,6 +60,18 @@ void Audio::step(float elapsed) {
 	}
 }
 
+void Audio::restart_audio_level1() {
+	Mix_PlayChannel(1, menu_music, -1);
+	Mix_PlayChannel(2, background_music, -1);
+	Mix_PlayChannel(4, boss_music, -1);
+	Mix_PlayChannel(5, flandre_boss_music, -1);
+
+	amenu_music.pause();
+	abackground_music.play();
+	aboss_music.pause();
+	aflandre_boss_music.pause();
+}
+
 Audio::Audio() {
 	//////////////////////////////////////
 	// Loading music and sounds with SDL

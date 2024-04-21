@@ -640,6 +640,8 @@ void WorldSystem::restart_game() {
 	// TODO: TEMPORARY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	boss_system->init_phases();
 
+	audio->restart_audio_level1();
+
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
 	if (map_info.level != MAP_LEVEL::TUTORIAL && map_info.level != MAP_LEVEL::LEVEL2) {
