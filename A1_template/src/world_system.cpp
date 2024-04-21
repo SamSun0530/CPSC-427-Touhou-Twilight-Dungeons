@@ -421,9 +421,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.realDeathTimers.remove(entity);
 
 				// TODO
-				restart_game();
-				//screen.darken_screen_factor = 0;
-				//menu.state = MENU_STATE::LOSE;
+				//restart_game();
+				screen.darken_screen_factor = 0;
+				menu.state = MENU_STATE::LOSE;
 				return true;
 			}
 			else if (registry.teleporters.has(entity)) {
@@ -1351,7 +1351,9 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			word_up_ms = 50.f;
 			curr_word += 1;
 		}
+		if (menu.state != MENU_STATE::LOSE)
 		menu.state = MENU_STATE::DIALOGUE;
+
 		createDialogue(speaking_chara, start_buffer, CHARACTER::NONE, emotion);
 	}
 	else if (start_pt == start_script.size()) {
@@ -1398,7 +1400,9 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			word_up_ms = 50.f;
 			curr_word += 1;
 		}
+		if (menu.state != MENU_STATE::LOSE)
 		menu.state = MENU_STATE::DIALOGUE;
+
 		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO, emotion);
 	}
 	else if (dialogue_info.cirno_pt == cirno_script.size()) {
@@ -1446,7 +1450,9 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			word_up_ms = 50.f;
 			curr_word += 1;
 		}
+		if (menu.state != MENU_STATE::LOSE)
 		menu.state = MENU_STATE::DIALOGUE;
+
 		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO, emotion);
 	}
 	else if (dialogue_info.cirno_after_pt == cirno_after_script.size()) {
@@ -1494,7 +1500,9 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			word_up_ms = 50.f;
 			curr_word += 1;
 		}
+		if (menu.state != MENU_STATE::LOSE)
 		menu.state = MENU_STATE::DIALOGUE;
+
 		createDialogue(speaking_chara, start_buffer, CHARACTER::FlANDRE, emotion);
 	}
 	else if (dialogue_info.flandre_pt == flandre_script.size()) {
@@ -1542,7 +1550,9 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			word_up_ms = 50.f;
 			curr_word += 1;
 		}
+		if (menu.state != MENU_STATE::LOSE)
 		menu.state = MENU_STATE::DIALOGUE;
+
 		createDialogue(speaking_chara, start_buffer, CHARACTER::FlANDRE, emotion);
 	}
 	else if (dialogue_info.flandre_after_pt == flandre_after_script.size()) {
