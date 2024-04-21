@@ -89,7 +89,7 @@ int main()
 			map.step(elapsed_ms);
 			world.handle_collisions();
 		}
-		else if (menu.state == MENU_STATE::PAUSE || menu.state == MENU_STATE::WIN) {
+		else if (menu.state == MENU_STATE::PAUSE || menu.state == MENU_STATE::WIN || menu.state == MENU_STATE::LOSE) {
 
 		}
 		else if (menu.state == MENU_STATE::DIALOGUE) {
