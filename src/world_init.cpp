@@ -182,7 +182,7 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 		purchasableable.cost = 1;
 		purchasableable.effect_strength = 1;
 	}
-
+	purchasableable.cost *= 3;
 	purchasableable.effect_type = type;
 	
 	if (type == 1) {
@@ -1067,7 +1067,7 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 60;
+	hp.max_hp = 100;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1087,9 +1087,9 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 35;
+	bs.fire_rate = 20;
 	bs.is_firing = false;
-	bs.bullet_initial_speed = 150;
+	bs.bullet_initial_speed = 300;
 
 	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
@@ -1142,7 +1142,7 @@ Entity createBomberEnemy(RenderSystem* renderer, vec2 position)
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
-	kinematic.speed_base = 180.f;
+	kinematic.speed_base = 320.f;
 	kinematic.speed_modified = 1.f * kinematic.speed_base;
 	kinematic.direction = { 0, 0 };
 
@@ -1152,7 +1152,7 @@ Entity createBomberEnemy(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 20;
+	hp.max_hp = 40;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1206,7 +1206,7 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 30;
+	hp.max_hp = 60;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1227,9 +1227,9 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 60;
+	bs.fire_rate = 50;
 	bs.is_firing = false;
-	bs.bullet_initial_speed = 150;
+	bs.bullet_initial_speed = 200;
 	bs.bullets_per_array = 3;
 	bs.spread_within_array = 30;
 
@@ -1648,6 +1648,42 @@ Entity createEgg(vec2 pos, vec2 size)
 			GEOMETRY_BUFFER_ID::EGG });
 
 	registry.debugComponents.emplace(entity);
+	return entity;
+}
+
+Entity createNPC(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	// Set player collision box at the feet of the player
+	collidable.size = { motion.scale.x * 5, motion.scale.y * 5 };
+	collidable.shift = { 0, 0 };
+
+	registry.npcs.emplace(entity);
+	EntityAnimation npc_ani;
+	npc_ani.isCursor = true;
+	npc_ani.spritesheet_scale = { 0.25, 1.0 };
+	npc_ani.render_pos = { 0.25, 1.0 };
+	registry.alwaysplayAni.insert(entity, npc_ani);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::NPC_MARISA, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.colors.insert(entity, { 1,1,1 });
+
 	return entity;
 }
 

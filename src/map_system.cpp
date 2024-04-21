@@ -109,10 +109,15 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 {
 	if (room.type == ROOM_TYPE::NORMAL) {
 		std::vector<vec2> spawn_points;
-		spawn_points.push_back(convert_grid_to_world(room.top_left + 1.f));
-		spawn_points.push_back(convert_grid_to_world(room.bottom_right - 1.f));
-		spawn_points.push_back(convert_grid_to_world(vec2(room.bottom_right.x - 1.f, room.top_left.y + 1.f)));
-		spawn_points.push_back(convert_grid_to_world(vec2(room.top_left.x + 1.f, room.bottom_right.y - 1.f)));
+		std::uniform_int_distribution<> int_distrib(6, 12);
+		int enemy_num = int_distrib(rng);
+		for (int i = 0; i < enemy_num; i++) {
+			std::uniform_real_distribution<> real_distrib_x(room.top_left.x+0.3f, room.bottom_right.x- 0.3f);
+			float loc_x = real_distrib_x(rng);
+			std::uniform_real_distribution<> real_distrib_y(room.top_left.y + 0.3f, room.bottom_right.y - 0.3f);
+			float loc_y = real_distrib_y(rng);
+			spawn_points.push_back(convert_grid_to_world(vec2(loc_x, loc_y)));
+		}
 
 		for (vec2 point : spawn_points) {
 			float random_numer = uniform_dist(rng);
@@ -137,6 +142,17 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 	}
 	else if (room.type == ROOM_TYPE::START) {
 		// spawn nothing
+	}
+	else if (room.type == ROOM_TYPE::SHOP) {
+		createNPC(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f));
+		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, 1.414f)) );
+		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, 1.414f)) );
+		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, -1.414f)) );
+		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, -1.414f)) );
+		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f - vec2(1.f, 0.f)));
+		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.f, 0.f)));
+		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f - vec2(0.f, 1.f)));
+		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(0.f, 1.f)));
 	}
 }
 
@@ -363,7 +379,14 @@ void MapSystem::generateRandomMap(float room_size) {
 
 		bsptree.rooms.push_back(boss_room2);
 		bsptree.generate_corridor_between_two_points(start, end);
-
+		std::uniform_int_distribution<> shop_distrib(1, bsptree.rooms.size() - 2);
+		random_num = shop_distrib(rng);
+		bsptree.rooms[random_num].type = ROOM_TYPE::SHOP;
+		int second_random_num = shop_distrib(rng);
+		while (second_random_num == random_num) {
+			second_random_num = shop_distrib(rng);
+			bsptree.rooms[second_random_num].type = ROOM_TYPE::SHOP;
+		}
 		set_map_walls(world_map);
 		is_valid = is_valid_map(world_map);
 	}

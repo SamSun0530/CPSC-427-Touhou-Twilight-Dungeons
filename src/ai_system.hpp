@@ -45,7 +45,7 @@ private:
 	// Update flow field includes timer
 	struct FlowField {
 		float update_timer_ms = -1;
-		float update_base = 1000;
+		float update_base = 300;
 		// don't update if grid position hasn't moved
 		vec2 last_position = { 0, 0 };
 		// maximum length to expand
