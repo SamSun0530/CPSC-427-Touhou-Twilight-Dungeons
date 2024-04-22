@@ -746,10 +746,11 @@ void WorldSystem::restart_game() {
 	game_info.set_player_id(player);
 	boss_info.reset();
 
+	bomb_timer = 0;
+
 	init_win_menu();
 	init_lose_menu();
 	renderer->camera.setPosition({ 0, 0 });
-
 }
 
 // handle_wall_collisions parameter entity IS WALL ENTITY!
@@ -1347,6 +1348,24 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			if (player_component.bomb > 0) {
 				player_component.bomb -= 1;
 				bomb_timer = bomb_timer_max;
+
+				// deal damage
+				// in tutorial
+				if (map_info.level == MAP_LEVEL::TUTORIAL) {
+					for (Entity entity : registry.deadlys.entities) {
+						deal_damage_to_deadly(entity, bomb_damage);
+					}
+				}
+				// in random map with rooms
+				else {
+					// prevent -1 out of bounds access
+					int to_check = game_info.in_room == -1 ? game_info.prev_in_room : game_info.in_room;
+					auto& deadly_entities = game_info.room_index[to_check].enemies;
+					for (int i = 0; i < deadly_entities.size(); ++i) {
+						Entity entity = deadly_entities[i];
+						deal_damage_to_deadly(entity, bomb_damage);
+					}
+				}
 			}
 		}
 
@@ -1414,6 +1433,36 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			dialogue_info.flandre_after_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
+		}
+	}
+}
+
+void WorldSystem::deal_damage_to_deadly(const Entity& entity, int damage)
+{
+	registry.hitTimers.emplace(entity);
+	registry.colors.get(entity) = vec3(-1.f);
+
+	HP& hp = registry.hps.get(entity);
+	//hp.curr_hp -= 0.25 * hp.max_hp; // 25% of max hp
+	hp.curr_hp -= damage;
+	if (hp.curr_hp <= 0.0f) {
+		combo_mode.combo_meter = min(combo_mode.combo_meter + 0.03f, combo_mode.COMBO_METER_MAX);
+		if (registry.beeEnemies.has(entity) ||
+			registry.wolfEnemies.has(entity) ||
+			registry.bomberEnemies.has(entity) ||
+			registry.dummyenemies.has(entity)) {
+			registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
+			registry.hps.remove(entity);
+			registry.aitimers.remove(entity);
+			registry.followpaths.remove(entity);
+			registry.followFlowField.remove(entity);
+			if (registry.bulletSpawners.has(entity)) {
+				registry.bulletSpawners.get(entity).is_firing = false;
+			}
+			Kinematic& kin = registry.kinematics.get(entity);
+			kin.velocity = { 0,0 };
+			kin.direction = { 0,0 };
+			kin.speed_modified = 0.f;
 		}
 	}
 }
