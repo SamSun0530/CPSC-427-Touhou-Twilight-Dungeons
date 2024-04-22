@@ -88,15 +88,20 @@ void BulletSystem::step(float elapsed_ms)
 			}
 			// Spawn bullets
 			if (entity == player) {
-				//int damagebuff = bullet_spawner.damageBoost;
-				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, nullptr,bullet_spawner.damageBoost);
-				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, nullptr, bullet_spawner.damageBoost);
+				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, nullptr);
+				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, nullptr);
 			}
 			else if (registry.bosses.has(entity)) {
 				Boss& boss = registry.bosses.get(entity);
 				bool has_patterns = boss.bullet_pattern.commands.size() != 0;
 				BulletPattern* bullet_pattern = nullptr;
 				if (has_patterns) bullet_pattern = &boss.bullet_pattern;
+				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false, bullet_pattern);
+				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false, bullet_pattern);
+			}
+			else if (registry.deadlys.has(entity)) {
+				Deadly& deadly = registry.deadlys.get(entity);
+				BulletPattern* bullet_pattern = deadly.has_bullet_pattern ? &deadly.bullet_pattern : nullptr;
 				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false, bullet_pattern);
 				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false, bullet_pattern);
 			}
@@ -208,6 +213,15 @@ void BulletSystem::step(float elapsed_ms)
 				bullet_kinematic.direction = commands[bullet_pattern.bc_index].value_vec2;
 				break;
 			}
+			case BULLET_ACTION::PLAYER_DIRECTION: {
+				Kinematic& bullet_kinematic = registry.kinematics.get(entity);
+				Motion& bullet_motion = registry.motions.get(entity);
+				// Assume we have one player
+				Entity player_entity = registry.players.entities[0];
+				// direction will be normalized in physics system
+				bullet_kinematic.direction = registry.motions.get(player_entity).position - bullet_motion.position;
+				break;
+			}
 			default:
 				break;
 			}
@@ -250,10 +264,10 @@ void BulletSystem::step(float elapsed_ms)
 	}
 }
 
-void spawn_bullets(RenderSystem* renderer, std::vector<vec2>& initial_bullet_directions, float bullet_initial_speed, vec2 spawn_position, Kinematic& kinematic, bool is_player_bullet, BulletPattern* bullet_pattern, int damageBuff)
+void spawn_bullets(RenderSystem* renderer, std::vector<vec2>& initial_bullet_directions, float bullet_initial_speed, vec2 spawn_position, Kinematic& kinematic, bool is_player_bullet, BulletPattern* bullet_pattern)
 {
 	for (int i = 0; i < initial_bullet_directions.size(); ++i) {
-		createBullet(renderer, kinematic.speed_modified, spawn_position, 0, initial_bullet_directions[i], bullet_initial_speed, is_player_bullet, bullet_pattern, damageBuff);
+		createBullet(renderer, kinematic.speed_modified, spawn_position, 0, initial_bullet_directions[i], bullet_initial_speed, is_player_bullet, bullet_pattern);
 	}
 }
 

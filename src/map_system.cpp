@@ -132,18 +132,19 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 			//	room.enemies.push_back(createBomberEnemy(renderer, point));
 			//}
 
-			if (random_number <= 0.25) {
-				room.enemies.push_back(createLizardEnemy(renderer, point));
-			}
-			else if (random_number <= 0.50) {
-				room.enemies.push_back(createBee2Enemy(renderer, point));
-			}
-			else if (random_number <= 0.75) {
-				room.enemies.push_back(createWormEnemy(renderer, point));
-			}
-			else {
-				room.enemies.push_back(createGargoyleEnemy(renderer, point));
-			}
+			room.enemies.push_back(createLizardEnemy(renderer, point));
+			//if (random_number <= 0.25) {
+			//	room.enemies.push_back(createLizardEnemy(renderer, point));
+			//}
+			//else if (random_number <= 0.50) {
+			//	room.enemies.push_back(createBee2Enemy(renderer, point));
+			//}
+			//else if (random_number <= 0.75) {
+			//	room.enemies.push_back(createWormEnemy(renderer, point));
+			//}
+			//else {
+			//	room.enemies.push_back(createGargoyleEnemy(renderer, point));
+			//}
 		}
 	}
 	else if (room.type == ROOM_TYPE::BOSS) {

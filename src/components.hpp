@@ -178,7 +178,10 @@ struct EnemyBullet
 };
 
 /*
-Bullet actions:
+Bullet actions: (parameter argument specification)
+None:
+PLAYER_DIRECTION - change bullet to face player direction
+
 Floats:
 SPEED - float - change in velocity magnitude
 ROTATE - float - change in bullet direction
@@ -204,7 +207,8 @@ enum class BULLET_ACTION {
 	LOOP,
 	DEL,
 	SPLIT,
-	DIRECTION
+	DIRECTION,
+	PLAYER_DIRECTION
 };
 
 enum class CHARACTER {
@@ -239,7 +243,6 @@ struct BulletPattern {
 // Inspiration/Credit from: https://youtu.be/whrInb6Z7QI
 struct BulletSpawner
 {
-	int damageBoost =0;
 	// determines if bullet can be fired
 	bool is_firing = false;
 	// set this to -1 so entity can fire immediately
@@ -389,6 +392,10 @@ struct DummyEnemyLink {
 struct Deadly
 {
 	int damage = 1;
+	// if bullet_pattern is defined, set has_bullet_pattern to true
+	// so bullet system will apply the pattern to the bullet shot by this entity
+	bool has_bullet_pattern = false;
+	BulletPattern bullet_pattern;
 };
 
 struct BeeEnemy {

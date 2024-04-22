@@ -3,7 +3,7 @@
 
 //int playerBullet_damage_playerBullet_damage = 10;
 
-Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern, int damageBoost)
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern)
 {
 	auto entity = Entity();
 
@@ -174,7 +174,7 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 
 	Purchasableable& purchasableable = registry.purchasableables.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
-	
+
 	purchasableable.cost = number * 10;
 	purchasableable.effect_strength = number * 10;
 
@@ -184,7 +184,7 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 	}
 	purchasableable.cost *= 3;
 	purchasableable.effect_type = type;
-	
+
 	if (type == 1) {
 		registry.renderRequests.insert(
 			entity,
@@ -1274,6 +1274,7 @@ Entity createLizardEnemy(RenderSystem* renderer, vec2 position) {
 	Deadly& deadly = registry.deadlys.emplace(entity);
 	deadly.damage = 1;
 
+
 	registry.lizardEnemies.emplace(entity);
 	EntityAnimation enemy_ani;
 	enemy_ani.spritesheet_scale = { 1.f / 6.f, 1.f / 12.f };
@@ -1288,11 +1289,32 @@ Entity createLizardEnemy(RenderSystem* renderer, vec2 position) {
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 50;
+	//bs.fire_rate = 2;
+	//bs.is_firing = false;
+	//bs.bullet_initial_speed = 100;
+	//bs.number_to_fire = 5;
+	//bs.cooldown_rate = 50; // every 5 seconds
+	//bs.is_cooldown = true;
+
+	bs.fire_rate = 2;
 	bs.is_firing = false;
+	bs.bullets_per_array = 6;
+	bs.spread_within_array = 60;
 	bs.bullet_initial_speed = 100;
+	bs.number_to_fire = 1;
+	bs.is_cooldown = true;
+	bs.cooldown_rate = 50; // every 5 seconds
 
 	registry.bulletSpawners.insert(entity, bs);
+
+	deadly.has_bullet_pattern = true;
+	deadly.bullet_pattern.commands = {
+		{ BULLET_ACTION::DELAY, 500.f },
+		{ BULLET_ACTION::DIRECTION, vec2(0,0)},
+		{ BULLET_ACTION::DELAY, 1000.f },
+		{ BULLET_ACTION::PLAYER_DIRECTION, 0 },
+	};
+
 	registry.colors.insert(entity, { 1,1,1 });
 
 	AiTimer& aitimer = registry.aitimers.emplace(entity);
