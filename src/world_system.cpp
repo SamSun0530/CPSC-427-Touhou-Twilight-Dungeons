@@ -783,6 +783,13 @@ void WorldSystem::handle_wall_collisions(Entity& entity, Entity& entity_other) {
 			kinematic.velocity = { kinematic.velocity.x, 0 };
 		}
 	}
+
+	if (registry.chests.has(entity) && registry.players.has(entity_other)) {
+		RenderRequest& render_chest = registry.renderRequests.get(entity);
+		if (render_chest.used_texture != TEXTURE_ASSET_ID::CHEST_OPEN) {
+			render_chest.used_texture = TEXTURE_ASSET_ID::CHEST_OPEN;
+		}
+	}
 }
 
 // Compute collisions between entities

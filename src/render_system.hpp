@@ -116,6 +116,8 @@ class RenderSystem {
 			textures_path("Flandre-Bullet.png"),
 			textures_path("Infographic.png"),
 			textures_path("Marisa-Figure.png"),
+			textures_path("ChestOpened.png"),
+			textures_path("ChestClosed.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

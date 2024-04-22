@@ -467,7 +467,7 @@ Entity createChest(RenderSystem* renderer, vec2 position)
 	// Setting initial values, scale is negative to make it face the opposite way
 
 	/*need new scale*/
-	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+	motion.scale = vec2({ world_tile_size, world_tile_size });
 
 	/*auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 50.f;
@@ -476,14 +476,14 @@ Entity createChest(RenderSystem* renderer, vec2 position)
 
 	// collidable
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = motion.scale / 2.f;
-
+	collidable.size = vec2(motion.scale.x * 2 / 3.f, motion.scale.y / 2.f);
+	registry.walls.emplace(entity);
 	Chest& chest = registry.chests.emplace(entity);
 
 	/*need new texture*/
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::BULLET,
+		{ TEXTURE_ASSET_ID::CHEST_CLOSE,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
