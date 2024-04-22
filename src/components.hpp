@@ -338,7 +338,7 @@ struct Boss {
 struct Player
 {
 	bool invulnerability = false;
-	int bullet_damage = 10;
+	int bullet_damage = 1000;
 	int coin_amount = 0;
 	int key_amount = 0;
 	float invulnerability_time_ms = 1000;
@@ -457,7 +457,7 @@ struct AttackUp
 
 struct Chest
 {
-
+	bool is_close = true;
 };
 
 struct Key

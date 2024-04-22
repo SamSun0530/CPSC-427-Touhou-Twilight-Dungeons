@@ -467,20 +467,11 @@ Entity createChest(RenderSystem* renderer, vec2 position)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.position = position;
-	// Setting initial values, scale is negative to make it face the opposite way
-
-	/*need new scale*/
 	motion.scale = vec2({ world_tile_size, world_tile_size });
-
-	/*auto& kinematic = registry.kinematics.emplace(entity);
-	kinematic.speed_base = 50.f;
-	kinematic.speed_modified = 1.f * kinematic.speed_base;
-	kinematic.direction = { 0, 1 };*/
 
 	// collidable
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = vec2(motion.scale.x * 2 / 3.f, motion.scale.y / 2.f);
-	registry.walls.emplace(entity);
 	Chest& chest = registry.chests.emplace(entity);
 
 	/*need new texture*/

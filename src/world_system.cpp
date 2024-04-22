@@ -795,14 +795,6 @@ void WorldSystem::handle_wall_collisions(Entity& entity, Entity& entity_other) {
 			kinematic.velocity = { kinematic.velocity.x, 0 };
 		}
 	}
-
-	if (registry.chests.has(entity) && registry.players.has(entity_other)) {
-		RenderRequest& render_chest = registry.renderRequests.get(entity);
-		if (render_chest.used_texture != TEXTURE_ASSET_ID::CHEST_OPEN) {
-			render_chest.used_texture = TEXTURE_ASSET_ID::CHEST_OPEN;
-			registry.coinFountains.emplace(entity);
-		}
-	}
 }
 
 // Compute collisions between entities
@@ -940,13 +932,13 @@ void WorldSystem::handle_collisions() {
 							//std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
 							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
 							if (treasure.effect_type == 1) {
-								player_att.bullet_damage += static_cast<int>(treasure.effect_strength* 1.7);
+								player_att.bullet_damage += static_cast<int>(treasure.effect_strength * 1.7);
 
 							}
 							else if (treasure.effect_type == 2) {
 								// bullet_spawner.fire_rate = 0.0001;
 								bullet_spawner.fire_rate *= (1 - float(treasure.effect_strength * 0.03));
-								player_att.fire_rate = 1/bullet_spawner.fire_rate;
+								player_att.fire_rate = 1 / bullet_spawner.fire_rate;
 							}
 							else if (treasure.effect_type == 3) {
 								player_att.critical_hit += float(treasure.effect_strength * 0.015);
@@ -980,11 +972,14 @@ void WorldSystem::handle_collisions() {
 						std::string item_name = "";
 						if (treasure.effect_type == 1) {
 							item_name = "increase bullet demage";
-						} else if (treasure.effect_type == 2) {
+						}
+						else if (treasure.effect_type == 2) {
 							item_name = "decrease bullet fire rate";
-						}else if (treasure.effect_type == 3) {
+						}
+						else if (treasure.effect_type == 3) {
 							item_name = "increase bullet critical hit";
-						}else if (treasure.effect_type == 4) {
+						}
+						else if (treasure.effect_type == 4) {
 							item_name = "increase maximum health";
 						}
 						else if (treasure.effect_type == 5) {
@@ -997,7 +992,7 @@ void WorldSystem::handle_collisions() {
 							item_name = "grant one bomb";
 						}
 						createText(vec2(motion.position.x, motion.position.y + 50), { 0.6f,0.6f }, "Press \"E\" to buy this", vec3(0, 1, 0), false, true);
-						createText(vec2(motion.position.x, motion.position.y + 75), { 0.6f,0.6f }, "This will "+ item_name, vec3(0, 1, 0), false, true);
+						createText(vec2(motion.position.x, motion.position.y + 75), { 0.6f,0.6f }, "This will " + item_name, vec3(0, 1, 0), false, true);
 						// std::cout << "Buy this" << std::endl;
 					}
 				}
@@ -1158,6 +1153,22 @@ void WorldSystem::handle_collisions() {
 					if (!door.is_visited) {
 						door.is_visited = true;
 					}
+				}
+			}
+			else if (registry.deadlys.has(entity_other)) {
+				handle_wall_collisions(entity, entity_other);
+			}
+		}
+		else if (registry.chests.has(entity)) {
+			if (registry.players.has(entity_other)) {
+				handle_wall_collisions(entity, entity_other);
+
+				Chest& chest = registry.chests.get(entity);
+				if (chest.is_close) {
+					chest.is_close = false;
+					RenderRequest& render_chest = registry.renderRequests.get(entity);
+					render_chest.used_texture = TEXTURE_ASSET_ID::CHEST_OPEN;
+					registry.coinFountains.emplace(entity);
 				}
 			}
 			else if (registry.deadlys.has(entity_other)) {
@@ -1479,14 +1490,15 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::NONE, emotion);
 	}
 	else if (start_pt == start_script.size()) {
 		start_pt += 1;
 		resume_game();
-	} else if (dialogue_info.marisa_pt < marisa_script.size()) {
+	}
+	else if (dialogue_info.marisa_pt < marisa_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		EMOTION emotion = EMOTION::NORMAL;
@@ -1532,7 +1544,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::MARISA, emotion);
 	}
@@ -1585,7 +1597,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO, emotion);
 	}
@@ -1638,7 +1650,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO, emotion);
 	}
@@ -1691,7 +1703,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::FlANDRE, emotion);
 	}
@@ -1744,7 +1756,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::FlANDRE, emotion);
 	}
