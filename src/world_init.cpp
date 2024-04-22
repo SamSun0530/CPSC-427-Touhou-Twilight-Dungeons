@@ -236,7 +236,7 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 
 	Purchasableable& purchasableable = registry.purchasableables.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
-	if (number < 0.2) {
+	if (number < 0.1) {
 		type = 6;
 		purchasableable.effect_type = type;
 		purchasableable.cost = 10;
@@ -304,7 +304,7 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
-Entity createCoin(RenderSystem* renderer, vec2 position, int value)
+Entity createCoin(RenderSystem* renderer, vec2 position, int value, float bezier_start, float bezier_end, vec2 bezier_up, float bezier_x_rand)
 {
 	// Reserve en entity
 	auto entity = Entity();
@@ -327,10 +327,13 @@ Entity createCoin(RenderSystem* renderer, vec2 position, int value)
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_real_distribution<> distrib(0, 1);
-	double number = distrib(gen);
-	double number_y = distrib(gen) / 2;
+	std::uniform_real_distribution<> distrib(bezier_start, bezier_end);
+	std::uniform_real_distribution<> x_distrib(0.0, 1.0);
 
+	// Generate a positive number
+	double number = distrib(gen);
+	double x_number = x_distrib(gen);
+	
 	// collidable
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = motion.scale / 2.f;
@@ -338,10 +341,10 @@ Entity createCoin(RenderSystem* renderer, vec2 position, int value)
 	// value
 	Coin& coin = registry.coins.emplace(entity);
 	coin.coin_amount = value;
-	vec2 dir = { 60 * (number - 0.5), 50 * (number_y) };
+	vec2 dir = { bezier_x_rand * (x_number - 0.5f), 50 * (number) };
 	BezierCurve curve;
 	curve.bezier_pts.push_back(position);
-	curve.bezier_pts.push_back(position + vec2(0, -20));
+	curve.bezier_pts.push_back(position + bezier_up);
 	curve.bezier_pts.push_back(position + dir);
 	registry.bezierCurves.insert(entity, curve);
 	registry.renderRequests.insert(
@@ -1176,7 +1179,7 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 	BulletSpawner bs;
 	bs.fire_rate = 14 * 1.f/combo_mode.combo_meter;
 	bs.is_firing = false;
-	bs.bullet_initial_speed = 200 * combo_mode.combo_meter;
+	bs.bullet_initial_speed = 200;
 
 	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
@@ -1316,9 +1319,9 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 	BulletSpawner bs;
 	bs.fire_rate = 40 * 1/combo_mode.combo_meter;
 	bs.is_firing = false;
-	bs.bullet_initial_speed = 160 * combo_mode.combo_meter;
+	bs.bullet_initial_speed = 160;
 	bs.bullets_per_array = static_cast<int>(3 * combo_mode.combo_meter);
-	bs.spread_within_array = 30 * 1/combo_mode.combo_meter;
+	bs.spread_within_array = 30;
 
 	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
@@ -1508,17 +1511,63 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 	collidable.size = { motion.scale.x, motion.scale.y };
 	collidable.shift = { 0, 0 };
 
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> distrib(0, 1);
+	double number = distrib(gen);
+
 	// Rocks act like walls
 	registry.walls.emplace(entity);
 
 
 	// Placeholder texure
-	registry.renderRequests.insert(
-		entity,
-		{
-		TEXTURE_ASSET_ID::ROCK,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+	if (number < 0.2) {
+		registry.renderRequests.insert(
+			entity,
+			{
+			TEXTURE_ASSET_ID::ROCK,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else if (number < 0.4) {
+		registry.renderRequests.insert(
+			entity,
+			{
+			TEXTURE_ASSET_ID::SKELETON,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else if (number < 0.6) {
+		registry.renderRequests.insert(
+			entity,
+			{
+			TEXTURE_ASSET_ID::POTTERY,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else if (number < 0.8) {
+		registry.renderRequests.insert(
+			entity,
+			{
+			TEXTURE_ASSET_ID::BARREL,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		EntityAnimation& animation = registry.alwaysplayAni.emplace(entity);
+		animation.spritesheet_scale = { 1 / 8.f, 1.0f };
+		animation.render_pos = { 1 / 8.f, 1.0f };
+		animation.full_rate_ms = 100.f;
+		animation.frame_rate_ms = 100.f;
+
+		registry.renderRequests.insert(
+			entity,
+			{
+			TEXTURE_ASSET_ID::FIREPLACE,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
 
 	return entity;
 }

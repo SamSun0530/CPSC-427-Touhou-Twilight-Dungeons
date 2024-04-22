@@ -368,6 +368,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	assert(registry.screenStates.components.size() <= 1);
 	ScreenState& screen = registry.screenStates.components[0];
 
+	for (Entity entity : registry.coinFountains.entities) {
+		CoinFountain& coin_fountain = registry.coinFountains.get(entity);
+		coin_fountain.time_per_coins -= elapsed_ms_since_last_update;
+		if (coin_fountain.remain_coins <= 0) {
+			registry.coinFountains.remove(entity);
+		}
+		if (coin_fountain.time_per_coins < 0) {
+			coin_fountain.remain_coins -= 1;
+			createCoin(renderer, registry.motions.get(entity).position, 1, 1.5, 3.0, vec2(0.0, -200.f), 200.f);
+			coin_fountain.time_per_coins = 100.f;
+		}
+	}
+
 	float min_counter_ms = 50.f;
 	for (Entity entity : registry.hitTimers.entities) {
 		// progress timer
@@ -645,7 +658,6 @@ void WorldSystem::next_level() {
 	is_alive = true;
 	createHealthUI(renderer);
 	createAttributeUI(renderer);
-	combo_mode.restart();
 	focus_mode.restart();
 	ai->restart_flow_field_map();
 	display_combo = createCombo(renderer);
@@ -788,6 +800,7 @@ void WorldSystem::handle_wall_collisions(Entity& entity, Entity& entity_other) {
 		RenderRequest& render_chest = registry.renderRequests.get(entity);
 		if (render_chest.used_texture != TEXTURE_ASSET_ID::CHEST_OPEN) {
 			render_chest.used_texture = TEXTURE_ASSET_ID::CHEST_OPEN;
+			registry.coinFountains.emplace(entity);
 		}
 	}
 }

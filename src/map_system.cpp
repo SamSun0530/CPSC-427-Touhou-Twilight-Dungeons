@@ -110,7 +110,7 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 {
 	if (room.type == ROOM_TYPE::NORMAL) {
 		std::vector<vec2> spawn_points;
-		std::uniform_int_distribution<> int_distrib(2, 4);
+		std::uniform_int_distribution<> int_distrib(2, 3);
 		int enemy_num = static_cast<int>(int_distrib(rng) * combo_mode.combo_meter * 2);
 		for (int i = 0; i < enemy_num; i++) {
 			std::uniform_real_distribution<> real_distrib_x(room.top_left.x+0.3f, room.bottom_right.x- 0.3f);
@@ -588,7 +588,7 @@ void MapSystem::generate_door_tiles(std::vector<std::vector<int>>& map) {
 
 // Sets wall tiles that act like rocks in a room
 void MapSystem::generate_rocks(std::vector<std::vector<int>>& map) {
-	float rock_spawn_chance = 0.01f;
+	float rock_spawn_chance = 0.05f;
 	float to_spawn = 0.f;
 	for (Room_struct& room : bsptree.rooms) {
 		if (room.type != ROOM_TYPE::NORMAL) {

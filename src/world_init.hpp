@@ -69,7 +69,7 @@ Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the coin
-Entity createCoin(RenderSystem* renderer, vec2 position, int value);
+Entity createCoin(RenderSystem* renderer, vec2 position, int value, float bezier_start = 0.0, float bezier_end = 0.5, vec2 bezier_up = vec2(0.f, -20.f), float bezier_x_rand = 60.f);
 // max hp increase
 Entity createMaxHPIncrease(RenderSystem* renderer, vec2 position);
 // the attack up

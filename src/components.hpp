@@ -338,7 +338,7 @@ struct Boss {
 struct Player
 {
 	bool invulnerability = false;
-	int bullet_damage = 100;
+	int bullet_damage = 10;
 	int coin_amount = 0;
 	int key_amount = 0;
 	float invulnerability_time_ms = 1000;
@@ -346,6 +346,12 @@ struct Player
 	float critical_hit = 0.05;
 	float critical_demage = 1.5;
 	int bomb = 3;
+};
+
+struct CoinFountain
+{
+	int remain_coins = 30;
+	float time_per_coins = 100.f;
 };
 
 enum class State {
@@ -863,7 +869,11 @@ enum class TEXTURE_ASSET_ID {
 	NPC_MARISA = INFOGRAPHIC + 1,
 	CHEST_OPEN = NPC_MARISA + 1,
 	CHEST_CLOSE = CHEST_OPEN + 1,
-	TEXTURE_COUNT = CHEST_CLOSE + 1,
+	SKELETON = CHEST_CLOSE + 1,
+	BARREL = SKELETON + 1,
+	POTTERY = BARREL + 1,
+	FIREPLACE = POTTERY + 1,
+	TEXTURE_COUNT = FIREPLACE + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
