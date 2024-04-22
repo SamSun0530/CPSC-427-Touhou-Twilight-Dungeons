@@ -105,6 +105,8 @@ private:
 	float word_up_ms = 50.f;
 	unsigned int curr_word = 0;
 	std::string start_buffer;
+	float bomb_timer = 0.f;
+	float bomb_timer_max = 500.f;
 	// Update player direction based on pressed
 	void updatePlayerDirection(Kinematic& player_kinematic);
 

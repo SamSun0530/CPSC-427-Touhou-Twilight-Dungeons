@@ -277,13 +277,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.remove_all_components_of(registry.textsWorld.entities.back());
 
 	// Create combo meter ui
-	if (combo_mode.combo_meter <= 1.04) {
+	if (combo_mode.combo_meter <= 1.08) {
 		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::C;
 	}
-	else if (combo_mode.combo_meter <= 1.1) {
+	else if (combo_mode.combo_meter <= 1.2) {
 		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::B;
 	}
-	else if (combo_mode.combo_meter <= 1.2) {
+	else if (combo_mode.combo_meter <= 1.4) {
 		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::A;
 	}
 	else {
@@ -304,6 +304,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	createText(-window_px_half + vec2(86, 250), { 1,1 }, fire_rate.substr(0, fire_rate.find(".") + 3), vec3(1), false);
 	createText(-window_px_half + vec2(86, 300), { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(1), false);
 	createText(-window_px_half + vec2(103, 350), { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(1), false);
+	createText(-window_px_half + vec2(68, 400), { 1,1 }, std::to_string(player_att.bomb), vec3(1), false);
 
 	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
 	// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
@@ -398,6 +399,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	if (bomb_timer > 0) {
+		bomb_timer -= elapsed_ms_since_last_update;
+		for (Entity bullets : registry.enemyBullets.entities) {
+			registry.remove_all_components_of(bullets);
+		}
+	}
+	else {
+		screen.bomb_screen_factor = 0;
+		bomb_timer = 0.f;
+	}
+
 	float min_death_time_ms = 3000.f;
 	for (Entity entity : registry.realDeathTimers.entities) {
 
@@ -435,7 +447,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				std::mt19937 gen(rd());
 				std::uniform_real_distribution<> distrib(0, 1);
 				double number = distrib(gen);
-				createCoin(renderer, registry.motions.get(entity).position, 1);
+				int coin_number = 1;
+				if (number < 0.5) {
+					coin_number = static_cast<int>(1.0 * combo_mode.combo_meter);
+				}
+				else if (number < 0.8) {
+					coin_number = static_cast<int>(2.0 * combo_mode.combo_meter);
+				}
+				else {
+					coin_number = static_cast<int>(3.0 * combo_mode.combo_meter);
+				}
+				vec2 entity_position = registry.motions.get(entity).position;
+				for (int i = 0; i < coin_number; i++) {
+					createCoin(renderer, entity_position, 1);
+				}
 				if (registry.dummyenemies.has(entity)) {
 					DummyEnemyLink& link = registry.dummyEnemyLink.get(entity);
 					DummyEnemySpawner& spawner = registry.dummyenemyspawners.get(link.other);
@@ -524,6 +549,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 	// reduce window brightness if any of the present players is dying
 	screen.darken_screen_factor = 1 - min_death_time_ms / 3000;
+	if (bomb_timer > 0) screen.bomb_screen_factor = 1 - bomb_timer / bomb_timer_max;
 
 	return true;
 }
@@ -641,6 +667,7 @@ void WorldSystem::restart_game() {
 
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
+	if (map_info.level == MAP_LEVEL::LEVEL2) map_info.level = MAP_LEVEL::LEVEL1;
 	if (map_info.level != MAP_LEVEL::TUTORIAL && map_info.level != MAP_LEVEL::LEVEL2) {
 		start_pt = 0;
 		dialogue_info.cirno_pt = 1000;
@@ -783,7 +810,18 @@ void WorldSystem::handle_collisions() {
 							HP& player_hp = registry.hps.get(player);
 							player_hp.curr_hp -= registry.deadlys.get(entity_other).damage;
 							if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
-							combo_mode.restart();
+							if (combo_mode.combo_meter > 1.4) {
+								combo_mode.combo_meter = 1.3f;
+							}
+							else if (combo_mode.combo_meter > 1.2) {
+								combo_mode.combo_meter = 1.1f;
+							}
+							else if (combo_mode.combo_meter > 1.08) {
+								combo_mode.combo_meter = 1.04f;
+							}
+							else {
+								combo_mode.combo_meter = 1.0f;
+							}
 							if (registry.bomberEnemies.has(entity_other)) {
 								registry.realDeathTimers.emplace(entity_other).death_counter_ms = 1000;
 								registry.hps.remove(entity_other);
@@ -815,7 +853,18 @@ void WorldSystem::handle_collisions() {
 						registry.hitTimers.emplace(entity);
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(entity) = vec3(-1.f);
-						combo_mode.restart();
+						if (combo_mode.combo_meter > 1.4) {
+							combo_mode.combo_meter = 1.3f;
+						}
+						else if (combo_mode.combo_meter > 1.2) {
+							combo_mode.combo_meter = 1.1f;
+						}
+						else if (combo_mode.combo_meter > 1.08) {
+							combo_mode.combo_meter = 1.04f;
+						}
+						else {
+							combo_mode.combo_meter = 1.0f;
+						}
 						HP& player_hp = registry.hps.get(player);
 						player_hp.curr_hp -= registry.enemyBullets.get(entity_other).damage;
 						if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
@@ -857,6 +906,7 @@ void WorldSystem::handle_collisions() {
 						Purchasableable& treasure = registry.purchasableables.get(entity_other);
 						const Motion& motion = registry.motions.get(entity_other);
 						Player& player_att = registry.players.get(player);
+						HP& player_hp = registry.hps.get(player);
 						BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
 						treasure.player_overlap = true;
 						if (pressed[GLFW_KEY_E] && player_att.coin_amount >= treasure.cost) {
@@ -870,16 +920,35 @@ void WorldSystem::handle_collisions() {
 							//std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
 							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
 							if (treasure.effect_type == 1) {
-								player_att.bullet_damage += treasure.effect_strength;
+								player_att.bullet_damage += static_cast<int>(treasure.effect_strength* 1.7);
 
 							}
 							else if (treasure.effect_type == 2) {
 								// bullet_spawner.fire_rate = 0.0001;
-								bullet_spawner.fire_rate *= (1 - float(treasure.effect_strength * 0.05));
+								bullet_spawner.fire_rate *= (1 - float(treasure.effect_strength * 0.03));
 								player_att.fire_rate = 1/bullet_spawner.fire_rate;
 							}
 							else if (treasure.effect_type == 3) {
-								player_att.critical_hit += float(treasure.effect_strength * 0.01);
+								player_att.critical_hit += float(treasure.effect_strength * 0.015);
+							}
+							else if (treasure.effect_type == 5) {
+								player_att.critical_demage += float(treasure.effect_strength * 0.04);
+							}
+							else if (treasure.effect_type == 6) {
+								player_att.bomb += 1;
+							}
+							else if (treasure.effect_type == 7) {
+								player_hp.curr_hp += treasure.effect_strength;
+								if (player_hp.curr_hp > player_hp.max_hp) {
+									player_hp.curr_hp = player_hp.max_hp;
+								}
+							}
+							else if (treasure.effect_type == 4) {
+								int balance_hp = static_cast<int>(treasure.effect_strength / 2);
+								if (balance_hp == 0) {
+									balance_hp = 1;
+								}
+								player_hp.max_hp += balance_hp;
 							}
 							//std::cout << "-------------after---------------------" << std::endl;
 							//std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
@@ -887,9 +956,28 @@ void WorldSystem::handle_collisions() {
 							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
 							registry.remove_all_components_of(entity_other);
 						}
-						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, "cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
-
-						createText(vec2(motion.position.x, motion.position.y + 50), { 0.6f,0.6f }, "press \"E\" to buy this", vec3(0, 1, 0), false, true);
+						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, "Cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
+						std::string item_name = "";
+						if (treasure.effect_type == 1) {
+							item_name = "increase bullet demage";
+						} else if (treasure.effect_type == 2) {
+							item_name = "decrease bullet fire rate";
+						}else if (treasure.effect_type == 3) {
+							item_name = "increase bullet critical hit";
+						}else if (treasure.effect_type == 4) {
+							item_name = "increase maximum health";
+						}
+						else if (treasure.effect_type == 5) {
+							item_name = "increase bullet critical demage";
+						}
+						else if (treasure.effect_type == 7) {
+							item_name = "increase current health";
+						}
+						else if (treasure.effect_type == 6) {
+							item_name = "grant one bomb";
+						}
+						createText(vec2(motion.position.x, motion.position.y + 50), { 0.6f,0.6f }, "Press \"E\" to buy this", vec3(0, 1, 0), false, true);
+						createText(vec2(motion.position.x, motion.position.y + 75), { 0.6f,0.6f }, "This will "+ item_name, vec3(0, 1, 0), false, true);
 						// std::cout << "Buy this" << std::endl;
 					}
 				}
@@ -961,7 +1049,7 @@ void WorldSystem::handle_collisions() {
 
 					HP& hp = registry.hps.get(entity);
 					if (hp.curr_hp <= 0.0f) {
-						combo_mode.combo_meter = min(combo_mode.combo_meter + 0.02f, combo_mode.COMBO_METER_MAX);
+						combo_mode.combo_meter = min(combo_mode.combo_meter + 0.03f, combo_mode.COMBO_METER_MAX);
 						if (registry.beeEnemies.has(entity) || registry.wolfEnemies.has(entity) || registry.bomberEnemies.has(entity) || registry.dummyenemies.has(entity)) {
 							registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
 							registry.hps.remove(entity);
@@ -1219,6 +1307,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 			else if (action == GLFW_RELEASE) {
 				bullet_spawner.is_firing = false;
+			}
+		}
+
+		// Use Bomb
+		if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+			Player& player_component = registry.players.get(player);
+			if (player_component.bomb > 0) {
+				player_component.bomb -= 1;
+				bomb_timer = bomb_timer_max;
 			}
 		}
 

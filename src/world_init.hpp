@@ -54,6 +54,7 @@ std::vector<Entity> createAttributeUI(RenderSystem* renderer);
 Entity createHealthUI(RenderSystem*);
 
 Entity createHealth(RenderSystem* renderer, vec2 position);
+Entity createPurchasableHealth(RenderSystem* renderer, vec2 position);
 Entity createTreasure(RenderSystem* renderer, vec2 position);
 Entity createNPC(RenderSystem* renderer, vec2 pos);
 Entity createWin(RenderSystem* renderer);

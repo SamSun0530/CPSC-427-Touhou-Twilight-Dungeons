@@ -109,8 +109,8 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 {
 	if (room.type == ROOM_TYPE::NORMAL) {
 		std::vector<vec2> spawn_points;
-		std::uniform_int_distribution<> int_distrib(6, 12);
-		int enemy_num = int_distrib(rng);
+		std::uniform_int_distribution<> int_distrib(2, 4);
+		int enemy_num = static_cast<int>(int_distrib(rng) * combo_mode.combo_meter * 2);
 		for (int i = 0; i < enemy_num; i++) {
 			std::uniform_real_distribution<> real_distrib_x(room.top_left.x+0.3f, room.bottom_right.x- 0.3f);
 			float loc_x = real_distrib_x(rng);
@@ -145,8 +145,8 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 	}
 	else if (room.type == ROOM_TYPE::SHOP) {
 		createNPC(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f));
-		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, 1.414f)) );
-		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, 1.414f)) );
+		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, 1.414f)) );
+		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, 1.414f)) );
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, -1.414f)) );
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, -1.414f)) );
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f - vec2(1.f, 0.f)));
@@ -246,6 +246,10 @@ void MapSystem::generateTutorialMap() {
 	// shift key focus mode
 	createKey(convert_grid_to_world({ 3.5, 8.5 }), vec2(150), KEYS::SHIFT, false, true, 1300);
 	createText(convert_grid_to_world({ 3.5, 9.5 }), vec3(0.8), "Hold to reduce\nhitbox to a dot", vec3(1, 1, 1), true, true);
+
+	// E to bomb
+	createKey(convert_grid_to_world({ 16, 4 }), vec2(120), KEYS::E, false, true, 1300);
+	createText(convert_grid_to_world({ 16, 5 }), vec3(0.8), "Press Q to clear all enemy bullets\n Need one bomb", vec3(1, 1, 1), true, true);
 
 	// hardcoded bullet for this specific grid only
 	for (int j = 0; j < 7; ++j) {

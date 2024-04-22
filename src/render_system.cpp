@@ -290,9 +290,11 @@ void RenderSystem::drawToScreen()
 	// Set clock
 	GLuint time_uloc = glGetUniformLocation(wind_program, "time");
 	GLuint dead_timer_uloc = glGetUniformLocation(wind_program, "darken_screen_factor");
+	GLuint bomb_timer_uloc = glGetUniformLocation(wind_program, "bomb_screen_factor");
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
 	ScreenState& screen = registry.screenStates.get(screen_state_entity);
 	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
+	glUniform1f(bomb_timer_uloc, screen.bomb_screen_factor);
 	gl_has_errors();
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)

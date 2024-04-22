@@ -345,6 +345,7 @@ struct Player
 	float fire_rate = 1/3.f;
 	float critical_hit = 0.05;
 	float critical_demage = 1.5;
+	int bomb = 3;
 };
 
 enum class State {
@@ -605,6 +606,7 @@ struct FollowFlowField
 struct ScreenState
 {
 	float darken_screen_factor = -1;
+	float bomb_screen_factor = -1;
 };
 
 struct WinMenu
@@ -736,6 +738,7 @@ enum class KEYS {
 	R = SCROLL + 1,
 	SPACE = R + 1,
 	P = SPACE + 1,
+	E = P + 1,
 };
 
 
@@ -821,7 +824,8 @@ enum class TEXTURE_ASSET_ID {
 	ATTACKSPEED = ATTACKDMG + 1,
 	CRTCHANCE = ATTACKSPEED + 1,
 	CRTDMG = CRTCHANCE + 1,
-	CRTHITICON = CRTDMG + 1,
+	BOMB = CRTDMG + 1,
+	CRTHITICON = BOMB + 1,
 	FOCUS_BAR = CRTHITICON + 1,
 	COIN_STATIC = FOCUS_BAR + 1,
 	TILES_ATLAS_SANDSTONE = COIN_STATIC + 1,
@@ -838,7 +842,9 @@ enum class TEXTURE_ASSET_ID {
 	ITEM_R = S + 1,
 	ITEM_G = ITEM_R + 1,
 	ITEM_B = ITEM_G + 1,
-	DOOR_HORIZONTAL_OPEN = ITEM_B + 1,
+	ITEM_Y = ITEM_B + 1,
+	ITEM_P = ITEM_Y + 1,
+	DOOR_HORIZONTAL_OPEN = ITEM_P + 1,
 	DOOR_HORIZONTAL_CLOSE = DOOR_HORIZONTAL_OPEN + 1,
 	DOOR_VERTICAL_OPEN_DOWN = DOOR_HORIZONTAL_CLOSE + 1,
 	DOOR_VERTICAL_OPEN_UP = DOOR_VERTICAL_OPEN_DOWN + 1,
