@@ -799,6 +799,7 @@ void WorldSystem::handle_collisions() {
 								kin.speed_modified = 0.f;
 								registry.motions.get(entity_other).scale = 2.f * vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 								registry.bomberEnemies.get(entity_other).touch_player = true;
+								registry.collidables.get(entity_other).active = false;
 							}
 						}
 
@@ -860,15 +861,9 @@ void WorldSystem::handle_collisions() {
 						BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
 						treasure.player_overlap = true;
 						if (pressed[GLFW_KEY_E] && player_att.coin_amount >= treasure.cost) {
-							//std::cout << "treasure.effect_type: " << std::to_string(treasure.effect_type) << std::endl;
-							//std::cout << "treasure.effect_strength: " << std::to_string(treasure.effect_strength) << std::endl;
 							player_att.coin_amount -= treasure.cost;
 							// 1=bullet_damage, 2=fire_rate, or 3=critical_hit
 							// treasure.effect_strength value between 0~1
-							//std::cout << "--------------before------------------" << std::endl;
-							//std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
-							//std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
-							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
 							if (treasure.effect_type == 1) {
 								player_att.bullet_damage += treasure.effect_strength;
 
@@ -881,16 +876,11 @@ void WorldSystem::handle_collisions() {
 							else if (treasure.effect_type == 3) {
 								player_att.critical_hit += float(treasure.effect_strength * 0.01);
 							}
-							//std::cout << "-------------after---------------------" << std::endl;
-							//std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
-							//std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
-							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
 							registry.remove_all_components_of(entity_other);
 						}
 						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, "cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
 
 						createText(vec2(motion.position.x, motion.position.y + 50), { 0.6f,0.6f }, "press \"E\" to buy this", vec3(0, 1, 0), false, true);
-						// std::cout << "Buy this" << std::endl;
 					}
 				}
 			}
@@ -948,7 +938,6 @@ void WorldSystem::handle_collisions() {
 					else {
 						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
 					}
-					//std::cout << "bullet_dmg: " << std::to_string(registry.playerBullets.get(entity_other).damage) << std::endl;
 
 					if (!registry.bosses.has(entity)) {
 						// Knockback
@@ -962,7 +951,14 @@ void WorldSystem::handle_collisions() {
 					HP& hp = registry.hps.get(entity);
 					if (hp.curr_hp <= 0.0f) {
 						combo_mode.combo_meter = min(combo_mode.combo_meter + 0.02f, combo_mode.COMBO_METER_MAX);
-						if (registry.beeEnemies.has(entity) || registry.wolfEnemies.has(entity) || registry.bomberEnemies.has(entity) || registry.dummyenemies.has(entity)) {
+						if (registry.beeEnemies.has(entity) || 
+							registry.wolfEnemies.has(entity) || 
+							registry.bomberEnemies.has(entity) || 
+							registry.dummyenemies.has(entity) ||
+							registry.lizardEnemies.has(entity) ||
+							registry.bee2Enemies.has(entity) ||
+							registry.wormEnemies.has(entity) ||
+							registry.gargoyleEnemies.has(entity)){
 							registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
 							registry.hps.remove(entity);
 							registry.aitimers.remove(entity);
@@ -975,6 +971,7 @@ void WorldSystem::handle_collisions() {
 							kin.velocity = { 0,0 };
 							kin.direction = { 0,0 };
 							kin.speed_modified = 0.f;
+							registry.collidables.get(entity).active = false;
 						}
 					}
 					registry.remove_all_components_of(entity_other);

@@ -405,12 +405,23 @@ struct WolfEnemy
 
 };
 
-struct NPC
-{
+struct Bee2Enemy {
 
 };
 
-struct SubmachineGunEnemy
+struct LizardEnemy {
+
+};
+
+struct GargoyleEnemy {
+
+};
+
+struct WormEnemy {
+
+};
+
+struct NPC
 {
 
 };
@@ -558,6 +569,9 @@ struct Kinematic {
 
 // Represents collision box with shift transform and size of box
 struct Collidable {
+	// if is not active, do not check for collisions 
+	// (currently only implemented for enemy-enemy collisions when one is dead)
+	bool active = true;
 	// translate box relative to motion position
 	vec2 shift = { 0, 0 };
 	// width and height of box
@@ -857,7 +871,11 @@ enum class TEXTURE_ASSET_ID {
 	FLANDRE_BULLET = BOSS_FLANDRE + 1,
 	INFOGRAPHIC = FLANDRE_BULLET + 1,
 	NPC_MARISA = INFOGRAPHIC + 1,
-	TEXTURE_COUNT = NPC_MARISA + 1,
+	ENEMY_LIZARD = NPC_MARISA + 1,
+	ENEMY_WORM = ENEMY_LIZARD + 1,
+	ENEMY_BEE2 = ENEMY_WORM + 1,
+	ENEMY_GARGOYLE = ENEMY_BEE2 + 1,
+	TEXTURE_COUNT = ENEMY_GARGOYLE + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

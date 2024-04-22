@@ -118,17 +118,31 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 			float loc_y = real_distrib_y(rng);
 			spawn_points.push_back(convert_grid_to_world(vec2(loc_x, loc_y)));
 		}
-
+		std::uniform_real_distribution<> real_dist(0,1);
 		for (vec2 point : spawn_points) {
-			float random_numer = uniform_dist(rng);
-			if (random_numer <= 0.50) {
-				room.enemies.push_back(createBeeEnemy(renderer, point));
+
+			float random_number = real_dist(rng);
+			//if (random_number <= 0.50) {
+			//	room.enemies.push_back(createBeeEnemy(renderer, point));
+			//}
+			//else if (random_number <= 0.75) {
+			//	room.enemies.push_back(createWolfEnemy(renderer, point));
+			//}
+			//else if (random_number <= 1.0) {
+			//	room.enemies.push_back(createBomberEnemy(renderer, point));
+			//}
+
+			if (random_number <= 0.25) {
+				room.enemies.push_back(createLizardEnemy(renderer, point));
 			}
-			else if (random_numer <= 0.75) {
-				room.enemies.push_back(createWolfEnemy(renderer, point));
+			else if (random_number <= 0.50) {
+				room.enemies.push_back(createBee2Enemy(renderer, point));
 			}
-			else if (random_numer <= 1.0) {
-				room.enemies.push_back(createBomberEnemy(renderer, point));
+			else if (random_number <= 0.75) {
+				room.enemies.push_back(createWormEnemy(renderer, point));
+			}
+			else {
+				room.enemies.push_back(createGargoyleEnemy(renderer, point));
 			}
 		}
 	}

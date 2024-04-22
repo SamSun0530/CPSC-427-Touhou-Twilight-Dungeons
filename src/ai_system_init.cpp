@@ -466,6 +466,82 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 	ConditionalNode* is_in_range_flandre = new ConditionalNode(show_boss_health_bar_flandre, do_nothing_flandre, isInRangeBoss);
 	this->flandre_boss_tree.setRoot(is_in_range_flandre);
 
+	/*
+	Lizard (same as wolf)
+	*/
+	ConditionalNode* can_see_player_lizard = new ConditionalNode([&](Entity& entity) {
+		return canSeePlayer(entity);
+		});
+	ConditionalNode* is_in_range_lizard = new ConditionalNode(isInRange);
+	ConditionalNode* can_shoot_lizard = new ConditionalNode(canShoot);
+	ActionNode* move_random_direction_lizard = new ActionNode(moveRandomDirection);
+	ActionNode* fire_at_player_lizard = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_threshold_lizard = new ActionNode(followFlowFieldThreshold);
+	can_shoot_lizard->setTrue(fire_at_player_lizard);
+	can_shoot_lizard->setFalse(find_player_threshold_lizard);
+	can_see_player_lizard->setTrue(can_shoot_lizard);
+	can_see_player_lizard->setFalse(find_player_threshold_lizard);
+	is_in_range_lizard->setTrue(can_see_player_lizard);
+	is_in_range_lizard->setFalse(move_random_direction_lizard);
+	this->lizard_tree.setRoot(is_in_range_lizard);
+
+	/*
+	Worm (same as wolf)
+	*/
+	ConditionalNode* can_see_player_worm = new ConditionalNode([&](Entity& entity) {
+		return canSeePlayer(entity);
+		});
+	ConditionalNode* is_in_range_worm = new ConditionalNode(isInRange);
+	ConditionalNode* can_shoot_worm = new ConditionalNode(canShoot);
+	ActionNode* move_random_direction_worm = new ActionNode(moveRandomDirection);
+	ActionNode* fire_at_player_worm = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_threshold_worm = new ActionNode(followFlowFieldThreshold);
+	can_shoot_worm->setTrue(fire_at_player_worm);
+	can_shoot_worm->setFalse(find_player_threshold_worm);
+	can_see_player_worm->setTrue(can_shoot_worm);
+	can_see_player_worm->setFalse(find_player_threshold_worm);
+	is_in_range_worm->setTrue(can_see_player_worm);
+	is_in_range_worm->setFalse(move_random_direction_worm);
+	this->worm_tree.setRoot(is_in_range_worm);
+
+	/*
+	Bee2 (same as wolf)
+	*/
+	ConditionalNode* can_see_player_bee2 = new ConditionalNode([&](Entity& entity) {
+		return canSeePlayer(entity);
+		});
+	ConditionalNode* is_in_range_bee2 = new ConditionalNode(isInRange);
+	ConditionalNode* can_shoot_bee2 = new ConditionalNode(canShoot);
+	ActionNode* move_random_direction_bee2 = new ActionNode(moveRandomDirection);
+	ActionNode* fire_at_player_bee2 = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_threshold_bee2 = new ActionNode(followFlowFieldThreshold);
+	can_shoot_bee2->setTrue(fire_at_player_bee2);
+	can_shoot_bee2->setFalse(find_player_threshold_bee2);
+	can_see_player_bee2->setTrue(can_shoot_bee2);
+	can_see_player_bee2->setFalse(find_player_threshold_bee2);
+	is_in_range_bee2->setTrue(can_see_player_bee2);
+	is_in_range_bee2->setFalse(move_random_direction_bee2);
+	this->bee2_tree.setRoot(is_in_range_bee2);
+
+	/*
+	Gargoyle (same as wolf)
+	*/
+	ConditionalNode* can_see_player_gargoyle = new ConditionalNode([&](Entity& entity) {
+		return canSeePlayer(entity);
+		});
+	ConditionalNode* is_in_range_gargoyle = new ConditionalNode(isInRange);
+	ConditionalNode* can_shoot_gargoyle = new ConditionalNode(canShoot);
+	ActionNode* move_random_direction_gargoyle = new ActionNode(moveRandomDirection);
+	ActionNode* fire_at_player_gargoyle = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_threshold_gargoyle = new ActionNode(followFlowFieldThreshold);
+	can_shoot_gargoyle->setTrue(fire_at_player_gargoyle);
+	can_shoot_gargoyle->setFalse(find_player_threshold_gargoyle);
+	can_see_player_gargoyle->setTrue(can_shoot_gargoyle);
+	can_see_player_gargoyle->setFalse(find_player_threshold_gargoyle);
+	is_in_range_gargoyle->setTrue(can_see_player_gargoyle);
+	is_in_range_gargoyle->setFalse(move_random_direction_gargoyle);
+	this->gargoyle_tree.setRoot(is_in_range_gargoyle);
+
 	// TODO: create decision trees/condition/action functions here for different enemies
 }
 

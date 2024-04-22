@@ -34,6 +34,10 @@ private:
 	DecisionTree bee_tree;
 	DecisionTree bomber_tree;
 	DecisionTree wolf_tree;
+	DecisionTree lizard_tree;
+	DecisionTree bee2_tree;
+	DecisionTree worm_tree;
+	DecisionTree gargoyle_tree;
 	DecisionTree cirno_boss_tree;
 	DecisionTree flandre_boss_tree;
 

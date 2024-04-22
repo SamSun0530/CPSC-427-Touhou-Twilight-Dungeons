@@ -17,6 +17,10 @@ const float PLAYER_BB_WIDTH = 0.5f * 128.f;
 const float PLAYER_BB_HEIGHT = 0.5f * 128.f;
 const float ENEMY_BB_WIDTH = 1.f * 80.f;
 const float ENEMY_BB_HEIGHT = 1.f * 90.f;
+const float ENEMY_BB_WIDTH_128 = 1.f * 128.f;
+const float ENEMY_BB_HEIGHT_128 = 1.f * 128.f;
+const float ENEMY_BB_WIDTH_96 = 1.f * 96.f;
+const float ENEMY_BB_HEIGHT_96 = 1.f * 96.f;
 const float HP_BB_WIDTH = 1.3f * 194.f;
 const float HP_BB_HEIGHT = 1.3f * 36.f;
 const float VP_BB_WIDTH = 1.5f * 218.f;
@@ -83,6 +87,10 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position);
 Entity createBomberEnemy(RenderSystem* renderer, vec2 position);
 // the shotgun enemy
 Entity createWolfEnemy(RenderSystem* renderer, vec2 position);
+Entity createLizardEnemy(RenderSystem* renderer, vec2 position);
+Entity createWormEnemy(RenderSystem* renderer, vec2 position);
+Entity createBee2Enemy(RenderSystem* renderer, vec2 position);
+Entity createGargoyleEnemy(RenderSystem* renderer, vec2 position);
 // the grenade launcher enemy
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
 // boss enemy

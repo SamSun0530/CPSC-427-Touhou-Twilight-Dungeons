@@ -41,7 +41,6 @@ public:
 	ComponentContainer<BeeEnemy> beeEnemies;
 	ComponentContainer<BomberEnemy> bomberEnemies;
 	ComponentContainer<WolfEnemy> wolfEnemies;
-	ComponentContainer<SubmachineGunEnemy> submachineGunEnemies;
 	ComponentContainer<Coin> coins;
 	ComponentContainer<Product> products;
 	ComponentContainer<MaxHPIncrease> maxhpIncreases;
@@ -84,6 +83,11 @@ public:
 	ComponentContainer<LoseMenu> loseMenus;
 	ComponentContainer<InfographicMenu> infographicsMenus;
 	ComponentContainer<NPC> npcs;
+	ComponentContainer<LizardEnemy> lizardEnemies;
+	ComponentContainer<WormEnemy> wormEnemies;
+	ComponentContainer<Bee2Enemy> bee2Enemies;
+	ComponentContainer<GargoyleEnemy> gargoyleEnemies;
+
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -119,7 +123,6 @@ public:
 		registry_list.push_back(&beeEnemies);
 		registry_list.push_back(&bomberEnemies);
 		registry_list.push_back(&wolfEnemies);
-		registry_list.push_back(&submachineGunEnemies);
 		registry_list.push_back(&coins);
 		registry_list.push_back(&products);
 		registry_list.push_back(&maxhpIncreases);
@@ -162,6 +165,10 @@ public:
 		registry_list.push_back(&loseMenus);
 		registry_list.push_back(&infographicsMenus);
 		registry_list.push_back(&npcs);
+		registry_list.push_back(&lizardEnemies);
+		registry_list.push_back(&wormEnemies);
+		registry_list.push_back(&bee2Enemies);
+		registry_list.push_back(&gargoyleEnemies);
 	}
 
 	void clear_all_components() {

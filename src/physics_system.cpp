@@ -342,6 +342,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity deadly_entity : registry.deadlys.entities) {
 			Motion& motion = registry.motions.get(deadly_entity);
 			Collidable& collidable = registry.collidables.get(deadly_entity);
+			if (!collidable.active) continue;
 			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
 				registry.collisions.emplace_with_duplicates(player_entity, deadly_entity);
 				registry.collisions.emplace_with_duplicates(deadly_entity, player_entity);
@@ -508,6 +509,7 @@ void PhysicsSystem::step(float elapsed_ms)
 	{
 		Entity entity_i = deadly_container.entities[i];
 		Collidable& collidable_i = collidable_container.get(entity_i);
+		if (!collidable_i.active) continue;
 		Motion& motion_i = motion_container.get(entity_i);
 
 		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
@@ -515,6 +517,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		{
 			Entity entity_j = deadly_container.entities[j];
 			Collidable& collidable_j = collidable_container.get(entity_j);
+			if (!collidable_j.active) continue;
 			Motion& motion_j = motion_container.get(entity_j);
 			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
 			{
