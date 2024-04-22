@@ -488,6 +488,25 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 	/*
 	Worm (same as wolf)
 	*/
+	// find player by following flow field if outside of range threshold
+	// difference between original: does not stop firing
+	std::function<void(Entity& entity)> followFlowFieldThresholdKeepFiring = [&](Entity& entity) {
+		Entity& player = registry.players.entities[0];
+		Motion& player_motion = registry.motions.get(player);
+		Motion& entity_motion = registry.motions.get(entity);
+		float minimum_range_to_check = 90000; // sqrt(160000)=300 pixels
+		vec2 dp = player_motion.position - entity_motion.position;
+		if (dot(dp, dp) > minimum_range_to_check) {
+			if (!registry.followFlowField.has(entity)) {
+				registry.followFlowField.emplace(entity);
+			}
+		}
+		else {
+			registry.kinematics.get(entity).direction = { 0, 0 };
+			registry.followFlowField.remove(entity);
+		}
+		};
+
 	ConditionalNode* can_see_player_worm = new ConditionalNode([&](Entity& entity) {
 		return canSeePlayer(entity);
 		});
@@ -495,7 +514,7 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 	ConditionalNode* can_shoot_worm = new ConditionalNode(canShoot);
 	ActionNode* move_random_direction_worm = new ActionNode(moveRandomDirection);
 	ActionNode* fire_at_player_worm = new ActionNode(fireAtPlayer);
-	ActionNode* find_player_threshold_worm = new ActionNode(followFlowFieldThreshold);
+	ActionNode* find_player_threshold_worm = new ActionNode(followFlowFieldThresholdKeepFiring);
 	can_shoot_worm->setTrue(fire_at_player_worm);
 	can_shoot_worm->setFalse(find_player_threshold_worm);
 	can_see_player_worm->setTrue(can_shoot_worm);

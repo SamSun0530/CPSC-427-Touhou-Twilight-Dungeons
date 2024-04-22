@@ -196,9 +196,9 @@ DIRECTION - vec2 - change direction to x,y
 
 Vec3s:
 SPLIT - vec3 - split one bullets into multiple bullets based on angle
-	- vec2[0] = number of bullets to split into (<= 1 - won't do anything)
-	- vec2[1] = angle for the bullet spread
-	- vec2[2] = initial bullet speed
+	- vec3[0] = number of bullets to split into (<= 1 - won't do anything)
+	- vec3[1] = angle for the bullet spread
+	- vec3[2] = initial bullet speed
 */
 enum class BULLET_ACTION {
 	SPEED,

@@ -1067,7 +1067,7 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 100;
+	hp.max_hp = 60;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1089,7 +1089,7 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 	BulletSpawner bs;
 	bs.fire_rate = 20;
 	bs.is_firing = false;
-	bs.bullet_initial_speed = 300;
+	bs.bullet_initial_speed = 100;
 
 	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
@@ -1142,7 +1142,7 @@ Entity createBomberEnemy(RenderSystem* renderer, vec2 position)
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
-	kinematic.speed_base = 320.f;
+	kinematic.speed_base = 300.f;
 	kinematic.speed_modified = 1.f * kinematic.speed_base;
 	kinematic.direction = { 0, 0 };
 
@@ -1229,7 +1229,7 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 	BulletSpawner bs;
 	bs.fire_rate = 50;
 	bs.is_firing = false;
-	bs.bullet_initial_speed = 200;
+	bs.bullet_initial_speed = 100;
 	bs.bullets_per_array = 3;
 	bs.spread_within_array = 30;
 
@@ -1267,7 +1267,7 @@ Entity createLizardEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 20;
+	hp.max_hp = 50;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1348,7 +1348,7 @@ Entity createWormEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 20;
+	hp.max_hp = 50;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1369,9 +1369,12 @@ Entity createWormEnemy(RenderSystem* renderer, vec2 position) {
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 50;
+	bs.fire_rate = 1.5;
 	bs.is_firing = false;
 	bs.bullet_initial_speed = 100;
+	bs.number_to_fire = 10;
+	bs.is_cooldown = true;
+	bs.cooldown_rate = 60;
 
 	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
@@ -1407,7 +1410,7 @@ Entity createBee2Enemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 20;
+	hp.max_hp = 50;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1428,9 +1431,19 @@ Entity createBee2Enemy(RenderSystem* renderer, vec2 position) {
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 50;
+	bs.fire_rate = 20;
 	bs.is_firing = false;
 	bs.bullet_initial_speed = 100;
+
+	deadly.has_bullet_pattern = true;
+	deadly.bullet_pattern.commands = {
+		{ BULLET_ACTION::ROTATE, 45},
+		{ BULLET_ACTION::DELAY, 200},
+		{ BULLET_ACTION::ROTATE, -90},
+		{ BULLET_ACTION::DELAY, 200},
+		{ BULLET_ACTION::ROTATE, 90},
+		{ BULLET_ACTION::LOOP, vec2(10, 1)},
+	};
 
 	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
@@ -1466,7 +1479,7 @@ Entity createGargoyleEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 20;
+	hp.max_hp = 60;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage

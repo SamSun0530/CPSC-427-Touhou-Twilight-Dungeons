@@ -112,16 +112,43 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		std::uniform_int_distribution<> int_distrib(6, 12);
 		int enemy_num = int_distrib(rng);
 		for (int i = 0; i < enemy_num; i++) {
-			std::uniform_real_distribution<> real_distrib_x(room.top_left.x+0.3f, room.bottom_right.x- 0.3f);
+			std::uniform_real_distribution<> real_distrib_x(room.top_left.x + 0.3f, room.bottom_right.x - 0.3f);
 			float loc_x = real_distrib_x(rng);
 			std::uniform_real_distribution<> real_distrib_y(room.top_left.y + 0.3f, room.bottom_right.y - 0.3f);
 			float loc_y = real_distrib_y(rng);
 			spawn_points.push_back(convert_grid_to_world(vec2(loc_x, loc_y)));
 		}
-		std::uniform_real_distribution<> real_dist(0,1);
+		std::uniform_real_distribution<> real_dist(0, 1);
 		for (vec2 point : spawn_points) {
 
 			float random_number = real_dist(rng);
+			if (map_info.level == MAP_LEVEL::LEVEL1) {
+				if (random_number <= 0.50) {
+					room.enemies.push_back(createGargoyleEnemy(renderer, point));
+				}
+				else if (random_number <= 0.75) {
+					room.enemies.push_back(createWolfEnemy(renderer, point));
+				}
+				else {
+					room.enemies.push_back(createBomberEnemy(renderer, point));
+				}
+			}
+			else if (map_info.level == MAP_LEVEL::LEVEL2) {
+				if (random_number <= 0.50) {
+					room.enemies.push_back(createBeeEnemy(renderer, point));
+				}
+				else if (random_number <= 0.7) {
+					room.enemies.push_back(createBee2Enemy(renderer, point));
+				}
+				else if (random_number <= 0.9) {
+					room.enemies.push_back(createWormEnemy(renderer, point));
+				}
+				else {
+					room.enemies.push_back(createLizardEnemy(renderer, point));
+				}
+			}
+
+
 			//if (random_number <= 0.50) {
 			//	room.enemies.push_back(createBeeEnemy(renderer, point));
 			//}
@@ -132,7 +159,11 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 			//	room.enemies.push_back(createBomberEnemy(renderer, point));
 			//}
 
-			room.enemies.push_back(createLizardEnemy(renderer, point));
+			//room.enemies.push_back(createLizardEnemy(renderer, point));
+			//room.enemies.push_back(createWormEnemy(renderer, point));
+			//room.enemies.push_back(createBee2Enemy(renderer, point));
+			//room.enemies.push_back(createGargoyleEnemy(renderer, point));
+
 			//if (random_number <= 0.25) {
 			//	room.enemies.push_back(createLizardEnemy(renderer, point));
 			//}
@@ -160,10 +191,10 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 	}
 	else if (room.type == ROOM_TYPE::SHOP) {
 		createNPC(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f));
-		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, 1.414f)) );
-		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, 1.414f)) );
-		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, -1.414f)) );
-		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, -1.414f)) );
+		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, 1.414f)));
+		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, 1.414f)));
+		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, -1.414f)));
+		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, -1.414f)));
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f - vec2(1.f, 0.f)));
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.f, 0.f)));
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f - vec2(0.f, 1.f)));
