@@ -135,6 +135,11 @@ struct Teleporter {
 	bool is_teleporting = false;
 };
 
+// make entity fly to player
+struct FlyToPlayer {
+
+};
+
 // Menu stuff
 struct MainMenu {
 

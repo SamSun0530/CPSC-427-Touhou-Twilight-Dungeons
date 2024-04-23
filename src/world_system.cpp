@@ -506,13 +506,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	for (Entity entity : registry.bezierCurves.entities) {
+	sharpness_factor_camera = 0.95f;
+	K = 1.0f - pow(1.0f - sharpness_factor_camera, 3 * elapsed_ms_since_last_update / 1000.f);
+	for (Entity entity : registry.flytoplayers.entities) {
+		Motion& motion = registry.motions.get(entity);
+		motion.position = vec2_lerp(motion.position, player_position, K);
+	}
 
+	for (Entity entity : registry.bezierCurves.entities) {
 		BezierCurve& curve_counter = registry.bezierCurves.get(entity);
 		curve_counter.curve_counter_ms -= elapsed_ms_since_last_update;
 
 		if (curve_counter.curve_counter_ms < 0) {
 			registry.bezierCurves.remove(entity);
+			if (registry.coins.has(entity)) {
+				registry.flytoplayers.emplace(entity);
+			}
 		}
 	}
 
