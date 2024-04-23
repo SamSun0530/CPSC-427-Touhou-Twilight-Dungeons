@@ -600,7 +600,6 @@ void MapSystem::generate_rocks(std::vector<std::vector<int>>& map) {
 				//map[row][col] = (to_spawn < rock_spawn_chance) ? (int)TILE_TYPE::WALL : (int)TILE_TYPE::FLOOR;
 				if (to_spawn < rock_spawn_chance) {
 					createRock(renderer, { col, row });
-					map[row][col] = (int)TILE_TYPE::WALL;
 				}
 
 			}

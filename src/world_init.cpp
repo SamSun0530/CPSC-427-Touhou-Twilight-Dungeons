@@ -1509,12 +1509,11 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 	std::uniform_real_distribution<> distrib(0, 1);
 	double number = distrib(gen);
 
-	// Rocks act like walls
-	registry.walls.emplace(entity);
-
-
 	// Placeholder texure
 	if (number < 0.2) {
+		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+		registry.walls.emplace(entity);
+
 		registry.renderRequests.insert(
 			entity,
 			{
@@ -1523,7 +1522,6 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else if (number < 0.4) {
-		registry.walls.remove(entity);
 		registry.renderRequests.insert(
 			entity,
 			{
@@ -1532,6 +1530,9 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else if (number < 0.6) {
+		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+		registry.walls.emplace(entity);
+
 		registry.renderRequests.insert(
 			entity,
 			{
@@ -1540,6 +1541,9 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else if (number < 0.8) {
+		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+		registry.walls.emplace(entity);
+
 		registry.renderRequests.insert(
 			entity,
 			{
@@ -1548,6 +1552,9 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else {
+		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+		registry.walls.emplace(entity);
+
 		EntityAnimation& animation = registry.alwaysplayAni.emplace(entity);
 		animation.spritesheet_scale = { 1 / 8.f, 1.0f };
 		animation.render_pos = { 1 / 8.f, 1.0f };
