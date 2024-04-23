@@ -118,7 +118,8 @@ class RenderSystem {
 			textures_path("Worm-Figure.png"),
 			textures_path("Bee2-Figure.png"),
 			textures_path("Gargoyle-Figure.png"),
-			textures_path("AimbotCursor.png")
+			textures_path("AimbotCursor.png"),
+			textures_path("explosions/AOEAmmoExplosion.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

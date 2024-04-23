@@ -49,17 +49,13 @@ void Animation::step(float elapsed_ms)
 		}
 	}
 
-	ComponentContainer<EntityAnimation> playonceAni_container = registry.playonceAni;
+	ComponentContainer<EntityAnimation>& playonceAni_container = registry.playonceAni;
 	int playonceAni_container_size = playonceAni_container.size();
 	for (int i = playonceAni_container_size - 1; i >= 0; --i) {
 		EntityAnimation& animation = playonceAni_container.components[i];
 		if (!animation.is_active) continue;
 
 		animation.frame_rate_ms -= elapsed_ms;
-
-		if (animation.frame_rate_ms < animation_frame_rate) {
-			animation_frame_rate = animation.frame_rate_ms;
-		}
 
 		if (animation.frame_rate_ms < 0) {
 			animation.render_pos.x += animation.spritesheet_scale.x;

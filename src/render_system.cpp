@@ -213,6 +213,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	else if (registry.alwaysplayAni.has(entity)) {
 		end_pos = registry.alwaysplayAni.get(entity).render_pos;
 	}
+	else if (registry.playonceAni.has(entity)) {
+		end_pos = registry.playonceAni.get(entity).render_pos;
+;	}
 	glUniform2fv(end_pos_uloc, 1, (float*)&end_pos);
 	gl_has_errors();
 
@@ -224,6 +227,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	}
 	else if (registry.alwaysplayAni.has(entity)) {
 		ani_scale = registry.alwaysplayAni.get(entity).spritesheet_scale;
+	}
+	else if (registry.playonceAni.has(entity)) {
+		ani_scale = registry.playonceAni.get(entity).spritesheet_scale;
 	}
 	glUniform2fv(scale_uloc, 1, (float*)&ani_scale);
 	gl_has_errors();

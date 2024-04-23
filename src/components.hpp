@@ -367,14 +367,14 @@ struct Player
 	int coin_amount = 0;
 	int key_amount = 0;
 	float invulnerability_time_ms = 1000;
-	float fire_rate = 1/3.f;
+	float fire_rate = 1 / 3.f;
 	float critical_hit = 0.05;
 	float critical_demage = 1.5;
-	
+
 	// we store this here because 
 	// - carry it to next level
 	// - exclusive to the player only (enemies should not have this)
-	AMMO_TYPE ammo_type = AMMO_TYPE::AIMBOT;
+	AMMO_TYPE ammo_type = AMMO_TYPE::AOE;
 };
 
 struct AimbotCursor {
@@ -385,6 +385,10 @@ enum class State {
 	IDLE = 0,
 	MOVE = IDLE + 1,
 	ALERT = MOVE + 1,
+};
+
+enum VFX_TYPE {
+	AOE_AMMO_EXPLOSION
 };
 
 struct IdleMoveAction {
@@ -914,7 +918,8 @@ enum class TEXTURE_ASSET_ID {
 	ENEMY_BEE2 = ENEMY_WORM + 1,
 	ENEMY_GARGOYLE = ENEMY_BEE2 + 1,
 	AIMBOT_CURSOR = ENEMY_GARGOYLE + 1,
-	TEXTURE_COUNT = AIMBOT_CURSOR + 1,
+	AOE_AMMO_EXPLOSION = AIMBOT_CURSOR + 1,
+	TEXTURE_COUNT = AOE_AMMO_EXPLOSION + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

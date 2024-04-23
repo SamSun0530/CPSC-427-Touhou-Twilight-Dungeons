@@ -539,7 +539,7 @@ Entity createAimbotCursor(RenderSystem* renderer, vec2 pos, float scale)
 	EntityAnimation ani;
 	ani.isCursor = false;
 	ani.spritesheet_scale = { 1.f / 4.f, 1.f };
-	ani.render_pos = { 0.f, 1.f };
+	ani.render_pos = { 1.f / 4.f, 1.f };
 	ani.frame_rate_ms = 200;
 	ani.full_rate_ms = 200;
 	ani.is_active = true;
@@ -767,6 +767,42 @@ Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui, bool is_active, f
 
 	return entity;
 }
+
+Entity createVFX(RenderSystem* renderer, vec2 pos, vec2 scale, VFX_TYPE type) {
+	auto entity = Entity();
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = scale;
+
+	EntityAnimation playonce_ani;
+	// Set explosion as default, could change in switch statement below
+	TEXTURE_ASSET_ID texture_asset = TEXTURE_ASSET_ID::AOE_AMMO_EXPLOSION;
+
+	switch (type) {
+	case VFX_TYPE::AOE_AMMO_EXPLOSION: {
+		texture_asset = TEXTURE_ASSET_ID::AOE_AMMO_EXPLOSION;
+		playonce_ani.spritesheet_scale = { 1.f / 82.f, 1.f };
+		playonce_ani.render_pos = { 1 / 82.f, 1.f };
+		playonce_ani.frame_rate_ms = 1000.f / 60.f;
+		playonce_ani.full_rate_ms = 1000.f / 60.f;
+		playonce_ani.is_active = true;
+	}
+	default:
+		break;
+	}
+
+	registry.playonceAni.insert(entity, playonce_ani);
+	registry.renderRequests.insert(
+		entity,
+		{ texture_asset,
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 
 Entity createCriHit(RenderSystem* renderer, vec2 pos)
 {

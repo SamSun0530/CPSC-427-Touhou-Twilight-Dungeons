@@ -38,3 +38,4 @@ Alan Huang <br />
 - Paper UI - https://humblepixel.itch.io/pocket-inventory-series-5-player-status
 - Ruins/texture, Teleporter - https://rafaelmatos.itch.io/epic-rpg-world-pack-free-demo-ancient-ruins-asset-tileset
 - Aimbot cursor - https://bdragon1727.itch.io/basic-pixel-health-bar-and-scroll-bar
+- AOE explosion - https://untiedgames.itch.io/five-free-pixel-explosions

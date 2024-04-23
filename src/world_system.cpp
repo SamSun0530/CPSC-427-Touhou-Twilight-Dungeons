@@ -940,58 +940,124 @@ void WorldSystem::handle_collisions() {
 		else if (registry.deadlys.has(entity)) {
 			if (registry.playerBullets.has(entity_other) && !registry.invulnerableTimers.has(entity)) {
 				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
-					// enemy turn red and decrease hp, bullet disappear
-					registry.hitTimers.emplace(entity);
-					registry.colors.get(entity) = vec3(-1.f);
-					Motion& deadly_motion = registry.motions.get(entity);
-					Mix_PlayChannel(-1, audio->hit_spell, 0);
-
-					std::random_device rd;
-					std::mt19937 gen(rd());
-					std::uniform_real_distribution<> distrib(0, 1);
-					double number = distrib(gen);
 					Player& player_att = registry.players.get(player);
-					if (number < player_att.critical_hit) {
-						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage * player_att.critical_demage;
-						registry.realDeathTimers.emplace(createCriHit(renderer, deadly_motion.position - vec2(30, 0))).death_counter_ms = 300;
+					if (player_att.ammo_type == AMMO_TYPE::AOE) {
+						float scale = 3.f;
+						float radius_squared = ENEMY_BB_WIDTH_100 * scale / 2.f * ENEMY_BB_WIDTH_100 * scale / 2.f;
+						Motion& deadly_motion_hit = registry.motions.get(entity);
+						createVFX(renderer, deadly_motion_hit.position, scale * vec2(ENEMY_BB_WIDTH_100, ENEMY_BB_HEIGHT_100), VFX_TYPE::AOE_AMMO_EXPLOSION);
+						for (Entity deadly_entity : registry.deadlys.entities) {
+							if (registry.hitTimers.has(deadly_entity) || registry.realDeathTimers.has(deadly_entity)) continue;
+							Motion& deadly_motion = registry.motions.get(deadly_entity);
+							vec2 dp = deadly_motion.position - deadly_motion_hit.position;
+							float dot_dp = dot(dp, dp);
+							if (dot_dp >= radius_squared) continue;
+
+							registry.hitTimers.emplace(deadly_entity);
+							registry.colors.get(deadly_entity) = vec3(-1.f);
+
+							std::random_device rd;
+							std::mt19937 gen(rd());
+							std::uniform_real_distribution<> distrib(0, 1);
+							double number = distrib(gen);
+							if (number < player_att.critical_hit) {
+								registry.hps.get(deadly_entity).curr_hp -= registry.playerBullets.get(entity_other).damage * player_att.critical_demage * 1.5f;
+								registry.realDeathTimers.emplace(createCriHit(renderer, deadly_motion.position - vec2(30, 0))).death_counter_ms = 300;
+							}
+							else {
+								registry.hps.get(deadly_entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+							}
+
+							if (!registry.bosses.has(deadly_entity)) {
+								// Knockback
+								float knockback_factor = 1000.f;
+								Kinematic& kin = registry.kinematics.get(deadly_entity);
+								if (dp.x != 0 || dp.y != 0) {
+									kin.velocity += knockback_factor * normalize(dp);
+								}
+							}
+
+							HP& hp = registry.hps.get(deadly_entity);
+							if (hp.curr_hp <= 0.0f) {
+								combo_mode.combo_meter = min(combo_mode.combo_meter + 0.02f, combo_mode.COMBO_METER_MAX);
+								if (registry.beeEnemies.has(deadly_entity) ||
+									registry.wolfEnemies.has(deadly_entity) ||
+									registry.bomberEnemies.has(deadly_entity) ||
+									registry.dummyenemies.has(deadly_entity) ||
+									registry.lizardEnemies.has(deadly_entity) ||
+									registry.bee2Enemies.has(deadly_entity) ||
+									registry.wormEnemies.has(deadly_entity) ||
+									registry.gargoyleEnemies.has(deadly_entity)) {
+									registry.realDeathTimers.emplace(deadly_entity).death_counter_ms = 1000;
+									registry.hps.remove(deadly_entity);
+									registry.aitimers.remove(deadly_entity);
+									registry.followpaths.remove(deadly_entity);
+									registry.followFlowField.remove(deadly_entity);
+									if (registry.bulletSpawners.has(deadly_entity)) {
+										registry.bulletSpawners.get(deadly_entity).is_firing = false;
+									}
+									Kinematic& kin = registry.kinematics.get(deadly_entity);
+									//kin.velocity = { 0,0 };
+									kin.direction = { 0,0 };
+									kin.speed_modified = 0.f;
+									registry.collidables.get(deadly_entity).active = false;
+								}
+							}
+						}
 					}
 					else {
-						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
-					}
+						// enemy turn red and decrease hp, bullet disappear
+						Mix_PlayChannel(-1, audio->hit_spell, 0);
+						registry.hitTimers.emplace(entity);
+						registry.colors.get(entity) = vec3(-1.f);
+						Motion& deadly_motion = registry.motions.get(entity);
 
-					if (!registry.bosses.has(entity)) {
-						// Knockback
-						float knockback_factor = 50.f;
-						Kinematic& bullet_kin = registry.kinematics.get(entity_other);
-						Kinematic& kin = registry.kinematics.get(entity);
-						bullet_kin.direction = normalize(bullet_kin.direction);
-						kin.velocity += bullet_kin.direction * knockback_factor;
-					}
+						std::random_device rd;
+						std::mt19937 gen(rd());
+						std::uniform_real_distribution<> distrib(0, 1);
+						double number = distrib(gen);
+						if (number < player_att.critical_hit) {
+							registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage * player_att.critical_demage;
+							registry.realDeathTimers.emplace(createCriHit(renderer, deadly_motion.position - vec2(30, 0))).death_counter_ms = 300;
+						}
+						else {
+							registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+						}
 
-					HP& hp = registry.hps.get(entity);
-					if (hp.curr_hp <= 0.0f) {
-						combo_mode.combo_meter = min(combo_mode.combo_meter + 0.02f, combo_mode.COMBO_METER_MAX);
-						if (registry.beeEnemies.has(entity) ||
-							registry.wolfEnemies.has(entity) ||
-							registry.bomberEnemies.has(entity) ||
-							registry.dummyenemies.has(entity) ||
-							registry.lizardEnemies.has(entity) ||
-							registry.bee2Enemies.has(entity) ||
-							registry.wormEnemies.has(entity) ||
-							registry.gargoyleEnemies.has(entity)) {
-							registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
-							registry.hps.remove(entity);
-							registry.aitimers.remove(entity);
-							registry.followpaths.remove(entity);
-							registry.followFlowField.remove(entity);
-							if (registry.bulletSpawners.has(entity)) {
-								registry.bulletSpawners.get(entity).is_firing = false;
-							}
+						if (!registry.bosses.has(entity)) {
+							// Knockback
+							float knockback_factor = 50.f;
+							Kinematic& bullet_kin = registry.kinematics.get(entity_other);
 							Kinematic& kin = registry.kinematics.get(entity);
-							kin.velocity = { 0,0 };
-							kin.direction = { 0,0 };
-							kin.speed_modified = 0.f;
-							registry.collidables.get(entity).active = false;
+							bullet_kin.direction = normalize(bullet_kin.direction);
+							kin.velocity += bullet_kin.direction * knockback_factor;
+						}
+
+						HP& hp = registry.hps.get(entity);
+						if (hp.curr_hp <= 0.0f) {
+							combo_mode.combo_meter = min(combo_mode.combo_meter + 0.02f, combo_mode.COMBO_METER_MAX);
+							if (registry.beeEnemies.has(entity) ||
+								registry.wolfEnemies.has(entity) ||
+								registry.bomberEnemies.has(entity) ||
+								registry.dummyenemies.has(entity) ||
+								registry.lizardEnemies.has(entity) ||
+								registry.bee2Enemies.has(entity) ||
+								registry.wormEnemies.has(entity) ||
+								registry.gargoyleEnemies.has(entity)) {
+								registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
+								registry.hps.remove(entity);
+								registry.aitimers.remove(entity);
+								registry.followpaths.remove(entity);
+								registry.followFlowField.remove(entity);
+								if (registry.bulletSpawners.has(entity)) {
+									registry.bulletSpawners.get(entity).is_firing = false;
+								}
+								Kinematic& kin = registry.kinematics.get(entity);
+								kin.velocity = { 0,0 };
+								kin.direction = { 0,0 };
+								kin.speed_modified = 0.f;
+								registry.collidables.get(entity).active = false;
+							}
 						}
 					}
 					registry.remove_all_components_of(entity_other);

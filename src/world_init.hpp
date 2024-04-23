@@ -21,6 +21,8 @@ const float ENEMY_BB_WIDTH_128 = 1.f * 128.f;
 const float ENEMY_BB_HEIGHT_128 = 1.f * 128.f;
 const float ENEMY_BB_WIDTH_96 = 1.f * 96.f;
 const float ENEMY_BB_HEIGHT_96 = 1.f * 96.f;
+const float ENEMY_BB_WIDTH_100 = 1.f * 100.f;
+const float ENEMY_BB_HEIGHT_100 = 1.f * 100.f;
 const float HP_BB_WIDTH = 1.3f * 194.f;
 const float HP_BB_HEIGHT = 1.3f * 36.f;
 const float VP_BB_WIDTH = 1.5f * 218.f;
@@ -56,6 +58,9 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2,
 Entity createCriHit(RenderSystem* renderer, vec2 pos);
 std::vector<Entity> createAttributeUI(RenderSystem* renderer);
 Entity createHealthUI(RenderSystem*);
+
+// play once vfx that gets destroyed after animation
+Entity createVFX(RenderSystem* renderer, vec2 pos, vec2 scale, VFX_TYPE type);
 
 Entity createHealth(RenderSystem* renderer, vec2 position);
 Entity createTreasure(RenderSystem* renderer, vec2 position);
