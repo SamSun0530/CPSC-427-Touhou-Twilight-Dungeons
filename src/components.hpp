@@ -278,6 +278,10 @@ struct BulletSpawner
 	float update_rate = 1.f;
 	float bullet_initial_speed = 100;
 
+	// initial bullet cooldown (so when player enters room, does not immediately fire)
+	// only used once
+	float initial_bullet_cooldown = 1000;
+
 	inline bool operator==(const BulletSpawner& o) {
 		return (is_firing == o.is_firing &&
 			last_fire_time == o.last_fire_time &&

@@ -574,6 +574,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	bs.fire_rate = 3;
 	bs.is_firing = false;
 	bs.bullet_initial_speed = 200;
+	bs.initial_bullet_cooldown = 0;
 
 	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
@@ -1522,6 +1523,7 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else if (number < 0.4) {
+		registry.walls.remove(entity);
 		registry.renderRequests.insert(
 			entity,
 			{

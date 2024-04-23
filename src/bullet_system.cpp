@@ -11,6 +11,7 @@ void BulletSystem::step(float elapsed_ms)
 {
 	for (Entity entity : registry.bulletSpawners.entities) {
 		BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
+
 		bullet_spawner.last_fire_time -= elapsed_ms;
 		bullet_spawner.last_update -= elapsed_ms;
 		bullet_spawner.last_cooldown -= bullet_spawner.is_cooldown ? elapsed_ms : 0;
@@ -22,6 +23,11 @@ void BulletSystem::step(float elapsed_ms)
 		}
 
 		if (!bullet_spawner.is_firing || bullet_spawner.is_cooldown) continue;
+
+		// prevent immediate firing when entering room
+		float initial_bullet_cooldown_counter = bullet_spawner.initial_bullet_cooldown - elapsed_ms;
+		bullet_spawner.initial_bullet_cooldown = initial_bullet_cooldown_counter < 0 ? 0 : initial_bullet_cooldown_counter;
+		if (bullet_spawner.initial_bullet_cooldown > 0) continue;
 
 		if (bullet_spawner.last_update < 0) {
 			if (abs(bullet_spawner.spin_rate) > abs(bullet_spawner.max_spin_rate)) {

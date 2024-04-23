@@ -1439,6 +1439,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 void WorldSystem::deal_damage_to_deadly(const Entity& entity, int damage)
 {
+	if (registry.realDeathTimers.has(entity)) return;
 	registry.hitTimers.emplace(entity);
 	registry.colors.get(entity) = vec3(-1.f);
 
