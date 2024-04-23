@@ -5,6 +5,25 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 
+// statistics to show at end screen
+struct Statistic {
+	float enemies_killed = 0;
+	float enemies_hit = 0;
+	float bullets_fired = 0;
+	float accuracy = 1; // this will be enemies_hit / bullets_fired
+	float time_taken_to_win = 0; // accumulate via elapsed ms
+	// TODO: add some more interesting facts
+
+	void reset() {
+		enemies_killed = 0;
+		enemies_hit = 0;
+		bullets_fired = 0;
+		accuracy = 1;
+		time_taken_to_win = 0;
+	}
+};
+extern Statistic stats;
+
 // all purpose timer, create your own global timer
 struct UniversalTimer {
 	// Nearest enemy check timer
@@ -12,9 +31,14 @@ struct UniversalTimer {
 	float closest_enemy_timer_default = 500;
 	int closest_enemy = -1;
 
+	// For aimbot1bullet, shoot a bullet per every aimbot_bullet_timer_default ms
+	float aimbot_bullet_timer = 0;
+	float aimbot_bullet_timer_default = 2000;
+
 	void restart() {
 		closest_enemy_timer = 0;
 		closest_enemy = -1;
+		aimbot_bullet_timer = 0;
 	}
 };
 extern UniversalTimer uni_timer;
@@ -189,7 +213,9 @@ struct UIUXWorld {
 enum AMMO_TYPE {
 	NORMAL,
 	AOE,
-	AIMBOT
+	AIMBOT,
+	TRIPLE,
+	AIMBOT1BULLET
 };
 
 struct EnemyBullet
@@ -201,7 +227,8 @@ struct EnemyBullet
 Bullet actions: (parameter argument specification)
 None:
 PLAYER_DIRECTION - change bullet to face player direction (only for enemies)
-ENEMY_DIRECTION - change bullet to face direction closest to cursor (only for players)
+ENEMY_DIRECTION - change bullet to face direction of deadly closest to cursor (only for players)
+CURSOR_DIRECTION - change bullet to face direction cursor (only for players)
 
 Floats:
 SPEED - float - change in velocity magnitude
@@ -230,7 +257,8 @@ enum class BULLET_ACTION {
 	SPLIT,
 	DIRECTION,
 	PLAYER_DIRECTION,
-	ENEMY_DIRECTION
+	ENEMY_DIRECTION,
+	CURSOR_DIRECTION,
 };
 
 enum class CHARACTER {
@@ -369,12 +397,12 @@ struct Player
 	float invulnerability_time_ms = 1000;
 	float fire_rate = 1 / 3.f;
 	float critical_hit = 0.05;
-	float critical_demage = 1.5;
+	float critical_damage = 1.5;
 
 	// we store this here because 
 	// - carry it to next level
 	// - exclusive to the player only (enemies should not have this)
-	AMMO_TYPE ammo_type = AMMO_TYPE::AOE;
+	AMMO_TYPE ammo_type = AMMO_TYPE::AIMBOT1BULLET;
 };
 
 struct AimbotCursor {

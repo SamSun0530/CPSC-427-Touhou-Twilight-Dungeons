@@ -1,8 +1,6 @@
 #include "world_init.hpp"
 #include <iostream>
 
-//int playerBullet_damage_playerBullet_damage = 10;
-
 Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern)
 {
 	auto entity = Entity();
@@ -28,6 +26,7 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	collidable.size = abs(motion.scale / 2.f);
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
+		stats.bullets_fired++;
 		auto& playerBullet = registry.playerBullets.emplace(entity);
 		Player& player = registry.players.components[0];
 		playerBullet.damage = player.bullet_damage;

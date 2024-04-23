@@ -62,9 +62,9 @@ void BulletSystem::step(float elapsed_ms)
 				double mouse_pos_y;
 				glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
 				last_mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + motion.position;
-				float x = last_mouse_position.x - motion.position.x;
-				float y = last_mouse_position.y - motion.position.y;
-				mouse_rotation_angle = -atan2(x, y) - glm::radians(90.0f);
+				//float x = last_mouse_position.x - motion.position.x;
+				//float y = last_mouse_position.y - motion.position.y;
+				//mouse_rotation_angle = -atan2(x, y) - glm::radians(90.0f);
 
 				// shift origin of bullet in front and down a bit so player can shoot vertically and horizontally when against a wall
 				vec2 shift_down = vec2(0, 15);
@@ -75,7 +75,8 @@ void BulletSystem::step(float elapsed_ms)
 				initial_dir = transform.mat * vec3(last_mouse_position - motion.position - shift_down, 1.0f);
 
 				Player& player = registry.players.components[0];
-				if (player.ammo_type == AMMO_TYPE::AIMBOT) {
+				switch (player.ammo_type) {
+				case AMMO_TYPE::AIMBOT: {
 					player_bullet_pattern.commands = {
 						{ BULLET_ACTION::DELAY, 500.f },
 						{ BULLET_ACTION::ENEMY_DIRECTION, 0 },
@@ -83,6 +84,36 @@ void BulletSystem::step(float elapsed_ms)
 						{ BULLET_ACTION::LOOP, vec2(1000, 1)},
 					};
 					player_bullet_pattern_ptr = &player_bullet_pattern;
+					break;
+				}
+				case AMMO_TYPE::TRIPLE: {
+					Transform t;
+					t.rotate(90);
+					vec2 orthogonal = normalize(t.mat * vec3(initial_dir, 1.f));
+					float dist_from_origin_spawn = 30;
+					createBullet(renderer, kinematic.speed_modified, player_bullet_spawn_pos + orthogonal * dist_from_origin_spawn, 0, initial_dir, bullet_spawner.bullet_initial_speed, true, nullptr);
+					createBullet(renderer, kinematic.speed_modified, player_bullet_spawn_pos - orthogonal * dist_from_origin_spawn, 0, initial_dir, bullet_spawner.bullet_initial_speed, true, nullptr);
+					break;
+				}
+				case AMMO_TYPE::AIMBOT1BULLET: {
+					if (uni_timer.aimbot_bullet_timer < 0) {
+						BulletPattern b_pattern_temp;
+						b_pattern_temp.commands = {
+							{ BULLET_ACTION::DELAY, 500.f },
+							{ BULLET_ACTION::ENEMY_DIRECTION, 0 },
+							{ BULLET_ACTION::DELAY, 100 },
+							{ BULLET_ACTION::LOOP, vec2(1000, 1)},
+						};
+						// this is ok even if we are pointing to stack memory,
+						// since we will create a copy in createBullet
+						BulletPattern* b_pattern_temp_ptr = &b_pattern_temp;
+						createBullet(renderer, kinematic.speed_modified, player_bullet_spawn_pos, 0, initial_dir, bullet_spawner.bullet_initial_speed, true, b_pattern_temp_ptr);
+						uni_timer.aimbot_bullet_timer = uni_timer.aimbot_bullet_timer_default;
+					}
+					break;
+				}
+				default:
+					break;
 				}
 			}
 			// need to check boss first, since boss also have deadly component
@@ -248,6 +279,14 @@ void BulletSystem::step(float elapsed_ms)
 					// direction will be normalized in physics system
 					bullet_kinematic.direction = registry.motions.get(deadly_entity).position - bullet_motion.position;
 				}
+				break;
+			}
+			case BULLET_ACTION::CURSOR_DIRECTION: {
+				double mouse_pos_x;
+				double mouse_pos_y;
+				glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
+				vec2 mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + registry.motions.get(registry.players.entities[0]).position;
+				registry.kinematics.get(entity).direction = mouse_position - registry.motions.get(entity).position;
 				break;
 			}
 			default:
