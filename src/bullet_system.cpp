@@ -88,11 +88,11 @@ void BulletSystem::step(float elapsed_ms)
 				}
 				case AMMO_TYPE::TRIPLE: {
 					Transform t;
-					t.rotate(90);
+					t.rotate(90.f * M_PI / 180.f);
 					vec2 orthogonal = normalize(t.mat * vec3(initial_dir, 1.f));
 					float dist_from_origin_spawn = 30;
-					createBullet(renderer, kinematic.speed_modified, player_bullet_spawn_pos + orthogonal * dist_from_origin_spawn, 0, initial_dir, bullet_spawner.bullet_initial_speed, true, nullptr);
-					createBullet(renderer, kinematic.speed_modified, player_bullet_spawn_pos - orthogonal * dist_from_origin_spawn, 0, initial_dir, bullet_spawner.bullet_initial_speed, true, nullptr);
+					createBullet(renderer, kinematic.speed_modified, player_bullet_spawn_pos + orthogonal * dist_from_origin_spawn, 0, initial_dir, bullet_spawner.bullet_initial_speed, true, nullptr, false);
+					createBullet(renderer, kinematic.speed_modified, player_bullet_spawn_pos - orthogonal * dist_from_origin_spawn, 0, initial_dir, bullet_spawner.bullet_initial_speed, true, nullptr, false);
 					break;
 				}
 				case AMMO_TYPE::AIMBOT1BULLET: {
@@ -107,7 +107,7 @@ void BulletSystem::step(float elapsed_ms)
 						// this is ok even if we are pointing to stack memory,
 						// since we will create a copy in createBullet
 						BulletPattern* b_pattern_temp_ptr = &b_pattern_temp;
-						createBullet(renderer, kinematic.speed_modified, player_bullet_spawn_pos, 0, initial_dir, bullet_spawner.bullet_initial_speed, true, b_pattern_temp_ptr);
+						createBullet(renderer, kinematic.speed_modified, player_bullet_spawn_pos, 0, initial_dir, bullet_spawner.bullet_initial_speed, true, b_pattern_temp_ptr, true);
 						uni_timer.aimbot_bullet_timer = uni_timer.aimbot_bullet_timer_default;
 					}
 					break;
@@ -334,7 +334,7 @@ void BulletSystem::step(float elapsed_ms)
 void spawn_bullets(RenderSystem* renderer, std::vector<vec2>& initial_bullet_directions, float bullet_initial_speed, vec2 spawn_position, Kinematic& kinematic, bool is_player_bullet, BulletPattern* bullet_pattern)
 {
 	for (int i = 0; i < initial_bullet_directions.size(); ++i) {
-		createBullet(renderer, kinematic.speed_modified, spawn_position, 0, initial_bullet_directions[i], bullet_initial_speed, is_player_bullet, bullet_pattern);
+		createBullet(renderer, kinematic.speed_modified, spawn_position, 0, initial_bullet_directions[i], bullet_initial_speed, is_player_bullet, bullet_pattern, false);
 	}
 }
 

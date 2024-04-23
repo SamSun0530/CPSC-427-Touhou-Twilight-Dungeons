@@ -361,8 +361,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Player& player_c = registry.players.components[0];
 	if (player_c.ammo_type == AMMO_TYPE::AIMBOT ||
 		player_c.ammo_type == AMMO_TYPE::AIMBOT1BULLET) {
-		uni_timer.closest_enemy_timer -= uni_timer.closest_enemy_timer > 0 ? elapsed_ms_since_last_update : 0;
-		uni_timer.aimbot_bullet_timer -= uni_timer.aimbot_bullet_timer > 0 ? elapsed_ms_since_last_update : 0;
+		uni_timer.closest_enemy_timer -= uni_timer.closest_enemy_timer >= 0 ? elapsed_ms_since_last_update : 0;
+		uni_timer.aimbot_bullet_timer -= uni_timer.aimbot_bullet_timer >= 0 ? elapsed_ms_since_last_update : 0;
 		if (uni_timer.closest_enemy_timer < 0) {
 			double mouse_pos_x;
 			double mouse_pos_y;
@@ -944,11 +944,12 @@ void WorldSystem::handle_collisions() {
 				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
 					stats.enemies_hit++;
 					Player& player_att = registry.players.get(player);
+					Mix_PlayChannel(-1, audio->hit_spell, 0);
 					if (player_att.ammo_type == AMMO_TYPE::AOE) {
 						float scale = 3.f;
 						float radius_squared = ENEMY_BB_WIDTH_100 * scale / 2.f * ENEMY_BB_WIDTH_100 * scale / 2.f;
 						Motion& deadly_motion_hit = registry.motions.get(entity);
-						createVFX(renderer, deadly_motion_hit.position, scale * vec2(ENEMY_BB_WIDTH_100, ENEMY_BB_HEIGHT_100), VFX_TYPE::AOE_AMMO_EXPLOSION);
+						createVFX(renderer, deadly_motion_hit.position, scale * vec2(ENEMY_BB_WIDTH_100, ENEMY_BB_HEIGHT_100), 0, VFX_TYPE::AOE_AMMO_EXPLOSION);
 						for (Entity deadly_entity : registry.deadlys.entities) {
 							if (registry.hitTimers.has(deadly_entity) || registry.realDeathTimers.has(deadly_entity)) continue;
 							Motion& deadly_motion = registry.motions.get(deadly_entity);
@@ -1014,6 +1015,13 @@ void WorldSystem::handle_collisions() {
 						registry.hitTimers.emplace(entity);
 						registry.colors.get(entity) = vec3(-1.f);
 						Motion& deadly_motion = registry.motions.get(entity);
+
+						if (player_att.ammo_type == AMMO_TYPE::AIMBOT) {
+							Motion& bullet_motion = registry.motions.get(entity_other);
+							// assume deadly and bullet collidable boxes are centered in the texture
+							vec2 center_delta = bullet_motion.position - deadly_motion.position;
+							createVFX(renderer, deadly_motion.position, 2.5f * vec2(ENEMY_BB_WIDTH_48, ENEMY_BB_HEIGHT_48), -atan2(center_delta.x, center_delta.y) - glm::radians(90.0f), VFX_TYPE::HIT_SPARK);
+						}
 
 						std::random_device rd;
 						std::mt19937 gen(rd());

@@ -190,6 +190,7 @@ void PhysicsSystem::step(float elapsed_ms)
 {
 	// Assume there exists a player
 	Entity player = registry.players.entities[0];
+	Player& player_c = registry.players.components[0];
 
 	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
@@ -281,8 +282,18 @@ void PhysicsSystem::step(float elapsed_ms)
 		coord grid_coord = convert_world_to_grid(motion.position);
 
 		if (!is_valid_cell(grid_coord.x, grid_coord.y)) {
-			if (registry.playerBullets.has(entity)) {
+			if (registry.normalBullets.has(entity)) {
 				registry.realDeathTimers.emplace(createBulletDisappear(renderer, motion.position, motion.angle, true)).death_counter_ms = 200;
+			}
+			else if (registry.aoeBullets.has(entity)) {
+				createVFX(renderer, motion.position, motion.scale, 0, VFX_TYPE::AOE_AMMO_DISAPPEAR);
+			}
+			else if (registry.aimbotBullets.has(entity)) {
+				Kinematic& kin = registry.kinematics.get(entity);
+				Transform t;
+				t.rotate(-45.f * M_PI / 180.f);
+				kin.direction = t.mat * vec3(kin.direction, 1.f);
+				createVFX(renderer, motion.position, motion.scale, -atan2(kin.direction.x, kin.direction.y) - glm::radians(90.0f), VFX_TYPE::AIMBOT_AMMO_DISAPPEAR);
 			}
 			registry.remove_all_components_of(entity);
 		}

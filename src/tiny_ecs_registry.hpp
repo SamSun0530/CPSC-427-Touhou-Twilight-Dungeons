@@ -89,7 +89,9 @@ public:
 	ComponentContainer<GargoyleEnemy> gargoyleEnemies;
 	ComponentContainer<EntityAnimation> playonceAni;
 	ComponentContainer<AimbotCursor> aimbotCursors;
-
+	ComponentContainer<AimbotBullet> aimbotBullets;
+	ComponentContainer<AoeBullet> aoeBullets;
+	ComponentContainer<NormalBullet> normalBullets;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -173,6 +175,9 @@ public:
 		registry_list.push_back(&gargoyleEnemies);
 		registry_list.push_back(&playonceAni);
 		registry_list.push_back(&aimbotCursors);
+		registry_list.push_back(&aimbotBullets);
+		registry_list.push_back(&aoeBullets);
+		registry_list.push_back(&normalBullets);
 	}
 
 	void clear_all_components() {

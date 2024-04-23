@@ -168,6 +168,39 @@ struct BossInfo {
 };
 extern BossInfo boss_info;
 
+/*
+NORMAL - nothing special
+AOE - area of effect splash damage
+AIMBOT - follow closest enemy to cursor
+TRIPLE - three normal bullets towards cursor
+AIMBOT1BULLET - normal bullet with one aimbot bullet every time interval
+*/
+enum AMMO_TYPE {
+	NORMAL,
+	AOE,
+	AIMBOT,
+	TRIPLE,
+	AIMBOT1BULLET
+};
+
+// Player component
+struct Player
+{
+	bool invulnerability = false;
+	int bullet_damage = 10;
+	int coin_amount = 0;
+	int key_amount = 0;
+	float invulnerability_time_ms = 1000;
+	float fire_rate = 1 / 3.f;
+	float critical_hit = 0.05;
+	float critical_damage = 1.5;
+
+	// we store this here because 
+	// - carry it to next level
+	// - exclusive to the player only (enemies should not have this)
+	AMMO_TYPE ammo_type = AMMO_TYPE::TRIPLE;
+};
+
 struct Teleporter {
 	bool player_overlap = false;
 	bool is_teleporting = false;
@@ -210,17 +243,21 @@ struct UIUXWorld {
 
 };
 
-enum AMMO_TYPE {
-	NORMAL,
-	AOE,
-	AIMBOT,
-	TRIPLE,
-	AIMBOT1BULLET
-};
-
 struct EnemyBullet
 {
 	int damage = 1;
+};
+
+struct AimbotBullet {
+
+};
+
+struct AoeBullet {
+
+};
+
+struct NormalBullet {
+
 };
 
 /*
@@ -387,24 +424,6 @@ struct Boss {
 	float phase_change_time = -1;
 };
 
-// Player component
-struct Player
-{
-	bool invulnerability = false;
-	int bullet_damage = 10;
-	int coin_amount = 0;
-	int key_amount = 0;
-	float invulnerability_time_ms = 1000;
-	float fire_rate = 1 / 3.f;
-	float critical_hit = 0.05;
-	float critical_damage = 1.5;
-
-	// we store this here because 
-	// - carry it to next level
-	// - exclusive to the player only (enemies should not have this)
-	AMMO_TYPE ammo_type = AMMO_TYPE::AIMBOT1BULLET;
-};
-
 struct AimbotCursor {
 
 };
@@ -416,7 +435,10 @@ enum class State {
 };
 
 enum VFX_TYPE {
-	AOE_AMMO_EXPLOSION
+	AOE_AMMO_EXPLOSION,
+	AOE_AMMO_DISAPPEAR,
+	AIMBOT_AMMO_DISAPPEAR,
+	HIT_SPARK
 };
 
 struct IdleMoveAction {
@@ -947,7 +969,12 @@ enum class TEXTURE_ASSET_ID {
 	ENEMY_GARGOYLE = ENEMY_BEE2 + 1,
 	AIMBOT_CURSOR = ENEMY_GARGOYLE + 1,
 	AOE_AMMO_EXPLOSION = AIMBOT_CURSOR + 1,
-	TEXTURE_COUNT = AOE_AMMO_EXPLOSION + 1,
+	AOE_AMMO_BULLET = AOE_AMMO_EXPLOSION + 1,
+	AIMBOT_AMMO_BULLET = AOE_AMMO_BULLET + 1,
+	AOE_AMMO_BULLET_DISAPPEAR = AIMBOT_AMMO_BULLET + 1,
+	AIMBOT_AMMO_BULLET_DISAPPEAR = AOE_AMMO_BULLET_DISAPPEAR + 1,
+	HIT_SPARK = AIMBOT_AMMO_BULLET_DISAPPEAR + 1,
+	TEXTURE_COUNT = HIT_SPARK + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

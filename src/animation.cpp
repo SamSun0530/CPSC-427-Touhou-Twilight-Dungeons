@@ -4,7 +4,6 @@
 
 void Animation::step(float elapsed_ms)
 {
-	float animation_frame_rate = 200.f;
 	for (Entity& animation_entity : registry.animation.entities) {
 		EntityAnimation& animation = registry.animation.get(animation_entity);
 		if (!animation.is_active) continue;
@@ -19,10 +18,6 @@ void Animation::step(float elapsed_ms)
 		}
 		animation.frame_rate_ms -= elapsed_ms;
 
-		if (animation.frame_rate_ms < animation_frame_rate) {
-			animation_frame_rate = animation.frame_rate_ms;
-		}
-
 		if (animation.frame_rate_ms < 0) {
 			animation.render_pos.x += animation.spritesheet_scale.x;
 			if (animation.render_pos.x > 1.0) {
@@ -35,10 +30,6 @@ void Animation::step(float elapsed_ms)
 		if (!animation.is_active) continue;
 
 		animation.frame_rate_ms -= elapsed_ms;
-
-		if (animation.frame_rate_ms < animation_frame_rate) {
-			animation_frame_rate = animation.frame_rate_ms;
-		}
 
 		if (animation.frame_rate_ms < 0) {
 			animation.render_pos.x += animation.spritesheet_scale.x;
@@ -366,6 +357,14 @@ void Animation::step(float elapsed_ms)
 		if (!ani.is_active) continue;
 		if (ani.render_pos.x + ani.spritesheet_scale.x > 1.0) {
 			ani.render_pos.x = ani.spritesheet_scale.x;
+			ani.is_active = false;
+		}
+	}
+
+	for (Entity entity : registry.aimbotBullets.entities) {
+		EntityAnimation& ani = registry.alwaysplayAni.get(entity);
+		if (!ani.is_active) continue;
+		if (ani.render_pos.x + ani.spritesheet_scale.x > 1.0) {
 			ani.is_active = false;
 		}
 	}

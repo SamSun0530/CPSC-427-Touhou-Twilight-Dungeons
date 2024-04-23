@@ -1,7 +1,7 @@
 #include "world_init.hpp"
 #include <iostream>
 
-Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern)
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern, bool is_aimbot_bullet)
 {
 	auto entity = Entity();
 
@@ -31,14 +31,89 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 		Player& player = registry.players.components[0];
 		playerBullet.damage = player.bullet_damage;
 
+		TEXTURE_ASSET_ID texture_asset = TEXTURE_ASSET_ID::BULLET; // default
+
+		switch (player.ammo_type) {
+		case AMMO_TYPE::NORMAL: {
+			registry.normalBullets.emplace(entity);
+			break;
+		}
+		case AMMO_TYPE::AIMBOT: {
+			registry.aimbotBullets.emplace(entity);
+			EntityAnimation ani;
+			ani.frame_rate_ms = 100;
+			ani.full_rate_ms = 100;
+			ani.spritesheet_scale = { 1.f / 6.f, 1.f };
+			ani.render_pos = { 1.f / 6.f, 1.f };
+			ani.is_active = true;
+			// aimbot bullet will stop playing after a while
+			registry.alwaysplayAni.insert(entity, ani);
+
+			// update scale to be larger
+			motion.scale = 1.5f * vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+			collidable.size = abs(motion.scale / 2.f);
+
+			texture_asset = TEXTURE_ASSET_ID::AIMBOT_AMMO_BULLET;
+			break;
+		}
+		case AMMO_TYPE::AIMBOT1BULLET: {
+			// is_aimbot_bullet is just to separate aimbot bullet and normal bullet texture
+			if (is_aimbot_bullet) {
+				registry.aimbotBullets.emplace(entity);
+				EntityAnimation ani;
+				ani.frame_rate_ms = 100;
+				ani.full_rate_ms = 100;
+				ani.spritesheet_scale = { 1.f / 6.f, 1.f };
+				ani.render_pos = { 1.f / 6.f, 1.f };
+				ani.is_active = true;
+				// aimbot bullet will stop playing after a while
+				registry.alwaysplayAni.insert(entity, ani);
+
+				// update scale to be larger
+				motion.scale = 1.5f * vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+				collidable.size = abs(motion.scale / 2.f);
+
+				texture_asset = TEXTURE_ASSET_ID::AIMBOT_AMMO_BULLET;
+			}
+			else {
+				registry.normalBullets.emplace(entity);
+			}
+			break;
+		}
+		case AMMO_TYPE::AOE: {
+			registry.aoeBullets.emplace(entity);
+			EntityAnimation ani;
+			ani.frame_rate_ms = 1000.f / 10.f;
+			ani.full_rate_ms = 1000.f / 10.f;
+			ani.spritesheet_scale = { 1.f / 4.f, 1.f };
+			ani.render_pos = { 1.f / 4.f, 1.f };
+			ani.is_active = true;
+			registry.alwaysplayAni.insert(entity, ani);
+
+			// update scale to be larger
+			motion.scale = 3.f * vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+			collidable.size = abs(motion.scale / 2.f);
+
+			texture_asset = TEXTURE_ASSET_ID::AOE_AMMO_BULLET;
+			break;
+		}
+		case AMMO_TYPE::TRIPLE: {
+			registry.normalBullets.emplace(entity);
+			break;
+		}
+		default:
+			break;
+		}
+
 		// TODO: change bullet texture
 		registry.renderRequests.insert(
 			entity,
-			{ TEXTURE_ASSET_ID::BULLET,
+			{ texture_asset,
 			 EFFECT_ASSET_ID::TEXTURED,
 			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else {
+		// enemy bullets do not have render requests since they are instance rendered
 		registry.enemyBullets.emplace(entity);
 	}
 
@@ -767,12 +842,13 @@ Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui, bool is_active, f
 	return entity;
 }
 
-Entity createVFX(RenderSystem* renderer, vec2 pos, vec2 scale, VFX_TYPE type) {
+Entity createVFX(RenderSystem* renderer, vec2 pos, vec2 scale, float angle, VFX_TYPE type) {
 	auto entity = Entity();
 
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
+	motion.angle = angle;
 	motion.scale = scale;
 
 	EntityAnimation playonce_ani;
@@ -787,6 +863,34 @@ Entity createVFX(RenderSystem* renderer, vec2 pos, vec2 scale, VFX_TYPE type) {
 		playonce_ani.frame_rate_ms = 1000.f / 60.f;
 		playonce_ani.full_rate_ms = 1000.f / 60.f;
 		playonce_ani.is_active = true;
+		break;
+	}
+	case VFX_TYPE::AOE_AMMO_DISAPPEAR: {
+		texture_asset = TEXTURE_ASSET_ID::AOE_AMMO_BULLET_DISAPPEAR;
+		playonce_ani.spritesheet_scale = { 1.f / 4.f, 1.f };
+		playonce_ani.render_pos = { 1 / 4.f, 1.f };
+		playonce_ani.frame_rate_ms = 1000.f / 10.f;
+		playonce_ani.full_rate_ms = 1000.f / 10.f;
+		playonce_ani.is_active = true;
+		break;
+	}
+	case VFX_TYPE::AIMBOT_AMMO_DISAPPEAR: {
+		texture_asset = TEXTURE_ASSET_ID::AIMBOT_AMMO_BULLET_DISAPPEAR;
+		playonce_ani.spritesheet_scale = { 1.f / 4.f, 1.f };
+		playonce_ani.render_pos = { 1 / 4.f, 1.f };
+		playonce_ani.frame_rate_ms = 1000.f / 10.f;
+		playonce_ani.full_rate_ms = 1000.f / 10.f;
+		playonce_ani.is_active = true;
+		break;
+	}
+	case VFX_TYPE::HIT_SPARK: {
+		texture_asset = TEXTURE_ASSET_ID::HIT_SPARK;
+		playonce_ani.spritesheet_scale = { 1.f / 7.f, 1.f };
+		playonce_ani.render_pos = { 1 / 7.f, 1.f };
+		playonce_ani.frame_rate_ms = 1000.f / 10.f;
+		playonce_ani.full_rate_ms = 1000.f / 10.f;
+		playonce_ani.is_active = true;
+		break;
 	}
 	default:
 		break;

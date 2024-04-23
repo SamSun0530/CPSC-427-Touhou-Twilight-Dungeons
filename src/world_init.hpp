@@ -20,9 +20,11 @@ const float ENEMY_BB_HEIGHT = 1.f * 90.f;
 const float ENEMY_BB_WIDTH_128 = 1.f * 128.f;
 const float ENEMY_BB_HEIGHT_128 = 1.f * 128.f;
 const float ENEMY_BB_WIDTH_96 = 1.f * 96.f;
-const float ENEMY_BB_HEIGHT_96 = 1.f * 96.f;
 const float ENEMY_BB_WIDTH_100 = 1.f * 100.f;
 const float ENEMY_BB_HEIGHT_100 = 1.f * 100.f;
+const float ENEMY_BB_HEIGHT_96 = 1.f * 96.f;
+const float ENEMY_BB_WIDTH_48 = 1.f * 48.f;
+const float ENEMY_BB_HEIGHT_48 = 1.f * 48.f;
 const float HP_BB_WIDTH = 1.3f * 194.f;
 const float HP_BB_HEIGHT = 1.3f * 36.f;
 const float VP_BB_WIDTH = 1.5f * 218.f;
@@ -46,7 +48,7 @@ const float ITEM_HEIGHT = 0.5f * 128.f;
 
 
 // the bullet, takes into account entity's speed and position
-Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern* bullet_pattern = nullptr);
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern* bullet_pattern = nullptr, bool is_aimbot_bullet = false);
 Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet);
 
 Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm, bool in_world = false);
@@ -60,7 +62,7 @@ std::vector<Entity> createAttributeUI(RenderSystem* renderer);
 Entity createHealthUI(RenderSystem*);
 
 // play once vfx that gets destroyed after animation
-Entity createVFX(RenderSystem* renderer, vec2 pos, vec2 scale, VFX_TYPE type);
+Entity createVFX(RenderSystem* renderer, vec2 pos, vec2 scale, float angle, VFX_TYPE type);
 
 Entity createHealth(RenderSystem* renderer, vec2 position);
 Entity createTreasure(RenderSystem* renderer, vec2 position);
