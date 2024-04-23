@@ -50,6 +50,12 @@ void BulletSystem::step(float elapsed_ms)
 			transform.rotate(radians(bullet_spawner.start_angle));
 			vec2 initial_dir = transform.mat * vec3(1, 0, 1);
 
+			// this is referencing an object on the stack
+			// however, createBullet will create a copy when vector.push_back in components
+			// so, this will not cause a dangling pointer
+			BulletPattern* player_bullet_pattern_ptr = nullptr;
+			BulletPattern player_bullet_pattern;
+
 			if (entity == player) {
 				// player fires bullet towards mouse position
 				double mouse_pos_x;
@@ -67,6 +73,17 @@ void BulletSystem::step(float elapsed_ms)
 				Mix_PlayChannel(-1, audio->firing_sound, 0);
 				player_bullet_spawn_pos = motion.position + shift_forward + shift_down;
 				initial_dir = transform.mat * vec3(last_mouse_position - motion.position - shift_down, 1.0f);
+
+				Player& player = registry.players.components[0];
+				if (player.ammo_type == AMMO_TYPE::AIMBOT) {
+					player_bullet_pattern.commands = {
+						{ BULLET_ACTION::DELAY, 500.f },
+						{ BULLET_ACTION::ENEMY_DIRECTION, 0 },
+						{ BULLET_ACTION::DELAY, 100 },
+						{ BULLET_ACTION::LOOP, vec2(1000, 1)},
+					};
+					player_bullet_pattern_ptr = &player_bullet_pattern;
+				}
 			}
 			// need to check boss first, since boss also have deadly component
 			else if (registry.bosses.has(entity)) {
@@ -88,8 +105,8 @@ void BulletSystem::step(float elapsed_ms)
 			}
 			// Spawn bullets
 			if (entity == player) {
-				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, nullptr);
-				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, nullptr);
+				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, player_bullet_pattern_ptr);
+				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, player_bullet_pattern_ptr);
 			}
 			else if (registry.bosses.has(entity)) {
 				Boss& boss = registry.bosses.get(entity);
@@ -220,6 +237,17 @@ void BulletSystem::step(float elapsed_ms)
 				Entity player_entity = registry.players.entities[0];
 				// direction will be normalized in physics system
 				bullet_kinematic.direction = registry.motions.get(player_entity).position - bullet_motion.position;
+				break;
+			}
+			case BULLET_ACTION::ENEMY_DIRECTION: {
+				if (uni_timer.closest_enemy == -1) break;
+				Entity deadly_entity = (Entity)uni_timer.closest_enemy;
+				if (registry.deadlys.has(deadly_entity)) {
+					Kinematic& bullet_kinematic = registry.kinematics.get(entity);
+					Motion& bullet_motion = registry.motions.get(entity);
+					// direction will be normalized in physics system
+					bullet_kinematic.direction = registry.motions.get(deadly_entity).position - bullet_motion.position;
+				}
 				break;
 			}
 			default:

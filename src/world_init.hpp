@@ -69,6 +69,8 @@ Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string bo
 Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true, bool is_active = true, float frame_rate = 500.f);
 // focus mode dot
 Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);
+// aimbot cursor
+Entity createAimbotCursor(RenderSystem* renderer, vec2 pos, float scale);
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the coin

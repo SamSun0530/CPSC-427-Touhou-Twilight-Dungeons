@@ -247,11 +247,6 @@ void WorldSystem::resume_game() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-
-	// TODO: game breaking bug - only 3 enemies spawn locking player out of room
-	//printf("enemies: %d\n", registry.deadlys.entities.size());
-	//printf("room enemies: %d\n", game_info.in_room != -1 ? game_info.room_index[game_info.in_room].enemies.size() : -1);
-
 	tutorial_counter--;
 
 	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
@@ -362,6 +357,31 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// Get closest enemy
+	Player& player_c = registry.players.components[0];
+	if (player_c.ammo_type == AMMO_TYPE::AIMBOT) {
+		uni_timer.closest_enemy_timer -= elapsed_ms_since_last_update;
+		if (uni_timer.closest_enemy_timer < 0) {
+			double mouse_pos_x;
+			double mouse_pos_y;
+			glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
+			vec2 mouse_position_world = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + player_position;
+			float maximum_range = 20 * world_tile_size * 20 * world_tile_size;
+			int closest_entity_id = -1;
+			float closest_distance = std::numeric_limits<float>::max();
+			for (Entity entity : registry.deadlys.entities) {
+				Motion& motion = registry.motions.get(entity);
+				vec2 dp = motion.position - mouse_position_world;
+				float dot_dp = dot(dp, dp);
+				if (dot_dp < maximum_range && dot_dp < closest_distance) {
+					closest_distance = dot_dp;
+					closest_entity_id = entity;
+				}
+			}
+			uni_timer.closest_enemy = closest_entity_id;
+			uni_timer.closest_enemy_timer = uni_timer.closest_enemy_timer_default;
+		}
+	}
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -706,11 +726,11 @@ void WorldSystem::restart_game() {
 	display_combo = createCombo(renderer);
 	game_info.set_player_id(player);
 	boss_info.reset();
+	uni_timer.restart();
 
 	init_win_menu();
 	init_lose_menu();
 	renderer->camera.setPosition({ 0, 0 });
-
 }
 
 // handle_wall_collisions parameter entity IS WALL ENTITY!
@@ -871,7 +891,7 @@ void WorldSystem::handle_collisions() {
 							else if (treasure.effect_type == 2) {
 								// bullet_spawner.fire_rate = 0.0001;
 								bullet_spawner.fire_rate *= (1 - float(treasure.effect_strength * 0.05));
-								player_att.fire_rate = 1/bullet_spawner.fire_rate;
+								player_att.fire_rate = 1 / bullet_spawner.fire_rate;
 							}
 							else if (treasure.effect_type == 3) {
 								player_att.critical_hit += float(treasure.effect_strength * 0.01);
@@ -941,24 +961,24 @@ void WorldSystem::handle_collisions() {
 
 					if (!registry.bosses.has(entity)) {
 						// Knockback
-						// TODO: knockback factor based on player items
 						float knockback_factor = 50.f;
 						Kinematic& bullet_kin = registry.kinematics.get(entity_other);
 						Kinematic& kin = registry.kinematics.get(entity);
+						bullet_kin.direction = normalize(bullet_kin.direction);
 						kin.velocity += bullet_kin.direction * knockback_factor;
 					}
 
 					HP& hp = registry.hps.get(entity);
 					if (hp.curr_hp <= 0.0f) {
 						combo_mode.combo_meter = min(combo_mode.combo_meter + 0.02f, combo_mode.COMBO_METER_MAX);
-						if (registry.beeEnemies.has(entity) || 
-							registry.wolfEnemies.has(entity) || 
-							registry.bomberEnemies.has(entity) || 
+						if (registry.beeEnemies.has(entity) ||
+							registry.wolfEnemies.has(entity) ||
+							registry.bomberEnemies.has(entity) ||
 							registry.dummyenemies.has(entity) ||
 							registry.lizardEnemies.has(entity) ||
 							registry.bee2Enemies.has(entity) ||
 							registry.wormEnemies.has(entity) ||
-							registry.gargoyleEnemies.has(entity)){
+							registry.gargoyleEnemies.has(entity)) {
 							registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
 							registry.hps.remove(entity);
 							registry.aitimers.remove(entity);
@@ -1359,14 +1379,15 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::NONE, emotion);
 	}
 	else if (start_pt == start_script.size()) {
 		start_pt += 1;
 		resume_game();
-	} else if (dialogue_info.marisa_pt < marisa_script.size()) {
+	}
+	else if (dialogue_info.marisa_pt < marisa_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		EMOTION emotion = EMOTION::NORMAL;
@@ -1412,7 +1433,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::MARISA, emotion);
 	}
@@ -1465,7 +1486,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO, emotion);
 	}
@@ -1518,7 +1539,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO, emotion);
 	}
@@ -1571,7 +1592,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::FlANDRE, emotion);
 	}
@@ -1624,7 +1645,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::FlANDRE, emotion);
 	}
@@ -1757,6 +1778,33 @@ void WorldSystem::update_focus_dot() {
 			//	CircleCollidable& circle_collidable = registry.circleCollidables.get(entity);
 			//	createEgg(motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
 			//}
+		}
+	}
+}
+
+void WorldSystem::update_aimbot_cursor(float elapsed_ms) {
+	if (menu.state == MENU_STATE::PLAY) {
+		// Update aimbot cursor position
+		if (uni_timer.closest_enemy != -1) {
+			Entity enemy_entity = (Entity)uni_timer.closest_enemy;
+			if (registry.deadlys.has(enemy_entity)) {
+				Motion& enemy_motion = registry.motions.get(enemy_entity);
+				if (registry.aimbotCursors.size() <= 0) {
+					createAimbotCursor(renderer, enemy_motion.position, 1.f);
+				}
+				else {
+					Motion& aimbot_cursor_motion = registry.motions.get(registry.aimbotCursors.entities[0]);
+					//aimbot_cursor_motion.position = enemy_motion.position;
+					// use camera lerp
+					float sharpness_factor = 0.9999999f;
+					float K2 = 1.0f - pow(1.0f - sharpness_factor, elapsed_ms / 1000.f);
+					aimbot_cursor_motion.position = vec2_lerp(aimbot_cursor_motion.position, enemy_motion.position, K2);
+				}
+			}
+		}
+		else {
+			while (registry.aimbotCursors.entities.size() > 0)
+				registry.remove_all_components_of(registry.aimbotCursors.entities.back());
 		}
 	}
 }

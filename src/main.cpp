@@ -83,6 +83,7 @@ int main()
 			animation.step(elapsed_ms);
 			physics.step(elapsed_ms);
 			world.update_focus_dot();
+			world.update_aimbot_cursor(elapsed_ms);
 			visibility_system.step(elapsed_ms);
 			ai.step(elapsed_ms);
 			bullets.step(elapsed_ms);

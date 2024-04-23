@@ -29,9 +29,10 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
 		auto& playerBullet = registry.playerBullets.emplace(entity);
+		Player& player = registry.players.components[0];
+		playerBullet.damage = player.bullet_damage;
 
-		playerBullet.damage = registry.players.components[0].bullet_damage;
-
+		// TODO: change bullet texture
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::BULLET,
@@ -516,6 +517,38 @@ Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::FOCUS_DOT, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createAimbotCursor(RenderSystem* renderer, vec2 pos, float scale)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = vec2(ENEMY_BB_WIDTH_128, ENEMY_BB_HEIGHT_128);
+
+	EntityAnimation ani;
+	ani.isCursor = false;
+	ani.spritesheet_scale = { 1.f / 4.f, 1.f };
+	ani.render_pos = { 0.f, 1.f };
+	ani.frame_rate_ms = 200;
+	ani.full_rate_ms = 200;
+	ani.is_active = true;
+	registry.alwaysplayAni.insert(entity, ani);
+
+	registry.aimbotCursors.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::AIMBOT_CURSOR,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 

@@ -5,6 +5,20 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 
+// all purpose timer, create your own global timer
+struct UniversalTimer {
+	// Nearest enemy check timer
+	float closest_enemy_timer = 0;
+	float closest_enemy_timer_default = 500;
+	int closest_enemy = -1;
+
+	void restart() {
+		closest_enemy_timer = 0;
+		closest_enemy = -1;
+	}
+};
+extern UniversalTimer uni_timer;
+
 struct DialogueInfo {
 	unsigned int cirno_pt = 1000000;
 	unsigned int cirno_after_pt = 1000000;
@@ -172,6 +186,12 @@ struct UIUXWorld {
 
 };
 
+enum AMMO_TYPE {
+	NORMAL,
+	AOE,
+	AIMBOT
+};
+
 struct EnemyBullet
 {
 	int damage = 1;
@@ -180,7 +200,8 @@ struct EnemyBullet
 /*
 Bullet actions: (parameter argument specification)
 None:
-PLAYER_DIRECTION - change bullet to face player direction
+PLAYER_DIRECTION - change bullet to face player direction (only for enemies)
+ENEMY_DIRECTION - change bullet to face direction closest to cursor (only for players)
 
 Floats:
 SPEED - float - change in velocity magnitude
@@ -208,7 +229,8 @@ enum class BULLET_ACTION {
 	DEL,
 	SPLIT,
 	DIRECTION,
-	PLAYER_DIRECTION
+	PLAYER_DIRECTION,
+	ENEMY_DIRECTION
 };
 
 enum class CHARACTER {
@@ -348,6 +370,15 @@ struct Player
 	float fire_rate = 1/3.f;
 	float critical_hit = 0.05;
 	float critical_demage = 1.5;
+	
+	// we store this here because 
+	// - carry it to next level
+	// - exclusive to the player only (enemies should not have this)
+	AMMO_TYPE ammo_type = AMMO_TYPE::AIMBOT;
+};
+
+struct AimbotCursor {
+
 };
 
 enum class State {
@@ -882,7 +913,8 @@ enum class TEXTURE_ASSET_ID {
 	ENEMY_WORM = ENEMY_LIZARD + 1,
 	ENEMY_BEE2 = ENEMY_WORM + 1,
 	ENEMY_GARGOYLE = ENEMY_BEE2 + 1,
-	TEXTURE_COUNT = ENEMY_GARGOYLE + 1,
+	AIMBOT_CURSOR = ENEMY_GARGOYLE + 1,
+	TEXTURE_COUNT = AIMBOT_CURSOR + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

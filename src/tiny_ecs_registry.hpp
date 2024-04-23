@@ -87,6 +87,8 @@ public:
 	ComponentContainer<WormEnemy> wormEnemies;
 	ComponentContainer<Bee2Enemy> bee2Enemies;
 	ComponentContainer<GargoyleEnemy> gargoyleEnemies;
+	ComponentContainer<EntityAnimation> playonceAni;
+	ComponentContainer<AimbotCursor> aimbotCursors;
 
 
 	// constructor that adds all containers for looping over them
@@ -169,6 +171,8 @@ public:
 		registry_list.push_back(&wormEnemies);
 		registry_list.push_back(&bee2Enemies);
 		registry_list.push_back(&gargoyleEnemies);
+		registry_list.push_back(&playonceAni);
+		registry_list.push_back(&aimbotCursors);
 	}
 
 	void clear_all_components() {

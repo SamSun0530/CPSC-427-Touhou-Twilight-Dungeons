@@ -48,6 +48,28 @@ void Animation::step(float elapsed_ms)
 			animation.frame_rate_ms = animation.full_rate_ms;
 		}
 	}
+
+	ComponentContainer<EntityAnimation> playonceAni_container = registry.playonceAni;
+	int playonceAni_container_size = playonceAni_container.size();
+	for (int i = playonceAni_container_size - 1; i >= 0; --i) {
+		EntityAnimation& animation = playonceAni_container.components[i];
+		if (!animation.is_active) continue;
+
+		animation.frame_rate_ms -= elapsed_ms;
+
+		if (animation.frame_rate_ms < animation_frame_rate) {
+			animation_frame_rate = animation.frame_rate_ms;
+		}
+
+		if (animation.frame_rate_ms < 0) {
+			animation.render_pos.x += animation.spritesheet_scale.x;
+			animation.frame_rate_ms = animation.full_rate_ms;
+			if (animation.render_pos.x > 1.0) {
+				registry.remove_all_components_of(playonceAni_container.entities[i]);
+			}
+		}
+	}
+
 	double mouse_pos_x;
 	double mouse_pos_y;
 	glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);

@@ -203,15 +203,14 @@ void PhysicsSystem::step(float elapsed_ms)
 		float step_seconds = elapsed_ms / 1000.f;
 
 		// Normalize direction vector if either x or y is not 0 (prevents divide by 0 when normalizing)
-		vec2 direction_normalized = kinematic.direction;
 		if (kinematic.direction.x != 0 || kinematic.direction.y != 0) {
-			direction_normalized = normalize(direction_normalized);
+			kinematic.direction = normalize(kinematic.direction);
 		}
 
 		// Linear interpolation of velocity
 		// K factor (0,30] = ~0 (not zero, slippery, ice) -> 10-20 (quick start up/slow down, natural) -> 30 (instant velocity, jittery)
 		float K = 10.f;
-		kinematic.velocity = vec2_lerp(kinematic.velocity, direction_normalized * kinematic.speed_modified * (entity == player ? focus_mode.speed_constant : 1.0f), step_seconds * K);
+		kinematic.velocity = vec2_lerp(kinematic.velocity, kinematic.direction * kinematic.speed_modified * (entity == player ? focus_mode.speed_constant : 1.0f), step_seconds * K);
 		motion.position += kinematic.velocity * step_seconds;
 	}
 
