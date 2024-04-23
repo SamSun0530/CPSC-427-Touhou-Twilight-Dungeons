@@ -65,6 +65,7 @@ Entity createHealthUI(RenderSystem*);
 Entity createVFX(RenderSystem* renderer, vec2 pos, vec2 scale, float angle, VFX_TYPE type);
 
 Entity createHealth(RenderSystem* renderer, vec2 position);
+Entity createPurchasableHealth(RenderSystem* renderer, vec2 position);
 Entity createTreasure(RenderSystem* renderer, vec2 position);
 Entity createNPC(RenderSystem* renderer, vec2 pos);
 Entity createWin(RenderSystem* renderer);
@@ -81,7 +82,7 @@ Entity createAimbotCursor(RenderSystem* renderer, vec2 pos, float scale);
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the coin
-Entity createCoin(RenderSystem* renderer, vec2 position, int value);
+Entity createCoin(RenderSystem* renderer, vec2 position, int value, float bezier_start = 0.0, float bezier_end = 0.5, vec2 bezier_up = vec2(0.f, -20.f), float bezier_x_rand = 60.f);
 // max hp increase
 Entity createMaxHPIncrease(RenderSystem* renderer, vec2 position);
 // the attack up

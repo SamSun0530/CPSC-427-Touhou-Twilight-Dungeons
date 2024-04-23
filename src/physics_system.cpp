@@ -535,6 +535,16 @@ void PhysicsSystem::step(float elapsed_ms)
 				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
 			}
 		}
+
+		// Enemy to chest
+		for (Entity chest_entity : registry.chests.entities) {
+			Motion& motion = registry.motions.get(chest_entity);
+			Collidable& collidable = registry.collidables.get(chest_entity);
+			if (collides_AABB_AABB(motion, motion_i, collidable, collidable_i)) {
+				registry.collisions.emplace_with_duplicates(entity_i, chest_entity);
+				registry.collisions.emplace_with_duplicates(chest_entity, entity_i);
+			}
+		}
 	}
 
 	// Check and set room

@@ -79,6 +79,7 @@ class RenderSystem {
 			textures_path("AttackSpeed.png"),
 			textures_path("CriticalChance.png"),
 			textures_path("CriticalDemage.png"),
+			textures_path("Bomb.png"),
 			textures_path("CriticalHitIcon.png"),
 			textures_path("FocusBar.png"),
 			textures_path("Coins-Static.png"),
@@ -97,6 +98,8 @@ class RenderSystem {
 			textures_path("item_red.png"),
 			textures_path("item_green.png"),
 			textures_path("item_blue.png"),
+			textures_path("item_yellow.png"),
+			textures_path("item_purple.png"),
 			textures_path("DoorHorizontalOpen.png"),
 			textures_path("DoorHorizontalClose.png"),
 			textures_path("DoorVerticalOpenDown.png"),
@@ -125,6 +128,12 @@ class RenderSystem {
 			textures_path("AoeAmmoBulletDisappear.png"),
 			textures_path("AimbotAmmoBulletDisappear.png"),
 			textures_path("HitSpark.png"),
+			textures_path("ChestOpened.png"),
+			textures_path("ChestClosed.png"),
+			textures_path("Skeleton.png"),
+			textures_path("Barrel.png"),
+			textures_path("Pottery.png"),
+			textures_path("Fireplace.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

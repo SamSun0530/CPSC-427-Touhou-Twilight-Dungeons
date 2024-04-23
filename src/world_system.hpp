@@ -97,6 +97,8 @@ private:
 	// State of keyboard
 	// Initial state is all false
 	std::array<bool, 512> pressed = { 0 };
+
+	// Dialogue scripts
 	std::vector<std::string> start_script;
 	std::vector<std::string> cirno_script;
 	std::vector<std::string> marisa_script;
@@ -108,6 +110,13 @@ private:
 	float word_up_ms = 50.f;
 	unsigned int curr_word = 0;
 	std::string start_buffer;
+
+	// Bomb stuff (resets at restart_game)
+	float bomb_timer = 0.f;
+	float bomb_timer_max = 500.f;
+	int bomb_damage = 100;
+	void deal_damage_to_deadly(const Entity& entity, int damage);
+
 	// Update player direction based on pressed
 	void updatePlayerDirection(Kinematic& player_kinematic);
 

@@ -187,13 +187,14 @@ enum AMMO_TYPE {
 struct Player
 {
 	bool invulnerability = false;
-	int bullet_damage = 10;
+	int bullet_damage = 1000;
 	int coin_amount = 0;
 	int key_amount = 0;
 	float invulnerability_time_ms = 1000;
 	float fire_rate = 1 / 3.f;
 	float critical_hit = 0.05;
 	float critical_damage = 1.5;
+	int bomb = 3;
 
 	// we store this here because 
 	// - carry it to next level
@@ -204,6 +205,11 @@ struct Player
 struct Teleporter {
 	bool player_overlap = false;
 	bool is_teleporting = false;
+};
+
+// make entity fly to player
+struct FlyToPlayer {
+
 };
 
 // Menu stuff
@@ -368,6 +374,10 @@ struct BulletSpawner
 	float update_rate = 1.f;
 	float bullet_initial_speed = 100;
 
+	// initial bullet cooldown (so when player enters room, does not immediately fire)
+	// only used once
+	float initial_bullet_cooldown = 1000;
+
 	inline bool operator==(const BulletSpawner& o) {
 		return (is_firing == o.is_firing &&
 			last_fire_time == o.last_fire_time &&
@@ -426,6 +436,12 @@ struct Boss {
 
 struct AimbotCursor {
 
+};
+
+struct CoinFountain
+{
+	int remain_coins = 30;
+	float time_per_coins = 100.f;
 };
 
 enum class State {
@@ -553,7 +569,7 @@ struct AttackUp
 
 struct Chest
 {
-
+	bool is_close = true;
 };
 
 struct Key
@@ -712,6 +728,7 @@ struct FollowFlowField
 struct ScreenState
 {
 	float darken_screen_factor = -1;
+	float bomb_screen_factor = -1;
 };
 
 struct WinMenu
@@ -843,6 +860,7 @@ enum class KEYS {
 	R = SCROLL + 1,
 	SPACE = R + 1,
 	P = SPACE + 1,
+	E = P + 1,
 };
 
 
@@ -928,7 +946,8 @@ enum class TEXTURE_ASSET_ID {
 	ATTACKSPEED = ATTACKDMG + 1,
 	CRTCHANCE = ATTACKSPEED + 1,
 	CRTDMG = CRTCHANCE + 1,
-	CRTHITICON = CRTDMG + 1,
+	BOMB = CRTDMG + 1,
+	CRTHITICON = BOMB + 1,
 	FOCUS_BAR = CRTHITICON + 1,
 	COIN_STATIC = FOCUS_BAR + 1,
 	TILES_ATLAS_SANDSTONE = COIN_STATIC + 1,
@@ -946,7 +965,9 @@ enum class TEXTURE_ASSET_ID {
 	ITEM_R = S + 1,
 	ITEM_G = ITEM_R + 1,
 	ITEM_B = ITEM_G + 1,
-	DOOR_HORIZONTAL_OPEN = ITEM_B + 1,
+	ITEM_Y = ITEM_B + 1,
+	ITEM_P = ITEM_Y + 1,
+	DOOR_HORIZONTAL_OPEN = ITEM_P + 1,
 	DOOR_HORIZONTAL_CLOSE = DOOR_HORIZONTAL_OPEN + 1,
 	DOOR_VERTICAL_OPEN_DOWN = DOOR_HORIZONTAL_CLOSE + 1,
 	DOOR_VERTICAL_OPEN_UP = DOOR_VERTICAL_OPEN_DOWN + 1,
@@ -974,7 +995,13 @@ enum class TEXTURE_ASSET_ID {
 	AOE_AMMO_BULLET_DISAPPEAR = AIMBOT_AMMO_BULLET + 1,
 	AIMBOT_AMMO_BULLET_DISAPPEAR = AOE_AMMO_BULLET_DISAPPEAR + 1,
 	HIT_SPARK = AIMBOT_AMMO_BULLET_DISAPPEAR + 1,
-	TEXTURE_COUNT = HIT_SPARK + 1,
+	CHEST_OPEN = HIT_SPARK + 1,
+	CHEST_CLOSE = CHEST_OPEN + 1,
+	SKELETON = CHEST_CLOSE + 1,
+	BARREL = SKELETON + 1,
+	POTTERY = BARREL + 1,
+	FIREPLACE = POTTERY + 1,
+	TEXTURE_COUNT = FIREPLACE + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

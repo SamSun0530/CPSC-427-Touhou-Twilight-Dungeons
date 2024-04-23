@@ -92,6 +92,8 @@ public:
 	ComponentContainer<AimbotBullet> aimbotBullets;
 	ComponentContainer<AoeBullet> aoeBullets;
 	ComponentContainer<NormalBullet> normalBullets;
+	ComponentContainer<CoinFountain> coinFountains;
+	ComponentContainer<FlyToPlayer> flytoplayers;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -178,6 +180,8 @@ public:
 		registry_list.push_back(&aimbotBullets);
 		registry_list.push_back(&aoeBullets);
 		registry_list.push_back(&normalBullets);
+		registry_list.push_back(&coinFountains);
+		registry_list.push_back(&flytoplayers);
 	}
 
 	void clear_all_components() {
