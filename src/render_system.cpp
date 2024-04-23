@@ -401,6 +401,7 @@ void RenderSystem::draw()
 				uiux_world_entities.push_back(entity);
 				continue;
 			}
+			if (registry.aimbotCursors.has(entity)) continue;
 			if (registry.focusdots.has(entity)) continue;
 			if (registry.UIUX.has(entity)) continue;
 			if (registry.players.has(entity)) continue;
@@ -463,6 +464,12 @@ void RenderSystem::draw()
 			}
 		}
 		drawBulletsInstanced(enemy_bullets, projection_2D, view_2D);
+
+		// this will only have at most one aimbot cursor
+		// it will always be in camera view, and has motion
+		for (Entity entity : registry.aimbotCursors.entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
 
 		// this will only have at most one focusdots
 		// it will always be in camera view, and has motion

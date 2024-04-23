@@ -380,7 +380,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					closest_entity_id = entity;
 				}
 			}
-			uni_timer.closest_enemy = closest_entity_id;
+			// Do not allow lock on if boss is not active
+			Entity entity_copy = (Entity)closest_entity_id;
+			if (registry.bosses.has(entity_copy)) {
+				if ((map_info.level == MAP_LEVEL::LEVEL1 && boss_info.has_cirno_talked) ||
+					(map_info.level == MAP_LEVEL::LEVEL2 && boss_info.has_flandre_talked))
+					uni_timer.closest_enemy = closest_entity_id;
+			}
+			else {
+				uni_timer.closest_enemy = closest_entity_id;
+			}
 			uni_timer.closest_enemy_timer = uni_timer.closest_enemy_timer_default;
 		}
 	}

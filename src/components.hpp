@@ -198,7 +198,7 @@ struct Player
 	// we store this here because 
 	// - carry it to next level
 	// - exclusive to the player only (enemies should not have this)
-	AMMO_TYPE ammo_type = AMMO_TYPE::TRIPLE;
+	AMMO_TYPE ammo_type = AMMO_TYPE::AIMBOT;
 };
 
 struct Teleporter {
