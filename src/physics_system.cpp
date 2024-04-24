@@ -60,6 +60,29 @@ bool collides_AABB_AABB(const Motion& motion1, const Motion& motion2, const Coll
 	return false;
 }
 
+// Collision test for player between AABB and AABB
+bool collides_AABB_AABB_player(const Motion& motion1, const Motion& motion2, const Collidable& collidable1)
+{
+	const vec2 bounding_box1 = abs(collidable1.size) / 2.f;
+	const vec2 bounding_box2 = abs(motion2.scale) / 2.f;
+	const vec2 box_center1 = motion1.position + collidable1.shift;
+	const vec2 box_center2 = motion2.position;
+
+	const float top1 = box_center1.y - bounding_box1.y;
+	const float bottom1 = box_center1.y + bounding_box1.y;
+	const float left1 = box_center1.x - bounding_box1.x;
+	const float right1 = box_center1.x + bounding_box1.x;
+
+	const float top2 = box_center2.y - bounding_box2.y;
+	const float bottom2 = box_center2.y + bounding_box2.y;
+	const float left2 = box_center2.x - bounding_box2.x;
+	const float right2 = box_center2.x + bounding_box2.x;
+
+	if (left2 < right1 && left1 < right2 && top2 < bottom1 && top1 < bottom2)
+		return true;
+	return false;
+}
+
 
 // Below check edge to edge collision reference Geometric Algorithm: https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/
 bool on_segment(vec3 p, vec3 q, vec3 r) {
@@ -333,7 +356,8 @@ void PhysicsSystem::step(float elapsed_ms)
 			// TODO: Mesh not working as expected (aabb collidable box is lower half, won't be checked)
 			//else if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable) &&
 			//	collides_mesh_AABB(player_entity, player_motion, motion, collidable)) {
-			else if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+			else if (collides_AABB_AABB_player(motion, player_motion, collidable)) {
+				if (collides_mesh_AABB(player_entity, player_motion, motion, collidable))
 				registry.collisions.emplace_with_duplicates(player_entity, bullet_entity);
 			}
 		}
@@ -342,9 +366,11 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity deadly_entity : registry.deadlys.entities) {
 			Motion& motion = registry.motions.get(deadly_entity);
 			Collidable& collidable = registry.collidables.get(deadly_entity);
-			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
-				registry.collisions.emplace_with_duplicates(player_entity, deadly_entity);
-				registry.collisions.emplace_with_duplicates(deadly_entity, player_entity);
+			if (collides_AABB_AABB_player(motion, player_motion, collidable)) {
+				if (collides_mesh_AABB(player_entity, player_motion, motion, collidable)) {
+					registry.collisions.emplace_with_duplicates(player_entity, deadly_entity);
+					registry.collisions.emplace_with_duplicates(deadly_entity, player_entity);
+				}
 			}
 		}
 
@@ -352,7 +378,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity pickupable_entity : registry.pickupables.entities) {
 			Motion& motion = registry.motions.get(pickupable_entity);
 			Collidable& collidable = registry.collidables.get(pickupable_entity);
-			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+			if (collides_AABB_AABB_player(motion, player_motion, collidable)) {
 				registry.collisions.emplace_with_duplicates(player_entity, pickupable_entity);
 				registry.collisions.emplace_with_duplicates(pickupable_entity, player_entity);
 			}
@@ -362,7 +388,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity npc_entity : registry.npcs.entities) {
 			Motion& motion = registry.motions.get(npc_entity);
 			Collidable& collidable = registry.collidables.get(npc_entity);
-			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+			if (collides_AABB_AABB_player(motion, player_motion, collidable)) {
 				registry.collisions.emplace_with_duplicates(player_entity, npc_entity);
 				registry.collisions.emplace_with_duplicates(npc_entity, player_entity);
 			}
@@ -372,7 +398,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity coin_entity : registry.coins.entities) {
 			Motion& motion = registry.motions.get(coin_entity);
 			Collidable& collidable = registry.collidables.get(coin_entity);
-			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+			if (collides_AABB_AABB_player(motion, player_motion, collidable)) {
 				registry.collisions.emplace_with_duplicates(player_entity, coin_entity);
 				registry.collisions.emplace_with_duplicates(coin_entity, player_entity);
 			}
@@ -382,7 +408,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity maxHpIncrease_entity : registry.maxhpIncreases.entities) {
 			Motion& motion = registry.motions.get(maxHpIncrease_entity);
 			Collidable& collidable = registry.collidables.get(maxHpIncrease_entity);
-			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+			if (collides_AABB_AABB_player(motion, player_motion, collidable)) {
 				registry.collisions.emplace_with_duplicates(player_entity, maxHpIncrease_entity);
 				registry.collisions.emplace_with_duplicates(maxHpIncrease_entity, player_entity);
 			}
@@ -392,7 +418,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity attackUp_entity : registry.attackUps.entities) {
 			Motion& motion = registry.motions.get(attackUp_entity);
 			Collidable& collidable = registry.collidables.get(attackUp_entity);
-			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+			if (collides_AABB_AABB_player(motion, player_motion, collidable)) {
 				registry.collisions.emplace_with_duplicates(player_entity, attackUp_entity);
 				registry.collisions.emplace_with_duplicates(attackUp_entity, player_entity);
 			}
@@ -412,7 +438,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity key_entity : registry.keys.entities) {
 			Motion& motion = registry.motions.get(key_entity);
 			Collidable& collidable = registry.collidables.get(key_entity);
-			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+			if (collides_AABB_AABB_player(motion, player_motion, collidable)) {
 				registry.collisions.emplace_with_duplicates(player_entity, key_entity);
 				registry.collisions.emplace_with_duplicates(key_entity, player_entity);
 			}
@@ -422,7 +448,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity entity : registry.teleporters.entities) {
 			Motion& motion = registry.motions.get(entity);
 			Collidable& collidable = registry.collidables.get(entity);
-			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+			if (collides_AABB_AABB_player(motion, player_motion, collidable)) {
 				registry.collisions.emplace_with_duplicates(player_entity, entity);
 				registry.collisions.emplace_with_duplicates(entity, player_entity);
 			}
@@ -432,7 +458,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity treasure_entity : registry.purchasableables.entities) {
 			Motion& motion = registry.motions.get(treasure_entity);
 			Collidable& collidable = registry.collidables.get(treasure_entity);
-			if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable)) {
+			if (collides_AABB_AABB_player(motion, player_motion, collidable)) {
 				registry.collisions.emplace_with_duplicates(player_entity, treasure_entity);
 				registry.collisions.emplace_with_duplicates(treasure_entity, player_entity);
 			}
