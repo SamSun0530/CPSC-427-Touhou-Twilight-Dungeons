@@ -163,7 +163,6 @@ Entity createPurchasableHealth(RenderSystem* renderer, vec2 position)
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<> distrib(0, 1);
 	double number = distrib(gen);
-	double number_y = distrib(gen) / 2;
 	auto& purchasable = registry.purchasableables.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
 	if (number <= 0.6) {
@@ -197,17 +196,11 @@ Entity createPurchasableHealth(RenderSystem* renderer, vec2 position)
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
-	vec2 dir = { 60 * (number - 0.5), 50 * (number_y) };
-	BezierCurve curve;
-	curve.bezier_pts.push_back(position);
-	curve.bezier_pts.push_back(position + vec2(0, -20));
-	curve.bezier_pts.push_back(position + dir);
-	registry.bezierCurves.insert(entity, curve);
 	return entity;
 }
 
 // creat purchase able items (boost/buff)
-Entity createTreasure(RenderSystem* renderer, vec2 position)
+Entity createTreasure(RenderSystem* renderer, vec2 position, bool is_bezier)
 {
 	auto entity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -296,11 +289,13 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	vec2 dir = { 60 * (number - 0.5), 50 * (number_y) };
-	BezierCurve curve;
-	curve.bezier_pts.push_back(position);
-	curve.bezier_pts.push_back(position + vec2(0, -20));
-	curve.bezier_pts.push_back(position + dir);
-	registry.bezierCurves.insert(entity, curve);
+	if (is_bezier) {
+		BezierCurve curve;
+		curve.bezier_pts.push_back(position);
+		curve.bezier_pts.push_back(position + vec2(0, -20));
+		curve.bezier_pts.push_back(position + dir);
+		registry.bezierCurves.insert(entity, curve);
+	}
 	return entity;
 }
 
@@ -1039,6 +1034,30 @@ Entity createDummyEnemy(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
+Entity createRoomSignifier(RenderSystem* renderer, vec2 position, ROOM_TYPE room_type) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ world_tile_size*3/4, world_tile_size * 3 / 4 });
+	registry.renderRequests.insert(
+		entity,
+		{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::NORMAL_SIGN + (int)room_type),
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	registry.colors.insert(entity, { 1,1,1 });
+
+	return entity;
+}
+
 Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, BOSS_ID boss_id, vec3 name_color)
 {
 	auto entity = Entity();
@@ -1571,6 +1590,8 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 
 	return entity;
 }
+
+
 
 // IMPORTANT: createDoor takes in grid coordinates
 Entity createDoor(RenderSystem* renderer, vec2 grid_position, DIRECTION dir, int room_index) {

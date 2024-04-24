@@ -657,6 +657,8 @@ void WorldSystem::next_level() {
 	else {
 		map->generateRandomMap(11); // room_size must be > 3
 		player = map->spawnPlayerInRoom(0);
+		// generates door info then the tiles
+		map->generate_door_tiles(world_map);
 	}
 
 	registry.players.get(player) = player_component;
@@ -742,6 +744,8 @@ void WorldSystem::restart_game() {
 	else {
 		map->generateRandomMap(11); // room_size must be > 3
 		player = map->spawnPlayerInRoom(0);
+		// generates door info then the tiles
+		map->generate_door_tiles(world_map);
 	}
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});

@@ -122,6 +122,10 @@ class RenderSystem {
 			textures_path("Barrel.png"),
 			textures_path("Pottery.png"),
 			textures_path("Fireplace.png"),
+			textures_path("NormalSign.png"),
+			textures_path("BossSign.png"),
+			textures_path("StartSign.png"),
+			textures_path("ShopSign.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
