@@ -967,66 +967,96 @@ void WorldSystem::handle_collisions() {
 							player_att.coin_amount -= treasure.cost;
 							// 1=bullet_damage, 2=fire_rate, or 3=critical_hit
 							// treasure.effect_strength value between 0~1
-							if (treasure.effect_type == 1) {
+							if (treasure.effect_type == EFFECT_TYPE::BULLET_DAMAGE) {
 								player_att.bullet_damage += static_cast<int>(treasure.effect_strength * 1.7);
 
 							}
-							else if (treasure.effect_type == 2) {
+							else if (treasure.effect_type == EFFECT_TYPE::FIRE_RATE) {
 								// bullet_spawner.fire_rate = 0.0001;
 								bullet_spawner.fire_rate *= (1 - float(treasure.effect_strength * 0.03));
 								player_att.fire_rate = 1 / bullet_spawner.fire_rate;
 							}
-							else if (treasure.effect_type == 3) {
+							else if (treasure.effect_type == EFFECT_TYPE::CRITICAL_HIT) {
 								player_att.critical_hit += float(treasure.effect_strength * 0.015);
 							}
-							else if (treasure.effect_type == 5) {
+							else if (treasure.effect_type == EFFECT_TYPE::CRITICAL_DAMAGE) {
 								player_att.critical_damage += float(treasure.effect_strength * 0.04);
 							}
-							else if (treasure.effect_type == 6) {
+							else if (treasure.effect_type == EFFECT_TYPE::BOMB) {
 								player_att.bomb += 1;
 							}
-							else if (treasure.effect_type == 7) {
+							else if (treasure.effect_type == EFFECT_TYPE::INCR_CURRENT_HP) {
 								player_hp.curr_hp += treasure.effect_strength;
 								if (player_hp.curr_hp > player_hp.max_hp) {
 									player_hp.curr_hp = player_hp.max_hp;
 								}
 							}
-							else if (treasure.effect_type == 4) {
+							else if (treasure.effect_type == EFFECT_TYPE::INCR_MAXIMUM_HP) {
 								int balance_hp = static_cast<int>(treasure.effect_strength / 2);
 								if (balance_hp == 0) {
 									balance_hp = 1;
 								}
 								player_hp.max_hp += balance_hp;
 							}
+							else if (treasure.effect_type == EFFECT_TYPE::AIMBOT_AMMO) {
+								player_att.ammo_type = AMMO_TYPE::AIMBOT;
+							}
+							else if (treasure.effect_type == EFFECT_TYPE::AOE_AMMO) {
+								player_att.ammo_type = AMMO_TYPE::AOE;
+							}
+							else if (treasure.effect_type == EFFECT_TYPE::TRIPLE_AMMO) {
+								player_att.ammo_type = AMMO_TYPE::TRIPLE;
+							}
+							else if (treasure.effect_type == EFFECT_TYPE::AIMBOT1BULLET_AMMO) {
+								player_att.ammo_type = AMMO_TYPE::AIMBOT1BULLET;
+							}
+							else if (treasure.effect_type == EFFECT_TYPE::NORMAL_AMMO) {
+								player_att.ammo_type = AMMO_TYPE::NORMAL;
+							}
+
 							registry.remove_all_components_of(entity_other);
 						}
 
-						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, "Cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
-						std::string item_name = "";
-						if (treasure.effect_type == 1) {
-							item_name = "increase bullet demage";
+						std::string description = "";
+						if (treasure.effect_type == EFFECT_TYPE::BULLET_DAMAGE) {
+							description = "Increase Bullet Damage";
 						}
-						else if (treasure.effect_type == 2) {
-							item_name = "decrease bullet fire rate";
+						else if (treasure.effect_type == EFFECT_TYPE::FIRE_RATE) {
+							description = "Increase Fire Rate";
 						}
-						else if (treasure.effect_type == 3) {
-							item_name = "increase bullet critical hit";
+						else if (treasure.effect_type == EFFECT_TYPE::CRITICAL_HIT) {
+							description = "Increase Critical Hit Rate";
 						}
-						else if (treasure.effect_type == 4) {
-							item_name = "increase maximum health";
+						else if (treasure.effect_type == EFFECT_TYPE::INCR_MAXIMUM_HP) {
+							description = "Increase Max HP";
 						}
-						else if (treasure.effect_type == 5) {
-							item_name = "increase bullet critical demage";
+						else if (treasure.effect_type == EFFECT_TYPE::CRITICAL_DAMAGE) {
+							description = "Increase Critical Damage";
 						}
-						else if (treasure.effect_type == 7) {
-							item_name = "increase current health";
+						else if (treasure.effect_type == EFFECT_TYPE::INCR_CURRENT_HP) {
+							description = "Increase HP";
 						}
-						else if (treasure.effect_type == 6) {
-							item_name = "grant one bomb";
+						else if (treasure.effect_type == EFFECT_TYPE::BOMB) {
+							description = "Bomb";
 						}
-						createText(vec2(motion.position.x, motion.position.y + 50), { 0.6f,0.6f }, "Press \"E\" to buy this", vec3(0, 1, 0), false, true);
-						createText(vec2(motion.position.x, motion.position.y + 75), { 0.6f,0.6f }, "This will " + item_name, vec3(0, 1, 0), false, true);
-						// std::cout << "Buy this" << std::endl;
+						else if (treasure.effect_type == EFFECT_TYPE::AIMBOT_AMMO) {
+							description = "Aimbot Spell";
+						}
+						else if (treasure.effect_type == EFFECT_TYPE::AOE_AMMO) {
+							description = "AOE Spell";
+						}
+						else if (treasure.effect_type == EFFECT_TYPE::TRIPLE_AMMO) {
+							description = "Triple Spell";
+						}
+						else if (treasure.effect_type == EFFECT_TYPE::AIMBOT1BULLET_AMMO) {
+							description = "One Aimbot Bullet Spell";
+						}
+						else if (treasure.effect_type == EFFECT_TYPE::NORMAL_AMMO) {
+							description = "Don't buy this";
+						}
+						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, description, vec3(0, 1, 0), false, true);
+						createText(vec2(motion.position.x, motion.position.y + 50), { 0.6f,0.6f }, "Cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
+						createText(vec2(motion.position.x, motion.position.y + 75), { 0.6f,0.6f }, "Press \"E\" to purchase", vec3(0, 1, 0), false, true);
 					}
 				}
 			}
@@ -1049,7 +1079,7 @@ void WorldSystem::handle_collisions() {
 			else if (registry.teleporters.has(entity_other)) {
 				Teleporter& teleporter = registry.teleporters.get(entity_other);
 				Motion& motion = registry.motions.get(entity_other);
-				createText(motion.position + vec2(0, 20), vec2(1), "Press E to go to next level", vec3(0, 1, 0), false, true);
+				createText(motion.position + vec2(0, 20), vec2(1), "Press \"E\" to go to next level", vec3(0, 1, 0), false, true);
 				if (pressed[GLFW_KEY_E] && !teleporter.is_teleporting) {
 					EntityAnimation& ani = registry.alwaysplayAni.get(entity_other);
 					registry.realDeathTimers.emplace(entity_other).death_counter_ms = 2300;
@@ -1565,7 +1595,11 @@ void WorldSystem::deal_damage_to_deadly(const Entity& entity, int damage)
 		if (registry.beeEnemies.has(entity) ||
 			registry.wolfEnemies.has(entity) ||
 			registry.bomberEnemies.has(entity) ||
-			registry.dummyenemies.has(entity)) {
+			registry.dummyenemies.has(entity) ||
+			registry.lizardEnemies.has(entity) ||
+			registry.bee2Enemies.has(entity) ||
+			registry.wormEnemies.has(entity) ||
+			registry.gargoyleEnemies.has(entity)) {
 			registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
 			registry.hps.remove(entity);
 			registry.aitimers.remove(entity);

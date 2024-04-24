@@ -180,7 +180,8 @@ enum AMMO_TYPE {
 	AOE,
 	AIMBOT,
 	TRIPLE,
-	AIMBOT1BULLET
+	AIMBOT1BULLET,
+	AMMO_TYPE_COUNT
 };
 
 // Player component
@@ -199,7 +200,7 @@ struct Player
 	// we store this here because 
 	// - carry it to next level
 	// - exclusive to the player only (enemies should not have this)
-	AMMO_TYPE ammo_type = AMMO_TYPE::AIMBOT;
+	AMMO_TYPE ammo_type = AMMO_TYPE::NORMAL;
 };
 
 struct Teleporter {
@@ -593,10 +594,32 @@ struct Pickupable
 	int health_change = 1;
 };
 
+// IMPORTANT: we have separators in between each section of effects
+// Why? There are different implementations which clash together when
+// using the same enum. For example, the initial shop system and the health increase
+enum EFFECT_TYPE {
+	EFFECT_TYPE_SEPARATOR_0, // 0
+	BULLET_DAMAGE,
+	FIRE_RATE,
+	CRITICAL_HIT,
+	CRITICAL_DAMAGE,
+	INCR_MAXIMUM_HP,
+	BOMB,
+	EFFECT_TYPE_SEPARATOR_1, // 7
+	INCR_CURRENT_HP,
+	EFFECT_TYPE_SEPARATOR_2, // 9
+	NORMAL_AMMO,
+	AIMBOT_AMMO,
+	AOE_AMMO,
+	TRIPLE_AMMO,
+	AIMBOT1BULLET_AMMO,
+	EFFECT_TYPE_SEPARATOR_3 // 15
+};
+
 struct Purchasableable
 {
 	// 1=bullet_damage, 2=fire_rate, or 3=critical_hit
-	int effect_type;
+	EFFECT_TYPE effect_type;
 	int cost;
 	bool player_overlap = false;
 	int effect_strength;
@@ -1001,7 +1024,11 @@ enum class TEXTURE_ASSET_ID {
 	BARREL = SKELETON + 1,
 	POTTERY = BARREL + 1,
 	FIREPLACE = POTTERY + 1,
-	TEXTURE_COUNT = FIREPLACE + 1,
+	AIMBOT_AMMO_ITEM = FIREPLACE + 1,
+	AOE_AMMO_ITEM = AIMBOT_AMMO_ITEM + 1,
+	TRIPLE_AMMO_ITEM = AOE_AMMO_ITEM + 1,
+	AIMBOT1BULLET_AMMO_ITEM = TRIPLE_AMMO_ITEM + 1,
+	TEXTURE_COUNT = AIMBOT1BULLET_AMMO_ITEM + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

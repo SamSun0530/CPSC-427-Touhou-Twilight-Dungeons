@@ -42,5 +42,6 @@ Alan Huang <br />
 - Aimbot bullet/disappear - https://bdragon1727.itch.io/free-effect-and-bullet-16x16
 - AOE bullet/disappear - https://bdragon1727.itch.io/free-effect-bullet-impact-explosion-32x32
 - Hit spark - https://pimen.itch.io/battle-vfx-hit-spark
--
+- Icons - https://quintino-pixels.itch.io/assorted-icons
+- 
 

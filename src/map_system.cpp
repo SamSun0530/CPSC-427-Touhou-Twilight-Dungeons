@@ -56,13 +56,11 @@ void MapSystem::step(float elapsed_ms_since_last_update) {
 				// only one teleporter in the map at a time
 				if (registry.teleporters.size() < 1) {
 					createTeleporter(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f), 2.f);
-					createChest(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f+ vec2(0.0f, 4.0f)));
+					createChest(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f + vec2(0.0f, 4.0f)));
 				}
 			}
 		}
-
 	}
-
 }
 
 void MapSystem::restart_map() {
@@ -160,35 +158,6 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 					room.enemies.push_back(createLizardEnemy(renderer, point));
 				}
 			}
-
-
-			//if (random_number <= 0.50) {
-			//	room.enemies.push_back(createBeeEnemy(renderer, point));
-			//}
-			//else if (random_number <= 0.75) {
-			//	room.enemies.push_back(createWolfEnemy(renderer, point));
-			//}
-			//else if (random_number <= 1.0) {
-			//	room.enemies.push_back(createBomberEnemy(renderer, point));
-			//}
-
-			//room.enemies.push_back(createLizardEnemy(renderer, point));
-			//room.enemies.push_back(createWormEnemy(renderer, point));
-			//room.enemies.push_back(createBee2Enemy(renderer, point));
-			//room.enemies.push_back(createGargoyleEnemy(renderer, point));
-
-			//if (random_number <= 0.25) {
-			//	room.enemies.push_back(createLizardEnemy(renderer, point));
-			//}
-			//else if (random_number <= 0.50) {
-			//	room.enemies.push_back(createBee2Enemy(renderer, point));
-			//}
-			//else if (random_number <= 0.75) {
-			//	room.enemies.push_back(createWormEnemy(renderer, point));
-			//}
-			//else {
-			//	room.enemies.push_back(createGargoyleEnemy(renderer, point));
-			//}
 		}
 	}
 	else if (room.type == ROOM_TYPE::BOSS) {
@@ -204,10 +173,10 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 	}
 	else if (room.type == ROOM_TYPE::SHOP) {
 		createNPC(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f));
-		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, 1.414f)) );
-		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, 1.414f)) );
-		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, -1.414f)) );
-		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, -1.414f)) );
+		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, 1.414f)));
+		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, 1.414f)));
+		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, -1.414f)));
+		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, -1.414f)));
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f - vec2(1.f, 0.f)));
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.f, 0.f)));
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f - vec2(0.f, 1.f)));
@@ -216,6 +185,28 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(2 * 1.f, 0.f)));
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f - vec2(0.f, 2 * 1.f)));
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(0.f, 2 * 1.f)));
+
+		// Choose an ammo that is currently not used
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<> distrib(0, 1);
+		// X chance to spawn an ammo
+		if (distrib(gen) < 0.4) {
+			std::uniform_int_distribution<> typeDistrib(0, AMMO_TYPE::AMMO_TYPE_COUNT - 1);
+			int times_to_sample = 10;
+			std::vector<int> sampled_counts(AMMO_TYPE::AMMO_TYPE_COUNT, 0);
+			AMMO_TYPE type;
+			Player& player_c = registry.players.components[0];
+			while (times_to_sample > 0) {
+				type = static_cast<AMMO_TYPE>(typeDistrib(gen));
+				if (type == AMMO_TYPE::NORMAL || type == player_c.ammo_type) continue;
+				sampled_counts[type]++;
+				times_to_sample--;
+			}
+			int max_ammo_index = std::distance(sampled_counts.begin(), std::max_element(sampled_counts.begin(), sampled_counts.end()));
+			createPurchasableAmmo(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(0.f, 0.5f)), 
+				static_cast<AMMO_TYPE>(max_ammo_index));
+		}
 	}
 }
 
@@ -446,7 +437,7 @@ void MapSystem::generateRandomMap(float room_size) {
 
 		bsptree.rooms.push_back(boss_room2);
 		bsptree.generate_corridor_between_two_points(start, end);
-		std::uniform_int_distribution<> shop_distrib(1, static_cast<int>((bsptree.rooms.size() - 2)/2));
+		std::uniform_int_distribution<> shop_distrib(1, static_cast<int>((bsptree.rooms.size() - 2) / 2));
 		random_num = shop_distrib(rng);
 		bsptree.rooms[random_num].type = ROOM_TYPE::SHOP;
 		set_map_walls(world_map);
