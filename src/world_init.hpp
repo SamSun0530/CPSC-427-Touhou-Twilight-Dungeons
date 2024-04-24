@@ -117,7 +117,7 @@ std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vect
 // Interactable Tile
 std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 // Same as wall with different texture
-Entity createRock(RenderSystem* renderer, vec2 position);
+Entity createObstacle(RenderSystem* renderer, vec2 position);
 // Pillar tile
 std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 // Door tile that can be open or closed

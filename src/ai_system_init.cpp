@@ -377,14 +377,14 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 
 	ActionNode* move_random_direction_bee = new ActionNode(moveRandomDirection);
 	ActionNode* fire_at_player_bee = new ActionNode(fireAtPlayer);
-	//ActionNode* find_player_bee = new ActionNode(findPlayerAStar);
+	ActionNode* find_player_bee = new ActionNode(followFlowField);
 	ActionNode* follow_flow_field_threshold_bee = new ActionNode(followFlowFieldThreshold);
 
 	can_shoot_bee->setTrue(fire_at_player_bee);
 	can_shoot_bee->setFalse(follow_flow_field_threshold_bee);
 
 	can_see_player_bee->setTrue(can_shoot_bee);
-	can_see_player_bee->setFalse(follow_flow_field_threshold_bee);
+	can_see_player_bee->setFalse(find_player_bee);
 
 	is_in_range_bee->setTrue(can_see_player_bee);
 	is_in_range_bee->setFalse(move_random_direction_bee);
@@ -402,14 +402,14 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 
 	ActionNode* move_random_direction_wolf = new ActionNode(moveRandomDirection);
 	ActionNode* fire_at_player_wolf = new ActionNode(fireAtPlayer);
-	//ActionNode* find_player_wolf = new ActionNode(findPlayerThresholdAStar);
+	ActionNode* find_player_wolf = new ActionNode(followFlowField);
 	ActionNode* find_player_threshold_wolf = new ActionNode(followFlowFieldThreshold);
 
 	can_shoot_wolf->setTrue(fire_at_player_wolf);
 	can_shoot_wolf->setFalse(find_player_threshold_wolf);
 
 	can_see_player_wolf->setTrue(can_shoot_wolf);
-	can_see_player_wolf->setFalse(find_player_threshold_wolf);
+	can_see_player_wolf->setFalse(find_player_wolf);
 
 	is_in_range_wolf->setTrue(can_see_player_wolf);
 	is_in_range_wolf->setFalse(move_random_direction_wolf);
@@ -476,11 +476,12 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 	ConditionalNode* can_shoot_lizard = new ConditionalNode(canShoot);
 	ActionNode* move_random_direction_lizard = new ActionNode(moveRandomDirection);
 	ActionNode* fire_at_player_lizard = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_lizard = new ActionNode(followFlowField);
 	ActionNode* find_player_threshold_lizard = new ActionNode(followFlowFieldThreshold);
 	can_shoot_lizard->setTrue(fire_at_player_lizard);
 	can_shoot_lizard->setFalse(find_player_threshold_lizard);
 	can_see_player_lizard->setTrue(can_shoot_lizard);
-	can_see_player_lizard->setFalse(find_player_threshold_lizard);
+	can_see_player_lizard->setFalse(find_player_lizard);
 	is_in_range_lizard->setTrue(can_see_player_lizard);
 	is_in_range_lizard->setFalse(move_random_direction_lizard);
 	this->lizard_tree.setRoot(is_in_range_lizard);
@@ -514,11 +515,12 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 	ConditionalNode* can_shoot_worm = new ConditionalNode(canShoot);
 	ActionNode* move_random_direction_worm = new ActionNode(moveRandomDirection);
 	ActionNode* fire_at_player_worm = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_worm = new ActionNode(followFlowField);
 	ActionNode* find_player_threshold_worm = new ActionNode(followFlowFieldThresholdKeepFiring);
 	can_shoot_worm->setTrue(fire_at_player_worm);
 	can_shoot_worm->setFalse(find_player_threshold_worm);
 	can_see_player_worm->setTrue(can_shoot_worm);
-	can_see_player_worm->setFalse(find_player_threshold_worm);
+	can_see_player_worm->setFalse(find_player_worm);
 	is_in_range_worm->setTrue(can_see_player_worm);
 	is_in_range_worm->setFalse(move_random_direction_worm);
 	this->worm_tree.setRoot(is_in_range_worm);
@@ -533,11 +535,12 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 	ConditionalNode* can_shoot_bee2 = new ConditionalNode(canShoot);
 	ActionNode* move_random_direction_bee2 = new ActionNode(moveRandomDirection);
 	ActionNode* fire_at_player_bee2 = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_bee2 = new ActionNode(followFlowField);
 	ActionNode* find_player_threshold_bee2 = new ActionNode(followFlowFieldThreshold);
 	can_shoot_bee2->setTrue(fire_at_player_bee2);
 	can_shoot_bee2->setFalse(find_player_threshold_bee2);
 	can_see_player_bee2->setTrue(can_shoot_bee2);
-	can_see_player_bee2->setFalse(find_player_threshold_bee2);
+	can_see_player_bee2->setFalse(find_player_bee2);
 	is_in_range_bee2->setTrue(can_see_player_bee2);
 	is_in_range_bee2->setFalse(move_random_direction_bee2);
 	this->bee2_tree.setRoot(is_in_range_bee2);
@@ -552,11 +555,12 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 	ConditionalNode* can_shoot_gargoyle = new ConditionalNode(canShoot);
 	ActionNode* move_random_direction_gargoyle = new ActionNode(moveRandomDirection);
 	ActionNode* fire_at_player_gargoyle = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_gargoyle = new ActionNode(followFlowField);
 	ActionNode* find_player_threshold_gargoyle = new ActionNode(followFlowFieldThreshold);
 	can_shoot_gargoyle->setTrue(fire_at_player_gargoyle);
 	can_shoot_gargoyle->setFalse(find_player_threshold_gargoyle);
 	can_see_player_gargoyle->setTrue(can_shoot_gargoyle);
-	can_see_player_gargoyle->setFalse(find_player_threshold_gargoyle);
+	can_see_player_gargoyle->setFalse(find_player_gargoyle);
 	is_in_range_gargoyle->setTrue(can_see_player_gargoyle);
 	is_in_range_gargoyle->setFalse(move_random_direction_gargoyle);
 	this->gargoyle_tree.setRoot(is_in_range_gargoyle);
@@ -605,4 +609,11 @@ void AISystem::update_flow_field_map()
 			}
 		}
 	}
+
+	//for (int i = 0; i < flow_field_map.size(); i++) {
+	//	for (int j = 0; j < flow_field_map.size(); j++) {
+	//		printf("%d ", flow_field_map[i][j]);
+	//	}
+	//	printf("\n");
+	//}
 }

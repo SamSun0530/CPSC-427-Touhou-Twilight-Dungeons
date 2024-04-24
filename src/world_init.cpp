@@ -307,7 +307,7 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 	std::uniform_int_distribution<> typeDistrib(1, 5);
 	int type = typeDistrib(gen);
 
-	
+
 
 	Purchasableable& purchasableable = registry.purchasableables.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
@@ -351,19 +351,22 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 			{ TEXTURE_ASSET_ID::ITEM_G, // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
-	}else if (type == 4) {
+	}
+	else if (type == 4) {
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::ITEM_Y, // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
-	}else if (type == 5) {
+	}
+	else if (type == 5) {
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::ITEM_P, // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
-	}else {
+	}
+	else {
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::BOMB, // TEXTURE_COUNT indicates that no txture is needed
@@ -408,7 +411,7 @@ Entity createCoin(RenderSystem* renderer, vec2 position, int value, float bezier
 	// Generate a positive number
 	double number = distrib(gen);
 	double x_number = x_distrib(gen);
-	
+
 	// collidable
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = motion.scale / 2.f;
@@ -1342,7 +1345,7 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 14 * 1.f/combo_mode.combo_meter;
+	bs.fire_rate = 14 * 1.f / combo_mode.combo_meter;
 	bs.is_firing = false;
 	bs.bullet_initial_speed = 200;
 
@@ -1482,7 +1485,7 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 40 * 1/combo_mode.combo_meter;
+	bs.fire_rate = 40 * 1 / combo_mode.combo_meter;
 	bs.is_firing = false;
 	bs.bullet_initial_speed = 160;
 	bs.bullets_per_array = static_cast<int>(3 * combo_mode.combo_meter);
@@ -1841,7 +1844,7 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 	return entities;
 }
 
-Entity createRock(RenderSystem* renderer, vec2 grid_position) {
+Entity createObstacle(RenderSystem* renderer, vec2 grid_position) {
 	auto entity = Entity();
 
 	// Initializes the motion
@@ -1860,7 +1863,67 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 	double number = distrib(gen);
 
 	// Placeholder texure
-	if (number < 0.2) {
+	if (map_info.level == MAP_LEVEL::LEVEL1) {
+		if (number < 0.2) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::ROCK,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else if (number < 0.4) {
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::SKELETON,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else if (number < 0.6) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::POTTERY,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else if (number < 0.8) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::BARREL,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+
+			EntityAnimation& animation = registry.alwaysplayAni.emplace(entity);
+			animation.spritesheet_scale = { 1 / 8.f, 1.0f };
+			animation.render_pos = { 1 / 8.f, 1.0f };
+			animation.full_rate_ms = 100.f;
+			animation.frame_rate_ms = 100.f;
+
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::FIREPLACE,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL2) {
 		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
 		registry.walls.emplace(entity);
 
@@ -1868,55 +1931,8 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 			entity,
 			{
 			TEXTURE_ASSET_ID::ROCK,
-			 EFFECT_ASSET_ID::TEXTURED,
-			 GEOMETRY_BUFFER_ID::SPRITE });
-	}
-	else if (number < 0.4) {
-		registry.renderRequests.insert(
-			entity,
-			{
-			TEXTURE_ASSET_ID::SKELETON,
-			 EFFECT_ASSET_ID::TEXTURED,
-			 GEOMETRY_BUFFER_ID::SPRITE });
-	}
-	else if (number < 0.6) {
-		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
-		registry.walls.emplace(entity);
-
-		registry.renderRequests.insert(
-			entity,
-			{
-			TEXTURE_ASSET_ID::POTTERY,
-			 EFFECT_ASSET_ID::TEXTURED,
-			 GEOMETRY_BUFFER_ID::SPRITE });
-	}
-	else if (number < 0.8) {
-		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
-		registry.walls.emplace(entity);
-
-		registry.renderRequests.insert(
-			entity,
-			{
-			TEXTURE_ASSET_ID::BARREL,
-			 EFFECT_ASSET_ID::TEXTURED,
-			 GEOMETRY_BUFFER_ID::SPRITE });
-	}
-	else {
-		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
-		registry.walls.emplace(entity);
-
-		EntityAnimation& animation = registry.alwaysplayAni.emplace(entity);
-		animation.spritesheet_scale = { 1 / 8.f, 1.0f };
-		animation.render_pos = { 1 / 8.f, 1.0f };
-		animation.full_rate_ms = 100.f;
-		animation.frame_rate_ms = 100.f;
-
-		registry.renderRequests.insert(
-			entity,
-			{
-			TEXTURE_ASSET_ID::FIREPLACE,
-			 EFFECT_ASSET_ID::TEXTURED,
-			 GEOMETRY_BUFFER_ID::SPRITE });
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
 	}
 
 	return entity;

@@ -62,10 +62,10 @@ private:
 		vec2(0, 1),		// DOWN
 		vec2(-1, 0),	// LEFT
 		vec2(1, 0),		// RIGHT
-		vec2(-1, -1),	// UP LEFT
-		vec2(1, -1),	// UP RIGHT
-		vec2(-1, 1),	// DOWN LEFT
-		vec2(1, 1)		// DOWN RIGHT
+		//vec2(-1, -1),	// UP LEFT
+		//vec2(1, -1),	// UP RIGHT
+		//vec2(-1, 1),	// DOWN LEFT
+		//vec2(1, 1)		// DOWN RIGHT
 	};
 
 	// Decision tree function

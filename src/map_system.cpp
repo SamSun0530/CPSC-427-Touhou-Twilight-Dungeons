@@ -112,6 +112,18 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		std::vector<vec2> spawn_points;
 		std::uniform_int_distribution<> int_distrib(2, 3);
 		int enemy_num = static_cast<int>(int_distrib(rng) * combo_mode.combo_meter * 2);
+		int valid_spawn_points = 0;
+		while (valid_spawn_points < enemy_num) {
+			std::uniform_real_distribution<> real_distrib_x(room.top_left.x + 0.3f, room.bottom_right.x - 0.3f);
+			float loc_x = real_distrib_x(rng);
+			std::uniform_real_distribution<> real_distrib_y(room.top_left.y + 0.3f, room.bottom_right.y - 0.3f);
+			float loc_y = real_distrib_y(rng);
+			vec2 spawn_point = round(vec2(loc_x, loc_y));
+			// check if spawn point is valid
+			if (world_map[spawn_point.y][spawn_point.x] == (int)TILE_TYPE::WALL) continue;
+			spawn_points.push_back(convert_grid_to_world(spawn_point));
+			valid_spawn_points++;
+		}
 		for (int i = 0; i < enemy_num; i++) {
 			std::uniform_real_distribution<> real_distrib_x(room.top_left.x + 0.3f, room.bottom_right.x - 0.3f);
 			float loc_x = real_distrib_x(rng);
@@ -460,7 +472,7 @@ void MapSystem::generateRandomMap(float room_size) {
 	// generates door info then the tiles
 	generate_door_tiles(world_map);
 	// Generates rocks in room
-	generate_rocks(world_map);
+	generate_obstacles(world_map);
 }
 
 vec4 addSingleDoor(int row, int col, DIRECTION dir, int room_index, Room_struct& room, std::vector<std::vector<int>>& map) {
@@ -654,9 +666,9 @@ void MapSystem::generate_door_tiles(std::vector<std::vector<int>>& map) {
 	}
 }
 
-// Sets wall tiles that act like rocks in a room
-void MapSystem::generate_rocks(std::vector<std::vector<int>>& map) {
-	float rock_spawn_chance = 0.05f;
+// Sets wall tiles that act like obstacles in a room
+void MapSystem::generate_obstacles(std::vector<std::vector<int>>& map) {
+	float spawn_chance = 0.05f;
 	float to_spawn = 0.f;
 	for (Room_struct& room : bsptree.rooms) {
 		if (room.type != ROOM_TYPE::NORMAL) {
@@ -665,9 +677,8 @@ void MapSystem::generate_rocks(std::vector<std::vector<int>>& map) {
 		for (int row = room.top_left.y + 1; row < room.bottom_right.y; row++) {
 			for (int col = room.top_left.x + 1; col < room.bottom_right.x; col++) {
 				to_spawn = uniform_dist(rng);
-				//map[row][col] = (to_spawn < rock_spawn_chance) ? (int)TILE_TYPE::WALL : (int)TILE_TYPE::FLOOR;
-				if (to_spawn < rock_spawn_chance) {
-					createRock(renderer, { col, row });
+				if (to_spawn < spawn_chance) {
+					createObstacle(renderer, { col, row });
 				}
 
 			}
