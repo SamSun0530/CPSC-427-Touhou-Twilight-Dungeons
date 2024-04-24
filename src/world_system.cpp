@@ -1369,7 +1369,7 @@ void WorldSystem::updatePlayerDirection(Kinematic& player_kinematic) {
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (menu.state == MENU_STATE::PLAY) {
 		// Resetting game
-		if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
+		if (action == GLFW_RELEASE && key == GLFW_KEY_F1) {
 			int w, h;
 			glfwGetWindowSize(window, &w, &h);
 			map_info.level = MAP_LEVEL::LEVEL1;
@@ -1461,7 +1461,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 
 		// Toggle between camera-cursor offset
-		if (key == GLFW_KEY_P) {
+		if (key == GLFW_KEY_R) {
 			if (action == GLFW_RELEASE) {
 				renderer->camera.isFreeCam = !renderer->camera.isFreeCam;
 				if (!renderer->camera.isFreeCam) {

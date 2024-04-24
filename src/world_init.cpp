@@ -986,8 +986,8 @@ Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui, bool is_active, f
 	EntityAnimation key_ani;
 	key_ani.isCursor = false;
 	//std::cout << static_cast<int>(key) << std::endl;
-	key_ani.spritesheet_scale = { 0.5, 1 / 13.0f };
-	key_ani.render_pos = { 0.0, 1 / 13.0f * static_cast<int>(key) };
+	key_ani.spritesheet_scale = { 1.f / 2.f, 1.f / 18.0f };
+	key_ani.render_pos = { 1.f / 2.f, 1.f / 18.0f * static_cast<int>(key) };
 	key_ani.frame_rate_ms = frame_rate;
 	key_ani.full_rate_ms = frame_rate;
 	key_ani.is_active = is_active;

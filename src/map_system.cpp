@@ -204,7 +204,7 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 				times_to_sample--;
 			}
 			int max_ammo_index = std::distance(sampled_counts.begin(), std::max_element(sampled_counts.begin(), sampled_counts.end()));
-			createPurchasableAmmo(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(0.f, 0.5f)), 
+			createPurchasableAmmo(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(0.f, 0.5f)),
 				static_cast<AMMO_TYPE>(max_ammo_index));
 		}
 	}
@@ -284,6 +284,8 @@ void MapSystem::generateTutorialMap() {
 	// adjust world map attributes
 	world_center = { 9, 16 };
 
+	int global_key_size = 90;
+
 	// place entities relative to grid
 	auto create_wasd = [](KEYS key, vec2 pos, int key_size) {
 		createKey(vec2(0, -key_size + key_size / 4.f) + pos, { key_size, key_size }, KEYS::W, false, key == KEYS::W ? true : false);
@@ -292,18 +294,25 @@ void MapSystem::generateTutorialMap() {
 		createKey(vec2(key_size - key_size / 4.f, 0) + pos, { key_size, key_size }, KEYS::D, false, key == KEYS::D ? true : false);
 		};
 
-	create_wasd(KEYS::D, convert_grid_to_world({ 12, 16 }), 60);
-	create_wasd(KEYS::S, convert_grid_to_world({ 14.5, 20 }), 60);
-	create_wasd(KEYS::A, convert_grid_to_world({ 9, 23 }), 60);
-	create_wasd(KEYS::W, convert_grid_to_world({ 2.5, 20 }), 60);
+	create_wasd(KEYS::D, convert_grid_to_world({ 12.f, 16.25f }), global_key_size - 10);
+	create_wasd(KEYS::S, convert_grid_to_world({ 14.5f, 20.f }), global_key_size - 10);
+	create_wasd(KEYS::A, convert_grid_to_world({ 9.f, 22.75f }), global_key_size - 10);
+	create_wasd(KEYS::W, convert_grid_to_world({ 2.5f, 20.f }), global_key_size - 10);
 
 	// shift key focus mode
-	createKey(convert_grid_to_world({ 3.5, 8.5 }), vec2(150), KEYS::SHIFT, false, true, 1300);
-	createText(convert_grid_to_world({ 3.5, 9.5 }), vec3(0.8), "Hold to reduce\nhitbox to a dot", vec3(1, 1, 1), true, true);
+	auto create_shift = [](vec2 pos, int key_size) {
+		createKey(vec2(key_size - key_size / 2.f, 0) + pos, { key_size, key_size }, KEYS::SHIFT_0, false, true, 1500);
+		createKey(vec2(key_size + key_size / 2.f, 0) + pos, { key_size, key_size }, KEYS::SHIFT_1, false, true, 1500);
+		};
 
-	// E to bomb
-	createKey(convert_grid_to_world({ 16, 4 }), vec2(120), KEYS::E, false, true, 1300);
-	createText(convert_grid_to_world({ 16, 5 }), vec3(0.8), "Press Q to clear all enemy bullets\n Need one bomb", vec3(1, 1, 1), true, true);
+	create_shift(convert_grid_to_world({ 1.75f, 8.5f }), global_key_size);
+	createText(convert_grid_to_world({ 4.f, 8.5f }), vec3(3), "/", vec3(1, 1, 1), true, true);
+	createKey(convert_grid_to_world({ 4.75f, 8.5f }), vec2(global_key_size), KEYS::MOUSE_2, false, true, 1500);
+	createText(convert_grid_to_world({ 3.5f, 9.5f }), vec3(1.f), "Hold to reduce\nhitbox to a dot", vec3(1, 1, 1), true, true);
+
+	// Q to bomb
+	createKey(convert_grid_to_world({ 16, 4 }), vec2(global_key_size), KEYS::Q, false, true, 1300);
+	createText(convert_grid_to_world({ 16, 5 }), vec3(1.f), "Use a bomb\nto clear bullets/damage enemy", vec3(1, 1, 1), true, true);
 
 	// hardcoded bullet for this specific grid only
 	for (int j = 0; j < 7; ++j) {
@@ -315,9 +324,14 @@ void MapSystem::generateTutorialMap() {
 	}
 
 	// space/mouse 1 key attack
-	createKey(convert_grid_to_world({ 23.f, 10.f }), vec2(150), KEYS::SPACE, false, true, 1300);
-	createText(convert_grid_to_world({ 24.f, 10.f }), vec3(3), "/", vec3(1, 1, 1), true, true);
-	createKey(convert_grid_to_world({ 25.f, 10.f }), vec2(90), KEYS::MOUSE_1, false, true, 1500);
+	auto create_space = [](vec2 pos, int key_size) {
+		createKey(vec2(-key_size + key_size / 4.f, 0) + pos, { key_size, key_size }, KEYS::SPACE_0, false, true, 1500);
+		createKey(vec2(0, 0) + pos, { key_size, key_size }, KEYS::SPACE_1, false, true, 1500);
+		createKey(vec2(key_size - key_size / 4.f, 0) + pos, { key_size, key_size }, KEYS::SPACE_2, false, true, 1500);
+		};
+	create_space(convert_grid_to_world({ 22.75f, 10.f }), global_key_size);
+	createText(convert_grid_to_world({ 24.25f, 10.f }), vec3(3), "/", vec3(1, 1, 1), true, true);
+	createKey(convert_grid_to_world({ 25.f, 10.f }), vec2(global_key_size), KEYS::MOUSE_1, false, true, 1500);
 	createText(convert_grid_to_world({ 24.f, 11.f }), vec3(1.f), "Hold to shoot", vec3(1, 1, 1), true, true);
 
 	createText(convert_grid_to_world({ 29.f, 10.f }), vec3(1.f), "Combo Meter on top right\nIncreases game speed", vec3(1, 1, 1), true, true);
@@ -328,16 +342,25 @@ void MapSystem::generateTutorialMap() {
 	spawner1.max_spawn = 5;
 
 	// remaining buttons
-	createKey(convert_grid_to_world({ 38, 16 }), vec2(120), KEYS::SCROLL, false, true);
-	createText(convert_grid_to_world({ 38.f, 17.5f }), vec3(1.f), "Zoom camera in/out", vec3(1, 1, 1), true, true);
+	// TODO: spawn an item here
+	createKey(convert_grid_to_world({ 36, 16 }), vec2(global_key_size), KEYS::E, false, true);
+	Entity entity = createPurchasableHealth(renderer, convert_grid_to_world({ 38.f, 16.f }));
+	if (registry.bezierCurves.has(entity)) registry.bezierCurves.remove(entity);
+	createText(convert_grid_to_world({ 36.f, 17.5f }), vec3(1.f), "Interact", vec3(1, 1, 1), true, true);
 
-	createKey(convert_grid_to_world({ 43, 16 }), vec2(120), KEYS::P, false, true);
-	createText(convert_grid_to_world({ 43.f, 17.5f }), vec3(1.f), "Toggle camera offset", vec3(1, 1, 1), true, true);
+	createKey(convert_grid_to_world({ 40, 16 }), vec2(global_key_size), KEYS::SCROLL, false, true);
+	createText(convert_grid_to_world({ 40.f, 17.5f }), vec3(1.f), "Zoom camera in/out", vec3(1, 1, 1), true, true);
 
-	createKey(convert_grid_to_world({ 48, 16 }), vec2(120), KEYS::F, false, true);
+	createKey(convert_grid_to_world({ 44, 16 }), vec2(global_key_size), KEYS::R, false, true);
+	createText(convert_grid_to_world({ 44.f, 17.5f }), vec3(1.f), "Toggle camera offset", vec3(1, 1, 1), true, true);
+
+	createKey(convert_grid_to_world({ 48, 16 }), vec2(global_key_size), KEYS::F, false, true);
 	createText(convert_grid_to_world({ 48.f, 17.5f }), vec3(1.f), "Show fps", vec3(1, 1, 1), true, true);
 
-	createKey(convert_grid_to_world({ 59, 16 }), vec2(120), KEYS::R, false, true);
+	createKey(convert_grid_to_world({ 52, 16 }), vec2(global_key_size), KEYS::H, false, true);
+	createText(convert_grid_to_world({ 52.f, 17.5f }), vec3(1.f), "Help Menu", vec3(1, 1, 1), true, true);
+
+	// TODO: teleporter
 	createText(convert_grid_to_world({ 59.f, 17.5f }), vec3(1.f), "Return to main world", vec3(1, 1, 1), true, true);
 
 	// Add grid to map
@@ -346,7 +369,6 @@ void MapSystem::generateTutorialMap() {
 			world_map[y + 1][x + 1] = grid[y][x];
 		}
 	}
-	//generateAllEntityTiles(world_map);
 	generate_all_tiles(world_map);
 }
 

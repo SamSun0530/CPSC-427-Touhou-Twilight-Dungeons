@@ -881,22 +881,27 @@ struct Mesh
 	std::vector<vec3> ordered_vertices;
 };
 
+// order is important, reflects keyboard.png
 enum class KEYS {
-	A = 1,
-	D = A + 1,
-	ESC = D + 1,
-	F = ESC + 1,
-	S = F + 1,
-	SHIFT = S + 1,
-	W = SHIFT + 1,
-	MOUSE_1 = W + 1,
-	SCROLL = MOUSE_1 + 1,
-	R = SCROLL + 1,
-	SPACE = R + 1,
-	P = SPACE + 1,
-	E = P + 1,
+	W = 1,
+	A = W + 1,
+	S = A + 1,
+	D = S + 1,
+	F = D + 1,
+	Q = F + 1,
+	E = Q + 1,
+	R = E + 1,
+	H = R + 1,
+	ESC = H + 1,
+	MOUSE_1 = ESC + 1,
+	MOUSE_2 = MOUSE_1 + 1,
+	SCROLL = MOUSE_2 + 1,
+	SHIFT_0 = SCROLL + 1,
+	SHIFT_1 = SHIFT_0 + 1,
+	SPACE_0 = SHIFT_1 + 1,
+	SPACE_1 = SPACE_0 + 1,
+	SPACE_2 = SPACE_1 + 1
 };
-
 
 // IDs for each tile type
 enum class TILE_TYPE {
