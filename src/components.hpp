@@ -200,7 +200,7 @@ struct Player
 	// we store this here because 
 	// - carry it to next level
 	// - exclusive to the player only (enemies should not have this)
-	AMMO_TYPE ammo_type = AMMO_TYPE::NORMAL;
+	AMMO_TYPE ammo_type = AMMO_TYPE::AIMBOT;
 };
 
 struct Teleporter {
@@ -433,6 +433,17 @@ struct Boss {
 	int current_bullet_phase_id = -1;
 	// between phase change time
 	float phase_change_time = -1;
+};
+
+// Keeps track of what aura this belongs to
+// Allows for deleting the other
+struct AuraLink {
+	Entity other;
+	AuraLink(Entity& other) { this->other = other; };
+};
+
+struct Aura {
+
 };
 
 struct AimbotCursor {
@@ -1028,7 +1039,9 @@ enum class TEXTURE_ASSET_ID {
 	AOE_AMMO_ITEM = AIMBOT_AMMO_ITEM + 1,
 	TRIPLE_AMMO_ITEM = AOE_AMMO_ITEM + 1,
 	AIMBOT1BULLET_AMMO_ITEM = TRIPLE_AMMO_ITEM + 1,
-	TEXTURE_COUNT = AIMBOT1BULLET_AMMO_ITEM + 1,
+	CIRNO_AURA = AIMBOT1BULLET_AMMO_ITEM + 1,
+	FLANDRE_AURA = CIRNO_AURA + 1,
+	TEXTURE_COUNT = FLANDRE_AURA + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

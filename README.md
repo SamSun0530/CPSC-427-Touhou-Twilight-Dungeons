@@ -43,5 +43,7 @@ Alan Huang <br />
 - AOE bullet/disappear - https://bdragon1727.itch.io/free-effect-bullet-impact-explosion-32x32
 - Hit spark - https://pimen.itch.io/battle-vfx-hit-spark
 - Icons - https://quintino-pixels.itch.io/assorted-icons
+- Aura - https://codemanu.itch.io/pixelart-effect-pack
+- Buttons - https://kenney.nl/assets/input-prompts-pixel-16
 - 
 

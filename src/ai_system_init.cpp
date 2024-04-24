@@ -1,6 +1,7 @@
 #include "ai_system.hpp"
 #include "world_system.hpp"
 #include "visibility_system.hpp"
+#include "world_init.hpp"
 
 // checks if (x,y) on the map grid is valid, this is not world coordinates
 bool is_valid_cell(int x, int y) {
@@ -182,8 +183,9 @@ void set_follow_path(Entity& entity, coord from, coord to) {
 	fp.next_path_index = 0;
 }
 
-void AISystem::init(VisibilitySystem* visibility_arg) {
+void AISystem::init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg) {
 	this->visibility_system = visibility_arg;
+	this->renderer = renderer_arg;
 
 	// Initialize flow field
 	restart_flow_field_map();
@@ -329,6 +331,7 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 	// - boss health bar ui
 	std::function<void(Entity& entity)> showBossInfo = [&](Entity& entity) {
 		if (!registry.bosses.has(entity)) return;
+		Motion& motion = registry.motions.get(entity);
 		Boss& boss = registry.bosses.get(entity);
 		if (boss.is_active) return;
 		boss.is_active = true;
@@ -343,6 +346,11 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 			if (!dialogue_info.cirno_played) {
 				dialogue_info.cirno_pt = 0;
 				boss_info.has_cirno_talked = true;
+
+				if (!registry.auraLinks.has(entity)) {
+					float scale = 6.f;
+					createAura(renderer, motion.position - vec2(scale * 3), scale, entity, 1.f / 61.f, TEXTURE_ASSET_ID::CIRNO_AURA);
+				}
 			}
 		}
 		else if (boss.boss_id == BOSS_ID::FLANDRE) {
@@ -350,6 +358,10 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 			if (!dialogue_info.flandre_played) {
 				dialogue_info.flandre_pt = 0;
 				boss_info.has_flandre_talked = true;
+
+				if (!registry.auraLinks.has(entity)) {
+					createAura(renderer, motion.position, 6.f, entity, 1.f / 61.f, TEXTURE_ASSET_ID::FLANDRE_AURA);
+				}
 			}
 		}
 		HP& hp = registry.hps.get(entity);

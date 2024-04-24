@@ -596,6 +596,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					while (registry.enemyBullets.entities.size() > 0)
 						registry.remove_all_components_of(registry.enemyBullets.entities.back());
 				}
+				
+				// remove auras
+				if (registry.auraLinks.has(entity)) {
+					registry.remove_all_components_of(registry.auraLinks.get(entity).other);
+				}
 			}
 			registry.remove_all_components_of(entity);
 		}

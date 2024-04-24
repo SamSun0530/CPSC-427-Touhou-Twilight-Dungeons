@@ -51,7 +51,7 @@ int main()
 	renderer.init(window);
 	world.init(&renderer, &audio, &map, &ai, &visibility_system, &boss_system);
 	bullets.init(&renderer, window, &audio);
-	ai.init(&visibility_system);
+	ai.init(&visibility_system, &renderer);
 	map.init(&renderer, &visibility_system);
 	animation.init(&renderer, window);
 	world.init_menu();

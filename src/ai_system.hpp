@@ -20,7 +20,7 @@ public:
 	AISystem();
 
 	// Initialize decision trees
-	void init(VisibilitySystem* visibility_arg);
+	void init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg);
 	// Initialize flow field - call this whenever a new map is generated
 	void restart_flow_field_map();
 	// Returns value at specified grid coordinates
@@ -29,6 +29,7 @@ public:
 	void step(float elapsed_ms);
 private:
 	VisibilitySystem* visibility_system;
+	RenderSystem* renderer;
 
 	// Decision trees for different ai entities
 	DecisionTree bee_tree;

@@ -389,6 +389,16 @@ void RenderSystem::draw()
 
 		drawTilesInstanced(projection_2D, view_2D);
 
+		// Auras should not disappear off camera (since there is a small # of them)
+		for (Entity entity : registry.auras.entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
+		// Teleporters should not disappear off camera (since there is a small # of them)
+		for (Entity entity : registry.teleporters.entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
 		for (Entity entity : registry.renderRequests.entities)
 		{
 			if (registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::BOSS_HEALTH_BAR) {
@@ -412,6 +422,8 @@ void RenderSystem::draw()
 			if (registry.loseMenus.has(entity)) continue;
 			if (registry.playerBullets.has(entity)) continue;
 			if (registry.infographicsMenus.has(entity)) continue;
+			if (registry.teleporters.has(entity)) continue;
+			if (registry.auras.has(entity)) continue;
 
 			// Note, its not very efficient to access elements indirectly via the entity
 			// albeit iterating through all Sprites in sequence. A good point to optimize

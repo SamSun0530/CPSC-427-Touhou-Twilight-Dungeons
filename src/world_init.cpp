@@ -1332,7 +1332,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 	boss.phase_change_time = 1500;
 
 	if (boss_id == BOSS_ID::CIRNO) {
-		hp.max_hp = 5;
+		hp.max_hp = 30;
 		hp.curr_hp = hp.max_hp;
 
 		boss.health_phase_thresholds = { 5, 4, 3, 2, -1 }; // -1 for end of phase
@@ -2400,6 +2400,35 @@ Entity createTeleporter(RenderSystem* renderer, vec2 pos, float scale) {
 		EFFECT_ASSET_ID::TEXTURED,
 		GEOMETRY_BUFFER_ID::SPRITE });
 	registry.teleporters.emplace(entity);
+
+	return entity;
+}
+
+Entity createAura(RenderSystem* renderer, vec2 pos, float scale, Entity entity_to_link, float spritesheet_x_scale, TEXTURE_ASSET_ID texture_asset) {
+	auto entity = Entity();
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = scale * vec2(ENEMY_BB_WIDTH_100, ENEMY_BB_HEIGHT_100);
+
+	EntityAnimation ani;
+	ani.spritesheet_scale = { spritesheet_x_scale, 1.f }; // 1/61
+	ani.render_pos = { spritesheet_x_scale, 1.f };
+	ani.frame_rate_ms = 1000.f / 10.f;
+	ani.full_rate_ms = 1000.f / 10.f;
+	ani.is_active = true;
+	registry.alwaysplayAni.insert(entity, ani);
+
+	registry.auras.emplace(entity);
+	registry.auraLinks.emplace(entity, entity_to_link);
+	registry.auraLinks.emplace(entity_to_link, entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture_asset,
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }
