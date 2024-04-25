@@ -319,7 +319,7 @@ void MapSystem::generateTutorialMap() {
 	// adjust world map attributes
 	world_center = { 9, 16 };
 
-	int global_key_size = 90;
+	int global_key_size = 80;
 
 	// place entities relative to grid
 	auto create_wasd = [](KEYS key, vec2 pos, int key_size) {
@@ -329,10 +329,10 @@ void MapSystem::generateTutorialMap() {
 		createKey(vec2(key_size - key_size / 4.f, 0) + pos, { key_size, key_size }, KEYS::D, false, key == KEYS::D ? true : false);
 		};
 
-	create_wasd(KEYS::D, convert_grid_to_world({ 12.f, 16.25f }), global_key_size - 10);
-	create_wasd(KEYS::S, convert_grid_to_world({ 14.5f, 20.f }), global_key_size - 10);
-	create_wasd(KEYS::A, convert_grid_to_world({ 9.f, 22.75f }), global_key_size - 10);
-	create_wasd(KEYS::W, convert_grid_to_world({ 2.5f, 20.f }), global_key_size - 10);
+	create_wasd(KEYS::D, convert_grid_to_world({ 12.f, 16.25f }), global_key_size);
+	create_wasd(KEYS::S, convert_grid_to_world({ 14.5f, 20.f }), global_key_size);
+	create_wasd(KEYS::A, convert_grid_to_world({ 9.f, 22.75f }), global_key_size);
+	create_wasd(KEYS::W, convert_grid_to_world({ 2.5f, 20.f }), global_key_size);
 
 	// shift key focus mode
 	auto create_shift = [](vec2 pos, int key_size) {
@@ -528,9 +528,6 @@ void MapSystem::generateRandomMap(float room_size) {
 	for (int i = 0; i < bsptree.rooms.size(); ++i) {
 		game_info.add_room(bsptree.rooms[i]);
 	}
-
-	// Generates rocks in room
-	generate_obstacles(world_map);
 }
 
 vec4 addSingleDoor(int row, int col, DIRECTION dir, int room_index, Room_struct& room, std::vector<std::vector<int>>& map) {

@@ -699,6 +699,10 @@ void WorldSystem::next_level() {
 	else {
 		map->generateRandomMap(11); // room_size must be > 3
 		player = map->spawnPlayerInRoom(0);
+
+		// Generates obstacles in room (doesn't generate in start room)
+		map->generate_obstacles(world_map);
+
 		// generates door info then the tiles
 		map->generate_door_tiles(world_map);
 	}
@@ -788,6 +792,10 @@ void WorldSystem::restart_game() {
 	else {
 		map->generateRandomMap(11); // room_size must be > 3
 		player = map->spawnPlayerInRoom(0);
+
+		// Generates obstacles in room (doesn't generate in start room)
+		map->generate_obstacles(world_map);
+
 		// generates door info then the tiles
 		map->generate_door_tiles(world_map);
 	}
@@ -1098,7 +1106,7 @@ void WorldSystem::handle_collisions() {
 			else if (registry.teleporters.has(entity_other)) {
 				Teleporter& teleporter = registry.teleporters.get(entity_other);
 				Motion& motion = registry.motions.get(entity_other);
-				createText(motion.position + vec2(0, 20), vec2(1), teleporter.teleporter_text, vec3(0, 1, 0), false, true);
+				createText(motion.position + vec2(0, 20), vec2(0.8), teleporter.teleporter_text, vec3(0, 1, 0), false, true);
 
 				if (pressed[GLFW_KEY_E] && !teleporter.is_teleporting) {
 					EntityAnimation& ani = registry.alwaysplayAni.get(entity_other);
@@ -1554,12 +1562,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 
-		// Toggle tutorial display
-		if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
-			getInstance().display_instruction = false;
-			map_info.level = MAP_LEVEL::TUTORIAL;
-			restart_game();
-		}
+		//// Toggle tutorial display
+		//if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
+		//	getInstance().display_instruction = false;
+		//	map_info.level = MAP_LEVEL::TUTORIAL;
+		//	restart_game();
+		//}
 
 		// Hold for focus mode
 		if (key == GLFW_KEY_LEFT_SHIFT &&
