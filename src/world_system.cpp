@@ -277,13 +277,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.remove_all_components_of(registry.textsWorld.entities.back());
 
 	// Create combo meter ui
-	if (combo_mode.combo_meter <= 1.04) {
+	if (combo_mode.combo_meter <= 1.08) {
 		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::C;
 	}
-	else if (combo_mode.combo_meter <= 1.1) {
+	else if (combo_mode.combo_meter <= 1.2) {
 		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::B;
 	}
-	else if (combo_mode.combo_meter <= 1.2) {
+	else if (combo_mode.combo_meter <= 1.4) {
 		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::A;
 	}
 	else {
@@ -304,6 +304,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	createText(-window_px_half + vec2(86, 250), { 1,1 }, fire_rate.substr(0, fire_rate.find(".") + 3), vec3(1), false);
 	createText(-window_px_half + vec2(86, 300), { 1,1 }, critical_hit.substr(0, critical_hit.find(".") + 3), vec3(1), false);
 	createText(-window_px_half + vec2(103, 350), { 1,1 }, critical_dmg.substr(0, critical_dmg.find(".") + 3), vec3(1), false);
+	createText(-window_px_half + vec2(68, 400), { 1,1 }, std::to_string(player_att.bomb), vec3(1), false);
 
 	// Interpolate camera to smoothly follow player based on sharpness factor - elapsed time for independent of fps
 	// sharpness_factor_camera = 0 (not following) -> 0.5 (delay) -> 1 (always following)
@@ -367,6 +368,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	assert(registry.screenStates.components.size() <= 1);
 	ScreenState& screen = registry.screenStates.components[0];
 
+	for (Entity entity : registry.coinFountains.entities) {
+		CoinFountain& coin_fountain = registry.coinFountains.get(entity);
+		coin_fountain.time_per_coins -= elapsed_ms_since_last_update;
+		if (coin_fountain.remain_coins <= 0) {
+			registry.coinFountains.remove(entity);
+		}
+		if (coin_fountain.time_per_coins < 0) {
+			coin_fountain.remain_coins -= 1;
+			createCoin(renderer, registry.motions.get(entity).position, 1, 1.5, 3.0, vec2(0.0, -200.f), 200.f);
+			coin_fountain.time_per_coins = 100.f;
+		}
+	}
+
 	float min_counter_ms = 50.f;
 	for (Entity entity : registry.hitTimers.entities) {
 		// progress timer
@@ -396,6 +410,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.invulnerableTimers.remove(entity);
 			return true;
 		}
+	}
+
+	if (bomb_timer > 0) {
+		bomb_timer -= elapsed_ms_since_last_update;
+		for (Entity bullets : registry.enemyBullets.entities) {
+			registry.remove_all_components_of(bullets);
+		}
+	}
+	else {
+		screen.bomb_screen_factor = 0;
+		bomb_timer = 0.f;
 	}
 
 	float min_death_time_ms = 3000.f;
@@ -435,7 +460,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				std::mt19937 gen(rd());
 				std::uniform_real_distribution<> distrib(0, 1);
 				double number = distrib(gen);
-				createCoin(renderer, registry.motions.get(entity).position, 1);
+				int coin_number = 1;
+				if (number < 0.5) {
+					coin_number = static_cast<int>(1.0 * combo_mode.combo_meter);
+				}
+				else if (number < 0.8) {
+					coin_number = static_cast<int>(2.0 * combo_mode.combo_meter);
+				}
+				else {
+					coin_number = static_cast<int>(3.0 * combo_mode.combo_meter);
+				}
+				vec2 entity_position = registry.motions.get(entity).position;
+				for (int i = 0; i < coin_number; i++) {
+					createCoin(renderer, entity_position, 1);
+				}
 				if (registry.dummyenemies.has(entity)) {
 					DummyEnemyLink& link = registry.dummyEnemyLink.get(entity);
 					DummyEnemySpawner& spawner = registry.dummyenemyspawners.get(link.other);
@@ -468,13 +506,24 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	for (Entity entity : registry.bezierCurves.entities) {
+	sharpness_factor_camera = 0.95f;
+	K = 1.0f - pow(1.0f - sharpness_factor_camera, 3 * elapsed_ms_since_last_update / 1000.f);
+	for (Entity entity : registry.flytoplayers.entities) {
+		Motion& motion = registry.motions.get(entity);
+		vec2 dist = motion.position - player_position;
+		if (dist.x * dist.x + dist.y * dist.y < 30000)
+		motion.position = vec2_lerp(motion.position, player_position, K);
+	}
 
+	for (Entity entity : registry.bezierCurves.entities) {
 		BezierCurve& curve_counter = registry.bezierCurves.get(entity);
 		curve_counter.curve_counter_ms -= elapsed_ms_since_last_update;
 
 		if (curve_counter.curve_counter_ms < 0) {
 			registry.bezierCurves.remove(entity);
+			if (registry.coins.has(entity)) {
+				registry.flytoplayers.emplace(entity);
+			}
 		}
 	}
 
@@ -524,6 +573,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 	// reduce window brightness if any of the present players is dying
 	screen.darken_screen_factor = 1 - min_death_time_ms / 3000;
+	if (bomb_timer > 0) screen.bomb_screen_factor = 1 - bomb_timer / bomb_timer_max;
 
 	return true;
 }
@@ -607,6 +657,8 @@ void WorldSystem::next_level() {
 	else {
 		map->generateRandomMap(11); // room_size must be > 3
 		player = map->spawnPlayerInRoom(0);
+		// generates door info then the tiles
+		map->generate_door_tiles(world_map);
 	}
 
 	registry.players.get(player) = player_component;
@@ -619,7 +671,6 @@ void WorldSystem::next_level() {
 	is_alive = true;
 	createHealthUI(renderer);
 	createAttributeUI(renderer);
-	combo_mode.restart();
 	focus_mode.restart();
 	ai->restart_flow_field_map();
 	display_combo = createCombo(renderer);
@@ -641,6 +692,7 @@ void WorldSystem::restart_game() {
 
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
+	if (map_info.level == MAP_LEVEL::LEVEL2) map_info.level = MAP_LEVEL::LEVEL1;
 	if (map_info.level != MAP_LEVEL::TUTORIAL && map_info.level != MAP_LEVEL::LEVEL2) {
 		start_pt = 0;
 		dialogue_info.cirno_pt = 1000;
@@ -692,6 +744,8 @@ void WorldSystem::restart_game() {
 	else {
 		map->generateRandomMap(11); // room_size must be > 3
 		player = map->spawnPlayerInRoom(0);
+		// generates door info then the tiles
+		map->generate_door_tiles(world_map);
 	}
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});
@@ -707,10 +761,11 @@ void WorldSystem::restart_game() {
 	game_info.set_player_id(player);
 	boss_info.reset();
 
+	bomb_timer = 0;
+
 	init_win_menu();
 	init_lose_menu();
 	renderer->camera.setPosition({ 0, 0 });
-
 }
 
 // handle_wall_collisions parameter entity IS WALL ENTITY!
@@ -783,7 +838,18 @@ void WorldSystem::handle_collisions() {
 							HP& player_hp = registry.hps.get(player);
 							player_hp.curr_hp -= registry.deadlys.get(entity_other).damage;
 							if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
-							combo_mode.restart();
+							if (combo_mode.combo_meter > 1.4) {
+								combo_mode.combo_meter = 1.3f;
+							}
+							else if (combo_mode.combo_meter > 1.2) {
+								combo_mode.combo_meter = 1.1f;
+							}
+							else if (combo_mode.combo_meter > 1.08) {
+								combo_mode.combo_meter = 1.04f;
+							}
+							else {
+								combo_mode.combo_meter = 1.0f;
+							}
 							if (registry.bomberEnemies.has(entity_other)) {
 								registry.realDeathTimers.emplace(entity_other).death_counter_ms = 1000;
 								registry.hps.remove(entity_other);
@@ -815,7 +881,18 @@ void WorldSystem::handle_collisions() {
 						registry.hitTimers.emplace(entity);
 						Mix_PlayChannel(-1, audio->damage_sound, 0);
 						registry.colors.get(entity) = vec3(-1.f);
-						combo_mode.restart();
+						if (combo_mode.combo_meter > 1.4) {
+							combo_mode.combo_meter = 1.3f;
+						}
+						else if (combo_mode.combo_meter > 1.2) {
+							combo_mode.combo_meter = 1.1f;
+						}
+						else if (combo_mode.combo_meter > 1.08) {
+							combo_mode.combo_meter = 1.04f;
+						}
+						else {
+							combo_mode.combo_meter = 1.0f;
+						}
 						HP& player_hp = registry.hps.get(player);
 						player_hp.curr_hp -= registry.enemyBullets.get(entity_other).damage;
 						if (player_hp.curr_hp < 0) player_hp.curr_hp = 0;
@@ -857,6 +934,7 @@ void WorldSystem::handle_collisions() {
 						Purchasableable& treasure = registry.purchasableables.get(entity_other);
 						const Motion& motion = registry.motions.get(entity_other);
 						Player& player_att = registry.players.get(player);
+						HP& player_hp = registry.hps.get(player);
 						BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
 						treasure.player_overlap = true;
 						if (pressed[GLFW_KEY_E] && player_att.coin_amount >= treasure.cost) {
@@ -870,16 +948,35 @@ void WorldSystem::handle_collisions() {
 							//std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
 							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
 							if (treasure.effect_type == 1) {
-								player_att.bullet_damage += treasure.effect_strength;
+								player_att.bullet_damage += static_cast<int>(treasure.effect_strength * 1.7);
 
 							}
 							else if (treasure.effect_type == 2) {
 								// bullet_spawner.fire_rate = 0.0001;
-								bullet_spawner.fire_rate *= (1 - float(treasure.effect_strength * 0.05));
-								player_att.fire_rate = 1/bullet_spawner.fire_rate;
+								bullet_spawner.fire_rate *= (1 - float(treasure.effect_strength * 0.03));
+								player_att.fire_rate = 1 / bullet_spawner.fire_rate;
 							}
 							else if (treasure.effect_type == 3) {
-								player_att.critical_hit += float(treasure.effect_strength * 0.01);
+								player_att.critical_hit += float(treasure.effect_strength * 0.015);
+							}
+							else if (treasure.effect_type == 5) {
+								player_att.critical_demage += float(treasure.effect_strength * 0.04);
+							}
+							else if (treasure.effect_type == 6) {
+								player_att.bomb += 1;
+							}
+							else if (treasure.effect_type == 7) {
+								player_hp.curr_hp += treasure.effect_strength;
+								if (player_hp.curr_hp > player_hp.max_hp) {
+									player_hp.curr_hp = player_hp.max_hp;
+								}
+							}
+							else if (treasure.effect_type == 4) {
+								int balance_hp = static_cast<int>(treasure.effect_strength / 2);
+								if (balance_hp == 0) {
+									balance_hp = 1;
+								}
+								player_hp.max_hp += balance_hp;
 							}
 							//std::cout << "-------------after---------------------" << std::endl;
 							//std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
@@ -887,9 +984,31 @@ void WorldSystem::handle_collisions() {
 							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
 							registry.remove_all_components_of(entity_other);
 						}
-						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, "cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
-
-						createText(vec2(motion.position.x, motion.position.y + 50), { 0.6f,0.6f }, "press \"E\" to buy this", vec3(0, 1, 0), false, true);
+						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, "Cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
+						std::string item_name = "";
+						if (treasure.effect_type == 1) {
+							item_name = "increase bullet demage";
+						}
+						else if (treasure.effect_type == 2) {
+							item_name = "decrease bullet fire rate";
+						}
+						else if (treasure.effect_type == 3) {
+							item_name = "increase bullet critical hit";
+						}
+						else if (treasure.effect_type == 4) {
+							item_name = "increase maximum health";
+						}
+						else if (treasure.effect_type == 5) {
+							item_name = "increase bullet critical demage";
+						}
+						else if (treasure.effect_type == 7) {
+							item_name = "increase current health";
+						}
+						else if (treasure.effect_type == 6) {
+							item_name = "grant one bomb";
+						}
+						createText(vec2(motion.position.x, motion.position.y + 50), { 0.6f,0.6f }, "Press \"E\" to buy this", vec3(0, 1, 0), false, true);
+						createText(vec2(motion.position.x, motion.position.y + 75), { 0.6f,0.6f }, "This will " + item_name, vec3(0, 1, 0), false, true);
 						// std::cout << "Buy this" << std::endl;
 					}
 				}
@@ -961,7 +1080,7 @@ void WorldSystem::handle_collisions() {
 
 					HP& hp = registry.hps.get(entity);
 					if (hp.curr_hp <= 0.0f) {
-						combo_mode.combo_meter = min(combo_mode.combo_meter + 0.02f, combo_mode.COMBO_METER_MAX);
+						combo_mode.combo_meter = min(combo_mode.combo_meter + 0.03f, combo_mode.COMBO_METER_MAX);
 						if (registry.beeEnemies.has(entity) || registry.wolfEnemies.has(entity) || registry.bomberEnemies.has(entity) || registry.dummyenemies.has(entity)) {
 							registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
 							registry.hps.remove(entity);
@@ -1050,6 +1169,22 @@ void WorldSystem::handle_collisions() {
 					if (!door.is_visited) {
 						door.is_visited = true;
 					}
+				}
+			}
+			else if (registry.deadlys.has(entity_other)) {
+				handle_wall_collisions(entity, entity_other);
+			}
+		}
+		else if (registry.chests.has(entity)) {
+			if (registry.players.has(entity_other)) {
+				handle_wall_collisions(entity, entity_other);
+
+				Chest& chest = registry.chests.get(entity);
+				if (chest.is_close) {
+					chest.is_close = false;
+					RenderRequest& render_chest = registry.renderRequests.get(entity);
+					render_chest.used_texture = TEXTURE_ASSET_ID::CHEST_OPEN;
+					registry.coinFountains.emplace(entity);
 				}
 			}
 			else if (registry.deadlys.has(entity_other)) {
@@ -1222,6 +1357,33 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 
+		// Use Bomb
+		if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+			Player& player_component = registry.players.get(player);
+			if (player_component.bomb > 0) {
+				player_component.bomb -= 1;
+				bomb_timer = bomb_timer_max;
+
+				// deal damage
+				// in tutorial
+				if (map_info.level == MAP_LEVEL::TUTORIAL) {
+					for (Entity entity : registry.deadlys.entities) {
+						deal_damage_to_deadly(entity, bomb_damage);
+					}
+				}
+				// in random map with rooms
+				else {
+					// prevent -1 out of bounds access
+					int to_check = game_info.in_room == -1 ? game_info.prev_in_room : game_info.in_room;
+					auto& deadly_entities = game_info.room_index[to_check].enemies;
+					for (int i = 0; i < deadly_entities.size(); ++i) {
+						Entity entity = deadly_entities[i];
+						deal_damage_to_deadly(entity, bomb_damage);
+					}
+				}
+			}
+		}
+
 		// Toggle tutorial display
 		if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
 			getInstance().display_instruction = false;
@@ -1286,6 +1448,37 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			dialogue_info.flandre_after_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
+		}
+	}
+}
+
+void WorldSystem::deal_damage_to_deadly(const Entity& entity, int damage)
+{
+	if (registry.realDeathTimers.has(entity)) return;
+	registry.hitTimers.emplace(entity);
+	registry.colors.get(entity) = vec3(-1.f);
+
+	HP& hp = registry.hps.get(entity);
+	//hp.curr_hp -= 0.25 * hp.max_hp; // 25% of max hp
+	hp.curr_hp -= damage;
+	if (hp.curr_hp <= 0.0f) {
+		combo_mode.combo_meter = min(combo_mode.combo_meter + 0.03f, combo_mode.COMBO_METER_MAX);
+		if (registry.beeEnemies.has(entity) ||
+			registry.wolfEnemies.has(entity) ||
+			registry.bomberEnemies.has(entity) ||
+			registry.dummyenemies.has(entity)) {
+			registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
+			registry.hps.remove(entity);
+			registry.aitimers.remove(entity);
+			registry.followpaths.remove(entity);
+			registry.followFlowField.remove(entity);
+			if (registry.bulletSpawners.has(entity)) {
+				registry.bulletSpawners.get(entity).is_firing = false;
+			}
+			Kinematic& kin = registry.kinematics.get(entity);
+			kin.velocity = { 0,0 };
+			kin.direction = { 0,0 };
+			kin.speed_modified = 0.f;
 		}
 	}
 }
@@ -1362,14 +1555,15 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::NONE, emotion);
 	}
 	else if (start_pt == start_script.size()) {
 		start_pt += 1;
 		resume_game();
-	} else if (dialogue_info.marisa_pt < marisa_script.size()) {
+	}
+	else if (dialogue_info.marisa_pt < marisa_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		EMOTION emotion = EMOTION::NORMAL;
@@ -1415,7 +1609,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::MARISA, emotion);
 	}
@@ -1468,7 +1662,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO, emotion);
 	}
@@ -1521,7 +1715,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::CIRNO, emotion);
 	}
@@ -1574,7 +1768,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::FlANDRE, emotion);
 	}
@@ -1627,7 +1821,7 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 			curr_word += 1;
 		}
 		if (menu.state != MENU_STATE::LOSE)
-		menu.state = MENU_STATE::DIALOGUE;
+			menu.state = MENU_STATE::DIALOGUE;
 
 		createDialogue(speaking_chara, start_buffer, CHARACTER::FlANDRE, emotion);
 	}

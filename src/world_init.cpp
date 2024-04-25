@@ -148,8 +148,59 @@ Entity createHealth(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
+Entity createPurchasableHealth(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.angle = 0.f;
+	motion.scale = vec2({ HEALTH_WIDTH, HEALTH_HEIGHT });
+	registry.kinematics.emplace(entity);
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = abs(motion.scale);
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> distrib(0, 1);
+	double number = distrib(gen);
+	auto& purchasable = registry.purchasableables.emplace(entity);
+	registry.colors.insert(entity, { 1,1,1 });
+	if (number <= 0.6) {
+		purchasable.cost = 6;
+		purchasable.effect_strength = 1;
+		purchasable.effect_type = 7;
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::HEALTH_1, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+
+	}
+	else if (number <= 0.9) {
+		purchasable.cost = 10;
+		purchasable.effect_strength = 2;
+		purchasable.effect_type = 7;
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::HEALTH_2, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		purchasable.cost = 20;
+		purchasable.effect_strength = 100;
+		purchasable.effect_type = 7;
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::REGENERATE_HEALTH, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	return entity;
+}
+
 // creat purchase able items (boost/buff)
-Entity createTreasure(RenderSystem* renderer, vec2 position)
+Entity createTreasure(RenderSystem* renderer, vec2 position, bool is_bezier)
 {
 	auto entity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -167,23 +218,35 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 	double number = distrib(gen);
 	double number_y = distrib(gen) / 2;
 
-	// Generate a random number between 1 and 3 for type
-	// 1=bullet_damage, 2=fire_rate, or 3=critical_hit
-	std::uniform_int_distribution<> typeDistrib(1, 3);
+
+	// Generate a random number between 1 and 6 for type
+	// 1=bullet_damage, 2=fire_rate, 3=critical_hit, 4=max_health, 5=critical_dmg, 6=bomb
+
+	std::uniform_int_distribution<> typeDistrib(1, 5);
 	int type = typeDistrib(gen);
+
+	
 
 	Purchasableable& purchasableable = registry.purchasableables.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
-	
-	purchasableable.cost = number * 10;
-	purchasableable.effect_strength = number * 10;
-
-	if (purchasableable.cost == 0) {
-		purchasableable.cost = 1;
-		purchasableable.effect_strength = 1;
+	if (number < 0.1) {
+		type = 6;
+		purchasableable.effect_type = type;
+		purchasableable.cost = 10;
+		motion.scale = vec2({ 32, 32 });
 	}
-	purchasableable.cost *= 3;
-	purchasableable.effect_type = type;
+	else {
+		purchasableable.cost = number * 10;
+		purchasableable.effect_strength = number * 10;
+
+		if (purchasableable.cost == 0) {
+			purchasableable.cost = 1;
+			purchasableable.effect_strength = 1;
+		}
+		purchasableable.cost *= 3;
+		purchasableable.effect_type = type;
+	}
+	
 	
 	if (type == 1) {
 		registry.renderRequests.insert(
@@ -200,23 +263,43 @@ Entity createTreasure(RenderSystem* renderer, vec2 position)
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
-	else {
+	else if (type == 3) {
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::ITEM_G, // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
+	}else if (type == 4) {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ITEM_Y, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}else if (type == 5) {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ITEM_P, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}else {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::BOMB, // TEXTURE_COUNT indicates that no txture is needed
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	vec2 dir = { 60 * (number - 0.5), 50 * (number_y) };
-	BezierCurve curve;
-	curve.bezier_pts.push_back(position);
-	curve.bezier_pts.push_back(position + vec2(0, -20));
-	curve.bezier_pts.push_back(position + dir);
-	registry.bezierCurves.insert(entity, curve);
+	if (is_bezier) {
+		BezierCurve curve;
+		curve.bezier_pts.push_back(position);
+		curve.bezier_pts.push_back(position + vec2(0, -20));
+		curve.bezier_pts.push_back(position + dir);
+		registry.bezierCurves.insert(entity, curve);
+	}
 	return entity;
 }
 
-Entity createCoin(RenderSystem* renderer, vec2 position, int value)
+Entity createCoin(RenderSystem* renderer, vec2 position, int value, float bezier_start, float bezier_end, vec2 bezier_up, float bezier_x_rand)
 {
 	// Reserve en entity
 	auto entity = Entity();
@@ -239,10 +322,13 @@ Entity createCoin(RenderSystem* renderer, vec2 position, int value)
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_real_distribution<> distrib(0, 1);
-	double number = distrib(gen);
-	double number_y = distrib(gen) / 2;
+	std::uniform_real_distribution<> distrib(bezier_start, bezier_end);
+	std::uniform_real_distribution<> x_distrib(0.0, 1.0);
 
+	// Generate a positive number
+	double number = distrib(gen);
+	double x_number = x_distrib(gen);
+	
 	// collidable
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = motion.scale / 2.f;
@@ -250,10 +336,10 @@ Entity createCoin(RenderSystem* renderer, vec2 position, int value)
 	// value
 	Coin& coin = registry.coins.emplace(entity);
 	coin.coin_amount = value;
-	vec2 dir = { 60 * (number - 0.5), 50 * (number_y) };
+	vec2 dir = { bezier_x_rand * (x_number - 0.5f), 50 * (number) };
 	BezierCurve curve;
 	curve.bezier_pts.push_back(position);
-	curve.bezier_pts.push_back(position + vec2(0, -20));
+	curve.bezier_pts.push_back(position + bezier_up);
 	curve.bezier_pts.push_back(position + dir);
 	registry.bezierCurves.insert(entity, curve);
 	registry.renderRequests.insert(
@@ -376,26 +462,17 @@ Entity createChest(RenderSystem* renderer, vec2 position)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.position = position;
-	// Setting initial values, scale is negative to make it face the opposite way
-
-	/*need new scale*/
-	motion.scale = vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
-
-	/*auto& kinematic = registry.kinematics.emplace(entity);
-	kinematic.speed_base = 50.f;
-	kinematic.speed_modified = 1.f * kinematic.speed_base;
-	kinematic.direction = { 0, 1 };*/
+	motion.scale = vec2({ world_tile_size, world_tile_size });
 
 	// collidable
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = motion.scale / 2.f;
-
+	collidable.size = vec2(motion.scale.x * 2 / 3.f, motion.scale.y / 2.f);
 	Chest& chest = registry.chests.emplace(entity);
 
 	/*need new texture*/
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::BULLET,
+		{ TEXTURE_ASSET_ID::CHEST_CLOSE,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -492,6 +569,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	bs.fire_rate = 3;
 	bs.is_firing = false;
 	bs.bullet_initial_speed = 200;
+	bs.initial_bullet_cooldown = 0;
 
 	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
@@ -719,8 +797,8 @@ Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui, bool is_active, f
 	EntityAnimation key_ani;
 	key_ani.isCursor = false;
 	//std::cout << static_cast<int>(key) << std::endl;
-	key_ani.spritesheet_scale = { 0.5, 1 / 12.0f };
-	key_ani.render_pos = { 0.0, 1 / 12.0f * static_cast<int>(key) };
+	key_ani.spritesheet_scale = { 0.5, 1 / 13.0f };
+	key_ani.render_pos = { 0.0, 1 / 13.0f * static_cast<int>(key) };
 	key_ani.frame_rate_ms = frame_rate;
 	key_ani.full_rate_ms = frame_rate;
 	key_ani.is_active = is_active;
@@ -869,7 +947,7 @@ std::vector<Entity> createAttributeUI(RenderSystem* renderer)
 	entity_array.push_back(entity_coin);
 
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 5; i++) {
 		auto entity = Entity();
 
 		// Store a reference to the potentially re-used mesh object
@@ -948,6 +1026,30 @@ Entity createDummyEnemy(RenderSystem* renderer, vec2 position) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMY_WOLF,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	registry.colors.insert(entity, { 1,1,1 });
+
+	return entity;
+}
+
+Entity createRoomSignifier(RenderSystem* renderer, vec2 position, ROOM_TYPE room_type) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ world_tile_size*3/4, world_tile_size * 3 / 4 });
+	registry.renderRequests.insert(
+		entity,
+		{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::NORMAL_SIGN + (int)room_type),
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -1067,7 +1169,7 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 100;
+	hp.max_hp = static_cast<int>(80 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1087,9 +1189,9 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 20;
+	bs.fire_rate = 14 * 1.f/combo_mode.combo_meter;
 	bs.is_firing = false;
-	bs.bullet_initial_speed = 300;
+	bs.bullet_initial_speed = 200;
 
 	registry.bulletSpawners.insert(entity, bs);
 	registry.colors.insert(entity, { 1,1,1 });
@@ -1142,7 +1244,7 @@ Entity createBomberEnemy(RenderSystem* renderer, vec2 position)
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
-	kinematic.speed_base = 320.f;
+	kinematic.speed_base = 240.f * combo_mode.combo_meter;
 	kinematic.speed_modified = 1.f * kinematic.speed_base;
 	kinematic.direction = { 0, 0 };
 
@@ -1152,12 +1254,12 @@ Entity createBomberEnemy(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 40;
+	hp.max_hp = static_cast<int>(20 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
 	Deadly& deadly = registry.deadlys.emplace(entity);
-	deadly.damage = 2;
+	deadly.damage = static_cast<int>(1 * combo_mode.combo_meter);
 
 	registry.bomberEnemies.emplace(entity);
 	EntityAnimation enemy_ani;
@@ -1206,7 +1308,7 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 60;
+	hp.max_hp = static_cast<int>(40 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1227,10 +1329,10 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 50;
+	bs.fire_rate = 40 * 1/combo_mode.combo_meter;
 	bs.is_firing = false;
-	bs.bullet_initial_speed = 200;
-	bs.bullets_per_array = 3;
+	bs.bullet_initial_speed = 160;
+	bs.bullets_per_array = static_cast<int>(3 * combo_mode.combo_meter);
 	bs.spread_within_array = 30;
 
 	registry.bulletSpawners.insert(entity, bs);
@@ -1421,20 +1523,76 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 	collidable.size = { motion.scale.x, motion.scale.y };
 	collidable.shift = { 0, 0 };
 
-	// Rocks act like walls
-	registry.walls.emplace(entity);
 
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> distrib(0, 1);
+	double number = distrib(gen);
 
 	// Placeholder texure
-	registry.renderRequests.insert(
-		entity,
-		{
-		TEXTURE_ASSET_ID::ROCK,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+	if (number < 0.2) {
+		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+		registry.walls.emplace(entity);
+
+		registry.renderRequests.insert(
+			entity,
+			{
+			TEXTURE_ASSET_ID::ROCK,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else if (number < 0.4) {
+		registry.renderRequests.insert(
+			entity,
+			{
+			TEXTURE_ASSET_ID::SKELETON,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else if (number < 0.6) {
+		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+		registry.walls.emplace(entity);
+
+		registry.renderRequests.insert(
+			entity,
+			{
+			TEXTURE_ASSET_ID::POTTERY,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else if (number < 0.8) {
+		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+		registry.walls.emplace(entity);
+
+		registry.renderRequests.insert(
+			entity,
+			{
+			TEXTURE_ASSET_ID::BARREL,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+		registry.walls.emplace(entity);
+
+		EntityAnimation& animation = registry.alwaysplayAni.emplace(entity);
+		animation.spritesheet_scale = { 1 / 8.f, 1.0f };
+		animation.render_pos = { 1 / 8.f, 1.0f };
+		animation.full_rate_ms = 100.f;
+		animation.frame_rate_ms = 100.f;
+
+		registry.renderRequests.insert(
+			entity,
+			{
+			TEXTURE_ASSET_ID::FIREPLACE,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
 
 	return entity;
 }
+
+
 
 // IMPORTANT: createDoor takes in grid coordinates
 Entity createDoor(RenderSystem* renderer, vec2 grid_position, DIRECTION dir, int room_index) {

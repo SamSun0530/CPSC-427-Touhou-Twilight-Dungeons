@@ -84,6 +84,8 @@ public:
 	ComponentContainer<LoseMenu> loseMenus;
 	ComponentContainer<InfographicMenu> infographicsMenus;
 	ComponentContainer<NPC> npcs;
+	ComponentContainer<CoinFountain> coinFountains;
+	ComponentContainer<FlyToPlayer> flytoplayers;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -162,6 +164,8 @@ public:
 		registry_list.push_back(&loseMenus);
 		registry_list.push_back(&infographicsMenus);
 		registry_list.push_back(&npcs);
+		registry_list.push_back(&coinFountains);
+		registry_list.push_back(&flytoplayers);
 	}
 
 	void clear_all_components() {
