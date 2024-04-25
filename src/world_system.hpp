@@ -120,6 +120,9 @@ private:
 	// Update player direction based on pressed
 	void updatePlayerDirection(Kinematic& player_kinematic);
 
+	// Update focus dot based on pressed
+	void updateFocusDot();
+
 	// restart level
 	void restart_game();
 	void WorldSystem::next_level();

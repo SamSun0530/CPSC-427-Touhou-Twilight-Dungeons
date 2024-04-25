@@ -332,9 +332,9 @@ void MapSystem::generateTutorialMap() {
 	create_space(convert_grid_to_world({ 22.75f, 10.f }), global_key_size);
 	createText(convert_grid_to_world({ 24.25f, 10.f }), vec3(3), "/", vec3(1, 1, 1), true, true);
 	createKey(convert_grid_to_world({ 25.f, 10.f }), vec2(global_key_size), KEYS::MOUSE_1, false, true, 1500);
-	createText(convert_grid_to_world({ 24.f, 11.f }), vec3(1.f), "Hold to shoot", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 23.5f, 11.f }), vec3(1.f), "Hold to shoot", vec3(1, 1, 1), true, true);
 
-	createText(convert_grid_to_world({ 29.f, 10.f }), vec3(1.f), "Combo Meter on top right\nIncreases game speed", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 29.f, 10.5f }), vec3(1.f), "Combo Meter on top right\nIncreases game speed", vec3(1, 1, 1), true, true);
 
 	// hardcoded dummy enemy spawn
 	Entity entity1 = createDummyEnemySpawner(renderer, convert_grid_to_world({ 29, 5 }));
@@ -346,22 +346,25 @@ void MapSystem::generateTutorialMap() {
 	createKey(convert_grid_to_world({ 36, 16 }), vec2(global_key_size), KEYS::E, false, true);
 	Entity entity = createPurchasableHealth(renderer, convert_grid_to_world({ 38.f, 16.f }));
 	if (registry.bezierCurves.has(entity)) registry.bezierCurves.remove(entity);
-	createText(convert_grid_to_world({ 36.f, 17.5f }), vec3(1.f), "Interact", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 36.f, 17.f }), vec3(1.f), "Interact", vec3(1, 1, 1), true, true);
 
 	createKey(convert_grid_to_world({ 40, 16 }), vec2(global_key_size), KEYS::SCROLL, false, true);
-	createText(convert_grid_to_world({ 40.f, 17.5f }), vec3(1.f), "Zoom camera in/out", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 40.f, 17.f }), vec3(1.f), "Zoom camera in/out", vec3(1, 1, 1), true, true);
 
 	createKey(convert_grid_to_world({ 44, 16 }), vec2(global_key_size), KEYS::R, false, true);
-	createText(convert_grid_to_world({ 44.f, 17.5f }), vec3(1.f), "Toggle camera offset", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 44.f, 17.f }), vec3(1.f), "Toggle camera offset", vec3(1, 1, 1), true, true);
 
 	createKey(convert_grid_to_world({ 48, 16 }), vec2(global_key_size), KEYS::F, false, true);
-	createText(convert_grid_to_world({ 48.f, 17.5f }), vec3(1.f), "Show fps", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 48.f, 17.f }), vec3(1.f), "Show fps", vec3(1, 1, 1), true, true);
 
 	createKey(convert_grid_to_world({ 52, 16 }), vec2(global_key_size), KEYS::H, false, true);
-	createText(convert_grid_to_world({ 52.f, 17.5f }), vec3(1.f), "Help Menu", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 52.f, 17.f }), vec3(1.f), "Help", vec3(1, 1, 1), true, true);
+
+	createKey(convert_grid_to_world({ 56, 16 }), vec2(global_key_size), KEYS::ESC, false, true);
+	createText(convert_grid_to_world({ 56.f, 17.f }), vec3(1.f), "Pause", vec3(1, 1, 1), true, true);
 
 	// TODO: teleporter
-	createText(convert_grid_to_world({ 59.f, 17.5f }), vec3(1.f), "Return to main world", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 60.f, 17.f }), vec3(1.f), "Return to main world", vec3(1, 1, 1), true, true);
 
 	// Add grid to map
 	for (int y = 0; y < grid.size(); ++y) {

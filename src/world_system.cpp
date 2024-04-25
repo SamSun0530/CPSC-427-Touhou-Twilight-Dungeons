@@ -596,7 +596,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					while (registry.enemyBullets.entities.size() > 0)
 						registry.remove_all_components_of(registry.enemyBullets.entities.back());
 				}
-				
+
 				// remove auras
 				if (registry.auraLinks.has(entity)) {
 					registry.remove_all_components_of(registry.auraLinks.get(entity).other);
@@ -1365,6 +1365,27 @@ void WorldSystem::updatePlayerDirection(Kinematic& player_kinematic) {
 	player_kinematic.direction = { direction_x, direction_y };
 }
 
+void WorldSystem::updateFocusDot() {
+	if (pressed[GLFW_KEY_LEFT_SHIFT] || pressed[GLFW_MOUSE_BUTTON_RIGHT]) {
+		if (registry.focusdots.size() == 0) {
+			focus_mode.in_focus_mode = true;
+			focus_mode.speed_constant = 0.5f;
+			Motion& motion = registry.motions.get(player);
+			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
+			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+		}
+	}
+	// they are not pressed
+	else {
+		if (registry.focusdots.size() > 0) {
+			focus_mode.in_focus_mode = false;
+			focus_mode.speed_constant = 1.0f;
+			while (registry.focusdots.entities.size() > 0)
+				registry.remove_all_components_of(registry.focusdots.entities.back());
+		}
+	}
+}
+
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (menu.state == MENU_STATE::PLAY) {
@@ -1528,31 +1549,26 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// Hold for focus mode
 		if (key == GLFW_KEY_LEFT_SHIFT &&
 			!pressed[key] &&
-			action == GLFW_PRESS &&
-			!focus_mode.in_focus_mode) {
-			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
-			focus_mode.speed_constant = 0.5f;
-			Motion& motion = registry.motions.get(player);
-			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
-			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+			action == GLFW_PRESS) {
 			pressed[key] = true;
+			updateFocusDot();
 		}
 		else if (key == GLFW_KEY_LEFT_SHIFT &&
 			pressed[key] &&
-			action == GLFW_RELEASE &&
-			focus_mode.in_focus_mode) {
-			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
-			focus_mode.speed_constant = 1.0f;
-			while (registry.focusdots.entities.size() > 0)
-				registry.remove_all_components_of(registry.focusdots.entities.back());
+			action == GLFW_RELEASE) {
 			pressed[key] = false;
+			updateFocusDot();
 		}
-
 
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			// open pause menu
 			Mix_PlayChannel(3, audio->pause_menu_sound, 0);
 			menu.state = MENU_STATE::PAUSE;
+		}
+
+		if (key == GLFW_KEY_H && action == GLFW_PRESS) {
+			// open help menu
+			menu.state = MENU_STATE::INFOGRAPHIC;
 		}
 	}
 	else if (menu.state == MENU_STATE::MAIN_MENU) {
@@ -2015,6 +2031,19 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 			else if (action == GLFW_RELEASE) {
 				// Stop firing
 				bullet_spawner.is_firing = false;
+			}
+		}
+
+		if (is_alive && button == GLFW_MOUSE_BUTTON_RIGHT) {
+			// note: we should not put updateFocusDot() outside of the two if statement
+			// otherwise, if right mouse button is held, it will keep updating focus dot
+			if (action == GLFW_PRESS) {
+				pressed[button] = true;
+				updateFocusDot();
+			}
+			else if (action == GLFW_RELEASE) {
+				pressed[button] = false;
+				updateFocusDot();
 			}
 		}
 	}
