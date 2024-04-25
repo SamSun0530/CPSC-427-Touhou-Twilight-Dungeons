@@ -468,10 +468,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (registry.players.has(entity)) {
 				registry.realDeathTimers.remove(entity);
 
-				// TODO
-				//restart_game();
-				screen.darken_screen_factor = 0;
-				menu.state = MENU_STATE::LOSE;
+				if (map_info.level == MAP_LEVEL::TUTORIAL) {
+					restart_game();
+				}
+				else {
+					menu.state = MENU_STATE::LOSE;
+				}
 				return true;
 			}
 			else if (registry.teleporters.has(entity)) {
@@ -638,7 +640,10 @@ unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::str
 }
 
 void WorldSystem::next_level() {
-	// TODO: TEMPORARY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	assert(registry.screenStates.components.size() <= 1);
+	ScreenState& screen = registry.screenStates.components[0];
+	screen.darken_screen_factor = 0;
+
 	boss_system->init_phases();
 
 	menu.state = MENU_STATE::PLAY;
@@ -708,16 +713,18 @@ void WorldSystem::next_level() {
 	display_combo = createCombo(renderer);
 	game_info.set_player_id(player);
 	boss_info.reset();
-
+	uni_timer.restart();
 	init_win_menu();
 	init_lose_menu();
 	renderer->camera.setPosition({ 0, 0 });
-
 }
 
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
-	// TODO: TEMPORARY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	assert(registry.screenStates.components.size() <= 1);
+	ScreenState& screen = registry.screenStates.components[0];
+	screen.darken_screen_factor = 0;
+
 	boss_system->init_phases();
 
 	audio->restart_audio_level1();

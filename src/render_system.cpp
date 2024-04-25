@@ -600,6 +600,10 @@ void RenderSystem::draw()
 			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::WIN);
 		}
 		if (menu.state == MENU_STATE::LOSE) {
+			drawToScreen();
+			// To prevent black boxes (Credit: piazza @176_f1)
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			for (Entity entity : registry.loseMenus.entities) {
 				if (registry.textsPerm.has(entity)) {
 					Motion& text_motion = registry.motions.get(entity);
@@ -623,9 +627,12 @@ void RenderSystem::draw()
 		render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::MAIN_MENU);
 	}
 
-
-	// Truely render to the screen
-	drawToScreen();
+	// We have this here so that the black screen is retained when lost screen is shown
+	// as we need draw lose screen after drawToScreen call
+	if (menu.state != MENU_STATE::LOSE) {
+		// Truely render to the screen
+		drawToScreen();
+	}
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
