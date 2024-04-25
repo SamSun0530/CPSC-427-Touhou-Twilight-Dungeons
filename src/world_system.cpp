@@ -477,15 +477,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				return true;
 			}
 			else if (registry.teleporters.has(entity)) {
+				Teleporter& teleporter = registry.teleporters.get(entity);
 				// load next level
-				switch (map_info.level) {
-				case MAP_LEVEL::LEVEL1:
-					map_info.level = MAP_LEVEL::LEVEL2;
-					break;
-				default:
-					break;
+				map_info.level = teleporter.destination;
+				// do not keep things in tutorial or when in level1
+				if (map_info.level == MAP_LEVEL::TUTORIAL || map_info.level == MAP_LEVEL::LEVEL1) {
+					restart_game();
 				}
-				next_level();
+				else {
+					next_level();
+				}
 				return true;
 			}
 			else if (registry.deadlys.has(entity)) {
@@ -1091,10 +1092,11 @@ void WorldSystem::handle_collisions() {
 			else if (registry.teleporters.has(entity_other)) {
 				Teleporter& teleporter = registry.teleporters.get(entity_other);
 				Motion& motion = registry.motions.get(entity_other);
-				createText(motion.position + vec2(0, 20), vec2(1), "Press \"E\" to go to next level", vec3(0, 1, 0), false, true);
+				createText(motion.position + vec2(0, 20), vec2(1), teleporter.teleporter_text, vec3(0, 1, 0), false, true);
+
 				if (pressed[GLFW_KEY_E] && !teleporter.is_teleporting) {
 					EntityAnimation& ani = registry.alwaysplayAni.get(entity_other);
-					registry.realDeathTimers.emplace(entity_other).death_counter_ms = 2300;
+					registry.realDeathTimers.emplace(entity_other).death_counter_ms = teleporter.teleport_time;
 					Kinematic& player_kin = registry.kinematics.get(player);
 					player_kin.direction = { 0,0 };
 					player_kin.speed_modified = 0;

@@ -215,7 +215,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	}
 	else if (registry.playonceAni.has(entity)) {
 		end_pos = registry.playonceAni.get(entity).render_pos;
-;	}
+		;
+	}
 	glUniform2fv(end_pos_uloc, 1, (float*)&end_pos);
 	gl_has_errors();
 
@@ -397,6 +398,12 @@ void RenderSystem::draw()
 		// Teleporters should not disappear off camera (since there is a small # of them)
 		for (Entity entity : registry.teleporters.entities) {
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+			Teleporter& teleporter = registry.teleporters.get(entity);
+			if (!teleporter.optional_text_above_teleporter.empty()) {
+				Motion& motion = registry.motions.get(entity);
+				vec2 new_motion = motion.position + vec2(0, -90);
+				render_text_newline(teleporter.optional_text_above_teleporter, new_motion.x, new_motion.y, 1.f, vec3(0, 1, 0), trans, true, 25.f, 1.f);
+			}
 		}
 
 		for (Entity entity : registry.renderRequests.entities)

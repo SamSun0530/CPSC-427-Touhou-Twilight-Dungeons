@@ -43,6 +43,8 @@ const float PAUSE_BACKGROUND_WIDTH = 1.f * 416.f;
 const float PAUSE_BACKGROUND_HEIGHT = 1.f * 448.f;
 const float TELEPORTER_WIDTH = 1.f * 224.f;
 const float TELEPORTER_HEIGHT = 1.f * 288.f;
+const float TELEPORTER_SMALL_WIDTH = 1.f * 288.f;
+const float TELEPORTER_SMALL_HEIGHT = 1.f * 288.f;
 const float ITEM_WIDTH = 0.5f * 128.f;
 const float ITEM_HEIGHT = 0.5f * 128.f;
 
@@ -109,8 +111,10 @@ Entity createGargoyleEnemy(RenderSystem* renderer, vec2 position);
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
 // boss enemy
 Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, BOSS_ID boss_id, vec3 name_color);
-// teleporter
-Entity createTeleporter(RenderSystem* renderer, vec2 pos, float scale);
+// teleporter (optional_text_above_teleporter == "" -> nothing rendered)
+Entity createTeleporter(RenderSystem* renderer, vec2 pos, vec2 scale, vec2 collidable_size,
+	MAP_LEVEL destination, EntityAnimation& ani, TEXTURE_ASSET_ID texture_asset, float teleport_time, 
+	std::string teleporter_text, std::string optional_text_above_teleporter = "");
 // dummy enemy for tutorial
 Entity createDummyEnemy(RenderSystem* renderer, vec2 position);
 Entity createDummyEnemySpawner(RenderSystem* renderer, vec2 position);

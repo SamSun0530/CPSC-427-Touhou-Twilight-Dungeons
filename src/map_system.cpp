@@ -53,9 +53,30 @@ void MapSystem::step(float elapsed_ms_since_last_update) {
 		}
 		else {
 			if (cur_room.type == ROOM_TYPE::BOSS) {
-				// only one teleporter in the map at a time
-				if (registry.teleporters.size() < 1) {
-					createTeleporter(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f), 2.f);
+				// two teleporter in the map at level1
+				// - tutorial teleporter (only in level1)
+				// - dynamically generated boss teleporter for next level
+				// one teleporter in the map at level2
+				// etc.
+				int max_teleporters = 0;
+				if (map_info.level == MAP_LEVEL::LEVEL1) {
+					max_teleporters = 2;
+				}
+				else if (map_info.level == MAP_LEVEL::LEVEL2) {
+					max_teleporters = 0; // switch this for the last/final stage where a teleporter is not needed
+				}
+
+				if (registry.teleporters.size() < max_teleporters) {
+					EntityAnimation ani;
+					ani.spritesheet_scale = { 1 / 39.f, 1 };
+					ani.render_pos = { 1 / 39.f, 1 };
+					ani.frame_rate_ms = 100;
+					ani.full_rate_ms = 100;
+					ani.is_active = false;
+					vec2 scale = 2.f * vec2(TELEPORTER_WIDTH, TELEPORTER_HEIGHT);
+					float teleport_time = 2300;
+					
+					createTeleporter(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f), scale, scale / 6.f, MAP_LEVEL::LEVEL2, ani, TEXTURE_ASSET_ID::TELEPORTER, teleport_time, "Press \"E\" to enter next level", "Next Level");
 					createChest(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f + vec2(0.0f, 4.0f)));
 				}
 			}
@@ -191,9 +212,9 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		std::mt19937 gen(rd());
 		std::uniform_real_distribution<> distrib(0, 1);
 		// X chance to spawn an ammo
-		if (distrib(gen) < 0.4) {
+		if (distrib(gen) < 1.4) {
 			std::uniform_int_distribution<> typeDistrib(0, AMMO_TYPE::AMMO_TYPE_COUNT - 1);
-			int times_to_sample = 10;
+			int times_to_sample = 1;
 			std::vector<int> sampled_counts(AMMO_TYPE::AMMO_TYPE_COUNT, 0);
 			AMMO_TYPE type;
 			Player& player_c = registry.players.components[0];
@@ -218,9 +239,23 @@ Entity MapSystem::spawnPlayerInRoom(int room_number) {
 	room.is_cleared = true;
 	room.need_to_spawn = false;
 
-	//room_number = bsptree.rooms.size() - 1;
-	//return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left - vec2(2, 0)));
-	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f));
+	vec2 spawn_point = convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f);
+
+	if (map_info.level == MAP_LEVEL::LEVEL1) {
+		// teleporter to tutorial
+		EntityAnimation ani;
+		ani.spritesheet_scale = { 1 / 26.f, 1 };
+		ani.render_pos = { 1 / 26.f, 1 };
+		ani.frame_rate_ms = 100;
+		ani.full_rate_ms = 100;
+		ani.is_active = false;
+		vec2 scale = 1.5f * vec2(TELEPORTER_SMALL_WIDTH, TELEPORTER_SMALL_HEIGHT);
+		float teleport_time = 1000;
+
+		createTeleporter(renderer, spawn_point + vec2(0, -world_tile_size * 1.5f), scale, scale / 10.f, MAP_LEVEL::TUTORIAL, ani, TEXTURE_ASSET_ID::TELEPORTER_SMALL, teleport_time, "Press \"E\" to enter tutorial", "Tutorial");
+	}
+
+	return createPlayer(renderer, spawn_point);
 }
 
 // Getting out of map results? Consider that there is empty padding in the world map.
@@ -363,8 +398,17 @@ void MapSystem::generateTutorialMap() {
 	createKey(convert_grid_to_world({ 56, 16 }), vec2(global_key_size), KEYS::ESC, false, true);
 	createText(convert_grid_to_world({ 56.f, 17.f }), vec3(1.f), "Pause", vec3(1, 1, 1), true, true);
 
-	// TODO: teleporter
-	createText(convert_grid_to_world({ 60.f, 17.f }), vec3(1.f), "Return to main world", vec3(1, 1, 1), true, true);
+	// teleporter
+	EntityAnimation ani;
+	ani.spritesheet_scale = { 1 / 26.f, 1 };
+	ani.render_pos = { 1 / 26.f, 1 };
+	ani.frame_rate_ms = 100;
+	ani.full_rate_ms = 100;
+	ani.is_active = false;
+	vec2 scale = 1.5f * vec2(TELEPORTER_SMALL_WIDTH, TELEPORTER_SMALL_HEIGHT);
+	float teleport_time = 1000;
+
+	createTeleporter(renderer, convert_grid_to_world({ 60.f, 16.5f }), scale, scale / 10.f, MAP_LEVEL::LEVEL1, ani, TEXTURE_ASSET_ID::TELEPORTER_SMALL, teleport_time, "Press \"E\" to enter main world", "Return to Main World");
 
 	// Add grid to map
 	for (int y = 0; y < grid.size(); ++y) {

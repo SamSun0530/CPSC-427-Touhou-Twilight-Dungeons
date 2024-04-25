@@ -206,6 +206,10 @@ struct Player
 struct Teleporter {
 	bool player_overlap = false;
 	bool is_teleporting = false;
+	MAP_LEVEL destination;
+	float teleport_time; // teleports when time < 0
+	std::string teleporter_text;
+	std::string optional_text_above_teleporter;
 };
 
 // make entity fly to player
@@ -1046,7 +1050,8 @@ enum class TEXTURE_ASSET_ID {
 	AIMBOT1BULLET_AMMO_ITEM = TRIPLE_AMMO_ITEM + 1,
 	CIRNO_AURA = AIMBOT1BULLET_AMMO_ITEM + 1,
 	FLANDRE_AURA = CIRNO_AURA + 1,
-	TEXTURE_COUNT = FLANDRE_AURA + 1,
+	TELEPORTER_SMALL = FLANDRE_AURA + 1,
+	TEXTURE_COUNT = TELEPORTER_SMALL + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

@@ -140,6 +140,7 @@ class RenderSystem {
 			textures_path("Aimbot1BulletAmmoItem.png"),
 			textures_path("CirnoAura.png"),
 			textures_path("FlandreAura.png"),
+			textures_path("TeleporterSmall.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

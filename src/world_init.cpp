@@ -2375,31 +2375,29 @@ Entity createPauseMenu(RenderSystem* renderer, vec2 background_pos, float backgr
 	return entity;
 }
 
-Entity createTeleporter(RenderSystem* renderer, vec2 pos, float scale) {
+Entity createTeleporter(RenderSystem* renderer, vec2 pos, vec2 scale, vec2 collidable_size,
+	MAP_LEVEL destination, EntityAnimation& ani, TEXTURE_ASSET_ID texture_asset, float teleport_time, std::string teleporter_text, std::string optional_text_above_teleporter) {
 	auto entity = Entity();
 
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
-	motion.scale = scale * vec2(TELEPORTER_WIDTH, TELEPORTER_HEIGHT);
+	motion.scale = scale;
 
 	Collidable& collidable = registry.collidables.emplace(entity);
-	collidable.size = motion.scale / 6.f;
+	collidable.size = collidable_size;
 
-	EntityAnimation key_ani;
-	key_ani.isCursor = false;
-	key_ani.spritesheet_scale = { 1 / 39.f, 1 };
-	key_ani.render_pos = { 1 / 39.f, 1 };
-	key_ani.frame_rate_ms = 100;
-	key_ani.full_rate_ms = 100;
-	key_ani.is_active = false;
-	registry.alwaysplayAni.insert(entity, key_ani);
+	registry.alwaysplayAni.insert(entity, ani);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::TELEPORTER,
+		{ texture_asset,
 		EFFECT_ASSET_ID::TEXTURED,
 		GEOMETRY_BUFFER_ID::SPRITE });
-	registry.teleporters.emplace(entity);
+	Teleporter& t = registry.teleporters.emplace(entity);
+	t.destination = destination;
+	t.teleport_time = teleport_time;
+	t.teleporter_text = teleporter_text;
+	t.optional_text_above_teleporter = optional_text_above_teleporter;
 
 	return entity;
 }
