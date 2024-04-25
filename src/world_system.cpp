@@ -247,11 +247,6 @@ void WorldSystem::resume_game() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-
-	// TODO: game breaking bug - only 3 enemies spawn locking player out of room
-	//printf("enemies: %d\n", registry.deadlys.entities.size());
-	//printf("room enemies: %d\n", game_info.in_room != -1 ? game_info.room_index[game_info.in_room].enemies.size() : -1);
-
 	tutorial_counter--;
 
 	elapsedSinceLastFPSUpdate += elapsed_ms_since_last_update;
@@ -298,7 +293,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	Player& player_att = registry.players.get(player);
 	std::string fire_rate = std::to_string(player_att.fire_rate);
 	std::string critical_hit = std::to_string(player_att.critical_hit * 100);
-	std::string critical_dmg = std::to_string(player_att.critical_demage * 100);
+	std::string critical_dmg = std::to_string(player_att.critical_damage * 100);
 	createText(-window_px_half + vec2(68, 153), { 1,1 }, std::to_string(player_att.coin_amount), vec3(1), false);
 	createText(-window_px_half + vec2(72, 200), { 1,1 }, std::to_string(player_att.bullet_damage), vec3(1), false);
 	createText(-window_px_half + vec2(86, 250), { 1,1 }, fire_rate.substr(0, fire_rate.find(".") + 3), vec3(1), false);
@@ -363,6 +358,42 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// Get closest enemy
+	Player& player_c = registry.players.components[0];
+	if (player_c.ammo_type == AMMO_TYPE::AIMBOT ||
+		player_c.ammo_type == AMMO_TYPE::AIMBOT1BULLET) {
+		uni_timer.closest_enemy_timer -= uni_timer.closest_enemy_timer >= 0 ? elapsed_ms_since_last_update : 0;
+		uni_timer.aimbot_bullet_timer -= uni_timer.aimbot_bullet_timer >= 0 ? elapsed_ms_since_last_update : 0;
+		if (uni_timer.closest_enemy_timer < 0) {
+			double mouse_pos_x;
+			double mouse_pos_y;
+			glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
+			vec2 mouse_position_world = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + player_position;
+			float maximum_range = 20 * world_tile_size * 20 * world_tile_size;
+			int closest_entity_id = -1;
+			float closest_distance = std::numeric_limits<float>::max();
+			for (Entity entity : registry.deadlys.entities) {
+				Motion& motion = registry.motions.get(entity);
+				vec2 dp = motion.position - mouse_position_world;
+				float dot_dp = dot(dp, dp);
+				if (dot_dp < maximum_range && dot_dp < closest_distance) {
+					closest_distance = dot_dp;
+					closest_entity_id = entity;
+				}
+			}
+			// Do not allow lock on if boss is not active
+			Entity entity_copy = (Entity)closest_entity_id;
+			if (registry.bosses.has(entity_copy)) {
+				if ((map_info.level == MAP_LEVEL::LEVEL1 && boss_info.has_cirno_talked) ||
+					(map_info.level == MAP_LEVEL::LEVEL2 && boss_info.has_flandre_talked))
+					uni_timer.closest_enemy = closest_entity_id;
+			}
+			else {
+				uni_timer.closest_enemy = closest_entity_id;
+			}
+			uni_timer.closest_enemy_timer = uni_timer.closest_enemy_timer_default;
+		}
+	}
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -437,22 +468,25 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (registry.players.has(entity)) {
 				registry.realDeathTimers.remove(entity);
 
-				// TODO
-				//restart_game();
-				screen.darken_screen_factor = 0;
-				menu.state = MENU_STATE::LOSE;
+				if (map_info.level == MAP_LEVEL::TUTORIAL) {
+					restart_game();
+				}
+				else {
+					menu.state = MENU_STATE::LOSE;
+				}
 				return true;
 			}
 			else if (registry.teleporters.has(entity)) {
+				Teleporter& teleporter = registry.teleporters.get(entity);
 				// load next level
-				switch (map_info.level) {
-				case MAP_LEVEL::LEVEL1:
-					map_info.level = MAP_LEVEL::LEVEL2;
-					break;
-				default:
-					break;
+				map_info.level = teleporter.destination;
+				// do not keep things in tutorial or when in level1
+				if (map_info.level == MAP_LEVEL::TUTORIAL || map_info.level == MAP_LEVEL::LEVEL1) {
+					restart_game();
 				}
-				next_level();
+				else {
+					next_level();
+				}
 				return true;
 			}
 			else if (registry.deadlys.has(entity)) {
@@ -497,7 +531,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 						}
 					}
 				}
-
+				stats.enemies_killed++;
 				registry.remove_all_components_of(entity);
 			}
 			else {
@@ -567,6 +601,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					while (registry.enemyBullets.entities.size() > 0)
 						registry.remove_all_components_of(registry.enemyBullets.entities.back());
 				}
+
+				// remove auras
+				if (registry.auraLinks.has(entity)) {
+					registry.remove_all_components_of(registry.auraLinks.get(entity).other);
+				}
 			}
 			registry.remove_all_components_of(entity);
 		}
@@ -604,7 +643,10 @@ unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::str
 }
 
 void WorldSystem::next_level() {
-	// TODO: TEMPORARY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	assert(registry.screenStates.components.size() <= 1);
+	ScreenState& screen = registry.screenStates.components[0];
+	screen.darken_screen_factor = 0;
+
 	boss_system->init_phases();
 
 	menu.state = MENU_STATE::PLAY;
@@ -657,6 +699,10 @@ void WorldSystem::next_level() {
 	else {
 		map->generateRandomMap(11); // room_size must be > 3
 		player = map->spawnPlayerInRoom(0);
+
+		// Generates obstacles in room (doesn't generate in start room)
+		map->generate_obstacles(world_map);
+
 		// generates door info then the tiles
 		map->generate_door_tiles(world_map);
 	}
@@ -676,16 +722,18 @@ void WorldSystem::next_level() {
 	display_combo = createCombo(renderer);
 	game_info.set_player_id(player);
 	boss_info.reset();
-
+	uni_timer.restart();
 	init_win_menu();
 	init_lose_menu();
 	renderer->camera.setPosition({ 0, 0 });
-
 }
 
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
-	// TODO: TEMPORARY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	assert(registry.screenStates.components.size() <= 1);
+	ScreenState& screen = registry.screenStates.components[0];
+	screen.darken_screen_factor = 0;
+
 	boss_system->init_phases();
 
 	audio->restart_audio_level1();
@@ -744,6 +792,10 @@ void WorldSystem::restart_game() {
 	else {
 		map->generateRandomMap(11); // room_size must be > 3
 		player = map->spawnPlayerInRoom(0);
+
+		// Generates obstacles in room (doesn't generate in start room)
+		map->generate_obstacles(world_map);
+
 		// generates door info then the tiles
 		map->generate_door_tiles(world_map);
 	}
@@ -760,9 +812,9 @@ void WorldSystem::restart_game() {
 	display_combo = createCombo(renderer);
 	game_info.set_player_id(player);
 	boss_info.reset();
-
+	uni_timer.restart();
+	stats.reset();
 	bomb_timer = 0;
-
 	init_win_menu();
 	init_lose_menu();
 	renderer->camera.setPosition({ 0, 0 });
@@ -865,6 +917,7 @@ void WorldSystem::handle_collisions() {
 								kin.speed_modified = 0.f;
 								registry.motions.get(entity_other).scale = 2.f * vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 								registry.bomberEnemies.get(entity_other).touch_player = true;
+								registry.collidables.get(entity_other).active = false;
 							}
 						}
 
@@ -938,78 +991,99 @@ void WorldSystem::handle_collisions() {
 						BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
 						treasure.player_overlap = true;
 						if (pressed[GLFW_KEY_E] && player_att.coin_amount >= treasure.cost) {
-							//std::cout << "treasure.effect_type: " << std::to_string(treasure.effect_type) << std::endl;
-							//std::cout << "treasure.effect_strength: " << std::to_string(treasure.effect_strength) << std::endl;
 							player_att.coin_amount -= treasure.cost;
 							// 1=bullet_damage, 2=fire_rate, or 3=critical_hit
 							// treasure.effect_strength value between 0~1
-							//std::cout << "--------------before------------------" << std::endl;
-							//std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
-							//std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
-							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
-							if (treasure.effect_type == 1) {
+							if (treasure.effect_type == EFFECT_TYPE::BULLET_DAMAGE) {
 								player_att.bullet_damage += static_cast<int>(treasure.effect_strength * 1.7);
 
 							}
-							else if (treasure.effect_type == 2) {
+							else if (treasure.effect_type == EFFECT_TYPE::FIRE_RATE) {
 								// bullet_spawner.fire_rate = 0.0001;
 								bullet_spawner.fire_rate *= (1 - float(treasure.effect_strength * 0.03));
 								player_att.fire_rate = 1 / bullet_spawner.fire_rate;
 							}
-							else if (treasure.effect_type == 3) {
+							else if (treasure.effect_type == EFFECT_TYPE::CRITICAL_HIT) {
 								player_att.critical_hit += float(treasure.effect_strength * 0.015);
 							}
-							else if (treasure.effect_type == 5) {
-								player_att.critical_demage += float(treasure.effect_strength * 0.04);
+							else if (treasure.effect_type == EFFECT_TYPE::CRITICAL_DAMAGE) {
+								player_att.critical_damage += float(treasure.effect_strength * 0.04);
 							}
-							else if (treasure.effect_type == 6) {
+							else if (treasure.effect_type == EFFECT_TYPE::BOMB) {
 								player_att.bomb += 1;
 							}
-							else if (treasure.effect_type == 7) {
+							else if (treasure.effect_type == EFFECT_TYPE::INCR_CURRENT_HP) {
 								player_hp.curr_hp += treasure.effect_strength;
 								if (player_hp.curr_hp > player_hp.max_hp) {
 									player_hp.curr_hp = player_hp.max_hp;
 								}
 							}
-							else if (treasure.effect_type == 4) {
+							else if (treasure.effect_type == EFFECT_TYPE::INCR_MAXIMUM_HP) {
 								int balance_hp = static_cast<int>(treasure.effect_strength / 2);
 								if (balance_hp == 0) {
 									balance_hp = 1;
 								}
 								player_hp.max_hp += balance_hp;
 							}
-							//std::cout << "-------------after---------------------" << std::endl;
-							//std::cout << "player_att.bullet_damage: " << std::to_string(player_att.bullet_damage) << std::endl;
-							//std::cout << "registry.bulletSpawners.get(player).fire_rate: " << std::to_string(registry.bulletSpawners.get(player).fire_rate) << std::endl;
-							//std::cout << "player_att.critical_hit: " << std::to_string(player_att.critical_hit) << std::endl;
+							else if (treasure.effect_type == EFFECT_TYPE::AIMBOT_AMMO) {
+								player_att.ammo_type = AMMO_TYPE::AIMBOT;
+							}
+							else if (treasure.effect_type == EFFECT_TYPE::AOE_AMMO) {
+								player_att.ammo_type = AMMO_TYPE::AOE;
+							}
+							else if (treasure.effect_type == EFFECT_TYPE::TRIPLE_AMMO) {
+								player_att.ammo_type = AMMO_TYPE::TRIPLE;
+							}
+							else if (treasure.effect_type == EFFECT_TYPE::AIMBOT1BULLET_AMMO) {
+								player_att.ammo_type = AMMO_TYPE::AIMBOT1BULLET;
+							}
+							else if (treasure.effect_type == EFFECT_TYPE::NORMAL_AMMO) {
+								player_att.ammo_type = AMMO_TYPE::NORMAL;
+							}
+
 							registry.remove_all_components_of(entity_other);
 						}
-						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, "Cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
-						std::string item_name = "";
-						if (treasure.effect_type == 1) {
-							item_name = "increase bullet demage";
+
+						std::string description = "";
+						if (treasure.effect_type == EFFECT_TYPE::BULLET_DAMAGE) {
+							description = "Increase Bullet Damage";
 						}
-						else if (treasure.effect_type == 2) {
-							item_name = "decrease bullet fire rate";
+						else if (treasure.effect_type == EFFECT_TYPE::FIRE_RATE) {
+							description = "Increase Fire Rate";
 						}
-						else if (treasure.effect_type == 3) {
-							item_name = "increase bullet critical hit";
+						else if (treasure.effect_type == EFFECT_TYPE::CRITICAL_HIT) {
+							description = "Increase Critical Hit Rate";
 						}
-						else if (treasure.effect_type == 4) {
-							item_name = "increase maximum health";
+						else if (treasure.effect_type == EFFECT_TYPE::INCR_MAXIMUM_HP) {
+							description = "Increase Max HP";
 						}
-						else if (treasure.effect_type == 5) {
-							item_name = "increase bullet critical demage";
+						else if (treasure.effect_type == EFFECT_TYPE::CRITICAL_DAMAGE) {
+							description = "Increase Critical Damage";
 						}
-						else if (treasure.effect_type == 7) {
-							item_name = "increase current health";
+						else if (treasure.effect_type == EFFECT_TYPE::INCR_CURRENT_HP) {
+							description = "Increase HP";
 						}
-						else if (treasure.effect_type == 6) {
-							item_name = "grant one bomb";
+						else if (treasure.effect_type == EFFECT_TYPE::BOMB) {
+							description = "Bomb";
 						}
-						createText(vec2(motion.position.x, motion.position.y + 50), { 0.6f,0.6f }, "Press \"E\" to buy this", vec3(0, 1, 0), false, true);
-						createText(vec2(motion.position.x, motion.position.y + 75), { 0.6f,0.6f }, "This will " + item_name, vec3(0, 1, 0), false, true);
-						// std::cout << "Buy this" << std::endl;
+						else if (treasure.effect_type == EFFECT_TYPE::AIMBOT_AMMO) {
+							description = "Aimbot Spell";
+						}
+						else if (treasure.effect_type == EFFECT_TYPE::AOE_AMMO) {
+							description = "AOE Spell";
+						}
+						else if (treasure.effect_type == EFFECT_TYPE::TRIPLE_AMMO) {
+							description = "Triple Spell";
+						}
+						else if (treasure.effect_type == EFFECT_TYPE::AIMBOT1BULLET_AMMO) {
+							description = "One Aimbot Bullet Spell";
+						}
+						else if (treasure.effect_type == EFFECT_TYPE::NORMAL_AMMO) {
+							description = "Don't buy this";
+						}
+						createText(vec2(motion.position.x, motion.position.y + 25), { 0.6f,0.6f }, description, vec3(0, 1, 0), false, true);
+						createText(vec2(motion.position.x, motion.position.y + 50), { 0.6f,0.6f }, "Cost: " + std::to_string(treasure.cost) + " coins", vec3(0, 1, 0), false, true);
+						createText(vec2(motion.position.x, motion.position.y + 75), { 0.6f,0.6f }, "Press \"E\" to purchase", vec3(0, 1, 0), false, true);
 					}
 				}
 			}
@@ -1032,10 +1106,11 @@ void WorldSystem::handle_collisions() {
 			else if (registry.teleporters.has(entity_other)) {
 				Teleporter& teleporter = registry.teleporters.get(entity_other);
 				Motion& motion = registry.motions.get(entity_other);
-				createText(motion.position + vec2(0, 20), vec2(1), "Press E to go to next level", vec3(0, 1, 0), false, true);
+				createText(motion.position + vec2(0, 20), vec2(0.8), teleporter.teleporter_text, vec3(0, 1, 0), false, true);
+
 				if (pressed[GLFW_KEY_E] && !teleporter.is_teleporting) {
 					EntityAnimation& ani = registry.alwaysplayAni.get(entity_other);
-					registry.realDeathTimers.emplace(entity_other).death_counter_ms = 2300;
+					registry.realDeathTimers.emplace(entity_other).death_counter_ms = teleporter.teleport_time;
 					Kinematic& player_kin = registry.kinematics.get(player);
 					player_kin.direction = { 0,0 };
 					player_kin.speed_modified = 0;
@@ -1049,51 +1124,133 @@ void WorldSystem::handle_collisions() {
 		else if (registry.deadlys.has(entity)) {
 			if (registry.playerBullets.has(entity_other) && !registry.invulnerableTimers.has(entity)) {
 				if (!registry.hitTimers.has(entity) && !registry.realDeathTimers.has(entity)) {
-					// enemy turn red and decrease hp, bullet disappear
-					registry.hitTimers.emplace(entity);
-					registry.colors.get(entity) = vec3(-1.f);
-					Motion& deadly_motion = registry.motions.get(entity);
-					Mix_PlayChannel(-1, audio->hit_spell, 0);
-
-					std::random_device rd;
-					std::mt19937 gen(rd());
-					std::uniform_real_distribution<> distrib(0, 1);
-					double number = distrib(gen);
+					stats.enemies_hit++;
 					Player& player_att = registry.players.get(player);
-					if (number < player_att.critical_hit) {
-						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage * player_att.critical_demage;
-						registry.realDeathTimers.emplace(createCriHit(renderer, deadly_motion.position - vec2(30, 0))).death_counter_ms = 300;
+					Mix_PlayChannel(-1, audio->hit_spell, 0);
+					if (player_att.ammo_type == AMMO_TYPE::AOE) {
+						float scale = 3.f;
+						float radius_squared = ENEMY_BB_WIDTH_100 * scale / 2.f * ENEMY_BB_WIDTH_100 * scale / 2.f;
+						Motion& deadly_motion_hit = registry.motions.get(entity);
+						createVFX(renderer, deadly_motion_hit.position, scale * vec2(ENEMY_BB_WIDTH_100, ENEMY_BB_HEIGHT_100), 0, VFX_TYPE::AOE_AMMO_EXPLOSION);
+						for (Entity deadly_entity : registry.deadlys.entities) {
+							if (registry.hitTimers.has(deadly_entity) || registry.realDeathTimers.has(deadly_entity)) continue;
+							Motion& deadly_motion = registry.motions.get(deadly_entity);
+							vec2 dp = deadly_motion.position - deadly_motion_hit.position;
+							float dot_dp = dot(dp, dp);
+							if (dot_dp >= radius_squared) continue;
+
+							registry.hitTimers.emplace(deadly_entity);
+							registry.colors.get(deadly_entity) = vec3(-1.f);
+
+							std::random_device rd;
+							std::mt19937 gen(rd());
+							std::uniform_real_distribution<> distrib(0, 1);
+							double number = distrib(gen);
+							if (number < player_att.critical_hit) {
+								registry.hps.get(deadly_entity).curr_hp -= registry.playerBullets.get(entity_other).damage * player_att.critical_damage * 1.5f;
+								registry.realDeathTimers.emplace(createCriHit(renderer, deadly_motion.position - vec2(30, 0))).death_counter_ms = 300;
+							}
+							else {
+								registry.hps.get(deadly_entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+							}
+
+							if (!registry.bosses.has(deadly_entity)) {
+								// Knockback
+								float knockback_factor = 1000.f;
+								Kinematic& kin = registry.kinematics.get(deadly_entity);
+								if (dp.x != 0 || dp.y != 0) {
+									kin.velocity += knockback_factor * normalize(dp);
+								}
+							}
+
+							HP& hp = registry.hps.get(deadly_entity);
+							if (hp.curr_hp <= 0.0f) {
+								combo_mode.combo_meter = min(combo_mode.combo_meter + 0.02f, combo_mode.COMBO_METER_MAX);
+								if (registry.beeEnemies.has(deadly_entity) ||
+									registry.wolfEnemies.has(deadly_entity) ||
+									registry.bomberEnemies.has(deadly_entity) ||
+									registry.dummyenemies.has(deadly_entity) ||
+									registry.lizardEnemies.has(deadly_entity) ||
+									registry.bee2Enemies.has(deadly_entity) ||
+									registry.wormEnemies.has(deadly_entity) ||
+									registry.gargoyleEnemies.has(deadly_entity)) {
+									registry.realDeathTimers.emplace(deadly_entity).death_counter_ms = 1000;
+									registry.hps.remove(deadly_entity);
+									registry.aitimers.remove(deadly_entity);
+									registry.followpaths.remove(deadly_entity);
+									registry.followFlowField.remove(deadly_entity);
+									if (registry.bulletSpawners.has(deadly_entity)) {
+										registry.bulletSpawners.get(deadly_entity).is_firing = false;
+									}
+									Kinematic& kin = registry.kinematics.get(deadly_entity);
+									//kin.velocity = { 0,0 };
+									kin.direction = { 0,0 };
+									kin.speed_modified = 0.f;
+									registry.collidables.get(deadly_entity).active = false;
+								}
+							}
+						}
 					}
 					else {
-						registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
-					}
-					//std::cout << "bullet_dmg: " << std::to_string(registry.playerBullets.get(entity_other).damage) << std::endl;
+						// enemy turn red and decrease hp, bullet disappear
+						Mix_PlayChannel(-1, audio->hit_spell, 0);
+						registry.hitTimers.emplace(entity);
+						registry.colors.get(entity) = vec3(-1.f);
+						Motion& deadly_motion = registry.motions.get(entity);
 
-					if (!registry.bosses.has(entity)) {
-						// Knockback
-						// TODO: knockback factor based on player items
-						float knockback_factor = 50.f;
-						Kinematic& bullet_kin = registry.kinematics.get(entity_other);
-						Kinematic& kin = registry.kinematics.get(entity);
-						kin.velocity += bullet_kin.direction * knockback_factor;
-					}
+						if (player_att.ammo_type == AMMO_TYPE::AIMBOT) {
+							Motion& bullet_motion = registry.motions.get(entity_other);
+							// assume deadly and bullet collidable boxes are centered in the texture
+							vec2 center_delta = bullet_motion.position - deadly_motion.position;
+							createVFX(renderer, deadly_motion.position, 2.5f * vec2(ENEMY_BB_WIDTH_48, ENEMY_BB_HEIGHT_48), -atan2(center_delta.x, center_delta.y) - glm::radians(90.0f), VFX_TYPE::HIT_SPARK);
+						}
 
-					HP& hp = registry.hps.get(entity);
-					if (hp.curr_hp <= 0.0f) {
-						combo_mode.combo_meter = min(combo_mode.combo_meter + 0.03f, combo_mode.COMBO_METER_MAX);
-						if (registry.beeEnemies.has(entity) || registry.wolfEnemies.has(entity) || registry.bomberEnemies.has(entity) || registry.dummyenemies.has(entity)) {
-							registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
-							registry.hps.remove(entity);
-							registry.aitimers.remove(entity);
-							registry.followpaths.remove(entity);
-							registry.followFlowField.remove(entity);
-							if (registry.bulletSpawners.has(entity)) {
-								registry.bulletSpawners.get(entity).is_firing = false;
-							}
+						std::random_device rd;
+						std::mt19937 gen(rd());
+						std::uniform_real_distribution<> distrib(0, 1);
+						double number = distrib(gen);
+						if (number < player_att.critical_hit) {
+							registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage * player_att.critical_damage;
+							registry.realDeathTimers.emplace(createCriHit(renderer, deadly_motion.position - vec2(30, 0))).death_counter_ms = 300;
+						}
+						else {
+							registry.hps.get(entity).curr_hp -= registry.playerBullets.get(entity_other).damage;
+						}
+
+						if (!registry.bosses.has(entity)) {
+							// Knockback
+							float knockback_factor = 50.f;
+							Kinematic& bullet_kin = registry.kinematics.get(entity_other);
 							Kinematic& kin = registry.kinematics.get(entity);
-							kin.velocity = { 0,0 };
-							kin.direction = { 0,0 };
-							kin.speed_modified = 0.f;
+							bullet_kin.direction = normalize(bullet_kin.direction);
+							kin.velocity += bullet_kin.direction * knockback_factor;
+						}
+
+						HP& hp = registry.hps.get(entity);
+						if (hp.curr_hp <= 0.0f) {
+							combo_mode.combo_meter = min(combo_mode.combo_meter + 0.03f, combo_mode.COMBO_METER_MAX);
+							if (registry.beeEnemies.has(entity) ||
+								registry.wolfEnemies.has(entity) ||
+								registry.bomberEnemies.has(entity) ||
+								registry.dummyenemies.has(entity) ||
+								registry.lizardEnemies.has(entity) ||
+								registry.bee2Enemies.has(entity) ||
+								registry.wormEnemies.has(entity) ||
+								registry.gargoyleEnemies.has(entity)) {
+								registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
+								registry.hps.remove(entity);
+								registry.aitimers.remove(entity);
+								registry.followpaths.remove(entity);
+								registry.followFlowField.remove(entity);
+								if (registry.bulletSpawners.has(entity)) {
+									registry.bulletSpawners.get(entity).is_firing = false;
+								}
+								Kinematic& kin = registry.kinematics.get(entity);
+								kin.velocity = { 0,0 };
+								kin.direction = { 0,0 };
+								kin.speed_modified = 0.f;
+								registry.collidables.get(entity).active = false;
+							}
 						}
 					}
 					registry.remove_all_components_of(entity_other);
@@ -1231,11 +1388,32 @@ void WorldSystem::updatePlayerDirection(Kinematic& player_kinematic) {
 	player_kinematic.direction = { direction_x, direction_y };
 }
 
+void WorldSystem::updateFocusDot() {
+	if (pressed[GLFW_KEY_LEFT_SHIFT] || pressed[GLFW_MOUSE_BUTTON_RIGHT]) {
+		if (registry.focusdots.size() == 0) {
+			focus_mode.in_focus_mode = true;
+			focus_mode.speed_constant = 0.5f;
+			Motion& motion = registry.motions.get(player);
+			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
+			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+		}
+	}
+	// they are not pressed
+	else {
+		if (registry.focusdots.size() > 0) {
+			focus_mode.in_focus_mode = false;
+			focus_mode.speed_constant = 1.0f;
+			while (registry.focusdots.entities.size() > 0)
+				registry.remove_all_components_of(registry.focusdots.entities.back());
+		}
+	}
+}
+
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (menu.state == MENU_STATE::PLAY) {
 		// Resetting game
-		if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
+		if (action == GLFW_RELEASE && key == GLFW_KEY_F1) {
 			int w, h;
 			glfwGetWindowSize(window, &w, &h);
 			map_info.level = MAP_LEVEL::LEVEL1;
@@ -1327,7 +1505,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 
 		// Toggle between camera-cursor offset
-		if (key == GLFW_KEY_P) {
+		if (key == GLFW_KEY_R) {
 			if (action == GLFW_RELEASE) {
 				renderer->camera.isFreeCam = !renderer->camera.isFreeCam;
 				if (!renderer->camera.isFreeCam) {
@@ -1384,41 +1562,36 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 
-		// Toggle tutorial display
-		if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
-			getInstance().display_instruction = false;
-			map_info.level = MAP_LEVEL::TUTORIAL;
-			restart_game();
-		}
+		//// Toggle tutorial display
+		//if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
+		//	getInstance().display_instruction = false;
+		//	map_info.level = MAP_LEVEL::TUTORIAL;
+		//	restart_game();
+		//}
 
 		// Hold for focus mode
 		if (key == GLFW_KEY_LEFT_SHIFT &&
 			!pressed[key] &&
-			action == GLFW_PRESS &&
-			!focus_mode.in_focus_mode) {
-			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
-			focus_mode.speed_constant = 0.5f;
-			Motion& motion = registry.motions.get(player);
-			CircleCollidable& circle_collidable = registry.circleCollidables.get(player);
-			createFocusDot(renderer, motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
+			action == GLFW_PRESS) {
 			pressed[key] = true;
+			updateFocusDot();
 		}
 		else if (key == GLFW_KEY_LEFT_SHIFT &&
 			pressed[key] &&
-			action == GLFW_RELEASE &&
-			focus_mode.in_focus_mode) {
-			focus_mode.in_focus_mode = !focus_mode.in_focus_mode;
-			focus_mode.speed_constant = 1.0f;
-			while (registry.focusdots.entities.size() > 0)
-				registry.remove_all_components_of(registry.focusdots.entities.back());
+			action == GLFW_RELEASE) {
 			pressed[key] = false;
+			updateFocusDot();
 		}
-
 
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			// open pause menu
 			Mix_PlayChannel(3, audio->pause_menu_sound, 0);
 			menu.state = MENU_STATE::PAUSE;
+		}
+
+		if (key == GLFW_KEY_H && action == GLFW_PRESS) {
+			// open help menu
+			menu.state = MENU_STATE::INFOGRAPHIC;
 		}
 	}
 	else if (menu.state == MENU_STATE::MAIN_MENU) {
@@ -1466,7 +1639,11 @@ void WorldSystem::deal_damage_to_deadly(const Entity& entity, int damage)
 		if (registry.beeEnemies.has(entity) ||
 			registry.wolfEnemies.has(entity) ||
 			registry.bomberEnemies.has(entity) ||
-			registry.dummyenemies.has(entity)) {
+			registry.dummyenemies.has(entity) ||
+			registry.lizardEnemies.has(entity) ||
+			registry.bee2Enemies.has(entity) ||
+			registry.wormEnemies.has(entity) ||
+			registry.gargoyleEnemies.has(entity)) {
 			registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
 			registry.hps.remove(entity);
 			registry.aitimers.remove(entity);
@@ -1879,6 +2056,19 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 				bullet_spawner.is_firing = false;
 			}
 		}
+
+		if (is_alive && button == GLFW_MOUSE_BUTTON_RIGHT) {
+			// note: we should not put updateFocusDot() outside of the two if statement
+			// otherwise, if right mouse button is held, it will keep updating focus dot
+			if (action == GLFW_PRESS) {
+				pressed[button] = true;
+				updateFocusDot();
+			}
+			else if (action == GLFW_RELEASE) {
+				pressed[button] = false;
+				updateFocusDot();
+			}
+		}
 	}
 	else if (menu.state == MENU_STATE::DIALOGUE) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
@@ -1954,6 +2144,36 @@ void WorldSystem::update_focus_dot() {
 			//	CircleCollidable& circle_collidable = registry.circleCollidables.get(entity);
 			//	createEgg(motion.position + circle_collidable.shift, vec2(circle_collidable.radius * 2.f));
 			//}
+		}
+	}
+}
+
+void WorldSystem::update_aimbot_cursor(float elapsed_ms) {
+	if (menu.state == MENU_STATE::PLAY) {
+		Player& player_c = registry.players.get(player);
+		if (player_c.ammo_type == AMMO_TYPE::AIMBOT) {
+			// Update aimbot cursor position
+			if (uni_timer.closest_enemy != -1) {
+				Entity enemy_entity = (Entity)uni_timer.closest_enemy;
+				if (registry.deadlys.has(enemy_entity)) {
+					Motion& enemy_motion = registry.motions.get(enemy_entity);
+					if (registry.aimbotCursors.size() <= 0) {
+						createAimbotCursor(renderer, enemy_motion.position, 1.f);
+					}
+					else {
+						Motion& aimbot_cursor_motion = registry.motions.get(registry.aimbotCursors.entities[0]);
+						//aimbot_cursor_motion.position = enemy_motion.position;
+						// use camera lerp
+						float sharpness_factor = 0.9999999f;
+						float K2 = 1.0f - pow(1.0f - sharpness_factor, elapsed_ms / 1000.f);
+						aimbot_cursor_motion.position = vec2_lerp(aimbot_cursor_motion.position, enemy_motion.position, K2);
+					}
+				}
+			}
+			else {
+				while (registry.aimbotCursors.entities.size() > 0)
+					registry.remove_all_components_of(registry.aimbotCursors.entities.back());
+			}
 		}
 	}
 }

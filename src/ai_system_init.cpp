@@ -1,6 +1,7 @@
 #include "ai_system.hpp"
 #include "world_system.hpp"
 #include "visibility_system.hpp"
+#include "world_init.hpp"
 
 // checks if (x,y) on the map grid is valid, this is not world coordinates
 bool is_valid_cell(int x, int y) {
@@ -182,8 +183,9 @@ void set_follow_path(Entity& entity, coord from, coord to) {
 	fp.next_path_index = 0;
 }
 
-void AISystem::init(VisibilitySystem* visibility_arg) {
+void AISystem::init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg) {
 	this->visibility_system = visibility_arg;
+	this->renderer = renderer_arg;
 
 	// Initialize flow field
 	restart_flow_field_map();
@@ -329,6 +331,7 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 	// - boss health bar ui
 	std::function<void(Entity& entity)> showBossInfo = [&](Entity& entity) {
 		if (!registry.bosses.has(entity)) return;
+		Motion& motion = registry.motions.get(entity);
 		Boss& boss = registry.bosses.get(entity);
 		if (boss.is_active) return;
 		boss.is_active = true;
@@ -343,6 +346,11 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 			if (!dialogue_info.cirno_played) {
 				dialogue_info.cirno_pt = 0;
 				boss_info.has_cirno_talked = true;
+
+				if (!registry.auraLinks.has(entity)) {
+					float scale = 6.f;
+					createAura(renderer, motion.position - vec2(scale * 3), scale, entity, 1.f / 61.f, TEXTURE_ASSET_ID::CIRNO_AURA);
+				}
 			}
 		}
 		else if (boss.boss_id == BOSS_ID::FLANDRE) {
@@ -350,6 +358,10 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 			if (!dialogue_info.flandre_played) {
 				dialogue_info.flandre_pt = 0;
 				boss_info.has_flandre_talked = true;
+
+				if (!registry.auraLinks.has(entity)) {
+					createAura(renderer, motion.position, 6.f, entity, 1.f / 61.f, TEXTURE_ASSET_ID::FLANDRE_AURA);
+				}
 			}
 		}
 		HP& hp = registry.hps.get(entity);
@@ -377,14 +389,14 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 
 	ActionNode* move_random_direction_bee = new ActionNode(moveRandomDirection);
 	ActionNode* fire_at_player_bee = new ActionNode(fireAtPlayer);
-	//ActionNode* find_player_bee = new ActionNode(findPlayerAStar);
+	ActionNode* find_player_bee = new ActionNode(followFlowField);
 	ActionNode* follow_flow_field_threshold_bee = new ActionNode(followFlowFieldThreshold);
 
 	can_shoot_bee->setTrue(fire_at_player_bee);
 	can_shoot_bee->setFalse(follow_flow_field_threshold_bee);
 
 	can_see_player_bee->setTrue(can_shoot_bee);
-	can_see_player_bee->setFalse(follow_flow_field_threshold_bee);
+	can_see_player_bee->setFalse(find_player_bee);
 
 	is_in_range_bee->setTrue(can_see_player_bee);
 	is_in_range_bee->setFalse(move_random_direction_bee);
@@ -402,14 +414,14 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 
 	ActionNode* move_random_direction_wolf = new ActionNode(moveRandomDirection);
 	ActionNode* fire_at_player_wolf = new ActionNode(fireAtPlayer);
-	//ActionNode* find_player_wolf = new ActionNode(findPlayerThresholdAStar);
+	ActionNode* find_player_wolf = new ActionNode(followFlowField);
 	ActionNode* find_player_threshold_wolf = new ActionNode(followFlowFieldThreshold);
 
 	can_shoot_wolf->setTrue(fire_at_player_wolf);
 	can_shoot_wolf->setFalse(find_player_threshold_wolf);
 
 	can_see_player_wolf->setTrue(can_shoot_wolf);
-	can_see_player_wolf->setFalse(find_player_threshold_wolf);
+	can_see_player_wolf->setFalse(find_player_wolf);
 
 	is_in_range_wolf->setTrue(can_see_player_wolf);
 	is_in_range_wolf->setFalse(move_random_direction_wolf);
@@ -466,6 +478,105 @@ void AISystem::init(VisibilitySystem* visibility_arg) {
 	ConditionalNode* is_in_range_flandre = new ConditionalNode(show_boss_health_bar_flandre, do_nothing_flandre, isInRangeBoss);
 	this->flandre_boss_tree.setRoot(is_in_range_flandre);
 
+	/*
+	Lizard (same as wolf)
+	*/
+	ConditionalNode* can_see_player_lizard = new ConditionalNode([&](Entity& entity) {
+		return canSeePlayer(entity);
+		});
+	ConditionalNode* is_in_range_lizard = new ConditionalNode(isInRange);
+	ConditionalNode* can_shoot_lizard = new ConditionalNode(canShoot);
+	ActionNode* move_random_direction_lizard = new ActionNode(moveRandomDirection);
+	ActionNode* fire_at_player_lizard = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_lizard = new ActionNode(followFlowField);
+	ActionNode* find_player_threshold_lizard = new ActionNode(followFlowFieldThreshold);
+	can_shoot_lizard->setTrue(fire_at_player_lizard);
+	can_shoot_lizard->setFalse(find_player_threshold_lizard);
+	can_see_player_lizard->setTrue(can_shoot_lizard);
+	can_see_player_lizard->setFalse(find_player_lizard);
+	is_in_range_lizard->setTrue(can_see_player_lizard);
+	is_in_range_lizard->setFalse(move_random_direction_lizard);
+	this->lizard_tree.setRoot(is_in_range_lizard);
+
+	/*
+	Worm (same as wolf)
+	*/
+	// find player by following flow field if outside of range threshold
+	// difference between original: does not stop firing
+	std::function<void(Entity& entity)> followFlowFieldThresholdKeepFiring = [&](Entity& entity) {
+		Entity& player = registry.players.entities[0];
+		Motion& player_motion = registry.motions.get(player);
+		Motion& entity_motion = registry.motions.get(entity);
+		float minimum_range_to_check = 90000; // sqrt(160000)=300 pixels
+		vec2 dp = player_motion.position - entity_motion.position;
+		if (dot(dp, dp) > minimum_range_to_check) {
+			if (!registry.followFlowField.has(entity)) {
+				registry.followFlowField.emplace(entity);
+			}
+		}
+		else {
+			registry.kinematics.get(entity).direction = { 0, 0 };
+			registry.followFlowField.remove(entity);
+		}
+		};
+
+	ConditionalNode* can_see_player_worm = new ConditionalNode([&](Entity& entity) {
+		return canSeePlayer(entity);
+		});
+	ConditionalNode* is_in_range_worm = new ConditionalNode(isInRange);
+	ConditionalNode* can_shoot_worm = new ConditionalNode(canShoot);
+	ActionNode* move_random_direction_worm = new ActionNode(moveRandomDirection);
+	ActionNode* fire_at_player_worm = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_worm = new ActionNode(followFlowField);
+	ActionNode* find_player_threshold_worm = new ActionNode(followFlowFieldThresholdKeepFiring);
+	can_shoot_worm->setTrue(fire_at_player_worm);
+	can_shoot_worm->setFalse(find_player_threshold_worm);
+	can_see_player_worm->setTrue(can_shoot_worm);
+	can_see_player_worm->setFalse(find_player_worm);
+	is_in_range_worm->setTrue(can_see_player_worm);
+	is_in_range_worm->setFalse(move_random_direction_worm);
+	this->worm_tree.setRoot(is_in_range_worm);
+
+	/*
+	Bee2 (same as wolf)
+	*/
+	ConditionalNode* can_see_player_bee2 = new ConditionalNode([&](Entity& entity) {
+		return canSeePlayer(entity);
+		});
+	ConditionalNode* is_in_range_bee2 = new ConditionalNode(isInRange);
+	ConditionalNode* can_shoot_bee2 = new ConditionalNode(canShoot);
+	ActionNode* move_random_direction_bee2 = new ActionNode(moveRandomDirection);
+	ActionNode* fire_at_player_bee2 = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_bee2 = new ActionNode(followFlowField);
+	ActionNode* find_player_threshold_bee2 = new ActionNode(followFlowFieldThreshold);
+	can_shoot_bee2->setTrue(fire_at_player_bee2);
+	can_shoot_bee2->setFalse(find_player_threshold_bee2);
+	can_see_player_bee2->setTrue(can_shoot_bee2);
+	can_see_player_bee2->setFalse(find_player_bee2);
+	is_in_range_bee2->setTrue(can_see_player_bee2);
+	is_in_range_bee2->setFalse(move_random_direction_bee2);
+	this->bee2_tree.setRoot(is_in_range_bee2);
+
+	/*
+	Gargoyle (same as wolf)
+	*/
+	ConditionalNode* can_see_player_gargoyle = new ConditionalNode([&](Entity& entity) {
+		return canSeePlayer(entity);
+		});
+	ConditionalNode* is_in_range_gargoyle = new ConditionalNode(isInRange);
+	ConditionalNode* can_shoot_gargoyle = new ConditionalNode(canShoot);
+	ActionNode* move_random_direction_gargoyle = new ActionNode(moveRandomDirection);
+	ActionNode* fire_at_player_gargoyle = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_gargoyle = new ActionNode(followFlowField);
+	ActionNode* find_player_threshold_gargoyle = new ActionNode(followFlowFieldThreshold);
+	can_shoot_gargoyle->setTrue(fire_at_player_gargoyle);
+	can_shoot_gargoyle->setFalse(find_player_threshold_gargoyle);
+	can_see_player_gargoyle->setTrue(can_shoot_gargoyle);
+	can_see_player_gargoyle->setFalse(find_player_gargoyle);
+	is_in_range_gargoyle->setTrue(can_see_player_gargoyle);
+	is_in_range_gargoyle->setFalse(move_random_direction_gargoyle);
+	this->gargoyle_tree.setRoot(is_in_range_gargoyle);
+
 	// TODO: create decision trees/condition/action functions here for different enemies
 }
 
@@ -510,4 +621,11 @@ void AISystem::update_flow_field_map()
 			}
 		}
 	}
+
+	//for (int i = 0; i < flow_field_map.size(); i++) {
+	//	for (int j = 0; j < flow_field_map.size(); j++) {
+	//		printf("%d ", flow_field_map[i][j]);
+	//	}
+	//	printf("\n");
+	//}
 }

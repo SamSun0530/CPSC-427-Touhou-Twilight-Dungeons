@@ -51,7 +51,7 @@ int main()
 	renderer.init(window);
 	world.init(&renderer, &audio, &map, &ai, &visibility_system, &boss_system);
 	bullets.init(&renderer, window, &audio);
-	ai.init(&visibility_system);
+	ai.init(&visibility_system, &renderer);
 	map.init(&renderer, &visibility_system);
 	animation.init(&renderer, window);
 	world.init_menu();
@@ -83,6 +83,7 @@ int main()
 			animation.step(elapsed_ms);
 			physics.step(elapsed_ms);
 			world.update_focus_dot();
+			world.update_aimbot_cursor(elapsed_ms);
 			visibility_system.step(elapsed_ms);
 			ai.step(elapsed_ms);
 			bullets.step(elapsed_ms);

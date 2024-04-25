@@ -56,15 +56,21 @@ void BulletSystem::step(float elapsed_ms)
 			transform.rotate(radians(bullet_spawner.start_angle));
 			vec2 initial_dir = transform.mat * vec3(1, 0, 1);
 
+			// this is referencing an object on the stack
+			// however, createBullet will create a copy when vector.push_back in components
+			// so, this will not cause a dangling pointer
+			BulletPattern* player_bullet_pattern_ptr = nullptr;
+			BulletPattern player_bullet_pattern;
+
 			if (entity == player) {
 				// player fires bullet towards mouse position
 				double mouse_pos_x;
 				double mouse_pos_y;
 				glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
 				last_mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + motion.position;
-				float x = last_mouse_position.x - motion.position.x;
-				float y = last_mouse_position.y - motion.position.y;
-				mouse_rotation_angle = -atan2(x, y) - glm::radians(90.0f);
+				//float x = last_mouse_position.x - motion.position.x;
+				//float y = last_mouse_position.y - motion.position.y;
+				//mouse_rotation_angle = -atan2(x, y) - glm::radians(90.0f);
 
 				// shift origin of bullet in front and down a bit so player can shoot vertically and horizontally when against a wall
 				vec2 shift_down = vec2(0, 15);
@@ -73,6 +79,48 @@ void BulletSystem::step(float elapsed_ms)
 				Mix_PlayChannel(-1, audio->firing_sound, 0);
 				player_bullet_spawn_pos = motion.position + shift_forward + shift_down;
 				initial_dir = transform.mat * vec3(last_mouse_position - motion.position - shift_down, 1.0f);
+
+				Player& player = registry.players.components[0];
+				switch (player.ammo_type) {
+				case AMMO_TYPE::AIMBOT: {
+					player_bullet_pattern.commands = {
+						{ BULLET_ACTION::DELAY, 500.f },
+						{ BULLET_ACTION::ENEMY_DIRECTION, 0 },
+						{ BULLET_ACTION::DELAY, 100 },
+						{ BULLET_ACTION::LOOP, vec2(1000, 1)},
+					};
+					player_bullet_pattern_ptr = &player_bullet_pattern;
+					break;
+				}
+				case AMMO_TYPE::TRIPLE: {
+					Transform t;
+					t.rotate(90.f * M_PI / 180.f);
+					vec2 orthogonal = normalize(t.mat * vec3(initial_dir, 1.f));
+					float dist_from_origin_spawn = 30;
+					createBullet(renderer, kinematic.speed_modified, player_bullet_spawn_pos + orthogonal * dist_from_origin_spawn, 0, initial_dir, bullet_spawner.bullet_initial_speed, true, nullptr, false);
+					createBullet(renderer, kinematic.speed_modified, player_bullet_spawn_pos - orthogonal * dist_from_origin_spawn, 0, initial_dir, bullet_spawner.bullet_initial_speed, true, nullptr, false);
+					break;
+				}
+				case AMMO_TYPE::AIMBOT1BULLET: {
+					if (uni_timer.aimbot_bullet_timer < 0) {
+						BulletPattern b_pattern_temp;
+						b_pattern_temp.commands = {
+							{ BULLET_ACTION::DELAY, 500.f },
+							{ BULLET_ACTION::ENEMY_DIRECTION, 0 },
+							{ BULLET_ACTION::DELAY, 100 },
+							{ BULLET_ACTION::LOOP, vec2(1000, 1)},
+						};
+						// this is ok even if we are pointing to stack memory,
+						// since we will create a copy in createBullet
+						BulletPattern* b_pattern_temp_ptr = &b_pattern_temp;
+						createBullet(renderer, kinematic.speed_modified, player_bullet_spawn_pos, 0, initial_dir, bullet_spawner.bullet_initial_speed, true, b_pattern_temp_ptr, true);
+						uni_timer.aimbot_bullet_timer = uni_timer.aimbot_bullet_timer_default;
+					}
+					break;
+				}
+				default:
+					break;
+				}
 			}
 			// need to check boss first, since boss also have deadly component
 			else if (registry.bosses.has(entity)) {
@@ -94,15 +142,20 @@ void BulletSystem::step(float elapsed_ms)
 			}
 			// Spawn bullets
 			if (entity == player) {
-				//int damagebuff = bullet_spawner.damageBoost;
-				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, nullptr,bullet_spawner.damageBoost);
-				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, nullptr, bullet_spawner.damageBoost);
+				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, player_bullet_pattern_ptr);
+				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, player_bullet_spawn_pos, kinematic, true, player_bullet_pattern_ptr);
 			}
 			else if (registry.bosses.has(entity)) {
 				Boss& boss = registry.bosses.get(entity);
 				bool has_patterns = boss.bullet_pattern.commands.size() != 0;
 				BulletPattern* bullet_pattern = nullptr;
 				if (has_patterns) bullet_pattern = &boss.bullet_pattern;
+				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false, bullet_pattern);
+				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false, bullet_pattern);
+			}
+			else if (registry.deadlys.has(entity)) {
+				Deadly& deadly = registry.deadlys.get(entity);
+				BulletPattern* bullet_pattern = deadly.has_bullet_pattern ? &deadly.bullet_pattern : nullptr;
 				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false, bullet_pattern);
 				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false, bullet_pattern);
 			}
@@ -214,6 +267,34 @@ void BulletSystem::step(float elapsed_ms)
 				bullet_kinematic.direction = commands[bullet_pattern.bc_index].value_vec2;
 				break;
 			}
+			case BULLET_ACTION::PLAYER_DIRECTION: {
+				Kinematic& bullet_kinematic = registry.kinematics.get(entity);
+				Motion& bullet_motion = registry.motions.get(entity);
+				// Assume we have one player
+				Entity player_entity = registry.players.entities[0];
+				// direction will be normalized in physics system
+				bullet_kinematic.direction = registry.motions.get(player_entity).position - bullet_motion.position;
+				break;
+			}
+			case BULLET_ACTION::ENEMY_DIRECTION: {
+				if (uni_timer.closest_enemy == -1) break;
+				Entity deadly_entity = (Entity)uni_timer.closest_enemy;
+				if (registry.deadlys.has(deadly_entity)) {
+					Kinematic& bullet_kinematic = registry.kinematics.get(entity);
+					Motion& bullet_motion = registry.motions.get(entity);
+					// direction will be normalized in physics system
+					bullet_kinematic.direction = registry.motions.get(deadly_entity).position - bullet_motion.position;
+				}
+				break;
+			}
+			case BULLET_ACTION::CURSOR_DIRECTION: {
+				double mouse_pos_x;
+				double mouse_pos_y;
+				glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
+				vec2 mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + registry.motions.get(registry.players.entities[0]).position;
+				registry.kinematics.get(entity).direction = mouse_position - registry.motions.get(entity).position;
+				break;
+			}
 			default:
 				break;
 			}
@@ -256,10 +337,10 @@ void BulletSystem::step(float elapsed_ms)
 	}
 }
 
-void spawn_bullets(RenderSystem* renderer, std::vector<vec2>& initial_bullet_directions, float bullet_initial_speed, vec2 spawn_position, Kinematic& kinematic, bool is_player_bullet, BulletPattern* bullet_pattern, int damageBuff)
+void spawn_bullets(RenderSystem* renderer, std::vector<vec2>& initial_bullet_directions, float bullet_initial_speed, vec2 spawn_position, Kinematic& kinematic, bool is_player_bullet, BulletPattern* bullet_pattern)
 {
 	for (int i = 0; i < initial_bullet_directions.size(); ++i) {
-		createBullet(renderer, kinematic.speed_modified, spawn_position, 0, initial_bullet_directions[i], bullet_initial_speed, is_player_bullet, bullet_pattern, damageBuff);
+		createBullet(renderer, kinematic.speed_modified, spawn_position, 0, initial_bullet_directions[i], bullet_initial_speed, is_player_bullet, bullet_pattern, false);
 	}
 }
 

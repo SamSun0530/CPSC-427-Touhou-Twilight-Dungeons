@@ -82,6 +82,9 @@ public:
 	// Should be called after physics step
 	// Fixes issue where dot lags behind player due to physics lerp step after setting position
 	void update_focus_dot();
+	// Updates aimbot cursor position
+	// Should be called after physics step so it doesn't lag behind enemy position
+	void update_aimbot_cursor(float elapsed_ms);
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -116,6 +119,9 @@ private:
 
 	// Update player direction based on pressed
 	void updatePlayerDirection(Kinematic& player_kinematic);
+
+	// Update focus dot based on pressed
+	void updateFocusDot();
 
 	// restart level
 	void restart_game();

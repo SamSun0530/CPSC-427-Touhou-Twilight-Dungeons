@@ -17,6 +17,14 @@ const float PLAYER_BB_WIDTH = 0.5f * 128.f;
 const float PLAYER_BB_HEIGHT = 0.5f * 128.f;
 const float ENEMY_BB_WIDTH = 1.f * 80.f;
 const float ENEMY_BB_HEIGHT = 1.f * 90.f;
+const float ENEMY_BB_WIDTH_128 = 1.f * 128.f;
+const float ENEMY_BB_HEIGHT_128 = 1.f * 128.f;
+const float ENEMY_BB_WIDTH_96 = 1.f * 96.f;
+const float ENEMY_BB_WIDTH_100 = 1.f * 100.f;
+const float ENEMY_BB_HEIGHT_100 = 1.f * 100.f;
+const float ENEMY_BB_HEIGHT_96 = 1.f * 96.f;
+const float ENEMY_BB_WIDTH_48 = 1.f * 48.f;
+const float ENEMY_BB_HEIGHT_48 = 1.f * 48.f;
 const float HP_BB_WIDTH = 1.3f * 194.f;
 const float HP_BB_HEIGHT = 1.3f * 36.f;
 const float VP_BB_WIDTH = 1.5f * 218.f;
@@ -35,12 +43,14 @@ const float PAUSE_BACKGROUND_WIDTH = 1.f * 416.f;
 const float PAUSE_BACKGROUND_HEIGHT = 1.f * 448.f;
 const float TELEPORTER_WIDTH = 1.f * 224.f;
 const float TELEPORTER_HEIGHT = 1.f * 288.f;
+const float TELEPORTER_SMALL_WIDTH = 1.f * 288.f;
+const float TELEPORTER_SMALL_HEIGHT = 1.f * 288.f;
 const float ITEM_WIDTH = 0.5f * 128.f;
 const float ITEM_HEIGHT = 0.5f * 128.f;
 
 
 // the bullet, takes into account entity's speed and position
-Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern* bullet_pattern = nullptr, int damageBuff = 0);
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed = 100.f, bool is_player_bullet = false, BulletPattern* bullet_pattern = nullptr, bool is_aimbot_bullet = false);
 Entity createBulletDisappear(RenderSystem* renderer, vec2 entity_position, float rotation_angle, bool is_player_bullet);
 
 Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bool is_perm, bool in_world = false);
@@ -53,8 +63,12 @@ Entity createCriHit(RenderSystem* renderer, vec2 pos);
 std::vector<Entity> createAttributeUI(RenderSystem* renderer);
 Entity createHealthUI(RenderSystem*);
 
+// play once vfx that gets destroyed after animation
+Entity createVFX(RenderSystem* renderer, vec2 pos, vec2 scale, float angle, VFX_TYPE type);
+
 Entity createHealth(RenderSystem* renderer, vec2 position);
 Entity createPurchasableHealth(RenderSystem* renderer, vec2 position);
+Entity createPurchasableAmmo(RenderSystem* renderer, vec2 position, AMMO_TYPE ammo_type);
 Entity createTreasure(RenderSystem* renderer, vec2 position, bool is_bezier = false);
 Entity createNPC(RenderSystem* renderer, vec2 pos);
 Entity createWin(RenderSystem* renderer);
@@ -62,10 +76,15 @@ Entity createLose(RenderSystem* renderer);
 Entity createInfographic(RenderSystem* renderer);
 Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name, vec3 name_color);
 
+Entity createAura(RenderSystem* renderer, vec2 pos, float scale, Entity entity_to_link, float spritesheet_x_scale, TEXTURE_ASSET_ID texture_asset);
+
+
 // ui key
 Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui = true, bool is_active = true, float frame_rate = 500.f);
 // focus mode dot
 Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size);
+// aimbot cursor
+Entity createAimbotCursor(RenderSystem* renderer, vec2 pos, float scale);
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // the coin
@@ -86,12 +105,18 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position);
 Entity createBomberEnemy(RenderSystem* renderer, vec2 position);
 // the shotgun enemy
 Entity createWolfEnemy(RenderSystem* renderer, vec2 position);
+Entity createLizardEnemy(RenderSystem* renderer, vec2 position);
+Entity createWormEnemy(RenderSystem* renderer, vec2 position);
+Entity createBee2Enemy(RenderSystem* renderer, vec2 position);
+Entity createGargoyleEnemy(RenderSystem* renderer, vec2 position);
 // the grenade launcher enemy
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
 // boss enemy
 Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, BOSS_ID boss_id, vec3 name_color);
-// teleporter
-Entity createTeleporter(RenderSystem* renderer, vec2 pos, float scale);
+// teleporter (optional_text_above_teleporter == "" -> nothing rendered)
+Entity createTeleporter(RenderSystem* renderer, vec2 pos, vec2 scale, vec2 collidable_size,
+	MAP_LEVEL destination, EntityAnimation& ani, TEXTURE_ASSET_ID texture_asset, float teleport_time, 
+	std::string teleporter_text, std::string optional_text_above_teleporter = "");
 // dummy enemy for tutorial
 Entity createDummyEnemy(RenderSystem* renderer, vec2 position);
 Entity createDummyEnemySpawner(RenderSystem* renderer, vec2 position);
@@ -102,7 +127,7 @@ std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vect
 // Interactable Tile
 std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 // Same as wall with different texture
-Entity createRock(RenderSystem* renderer, vec2 position);
+Entity createObstacle(RenderSystem* renderer, vec2 position);
 // Pillar tile
 std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 // Door tile that can be open or closed

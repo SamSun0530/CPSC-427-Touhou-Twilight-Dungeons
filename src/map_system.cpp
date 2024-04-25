@@ -53,16 +53,35 @@ void MapSystem::step(float elapsed_ms_since_last_update) {
 		}
 		else {
 			if (cur_room.type == ROOM_TYPE::BOSS) {
-				// only one teleporter in the map at a time
-				if (registry.teleporters.size() < 1) {
-					createTeleporter(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f), 2.f);
-					createChest(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f+ vec2(0.0f, 4.0f)));
+				// two teleporter in the map at level1
+				// - tutorial teleporter (only in level1)
+				// - dynamically generated boss teleporter for next level
+				// one teleporter in the map at level2
+				// etc.
+				int max_teleporters = 0;
+				if (map_info.level == MAP_LEVEL::LEVEL1) {
+					max_teleporters = 2;
+				}
+				else if (map_info.level == MAP_LEVEL::LEVEL2) {
+					max_teleporters = 0; // switch this for the last/final stage where a teleporter is not needed
+				}
+
+				if (registry.teleporters.size() < max_teleporters) {
+					EntityAnimation ani;
+					ani.spritesheet_scale = { 1 / 39.f, 1 };
+					ani.render_pos = { 1 / 39.f, 1 };
+					ani.frame_rate_ms = 100;
+					ani.full_rate_ms = 100;
+					ani.is_active = false;
+					vec2 scale = 2.f * vec2(TELEPORTER_WIDTH, TELEPORTER_HEIGHT);
+					float teleport_time = 2300;
+					
+					createTeleporter(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f), scale, scale / 6.f, MAP_LEVEL::LEVEL2, ani, TEXTURE_ASSET_ID::TELEPORTER, teleport_time, "Press \"E\" to enter next level", "Next Level");
+					createChest(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f + vec2(0.0f, 4.0f)));
 				}
 			}
 		}
-
 	}
-
 }
 
 void MapSystem::restart_map() {
@@ -112,24 +131,53 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		std::vector<vec2> spawn_points;
 		std::uniform_int_distribution<> int_distrib(2, 3);
 		int enemy_num = static_cast<int>(int_distrib(rng) * combo_mode.combo_meter * 2);
+		int valid_spawn_points = 0;
+		while (valid_spawn_points < enemy_num) {
+			std::uniform_real_distribution<> real_distrib_x(room.top_left.x + 0.3f, room.bottom_right.x - 0.3f);
+			float loc_x = real_distrib_x(rng);
+			std::uniform_real_distribution<> real_distrib_y(room.top_left.y + 0.3f, room.bottom_right.y - 0.3f);
+			float loc_y = real_distrib_y(rng);
+			vec2 spawn_point = round(vec2(loc_x, loc_y));
+			// check if spawn point is valid
+			if (world_map[spawn_point.y][spawn_point.x] == (int)TILE_TYPE::WALL) continue;
+			spawn_points.push_back(convert_grid_to_world(spawn_point));
+			valid_spawn_points++;
+		}
 		for (int i = 0; i < enemy_num; i++) {
-			std::uniform_real_distribution<> real_distrib_x(room.top_left.x+0.3f, room.bottom_right.x- 0.3f);
+			std::uniform_real_distribution<> real_distrib_x(room.top_left.x + 0.3f, room.bottom_right.x - 0.3f);
 			float loc_x = real_distrib_x(rng);
 			std::uniform_real_distribution<> real_distrib_y(room.top_left.y + 0.3f, room.bottom_right.y - 0.3f);
 			float loc_y = real_distrib_y(rng);
 			spawn_points.push_back(convert_grid_to_world(vec2(loc_x, loc_y)));
 		}
-
+		std::uniform_real_distribution<> real_dist(0, 1);
 		for (vec2 point : spawn_points) {
-			float random_numer = uniform_dist(rng);
-			if (random_numer <= 0.50) {
-				room.enemies.push_back(createBeeEnemy(renderer, point));
+
+			float random_number = real_dist(rng);
+			if (map_info.level == MAP_LEVEL::LEVEL1) {
+				if (random_number <= 0.50) {
+					room.enemies.push_back(createGargoyleEnemy(renderer, point));
+				}
+				else if (random_number <= 0.75) {
+					room.enemies.push_back(createWolfEnemy(renderer, point));
+				}
+				else {
+					room.enemies.push_back(createBomberEnemy(renderer, point));
+				}
 			}
-			else if (random_numer <= 0.75) {
-				room.enemies.push_back(createWolfEnemy(renderer, point));
-			}
-			else if (random_numer <= 1.0) {
-				room.enemies.push_back(createBomberEnemy(renderer, point));
+			else if (map_info.level == MAP_LEVEL::LEVEL2) {
+				if (random_number <= 0.50) {
+					room.enemies.push_back(createBeeEnemy(renderer, point));
+				}
+				else if (random_number <= 0.7) {
+					room.enemies.push_back(createBee2Enemy(renderer, point));
+				}
+				else if (random_number <= 0.9) {
+					room.enemies.push_back(createWormEnemy(renderer, point));
+				}
+				else {
+					room.enemies.push_back(createLizardEnemy(renderer, point));
+				}
 			}
 		}
 	}
@@ -146,10 +194,10 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 	}
 	else if (room.type == ROOM_TYPE::SHOP) {
 		createNPC(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f));
-		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, 1.414f)) );
-		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, 1.414f)) );
-		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, -1.414f)) );
-		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, -1.414f)) );
+		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, 1.414f)));
+		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, 1.414f)));
+		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.414f, -1.414f)));
+		createPurchasableHealth(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(-1.414f, -1.414f)));
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f - vec2(1.f, 0.f)));
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(1.f, 0.f)));
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f - vec2(0.f, 1.f)));
@@ -158,6 +206,28 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(2 * 1.f, 0.f)));
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f - vec2(0.f, 2 * 1.f)));
 		createTreasure(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(0.f, 2 * 1.f)));
+
+		// Choose an ammo that is currently not used
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<> distrib(0, 1);
+		// X chance to spawn an ammo
+		if (distrib(gen) < 1.4) {
+			std::uniform_int_distribution<> typeDistrib(0, AMMO_TYPE::AMMO_TYPE_COUNT - 1);
+			int times_to_sample = 1;
+			std::vector<int> sampled_counts(AMMO_TYPE::AMMO_TYPE_COUNT, 0);
+			AMMO_TYPE type;
+			Player& player_c = registry.players.components[0];
+			while (times_to_sample > 0) {
+				type = static_cast<AMMO_TYPE>(typeDistrib(gen));
+				if (type == AMMO_TYPE::NORMAL || type == player_c.ammo_type) continue;
+				sampled_counts[type]++;
+				times_to_sample--;
+			}
+			int max_ammo_index = std::distance(sampled_counts.begin(), std::max_element(sampled_counts.begin(), sampled_counts.end()));
+			createPurchasableAmmo(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f + vec2(0.f, 0.5f)),
+				static_cast<AMMO_TYPE>(max_ammo_index));
+		}
 	}
 }
 
@@ -169,9 +239,23 @@ Entity MapSystem::spawnPlayerInRoom(int room_number) {
 	room.is_cleared = true;
 	room.need_to_spawn = false;
 
-	//room_number = bsptree.rooms.size() - 1;
-	//return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left - vec2(2, 0)));
-	return createPlayer(renderer, convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f));
+	vec2 spawn_point = convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f);
+
+	if (map_info.level == MAP_LEVEL::LEVEL1) {
+		// teleporter to tutorial
+		EntityAnimation ani;
+		ani.spritesheet_scale = { 1 / 26.f, 1 };
+		ani.render_pos = { 1 / 26.f, 1 };
+		ani.frame_rate_ms = 100;
+		ani.full_rate_ms = 100;
+		ani.is_active = false;
+		vec2 scale = 1.5f * vec2(TELEPORTER_SMALL_WIDTH, TELEPORTER_SMALL_HEIGHT);
+		float teleport_time = 1000;
+
+		createTeleporter(renderer, spawn_point + vec2(0, -world_tile_size * 1.5f), scale, scale / 10.f, MAP_LEVEL::TUTORIAL, ani, TEXTURE_ASSET_ID::TELEPORTER_SMALL, teleport_time, "Press \"E\" to enter tutorial", "Tutorial");
+	}
+
+	return createPlayer(renderer, spawn_point);
 }
 
 // Getting out of map results? Consider that there is empty padding in the world map.
@@ -235,6 +319,8 @@ void MapSystem::generateTutorialMap() {
 	// adjust world map attributes
 	world_center = { 9, 16 };
 
+	int global_key_size = 80;
+
 	// place entities relative to grid
 	auto create_wasd = [](KEYS key, vec2 pos, int key_size) {
 		createKey(vec2(0, -key_size + key_size / 4.f) + pos, { key_size, key_size }, KEYS::W, false, key == KEYS::W ? true : false);
@@ -243,18 +329,25 @@ void MapSystem::generateTutorialMap() {
 		createKey(vec2(key_size - key_size / 4.f, 0) + pos, { key_size, key_size }, KEYS::D, false, key == KEYS::D ? true : false);
 		};
 
-	create_wasd(KEYS::D, convert_grid_to_world({ 12, 16 }), 60);
-	create_wasd(KEYS::S, convert_grid_to_world({ 14.5, 20 }), 60);
-	create_wasd(KEYS::A, convert_grid_to_world({ 9, 23 }), 60);
-	create_wasd(KEYS::W, convert_grid_to_world({ 2.5, 20 }), 60);
+	create_wasd(KEYS::D, convert_grid_to_world({ 12.f, 16.25f }), global_key_size);
+	create_wasd(KEYS::S, convert_grid_to_world({ 14.5f, 20.f }), global_key_size);
+	create_wasd(KEYS::A, convert_grid_to_world({ 9.f, 22.75f }), global_key_size);
+	create_wasd(KEYS::W, convert_grid_to_world({ 2.5f, 20.f }), global_key_size);
 
 	// shift key focus mode
-	createKey(convert_grid_to_world({ 3.5, 8.5 }), vec2(150), KEYS::SHIFT, false, true, 1300);
-	createText(convert_grid_to_world({ 3.5, 9.5 }), vec3(0.8), "Hold to reduce\nhitbox to a dot", vec3(1, 1, 1), true, true);
+	auto create_shift = [](vec2 pos, int key_size) {
+		createKey(vec2(key_size - key_size / 2.f, 0) + pos, { key_size, key_size }, KEYS::SHIFT_0, false, true, 1500);
+		createKey(vec2(key_size + key_size / 2.f, 0) + pos, { key_size, key_size }, KEYS::SHIFT_1, false, true, 1500);
+		};
 
-	// E to bomb
-	createKey(convert_grid_to_world({ 16, 4 }), vec2(120), KEYS::E, false, true, 1300);
-	createText(convert_grid_to_world({ 16, 5 }), vec3(0.8), "Press Q to clear all enemy bullets\n Need one bomb", vec3(1, 1, 1), true, true);
+	create_shift(convert_grid_to_world({ 1.75f, 8.5f }), global_key_size);
+	createText(convert_grid_to_world({ 4.f, 8.5f }), vec3(3), "/", vec3(1, 1, 1), true, true);
+	createKey(convert_grid_to_world({ 4.75f, 8.5f }), vec2(global_key_size), KEYS::MOUSE_2, false, true, 1500);
+	createText(convert_grid_to_world({ 3.5f, 9.5f }), vec3(1.f), "Hold to reduce\nhitbox to a dot", vec3(1, 1, 1), true, true);
+
+	// Q to bomb
+	createKey(convert_grid_to_world({ 16, 4 }), vec2(global_key_size), KEYS::Q, false, true, 1300);
+	createText(convert_grid_to_world({ 16, 5 }), vec3(1.f), "Use a bomb\nto clear bullets/damage enemy", vec3(1, 1, 1), true, true);
 
 	// hardcoded bullet for this specific grid only
 	for (int j = 0; j < 7; ++j) {
@@ -266,12 +359,17 @@ void MapSystem::generateTutorialMap() {
 	}
 
 	// space/mouse 1 key attack
-	createKey(convert_grid_to_world({ 23.f, 10.f }), vec2(150), KEYS::SPACE, false, true, 1300);
-	createText(convert_grid_to_world({ 24.f, 10.f }), vec3(3), "/", vec3(1, 1, 1), true, true);
-	createKey(convert_grid_to_world({ 25.f, 10.f }), vec2(90), KEYS::MOUSE_1, false, true, 1500);
-	createText(convert_grid_to_world({ 24.f, 11.f }), vec3(1.f), "Hold to shoot", vec3(1, 1, 1), true, true);
+	auto create_space = [](vec2 pos, int key_size) {
+		createKey(vec2(-key_size + key_size / 4.f, 0) + pos, { key_size, key_size }, KEYS::SPACE_0, false, true, 1500);
+		createKey(vec2(0, 0) + pos, { key_size, key_size }, KEYS::SPACE_1, false, true, 1500);
+		createKey(vec2(key_size - key_size / 4.f, 0) + pos, { key_size, key_size }, KEYS::SPACE_2, false, true, 1500);
+		};
+	create_space(convert_grid_to_world({ 22.75f, 10.f }), global_key_size);
+	createText(convert_grid_to_world({ 24.25f, 10.f }), vec3(3), "/", vec3(1, 1, 1), true, true);
+	createKey(convert_grid_to_world({ 25.f, 10.f }), vec2(global_key_size), KEYS::MOUSE_1, false, true, 1500);
+	createText(convert_grid_to_world({ 23.5f, 11.f }), vec3(1.f), "Hold to shoot", vec3(1, 1, 1), true, true);
 
-	createText(convert_grid_to_world({ 29.f, 10.f }), vec3(1.f), "Combo Meter on top right\nIncreases game speed", vec3(1, 1, 1), true, true);
+	createText(convert_grid_to_world({ 29.f, 10.5f }), vec3(1.f), "Combo Meter on top right\nIncreases game speed", vec3(1, 1, 1), true, true);
 
 	// hardcoded dummy enemy spawn
 	Entity entity1 = createDummyEnemySpawner(renderer, convert_grid_to_world({ 29, 5 }));
@@ -279,17 +377,38 @@ void MapSystem::generateTutorialMap() {
 	spawner1.max_spawn = 5;
 
 	// remaining buttons
-	createKey(convert_grid_to_world({ 38, 16 }), vec2(120), KEYS::SCROLL, false, true);
-	createText(convert_grid_to_world({ 38.f, 17.5f }), vec3(1.f), "Zoom camera in/out", vec3(1, 1, 1), true, true);
+	// TODO: spawn an item here
+	createKey(convert_grid_to_world({ 36, 16 }), vec2(global_key_size), KEYS::E, false, true);
+	Entity entity = createPurchasableHealth(renderer, convert_grid_to_world({ 38.f, 16.f }));
+	if (registry.bezierCurves.has(entity)) registry.bezierCurves.remove(entity);
+	createText(convert_grid_to_world({ 36.f, 17.f }), vec3(1.f), "Interact", vec3(1, 1, 1), true, true);
 
-	createKey(convert_grid_to_world({ 43, 16 }), vec2(120), KEYS::P, false, true);
-	createText(convert_grid_to_world({ 43.f, 17.5f }), vec3(1.f), "Toggle camera offset", vec3(1, 1, 1), true, true);
+	createKey(convert_grid_to_world({ 40, 16 }), vec2(global_key_size), KEYS::SCROLL, false, true);
+	createText(convert_grid_to_world({ 40.f, 17.f }), vec3(1.f), "Zoom camera in/out", vec3(1, 1, 1), true, true);
 
-	createKey(convert_grid_to_world({ 48, 16 }), vec2(120), KEYS::F, false, true);
-	createText(convert_grid_to_world({ 48.f, 17.5f }), vec3(1.f), "Show fps", vec3(1, 1, 1), true, true);
+	createKey(convert_grid_to_world({ 44, 16 }), vec2(global_key_size), KEYS::R, false, true);
+	createText(convert_grid_to_world({ 44.f, 17.f }), vec3(1.f), "Toggle camera offset", vec3(1, 1, 1), true, true);
 
-	createKey(convert_grid_to_world({ 59, 16 }), vec2(120), KEYS::R, false, true);
-	createText(convert_grid_to_world({ 59.f, 17.5f }), vec3(1.f), "Return to main world", vec3(1, 1, 1), true, true);
+	createKey(convert_grid_to_world({ 48, 16 }), vec2(global_key_size), KEYS::F, false, true);
+	createText(convert_grid_to_world({ 48.f, 17.f }), vec3(1.f), "Show fps", vec3(1, 1, 1), true, true);
+
+	createKey(convert_grid_to_world({ 52, 16 }), vec2(global_key_size), KEYS::H, false, true);
+	createText(convert_grid_to_world({ 52.f, 17.f }), vec3(1.f), "Help", vec3(1, 1, 1), true, true);
+
+	createKey(convert_grid_to_world({ 56, 16 }), vec2(global_key_size), KEYS::ESC, false, true);
+	createText(convert_grid_to_world({ 56.f, 17.f }), vec3(1.f), "Pause", vec3(1, 1, 1), true, true);
+
+	// teleporter
+	EntityAnimation ani;
+	ani.spritesheet_scale = { 1 / 26.f, 1 };
+	ani.render_pos = { 1 / 26.f, 1 };
+	ani.frame_rate_ms = 100;
+	ani.full_rate_ms = 100;
+	ani.is_active = false;
+	vec2 scale = 1.5f * vec2(TELEPORTER_SMALL_WIDTH, TELEPORTER_SMALL_HEIGHT);
+	float teleport_time = 1000;
+
+	createTeleporter(renderer, convert_grid_to_world({ 60.f, 16.5f }), scale, scale / 10.f, MAP_LEVEL::LEVEL1, ani, TEXTURE_ASSET_ID::TELEPORTER_SMALL, teleport_time, "Press \"E\" to enter main world", "Return to Main World");
 
 	// Add grid to map
 	for (int y = 0; y < grid.size(); ++y) {
@@ -297,7 +416,6 @@ void MapSystem::generateTutorialMap() {
 			world_map[y + 1][x + 1] = grid[y][x];
 		}
 	}
-	//generateAllEntityTiles(world_map);
 	generate_all_tiles(world_map);
 }
 
@@ -388,7 +506,7 @@ void MapSystem::generateRandomMap(float room_size) {
 
 		bsptree.rooms.push_back(boss_room2);
 		bsptree.generate_corridor_between_two_points(start, end);
-		std::uniform_int_distribution<> shop_distrib(1, static_cast<int>((bsptree.rooms.size() - 2)/2));
+		std::uniform_int_distribution<> shop_distrib(1, static_cast<int>((bsptree.rooms.size() - 2) / 2));
 		random_num = shop_distrib(rng);
 		bsptree.rooms[random_num].type = ROOM_TYPE::SHOP;
 		set_map_walls(world_map);
@@ -410,9 +528,6 @@ void MapSystem::generateRandomMap(float room_size) {
 	for (int i = 0; i < bsptree.rooms.size(); ++i) {
 		game_info.add_room(bsptree.rooms[i]);
 	}
-
-	// Generates rocks in room
-	generate_rocks(world_map);
 }
 
 vec4 addSingleDoor(int row, int col, DIRECTION dir, int room_index, Room_struct& room, std::vector<std::vector<int>>& map) {
@@ -610,9 +725,9 @@ void MapSystem::generate_door_tiles(std::vector<std::vector<int>>& map) {
 	}
 }
 
-// Sets wall tiles that act like rocks in a room
-void MapSystem::generate_rocks(std::vector<std::vector<int>>& map) {
-	float rock_spawn_chance = 0.05f;
+// Sets wall tiles that act like obstacles in a room
+void MapSystem::generate_obstacles(std::vector<std::vector<int>>& map) {
+	float spawn_chance = 0.05f;
 	float to_spawn = 0.f;
 	for (Room_struct& room : bsptree.rooms) {
 		if (room.type != ROOM_TYPE::NORMAL) {
@@ -621,9 +736,8 @@ void MapSystem::generate_rocks(std::vector<std::vector<int>>& map) {
 		for (int row = room.top_left.y + 1; row < room.bottom_right.y; row++) {
 			for (int col = room.top_left.x + 1; col < room.bottom_right.x; col++) {
 				to_spawn = uniform_dist(rng);
-				//map[row][col] = (to_spawn < rock_spawn_chance) ? (int)TILE_TYPE::WALL : (int)TILE_TYPE::FLOOR;
-				if (to_spawn < rock_spawn_chance) {
-					createRock(renderer, { col, row });
+				if (to_spawn < spawn_chance) {
+					createObstacle(renderer, { col, row });
 				}
 
 			}

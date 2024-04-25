@@ -20,7 +20,7 @@ public:
 	AISystem();
 
 	// Initialize decision trees
-	void init(VisibilitySystem* visibility_arg);
+	void init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg);
 	// Initialize flow field - call this whenever a new map is generated
 	void restart_flow_field_map();
 	// Returns value at specified grid coordinates
@@ -29,11 +29,16 @@ public:
 	void step(float elapsed_ms);
 private:
 	VisibilitySystem* visibility_system;
+	RenderSystem* renderer;
 
 	// Decision trees for different ai entities
 	DecisionTree bee_tree;
 	DecisionTree bomber_tree;
 	DecisionTree wolf_tree;
+	DecisionTree lizard_tree;
+	DecisionTree bee2_tree;
+	DecisionTree worm_tree;
+	DecisionTree gargoyle_tree;
 	DecisionTree cirno_boss_tree;
 	DecisionTree flandre_boss_tree;
 
@@ -58,10 +63,10 @@ private:
 		vec2(0, 1),		// DOWN
 		vec2(-1, 0),	// LEFT
 		vec2(1, 0),		// RIGHT
-		vec2(-1, -1),	// UP LEFT
-		vec2(1, -1),	// UP RIGHT
-		vec2(-1, 1),	// DOWN LEFT
-		vec2(1, 1)		// DOWN RIGHT
+		//vec2(-1, -1),	// UP LEFT
+		//vec2(1, -1),	// UP RIGHT
+		//vec2(-1, 1),	// DOWN LEFT
+		//vec2(1, 1)		// DOWN RIGHT
 	};
 
 	// Decision tree function

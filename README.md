@@ -37,3 +37,13 @@ Alan Huang <br />
 - Font - https://www.dafont.com/pixelmix.font
 - Paper UI - https://humblepixel.itch.io/pocket-inventory-series-5-player-status
 - Ruins/texture, Teleporter - https://rafaelmatos.itch.io/epic-rpg-world-pack-free-demo-ancient-ruins-asset-tileset
+- Aimbot cursor - https://bdragon1727.itch.io/basic-pixel-health-bar-and-scroll-bar
+- AOE explosion - https://untiedgames.itch.io/five-free-pixel-explosions
+- Aimbot bullet/disappear - https://bdragon1727.itch.io/free-effect-and-bullet-16x16
+- AOE bullet/disappear - https://bdragon1727.itch.io/free-effect-bullet-impact-explosion-32x32
+- Hit spark - https://pimen.itch.io/battle-vfx-hit-spark
+- Icons - https://quintino-pixels.itch.io/assorted-icons
+- Aura - https://codemanu.itch.io/pixelart-effect-pack
+- Buttons - https://kenney.nl/assets/input-prompts-pixel-16
+- 
+

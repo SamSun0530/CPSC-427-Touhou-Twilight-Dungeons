@@ -1,9 +1,7 @@
 #include "world_init.hpp"
 #include <iostream>
 
-//int playerBullet_damage_playerBullet_damage = 10;
-
-Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern, int damageBoost)
+Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_position, float rotation_angle, vec2 direction, float bullet_speed, bool is_player_bullet, BulletPattern* bullet_pattern, bool is_aimbot_bullet)
 {
 	auto entity = Entity();
 
@@ -28,17 +26,94 @@ Entity createBullet(RenderSystem* renderer, float entity_speed, vec2 entity_posi
 	collidable.size = abs(motion.scale / 2.f);
 	// Create and (empty) bullet component to be able to refer to all bullets
 	if (is_player_bullet) {
+		stats.bullets_fired++;
 		auto& playerBullet = registry.playerBullets.emplace(entity);
+		Player& player = registry.players.components[0];
+		playerBullet.damage = player.bullet_damage;
 
-		playerBullet.damage = registry.players.components[0].bullet_damage;
+		TEXTURE_ASSET_ID texture_asset = TEXTURE_ASSET_ID::BULLET; // default
 
+		switch (player.ammo_type) {
+		case AMMO_TYPE::NORMAL: {
+			registry.normalBullets.emplace(entity);
+			break;
+		}
+		case AMMO_TYPE::AIMBOT: {
+			registry.aimbotBullets.emplace(entity);
+			EntityAnimation ani;
+			ani.frame_rate_ms = 100;
+			ani.full_rate_ms = 100;
+			ani.spritesheet_scale = { 1.f / 6.f, 1.f };
+			ani.render_pos = { 1.f / 6.f, 1.f };
+			ani.is_active = true;
+			// aimbot bullet will stop playing after a while
+			registry.alwaysplayAni.insert(entity, ani);
+
+			// update scale to be larger
+			motion.scale = 1.5f * vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+			collidable.size = abs(motion.scale / 2.f);
+
+			texture_asset = TEXTURE_ASSET_ID::AIMBOT_AMMO_BULLET;
+			break;
+		}
+		case AMMO_TYPE::AIMBOT1BULLET: {
+			// is_aimbot_bullet is just to separate aimbot bullet and normal bullet texture
+			if (is_aimbot_bullet) {
+				registry.aimbotBullets.emplace(entity);
+				EntityAnimation ani;
+				ani.frame_rate_ms = 100;
+				ani.full_rate_ms = 100;
+				ani.spritesheet_scale = { 1.f / 6.f, 1.f };
+				ani.render_pos = { 1.f / 6.f, 1.f };
+				ani.is_active = true;
+				// aimbot bullet will stop playing after a while
+				registry.alwaysplayAni.insert(entity, ani);
+
+				// update scale to be larger
+				motion.scale = 1.5f * vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+				collidable.size = abs(motion.scale / 2.f);
+
+				texture_asset = TEXTURE_ASSET_ID::AIMBOT_AMMO_BULLET;
+			}
+			else {
+				registry.normalBullets.emplace(entity);
+			}
+			break;
+		}
+		case AMMO_TYPE::AOE: {
+			registry.aoeBullets.emplace(entity);
+			EntityAnimation ani;
+			ani.frame_rate_ms = 1000.f / 10.f;
+			ani.full_rate_ms = 1000.f / 10.f;
+			ani.spritesheet_scale = { 1.f / 4.f, 1.f };
+			ani.render_pos = { 1.f / 4.f, 1.f };
+			ani.is_active = true;
+			registry.alwaysplayAni.insert(entity, ani);
+
+			// update scale to be larger
+			motion.scale = 3.f * vec2({ BULLET_BB_WIDTH, BULLET_BB_HEIGHT });
+			collidable.size = abs(motion.scale / 2.f);
+
+			texture_asset = TEXTURE_ASSET_ID::AOE_AMMO_BULLET;
+			break;
+		}
+		case AMMO_TYPE::TRIPLE: {
+			registry.normalBullets.emplace(entity);
+			break;
+		}
+		default:
+			break;
+		}
+
+		// TODO: change bullet texture
 		registry.renderRequests.insert(
 			entity,
-			{ TEXTURE_ASSET_ID::BULLET,
+			{ texture_asset,
 			 EFFECT_ASSET_ID::TEXTURED,
 			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else {
+		// enemy bullets do not have render requests since they are instance rendered
 		registry.enemyBullets.emplace(entity);
 	}
 
@@ -168,7 +243,7 @@ Entity createPurchasableHealth(RenderSystem* renderer, vec2 position)
 	if (number <= 0.6) {
 		purchasable.cost = 6;
 		purchasable.effect_strength = 1;
-		purchasable.effect_type = 7;
+		purchasable.effect_type = EFFECT_TYPE::INCR_CURRENT_HP;
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::HEALTH_1, // TEXTURE_COUNT indicates that no txture is needed
@@ -179,7 +254,7 @@ Entity createPurchasableHealth(RenderSystem* renderer, vec2 position)
 	else if (number <= 0.9) {
 		purchasable.cost = 10;
 		purchasable.effect_strength = 2;
-		purchasable.effect_type = 7;
+		purchasable.effect_type = EFFECT_TYPE::INCR_CURRENT_HP;
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::HEALTH_2, // TEXTURE_COUNT indicates that no txture is needed
@@ -189,13 +264,86 @@ Entity createPurchasableHealth(RenderSystem* renderer, vec2 position)
 	else {
 		purchasable.cost = 20;
 		purchasable.effect_strength = 100;
-		purchasable.effect_type = 7;
+		purchasable.effect_type = EFFECT_TYPE::INCR_CURRENT_HP;
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::REGENERATE_HEALTH, // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
+	return entity;
+}
+
+// We will only use cost in struct purchasable for ammo
+Entity createPurchasableAmmo(RenderSystem* renderer, vec2 position, AMMO_TYPE ammo_type) {
+	auto entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	motion.angle = 0.f;
+	motion.scale = 0.75f * vec2({ ITEM_WIDTH, ITEM_HEIGHT });
+	registry.kinematics.emplace(entity);
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = abs(motion.scale);
+
+	auto& purchasable = registry.purchasableables.emplace(entity);
+	registry.colors.insert(entity, { 1,1,1 });
+
+	// set default values in case ammo_type is invalid
+	TEXTURE_ASSET_ID texture_asset = TEXTURE_ASSET_ID::HEALTH_1;
+	purchasable.cost = 9999;
+
+	switch (ammo_type) {
+	case AMMO_TYPE::AIMBOT: {
+		purchasable.cost = 100;
+		purchasable.effect_type = EFFECT_TYPE::AIMBOT_AMMO;
+		texture_asset = TEXTURE_ASSET_ID::AIMBOT_AMMO_ITEM;
+		break;
+	}
+	case AMMO_TYPE::AOE: {
+		purchasable.cost = 50;
+		purchasable.effect_type = EFFECT_TYPE::AOE_AMMO;
+		texture_asset = TEXTURE_ASSET_ID::AOE_AMMO_ITEM;
+		break;
+	}
+	case AMMO_TYPE::TRIPLE: {
+		purchasable.cost = 50;
+		purchasable.effect_type = EFFECT_TYPE::TRIPLE_AMMO;
+		texture_asset = TEXTURE_ASSET_ID::TRIPLE_AMMO_ITEM;
+		break;
+	}
+	case AMMO_TYPE::AIMBOT1BULLET: {
+		purchasable.cost = 25;
+		purchasable.effect_type = EFFECT_TYPE::AIMBOT1BULLET_AMMO;
+		texture_asset = TEXTURE_ASSET_ID::AIMBOT1BULLET_AMMO_ITEM;
+		break;
+	}
+	case AMMO_TYPE::NORMAL: {
+		purchasable.effect_type = EFFECT_TYPE::NORMAL_AMMO;
+		purchasable.cost = 0;
+		break;
+	}
+	default:
+		break;
+	}
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture_asset,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> distrib(0, 1);
+	double number = distrib(gen);
+	double number_y = distrib(gen) / 2;
+	vec2 dir = { 60 * (number - 0.5), 50 * (number_y) };
+	BezierCurve curve;
+	curve.bezier_pts.push_back(position);
+	curve.bezier_pts.push_back(position + vec2(0, -20));
+	curve.bezier_pts.push_back(position + dir);
+	registry.bezierCurves.insert(entity, curve);
 	return entity;
 }
 
@@ -218,20 +366,18 @@ Entity createTreasure(RenderSystem* renderer, vec2 position, bool is_bezier)
 	double number = distrib(gen);
 	double number_y = distrib(gen) / 2;
 
-
 	// Generate a random number between 1 and 6 for type
 	// 1=bullet_damage, 2=fire_rate, 3=critical_hit, 4=max_health, 5=critical_dmg, 6=bomb
 
-	std::uniform_int_distribution<> typeDistrib(1, 5);
-	int type = typeDistrib(gen);
-
-	
+	std::uniform_int_distribution<> typeDistrib(EFFECT_TYPE::EFFECT_TYPE_SEPARATOR_0 + 1, EFFECT_TYPE::EFFECT_TYPE_SEPARATOR_1 - 2); // bomb is last, excludes bomb
+	EFFECT_TYPE type = static_cast<EFFECT_TYPE>(typeDistrib(gen));
 
 	Purchasableable& purchasableable = registry.purchasableables.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
+
 	if (number < 0.1) {
-		type = 6;
-		purchasableable.effect_type = type;
+		type = EFFECT_TYPE::BOMB;
+		purchasableable.effect_type = EFFECT_TYPE::BOMB;
 		purchasableable.cost = 10;
 		motion.scale = vec2({ 32, 32 });
 	}
@@ -246,9 +392,8 @@ Entity createTreasure(RenderSystem* renderer, vec2 position, bool is_bezier)
 		purchasableable.cost *= 3;
 		purchasableable.effect_type = type;
 	}
-	
-	
-	if (type == 1) {
+
+	if (type == EFFECT_TYPE::BULLET_DAMAGE) {
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::ITEM_R, // TEXTURE_COUNT indicates that no txture is needed
@@ -256,38 +401,45 @@ Entity createTreasure(RenderSystem* renderer, vec2 position, bool is_bezier)
 				GEOMETRY_BUFFER_ID::SPRITE });
 
 	}
-	else if (type == 2) {
+	else if (type == EFFECT_TYPE::FIRE_RATE) {
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::ITEM_B, // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
-	else if (type == 3) {
+	else if (type == EFFECT_TYPE::CRITICAL_HIT) {
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::ITEM_G, // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
-	}else if (type == 4) {
+	}
+	else if (type == EFFECT_TYPE::INCR_MAXIMUM_HP) {
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::ITEM_Y, // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
-	}else if (type == 5) {
+	}
+	else if (type == EFFECT_TYPE::CRITICAL_DAMAGE) {
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::ITEM_P, // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
-	}else {
+	}
+	else if (type == EFFECT_TYPE::BOMB) {
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::BOMB, // TEXTURE_COUNT indicates that no txture is needed
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
+	else {
+		assert(false && "Unsupported effect type");
+	}
+
 	vec2 dir = { 60 * (number - 0.5), 50 * (number_y) };
 	if (is_bezier) {
 		BezierCurve curve;
@@ -328,7 +480,7 @@ Entity createCoin(RenderSystem* renderer, vec2 position, int value, float bezier
 	// Generate a positive number
 	double number = distrib(gen);
 	double x_number = x_distrib(gen);
-	
+
 	// collidable
 	auto& collidable = registry.collidables.emplace(entity);
 	collidable.size = motion.scale / 2.f;
@@ -600,6 +752,38 @@ Entity createFocusDot(RenderSystem* renderer, vec2 pos, vec2 size)
 	return entity;
 }
 
+Entity createAimbotCursor(RenderSystem* renderer, vec2 pos, float scale)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = vec2(ENEMY_BB_WIDTH_128, ENEMY_BB_HEIGHT_128);
+
+	EntityAnimation ani;
+	ani.isCursor = false;
+	ani.spritesheet_scale = { 1.f / 4.f, 1.f };
+	ani.render_pos = { 1.f / 4.f, 1.f };
+	ani.frame_rate_ms = 200;
+	ani.full_rate_ms = 200;
+	ani.is_active = true;
+	registry.alwaysplayAni.insert(entity, ani);
+
+	registry.aimbotCursors.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::AIMBOT_CURSOR,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createCombo(RenderSystem* renderer)
 {
 	auto entity = Entity();
@@ -797,8 +981,8 @@ Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui, bool is_active, f
 	EntityAnimation key_ani;
 	key_ani.isCursor = false;
 	//std::cout << static_cast<int>(key) << std::endl;
-	key_ani.spritesheet_scale = { 0.5, 1 / 13.0f };
-	key_ani.render_pos = { 0.0, 1 / 13.0f * static_cast<int>(key) };
+	key_ani.spritesheet_scale = { 1.f / 2.f, 1.f / 18.0f };
+	key_ani.render_pos = { 1.f / 2.f, 1.f / 18.0f * static_cast<int>(key) };
 	key_ani.frame_rate_ms = frame_rate;
 	key_ani.full_rate_ms = frame_rate;
 	key_ani.is_active = is_active;
@@ -812,6 +996,71 @@ Entity createKey(vec2 pos, vec2 size, KEYS key, bool is_on_ui, bool is_active, f
 
 	return entity;
 }
+
+Entity createVFX(RenderSystem* renderer, vec2 pos, vec2 scale, float angle, VFX_TYPE type) {
+	auto entity = Entity();
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = angle;
+	motion.scale = scale;
+
+	EntityAnimation playonce_ani;
+	// Set explosion as default, could change in switch statement below
+	TEXTURE_ASSET_ID texture_asset = TEXTURE_ASSET_ID::AOE_AMMO_EXPLOSION;
+
+	switch (type) {
+	case VFX_TYPE::AOE_AMMO_EXPLOSION: {
+		texture_asset = TEXTURE_ASSET_ID::AOE_AMMO_EXPLOSION;
+		playonce_ani.spritesheet_scale = { 1.f / 82.f, 1.f };
+		playonce_ani.render_pos = { 1 / 82.f, 1.f };
+		playonce_ani.frame_rate_ms = 1000.f / 60.f;
+		playonce_ani.full_rate_ms = 1000.f / 60.f;
+		playonce_ani.is_active = true;
+		break;
+	}
+	case VFX_TYPE::AOE_AMMO_DISAPPEAR: {
+		texture_asset = TEXTURE_ASSET_ID::AOE_AMMO_BULLET_DISAPPEAR;
+		playonce_ani.spritesheet_scale = { 1.f / 4.f, 1.f };
+		playonce_ani.render_pos = { 1 / 4.f, 1.f };
+		playonce_ani.frame_rate_ms = 1000.f / 10.f;
+		playonce_ani.full_rate_ms = 1000.f / 10.f;
+		playonce_ani.is_active = true;
+		break;
+	}
+	case VFX_TYPE::AIMBOT_AMMO_DISAPPEAR: {
+		texture_asset = TEXTURE_ASSET_ID::AIMBOT_AMMO_BULLET_DISAPPEAR;
+		playonce_ani.spritesheet_scale = { 1.f / 4.f, 1.f };
+		playonce_ani.render_pos = { 1 / 4.f, 1.f };
+		playonce_ani.frame_rate_ms = 1000.f / 10.f;
+		playonce_ani.full_rate_ms = 1000.f / 10.f;
+		playonce_ani.is_active = true;
+		break;
+	}
+	case VFX_TYPE::HIT_SPARK: {
+		texture_asset = TEXTURE_ASSET_ID::HIT_SPARK;
+		playonce_ani.spritesheet_scale = { 1.f / 7.f, 1.f };
+		playonce_ani.render_pos = { 1 / 7.f, 1.f };
+		playonce_ani.frame_rate_ms = 1000.f / 10.f;
+		playonce_ani.full_rate_ms = 1000.f / 10.f;
+		playonce_ani.is_active = true;
+		break;
+	}
+	default:
+		break;
+	}
+
+	registry.playonceAni.insert(entity, playonce_ani);
+	registry.renderRequests.insert(
+		entity,
+		{ texture_asset,
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 
 Entity createCriHit(RenderSystem* renderer, vec2 pos)
 {
@@ -1102,11 +1351,11 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 	boss.phase_change_time = 1500;
 
 	if (boss_id == BOSS_ID::CIRNO) {
-		hp.max_hp = 5;
+		hp.max_hp = 5020;
 		hp.curr_hp = hp.max_hp;
 
-		boss.health_phase_thresholds = { 5, 4, 3, 2, -1 }; // -1 for end of phase
-		//boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
+		//boss.health_phase_thresholds = { 5, 4, 3, 2, -1 }; // -1 for end of phase
+		boss.health_phase_thresholds = { 5000, 3750, 2500, 1250, -1 }; // -1 for end of phase
 
 		registry.renderRequests.insert(
 			entity,
@@ -1189,7 +1438,7 @@ Entity createBeeEnemy(RenderSystem* renderer, vec2 position)
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 14 * 1.f/combo_mode.combo_meter;
+	bs.fire_rate = 14 * 1.f / combo_mode.combo_meter;
 	bs.is_firing = false;
 	bs.bullet_initial_speed = 200;
 
@@ -1329,7 +1578,7 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 40 * 1/combo_mode.combo_meter;
+	bs.fire_rate = 40 * 1 / combo_mode.combo_meter;
 	bs.is_firing = false;
 	bs.bullet_initial_speed = 160;
 	bs.bullets_per_array = static_cast<int>(3 * combo_mode.combo_meter);
@@ -1345,8 +1594,7 @@ Entity createWolfEnemy(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
-Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position)
-{
+Entity createLizardEnemy(RenderSystem* renderer, vec2 position) {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -1355,10 +1603,9 @@ Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position)
 
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
 	motion.position = position;
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+	motion.scale = vec2({ ENEMY_BB_WIDTH_96, ENEMY_BB_HEIGHT_96 });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 100.f;
@@ -1367,30 +1614,253 @@ Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position)
 
 	// Set the collision box
 	auto& collidable = registry.collidables.emplace(entity);
-	collidable.size = motion.scale;
+	collidable.size = motion.scale / 2.f;
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 6;
+	hp.max_hp = 50;
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
 	Deadly& deadly = registry.deadlys.emplace(entity);
 	deadly.damage = 1;
 
-	registry.submachineGunEnemies.emplace(entity);
+
+	registry.lizardEnemies.emplace(entity);
+	EntityAnimation enemy_ani;
+	enemy_ani.spritesheet_scale = { 1.f / 6.f, 1.f / 12.f };
+	enemy_ani.render_pos = { 1.f / 6.f, 5.f / 12.f };
+	registry.animation.insert(entity, enemy_ani);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::ENEMY_BEE,
+		{ TEXTURE_ASSET_ID::ENEMY_LIZARD,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	registry.idleMoveActions.emplace(entity);
-	BulletSpawner enemy_bullet_rate;
-	enemy_bullet_rate.fire_rate = 5;
-	enemy_bullet_rate.is_firing = true;
-	registry.bulletSpawners.insert(entity, enemy_bullet_rate);
+
+	BulletSpawner bs;
+	//bs.fire_rate = 2;
+	//bs.is_firing = false;
+	//bs.bullet_initial_speed = 100;
+	//bs.number_to_fire = 5;
+	//bs.cooldown_rate = 50; // every 5 seconds
+	//bs.is_cooldown = true;
+
+	bs.fire_rate = 2;
+	bs.is_firing = false;
+	bs.bullets_per_array = 6;
+	bs.spread_within_array = 60;
+	bs.bullet_initial_speed = 100;
+	bs.number_to_fire = 1;
+	bs.is_cooldown = true;
+	bs.cooldown_rate = 50; // every 5 seconds
+
+	registry.bulletSpawners.insert(entity, bs);
+
+	deadly.has_bullet_pattern = true;
+	deadly.bullet_pattern.commands = {
+		{ BULLET_ACTION::DELAY, 500.f },
+		{ BULLET_ACTION::DIRECTION, vec2(0,0)},
+		{ BULLET_ACTION::DELAY, 1000.f },
+		{ BULLET_ACTION::PLAYER_DIRECTION, 0 },
+	};
+
 	registry.colors.insert(entity, { 1,1,1 });
+
+	AiTimer& aitimer = registry.aitimers.emplace(entity);
+	aitimer.update_base = 500; // updates decision tree every second
+	aitimer.update_timer_ms = 500;
+
+	return entity;
+}
+
+Entity createWormEnemy(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ ENEMY_BB_WIDTH_128, ENEMY_BB_HEIGHT_128 });
+
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 100.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 0 };
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale / 2.f;
+
+	// HP
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 50;
+	hp.curr_hp = hp.max_hp;
+
+	// Collision damage
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.damage = 1;
+
+	registry.wormEnemies.emplace(entity);
+	EntityAnimation enemy_ani;
+	enemy_ani.spritesheet_scale = { 1.f / 6.f, 1.f / 12.f };
+	enemy_ani.render_pos = { 1.f / 6.f, 5.f / 12.f };
+	registry.animation.insert(entity, enemy_ani);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMY_WORM,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	registry.idleMoveActions.emplace(entity);
+
+	BulletSpawner bs;
+	bs.fire_rate = 1.5;
+	bs.is_firing = false;
+	bs.bullet_initial_speed = 100;
+	bs.number_to_fire = 10;
+	bs.is_cooldown = true;
+	bs.cooldown_rate = 60;
+
+	registry.bulletSpawners.insert(entity, bs);
+	registry.colors.insert(entity, { 1,1,1 });
+
+	AiTimer& aitimer = registry.aitimers.emplace(entity);
+	aitimer.update_base = 500; // updates decision tree every second
+	aitimer.update_timer_ms = 500;
+
+	return entity;
+}
+
+Entity createBee2Enemy(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = 1.3f * vec2({ ENEMY_BB_WIDTH_96, ENEMY_BB_HEIGHT_96 });
+
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 100.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 0 };
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale / 2.f;
+
+	// HP
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 50;
+	hp.curr_hp = hp.max_hp;
+
+	// Collision damage
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.damage = 1;
+
+	registry.bee2Enemies.emplace(entity);
+	EntityAnimation enemy_ani;
+	enemy_ani.spritesheet_scale = { 1.f / 6.f, 1.f / 8.f };
+	enemy_ani.render_pos = { 1.f / 6.f, 1.f / 8.f };
+	registry.animation.insert(entity, enemy_ani);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMY_BEE2,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	registry.idleMoveActions.emplace(entity);
+
+	BulletSpawner bs;
+	bs.fire_rate = 20;
+	bs.is_firing = false;
+	bs.bullet_initial_speed = 100;
+
+	deadly.has_bullet_pattern = true;
+	deadly.bullet_pattern.commands = {
+		{ BULLET_ACTION::ROTATE, 45},
+		{ BULLET_ACTION::DELAY, 200},
+		{ BULLET_ACTION::ROTATE, -90},
+		{ BULLET_ACTION::DELAY, 200},
+		{ BULLET_ACTION::ROTATE, 90},
+		{ BULLET_ACTION::LOOP, vec2(10, 1)},
+	};
+
+	registry.bulletSpawners.insert(entity, bs);
+	registry.colors.insert(entity, { 1,1,1 });
+
+	AiTimer& aitimer = registry.aitimers.emplace(entity);
+	aitimer.update_base = 500; // updates decision tree every second
+	aitimer.update_timer_ms = 500;
+
+	return entity;
+}
+
+Entity createGargoyleEnemy(RenderSystem* renderer, vec2 position) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = 1.8f * vec2({ ENEMY_BB_WIDTH_96, ENEMY_BB_HEIGHT_96 });
+
+	auto& kinematic = registry.kinematics.emplace(entity);
+	kinematic.speed_base = 100.f;
+	kinematic.speed_modified = 1.f * kinematic.speed_base;
+	kinematic.direction = { 0, 0 };
+
+	// Set the collision box
+	auto& collidable = registry.collidables.emplace(entity);
+	collidable.size = motion.scale / 3.f;
+
+	// HP
+	HP& hp = registry.hps.emplace(entity);
+	hp.max_hp = 60;
+	hp.curr_hp = hp.max_hp;
+
+	// Collision damage
+	Deadly& deadly = registry.deadlys.emplace(entity);
+	deadly.damage = 1;
+
+	registry.gargoyleEnemies.emplace(entity);
+	EntityAnimation enemy_ani;
+	enemy_ani.spritesheet_scale = { 1.f / 6.f, 1.f / 8.f };
+	enemy_ani.render_pos = { 1.f / 6.f, 1.f / 8.f };
+	registry.animation.insert(entity, enemy_ani);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENEMY_GARGOYLE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	registry.idleMoveActions.emplace(entity);
+
+	BulletSpawner bs;
+	bs.fire_rate = 50;
+	bs.is_firing = false;
+	bs.bullet_initial_speed = 100;
+
+	registry.bulletSpawners.insert(entity, bs);
+	registry.colors.insert(entity, { 1,1,1 });
+
+	AiTimer& aitimer = registry.aitimers.emplace(entity);
+	aitimer.update_base = 500; // updates decision tree every second
+	aitimer.update_timer_ms = 500;
 
 	return entity;
 }
@@ -1454,49 +1924,6 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 		collidable.size = { motion.scale.x, motion.scale.y };
 		collidable.shift = { 0, 0 };
 
-		//if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_WALL) {
-		//	collidable.size = { motion.scale.x, motion.scale.y };
-		//	collidable.shift = { 0, 0 };
-		//}
-		//else if (textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_WALL) {
-		//	collidable.size = { motion.scale.x, motion.scale.y };
-		//	collidable.shift = { 0, 0 };
-		//}
-		//else if (textureIDs[i] == TEXTURE_ASSET_ID::BOTTOM_WALL) {
-		//	collidable.size = { motion.scale.x, motion.scale.y };
-		//	collidable.shift = { 0, 0 };
-		//}
-		//else if (textureIDs[i] == TEXTURE_ASSET_ID::WALL_SURFACE) {
-		//	collidable.size = { motion.scale.x, motion.scale.y };
-		//	collidable.shift = { 0, 0 };
-		//}
-		//else if (textureIDs[i] == TEXTURE_ASSET_ID::LEFT_TOP_CORNER_WALL ||
-		//	textureIDs[i] == TEXTURE_ASSET_ID::LEFT_BOTTOM_CORNER_WALL ||
-		//	textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_TOP_CORNER_WALL ||
-		//	textureIDs[i] == TEXTURE_ASSET_ID::RIGHT_BOTTOM_CORNER_WALL) {
-		//	collidable.size = { motion.scale.x, motion.scale.y };
-		//	collidable.shift = { 0, 0 };
-		//}
-		//else
-		//	// TODO: remove this, used for testing ai can see player
-		//	if (textureIDs[i] == TEXTURE_ASSET_ID::PILLAR_BOTTOM) {
-		//		collidable.size = { motion.scale.x, motion.scale.y / 2 };
-		//		collidable.shift = { 0, -motion.scale.y / 4 };
-		//	}
-		//	else {
-		//		// Temporary
-		//		// TODO: Maybe change/refactor this since it's adding floors when its in createWall
-		//		registry.collidables.remove(entity);
-		//		registry.floors.emplace(entity);
-		//		registry.renderRequests.insert(
-		//			entity,
-		//			{ textureIDs[i],
-		//			 EFFECT_ASSET_ID::TEXTURED,
-		//			 GEOMETRY_BUFFER_ID::SPRITE });
-		//		entities.push_back(entity);
-		//		continue;
-		//	}
-
 		// Create and (empty) Tile component to be able to refer to all physical tiles
 		registry.walls.emplace(entity);
 		registry.renderRequests.insert(
@@ -1510,7 +1937,7 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 	return entities;
 }
 
-Entity createRock(RenderSystem* renderer, vec2 grid_position) {
+Entity createObstacle(RenderSystem* renderer, vec2 grid_position) {
 	auto entity = Entity();
 
 	// Initializes the motion
@@ -1523,14 +1950,73 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 	collidable.size = { motion.scale.x, motion.scale.y };
 	collidable.shift = { 0, 0 };
 
-
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<> distrib(0, 1);
 	double number = distrib(gen);
 
 	// Placeholder texure
-	if (number < 0.2) {
+	if (map_info.level == MAP_LEVEL::LEVEL1) {
+		if (number < 0.2) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::ROCK,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else if (number < 0.4) {
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::SKELETON,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else if (number < 0.6) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::POTTERY,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else if (number < 0.8) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::BARREL,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+
+			EntityAnimation& animation = registry.alwaysplayAni.emplace(entity);
+			animation.spritesheet_scale = { 1 / 8.f, 1.0f };
+			animation.render_pos = { 1 / 8.f, 1.0f };
+			animation.full_rate_ms = 100.f;
+			animation.frame_rate_ms = 100.f;
+
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::FIREPLACE,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL2) {
 		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
 		registry.walls.emplace(entity);
 
@@ -1538,55 +2024,8 @@ Entity createRock(RenderSystem* renderer, vec2 grid_position) {
 			entity,
 			{
 			TEXTURE_ASSET_ID::ROCK,
-			 EFFECT_ASSET_ID::TEXTURED,
-			 GEOMETRY_BUFFER_ID::SPRITE });
-	}
-	else if (number < 0.4) {
-		registry.renderRequests.insert(
-			entity,
-			{
-			TEXTURE_ASSET_ID::SKELETON,
-			 EFFECT_ASSET_ID::TEXTURED,
-			 GEOMETRY_BUFFER_ID::SPRITE });
-	}
-	else if (number < 0.6) {
-		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
-		registry.walls.emplace(entity);
-
-		registry.renderRequests.insert(
-			entity,
-			{
-			TEXTURE_ASSET_ID::POTTERY,
-			 EFFECT_ASSET_ID::TEXTURED,
-			 GEOMETRY_BUFFER_ID::SPRITE });
-	}
-	else if (number < 0.8) {
-		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
-		registry.walls.emplace(entity);
-
-		registry.renderRequests.insert(
-			entity,
-			{
-			TEXTURE_ASSET_ID::BARREL,
-			 EFFECT_ASSET_ID::TEXTURED,
-			 GEOMETRY_BUFFER_ID::SPRITE });
-	}
-	else {
-		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
-		registry.walls.emplace(entity);
-
-		EntityAnimation& animation = registry.alwaysplayAni.emplace(entity);
-		animation.spritesheet_scale = { 1 / 8.f, 1.0f };
-		animation.render_pos = { 1 / 8.f, 1.0f };
-		animation.full_rate_ms = 100.f;
-		animation.frame_rate_ms = 100.f;
-
-		registry.renderRequests.insert(
-			entity,
-			{
-			TEXTURE_ASSET_ID::FIREPLACE,
-			 EFFECT_ASSET_ID::TEXTURED,
-			 GEOMETRY_BUFFER_ID::SPRITE });
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
 	}
 
 	return entity;
@@ -1957,31 +2396,58 @@ Entity createPauseMenu(RenderSystem* renderer, vec2 background_pos, float backgr
 	return entity;
 }
 
-Entity createTeleporter(RenderSystem* renderer, vec2 pos, float scale) {
+Entity createTeleporter(RenderSystem* renderer, vec2 pos, vec2 scale, vec2 collidable_size,
+	MAP_LEVEL destination, EntityAnimation& ani, TEXTURE_ASSET_ID texture_asset, float teleport_time, std::string teleporter_text, std::string optional_text_above_teleporter) {
 	auto entity = Entity();
 
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
-	motion.scale = scale * vec2(TELEPORTER_WIDTH, TELEPORTER_HEIGHT);
+	motion.scale = scale;
 
 	Collidable& collidable = registry.collidables.emplace(entity);
-	collidable.size = motion.scale / 6.f;
+	collidable.size = collidable_size;
 
-	EntityAnimation key_ani;
-	key_ani.isCursor = false;
-	key_ani.spritesheet_scale = { 1 / 39.f, 1 };
-	key_ani.render_pos = { 1 / 39.f, 1 };
-	key_ani.frame_rate_ms = 100;
-	key_ani.full_rate_ms = 100;
-	key_ani.is_active = false;
-	registry.alwaysplayAni.insert(entity, key_ani);
+	registry.alwaysplayAni.insert(entity, ani);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::TELEPORTER,
+		{ texture_asset,
 		EFFECT_ASSET_ID::TEXTURED,
 		GEOMETRY_BUFFER_ID::SPRITE });
-	registry.teleporters.emplace(entity);
+	Teleporter& t = registry.teleporters.emplace(entity);
+	t.destination = destination;
+	t.teleport_time = teleport_time;
+	t.teleporter_text = teleporter_text;
+	t.optional_text_above_teleporter = optional_text_above_teleporter;
+
+	return entity;
+}
+
+Entity createAura(RenderSystem* renderer, vec2 pos, float scale, Entity entity_to_link, float spritesheet_x_scale, TEXTURE_ASSET_ID texture_asset) {
+	auto entity = Entity();
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = scale * vec2(ENEMY_BB_WIDTH_100, ENEMY_BB_HEIGHT_100);
+
+	EntityAnimation ani;
+	ani.spritesheet_scale = { spritesheet_x_scale, 1.f }; // 1/61
+	ani.render_pos = { spritesheet_x_scale, 1.f };
+	ani.frame_rate_ms = 1000.f / 10.f;
+	ani.full_rate_ms = 1000.f / 10.f;
+	ani.is_active = true;
+	registry.alwaysplayAni.insert(entity, ani);
+
+	registry.auras.emplace(entity);
+	registry.auraLinks.emplace(entity, entity_to_link);
+	registry.auraLinks.emplace(entity_to_link, entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture_asset,
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }

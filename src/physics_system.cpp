@@ -213,6 +213,7 @@ void PhysicsSystem::step(float elapsed_ms)
 {
 	// Assume there exists a player
 	Entity player = registry.players.entities[0];
+	Player& player_c = registry.players.components[0];
 
 	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
@@ -226,15 +227,14 @@ void PhysicsSystem::step(float elapsed_ms)
 		float step_seconds = elapsed_ms / 1000.f;
 
 		// Normalize direction vector if either x or y is not 0 (prevents divide by 0 when normalizing)
-		vec2 direction_normalized = kinematic.direction;
 		if (kinematic.direction.x != 0 || kinematic.direction.y != 0) {
-			direction_normalized = normalize(direction_normalized);
+			kinematic.direction = normalize(kinematic.direction);
 		}
 
 		// Linear interpolation of velocity
 		// K factor (0,30] = ~0 (not zero, slippery, ice) -> 10-20 (quick start up/slow down, natural) -> 30 (instant velocity, jittery)
 		float K = 10.f;
-		kinematic.velocity = vec2_lerp(kinematic.velocity, direction_normalized * kinematic.speed_modified * (entity == player ? focus_mode.speed_constant : 1.0f), step_seconds * K);
+		kinematic.velocity = vec2_lerp(kinematic.velocity, kinematic.direction * kinematic.speed_modified * (entity == player ? focus_mode.speed_constant : 1.0f), step_seconds * K);
 		motion.position += kinematic.velocity * step_seconds;
 	}
 
@@ -305,8 +305,18 @@ void PhysicsSystem::step(float elapsed_ms)
 		coord grid_coord = convert_world_to_grid(motion.position);
 
 		if (!is_valid_cell(grid_coord.x, grid_coord.y)) {
-			if (registry.playerBullets.has(entity)) {
+			if (registry.normalBullets.has(entity)) {
 				registry.realDeathTimers.emplace(createBulletDisappear(renderer, motion.position, motion.angle, true)).death_counter_ms = 200;
+			}
+			else if (registry.aoeBullets.has(entity)) {
+				createVFX(renderer, motion.position, motion.scale, 0, VFX_TYPE::AOE_AMMO_DISAPPEAR);
+			}
+			else if (registry.aimbotBullets.has(entity)) {
+				Kinematic& kin = registry.kinematics.get(entity);
+				Transform t;
+				t.rotate(-45.f * M_PI / 180.f);
+				kin.direction = t.mat * vec3(kin.direction, 1.f);
+				createVFX(renderer, motion.position, motion.scale, -atan2(kin.direction.x, kin.direction.y) - glm::radians(90.0f), VFX_TYPE::AIMBOT_AMMO_DISAPPEAR);
 			}
 			registry.remove_all_components_of(entity);
 		}
@@ -366,6 +376,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (Entity deadly_entity : registry.deadlys.entities) {
 			Motion& motion = registry.motions.get(deadly_entity);
 			Collidable& collidable = registry.collidables.get(deadly_entity);
+			if (!collidable.active) continue;
 			if (collides_AABB_AABB_player(motion, player_motion, collidable)) {
 				if (collides_mesh_AABB(player_entity, player_motion, motion, collidable)) {
 					registry.collisions.emplace_with_duplicates(player_entity, deadly_entity);
@@ -534,6 +545,7 @@ void PhysicsSystem::step(float elapsed_ms)
 	{
 		Entity entity_i = deadly_container.entities[i];
 		Collidable& collidable_i = collidable_container.get(entity_i);
+		if (!collidable_i.active) continue;
 		Motion& motion_i = motion_container.get(entity_i);
 
 		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
@@ -541,6 +553,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		{
 			Entity entity_j = deadly_container.entities[j];
 			Collidable& collidable_j = collidable_container.get(entity_j);
+			if (!collidable_j.active) continue;
 			Motion& motion_j = motion_container.get(entity_j);
 			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
 			{

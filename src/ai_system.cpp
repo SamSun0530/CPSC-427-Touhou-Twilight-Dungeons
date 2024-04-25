@@ -59,6 +59,18 @@ void AISystem::step(float elapsed_ms)
 					flandre_boss_tree.update(entity);
 				}
 			}
+			else if (registry.lizardEnemies.has(entity)) {
+				lizard_tree.update(entity);
+			}
+			else if (registry.wormEnemies.has(entity)) {
+				worm_tree.update(entity);
+			}
+			else if (registry.bee2Enemies.has(entity)) {
+				bee2_tree.update(entity);
+			}
+			else if (registry.gargoyleEnemies.has(entity)) {
+				gargoyle_tree.update(entity);
+			}
 			aitimer.update_timer_ms = aitimer.update_base;
 		}
 	}

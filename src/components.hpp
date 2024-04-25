@@ -5,6 +5,44 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 
+// statistics to show at end screen
+struct Statistic {
+	float enemies_killed = 0;
+	float enemies_hit = 0;
+	float bullets_fired = 0;
+	float accuracy = 1; // this will be enemies_hit / bullets_fired
+	float time_taken_to_win = 0; // accumulate via elapsed ms
+	// TODO: add some more interesting facts
+
+	void reset() {
+		enemies_killed = 0;
+		enemies_hit = 0;
+		bullets_fired = 0;
+		accuracy = 1;
+		time_taken_to_win = 0;
+	}
+};
+extern Statistic stats;
+
+// all purpose timer, create your own global timer
+struct UniversalTimer {
+	// Nearest enemy check timer
+	float closest_enemy_timer = 0;
+	float closest_enemy_timer_default = 500;
+	int closest_enemy = -1;
+
+	// For aimbot1bullet, shoot a bullet per every aimbot_bullet_timer_default ms
+	float aimbot_bullet_timer = 0;
+	float aimbot_bullet_timer_default = 2000;
+
+	void restart() {
+		closest_enemy_timer = 0;
+		closest_enemy = -1;
+		aimbot_bullet_timer = 0;
+	}
+};
+extern UniversalTimer uni_timer;
+
 struct DialogueInfo {
 	unsigned int cirno_pt = 1000000;
 	unsigned int cirno_after_pt = 1000000;
@@ -130,9 +168,48 @@ struct BossInfo {
 };
 extern BossInfo boss_info;
 
+/*
+NORMAL - nothing special
+AOE - area of effect splash damage
+AIMBOT - follow closest enemy to cursor
+TRIPLE - three normal bullets towards cursor
+AIMBOT1BULLET - normal bullet with one aimbot bullet every time interval
+*/
+enum AMMO_TYPE {
+	NORMAL,
+	AOE,
+	AIMBOT,
+	TRIPLE,
+	AIMBOT1BULLET,
+	AMMO_TYPE_COUNT
+};
+
+// Player component
+struct Player
+{
+	bool invulnerability = false;
+	int bullet_damage = 10;
+	int coin_amount = 0;
+	int key_amount = 0;
+	float invulnerability_time_ms = 1000;
+	float fire_rate = 1 / 3.f;
+	float critical_hit = 0.05;
+	float critical_damage = 1.5;
+	int bomb = 3;
+
+	// we store this here because 
+	// - carry it to next level
+	// - exclusive to the player only (enemies should not have this)
+	AMMO_TYPE ammo_type = AMMO_TYPE::NORMAL;
+};
+
 struct Teleporter {
 	bool player_overlap = false;
 	bool is_teleporting = false;
+	MAP_LEVEL destination;
+	float teleport_time; // teleports when time < 0
+	std::string teleporter_text;
+	std::string optional_text_above_teleporter;
 };
 
 // make entity fly to player
@@ -182,8 +259,25 @@ struct EnemyBullet
 	int damage = 1;
 };
 
+struct AimbotBullet {
+
+};
+
+struct AoeBullet {
+
+};
+
+struct NormalBullet {
+
+};
+
 /*
-Bullet actions:
+Bullet actions: (parameter argument specification)
+None:
+PLAYER_DIRECTION - change bullet to face player direction (only for enemies)
+ENEMY_DIRECTION - change bullet to face direction of deadly closest to cursor (only for players)
+CURSOR_DIRECTION - change bullet to face direction cursor (only for players)
+
 Floats:
 SPEED - float - change in velocity magnitude
 ROTATE - float - change in bullet direction
@@ -198,9 +292,9 @@ DIRECTION - vec2 - change direction to x,y
 
 Vec3s:
 SPLIT - vec3 - split one bullets into multiple bullets based on angle
-	- vec2[0] = number of bullets to split into (<= 1 - won't do anything)
-	- vec2[1] = angle for the bullet spread
-	- vec2[2] = initial bullet speed
+	- vec3[0] = number of bullets to split into (<= 1 - won't do anything)
+	- vec3[1] = angle for the bullet spread
+	- vec3[2] = initial bullet speed
 */
 enum class BULLET_ACTION {
 	SPEED,
@@ -209,7 +303,10 @@ enum class BULLET_ACTION {
 	LOOP,
 	DEL,
 	SPLIT,
-	DIRECTION
+	DIRECTION,
+	PLAYER_DIRECTION,
+	ENEMY_DIRECTION,
+	CURSOR_DIRECTION,
 };
 
 enum class CHARACTER {
@@ -244,7 +341,6 @@ struct BulletPattern {
 // Inspiration/Credit from: https://youtu.be/whrInb6Z7QI
 struct BulletSpawner
 {
-	int damageBoost =0;
 	// determines if bullet can be fired
 	bool is_firing = false;
 	// set this to -1 so entity can fire immediately
@@ -343,18 +439,19 @@ struct Boss {
 	float phase_change_time = -1;
 };
 
-// Player component
-struct Player
-{
-	bool invulnerability = false;
-	int bullet_damage = 1000;
-	int coin_amount = 0;
-	int key_amount = 0;
-	float invulnerability_time_ms = 1000;
-	float fire_rate = 1/3.f;
-	float critical_hit = 0.05;
-	float critical_demage = 1.5;
-	int bomb = 3;
+// Keeps track of what aura this belongs to
+// Allows for deleting the other
+struct AuraLink {
+	Entity other;
+	AuraLink(Entity& other) { this->other = other; };
+};
+
+struct Aura {
+
+};
+
+struct AimbotCursor {
+
 };
 
 struct CoinFountain
@@ -367,6 +464,13 @@ enum class State {
 	IDLE = 0,
 	MOVE = IDLE + 1,
 	ALERT = MOVE + 1,
+};
+
+enum VFX_TYPE {
+	AOE_AMMO_EXPLOSION,
+	AOE_AMMO_DISAPPEAR,
+	AIMBOT_AMMO_DISAPPEAR,
+	HIT_SPARK
 };
 
 struct IdleMoveAction {
@@ -405,6 +509,10 @@ struct DummyEnemyLink {
 struct Deadly
 {
 	int damage = 1;
+	// if bullet_pattern is defined, set has_bullet_pattern to true
+	// so bullet system will apply the pattern to the bullet shot by this entity
+	bool has_bullet_pattern = false;
+	BulletPattern bullet_pattern;
 };
 
 struct BeeEnemy {
@@ -421,12 +529,23 @@ struct WolfEnemy
 
 };
 
-struct NPC
-{
+struct Bee2Enemy {
 
 };
 
-struct SubmachineGunEnemy
+struct LizardEnemy {
+
+};
+
+struct GargoyleEnemy {
+
+};
+
+struct WormEnemy {
+
+};
+
+struct NPC
 {
 
 };
@@ -490,10 +609,32 @@ struct Pickupable
 	int health_change = 1;
 };
 
+// IMPORTANT: we have separators in between each section of effects
+// Why? There are different implementations which clash together when
+// using the same enum. For example, the initial shop system and the health increase
+enum EFFECT_TYPE {
+	EFFECT_TYPE_SEPARATOR_0, // 0
+	BULLET_DAMAGE,
+	FIRE_RATE,
+	CRITICAL_HIT,
+	CRITICAL_DAMAGE,
+	INCR_MAXIMUM_HP,
+	BOMB,
+	EFFECT_TYPE_SEPARATOR_1, // 7
+	INCR_CURRENT_HP,
+	EFFECT_TYPE_SEPARATOR_2, // 9
+	NORMAL_AMMO,
+	AIMBOT_AMMO,
+	AOE_AMMO,
+	TRIPLE_AMMO,
+	AIMBOT1BULLET_AMMO,
+	EFFECT_TYPE_SEPARATOR_3 // 15
+};
+
 struct Purchasableable
 {
 	// 1=bullet_damage, 2=fire_rate, or 3=critical_hit
-	int effect_type;
+	EFFECT_TYPE effect_type;
 	int cost;
 	bool player_overlap = false;
 	int effect_strength;
@@ -574,6 +715,9 @@ struct Kinematic {
 
 // Represents collision box with shift transform and size of box
 struct Collidable {
+	// if is not active, do not check for collisions 
+	// (currently only implemented for enemy-enemy collisions when one is dead)
+	bool active = true;
 	// translate box relative to motion position
 	vec2 shift = { 0, 0 };
 	// width and height of box
@@ -741,22 +885,27 @@ struct Mesh
 	std::vector<vec3> ordered_vertices;
 };
 
+// order is important, reflects keyboard.png
 enum class KEYS {
-	A = 1,
-	D = A + 1,
-	ESC = D + 1,
-	F = ESC + 1,
-	S = F + 1,
-	SHIFT = S + 1,
-	W = SHIFT + 1,
-	MOUSE_1 = W + 1,
-	SCROLL = MOUSE_1 + 1,
-	R = SCROLL + 1,
-	SPACE = R + 1,
-	P = SPACE + 1,
-	E = P + 1,
+	W = 1,
+	A = W + 1,
+	S = A + 1,
+	D = S + 1,
+	F = D + 1,
+	Q = F + 1,
+	E = Q + 1,
+	R = E + 1,
+	H = R + 1,
+	ESC = H + 1,
+	MOUSE_1 = ESC + 1,
+	MOUSE_2 = MOUSE_1 + 1,
+	SCROLL = MOUSE_2 + 1,
+	SHIFT_0 = SCROLL + 1,
+	SHIFT_1 = SHIFT_0 + 1,
+	SPACE_0 = SHIFT_1 + 1,
+	SPACE_1 = SPACE_0 + 1,
+	SPACE_2 = SPACE_1 + 1
 };
-
 
 // IDs for each tile type
 enum class TILE_TYPE {
@@ -878,13 +1027,31 @@ enum class TEXTURE_ASSET_ID {
 	FLANDRE_BULLET = BOSS_FLANDRE + 1,
 	INFOGRAPHIC = FLANDRE_BULLET + 1,
 	NPC_MARISA = INFOGRAPHIC + 1,
-	CHEST_OPEN = NPC_MARISA + 1,
+	ENEMY_LIZARD = NPC_MARISA + 1,
+	ENEMY_WORM = ENEMY_LIZARD + 1,
+	ENEMY_BEE2 = ENEMY_WORM + 1,
+	ENEMY_GARGOYLE = ENEMY_BEE2 + 1,
+	AIMBOT_CURSOR = ENEMY_GARGOYLE + 1,
+	AOE_AMMO_EXPLOSION = AIMBOT_CURSOR + 1,
+	AOE_AMMO_BULLET = AOE_AMMO_EXPLOSION + 1,
+	AIMBOT_AMMO_BULLET = AOE_AMMO_BULLET + 1,
+	AOE_AMMO_BULLET_DISAPPEAR = AIMBOT_AMMO_BULLET + 1,
+	AIMBOT_AMMO_BULLET_DISAPPEAR = AOE_AMMO_BULLET_DISAPPEAR + 1,
+	HIT_SPARK = AIMBOT_AMMO_BULLET_DISAPPEAR + 1,
+	CHEST_OPEN = HIT_SPARK + 1,
 	CHEST_CLOSE = CHEST_OPEN + 1,
 	SKELETON = CHEST_CLOSE + 1,
 	BARREL = SKELETON + 1,
 	POTTERY = BARREL + 1,
 	FIREPLACE = POTTERY + 1,
-	NORMAL_SIGN = FIREPLACE + 1,
+	AIMBOT_AMMO_ITEM = FIREPLACE + 1,
+	AOE_AMMO_ITEM = AIMBOT_AMMO_ITEM + 1,
+	TRIPLE_AMMO_ITEM = AOE_AMMO_ITEM + 1,
+	AIMBOT1BULLET_AMMO_ITEM = TRIPLE_AMMO_ITEM + 1,
+	CIRNO_AURA = AIMBOT1BULLET_AMMO_ITEM + 1,
+	FLANDRE_AURA = CIRNO_AURA + 1,
+	TELEPORTER_SMALL = FLANDRE_AURA + 1,
+	NORMAL_SIGN = TELEPORTER_SMALL + 1,
 	BOSS_SIGN = NORMAL_SIGN + 1,
 	START_SIGN = BOSS_SIGN + 1,
 	SHOP_SIGN = START_SIGN + 1,

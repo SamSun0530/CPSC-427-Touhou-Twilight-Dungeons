@@ -213,6 +213,10 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	else if (registry.alwaysplayAni.has(entity)) {
 		end_pos = registry.alwaysplayAni.get(entity).render_pos;
 	}
+	else if (registry.playonceAni.has(entity)) {
+		end_pos = registry.playonceAni.get(entity).render_pos;
+		;
+	}
 	glUniform2fv(end_pos_uloc, 1, (float*)&end_pos);
 	gl_has_errors();
 
@@ -224,6 +228,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	}
 	else if (registry.alwaysplayAni.has(entity)) {
 		ani_scale = registry.alwaysplayAni.get(entity).spritesheet_scale;
+	}
+	else if (registry.playonceAni.has(entity)) {
+		ani_scale = registry.playonceAni.get(entity).spritesheet_scale;
 	}
 	glUniform2fv(scale_uloc, 1, (float*)&ani_scale);
 	gl_has_errors();
@@ -383,6 +390,22 @@ void RenderSystem::draw()
 
 		drawTilesInstanced(projection_2D, view_2D);
 
+		// Auras should not disappear off camera (since there is a small # of them)
+		for (Entity entity : registry.auras.entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
+		// Teleporters should not disappear off camera (since there is a small # of them)
+		for (Entity entity : registry.teleporters.entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+			Teleporter& teleporter = registry.teleporters.get(entity);
+			if (!teleporter.optional_text_above_teleporter.empty()) {
+				Motion& motion = registry.motions.get(entity);
+				vec2 new_motion = motion.position + vec2(0, -90);
+				render_text_newline(teleporter.optional_text_above_teleporter, new_motion.x, new_motion.y, 1.f, vec3(0, 1, 0), trans, true, 25.f, 1.f);
+			}
+		}
+
 		for (Entity entity : registry.renderRequests.entities)
 		{
 			if (registry.renderRequests.get(entity).used_texture == TEXTURE_ASSET_ID::BOSS_HEALTH_BAR) {
@@ -397,6 +420,7 @@ void RenderSystem::draw()
 				uiux_world_entities.push_back(entity);
 				continue;
 			}
+			if (registry.aimbotCursors.has(entity)) continue;
 			if (registry.focusdots.has(entity)) continue;
 			if (registry.UIUX.has(entity)) continue;
 			if (registry.players.has(entity)) continue;
@@ -405,6 +429,8 @@ void RenderSystem::draw()
 			if (registry.loseMenus.has(entity)) continue;
 			if (registry.playerBullets.has(entity)) continue;
 			if (registry.infographicsMenus.has(entity)) continue;
+			if (registry.teleporters.has(entity)) continue;
+			if (registry.auras.has(entity)) continue;
 
 			// Note, its not very efficient to access elements indirectly via the entity
 			// albeit iterating through all Sprites in sequence. A good point to optimize
@@ -460,6 +486,12 @@ void RenderSystem::draw()
 		}
 		drawBulletsInstanced(enemy_bullets, projection_2D, view_2D);
 
+		// this will only have at most one aimbot cursor
+		// it will always be in camera view, and has motion
+		for (Entity entity : registry.aimbotCursors.entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
 		// this will only have at most one focusdots
 		// it will always be in camera view, and has motion
 		for (Entity entity : registry.focusdots.entities) {
@@ -499,10 +531,10 @@ void RenderSystem::draw()
 			}
 		}
 
-		// Render user guide on screen
-		if (WorldSystem::getInstance().get_display_instruction() == true) {
-			renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.3f, 0.9f, glm::vec3(1), trans, false, 1.f);
-		}
+		//// Render user guide on screen
+		//if (WorldSystem::getInstance().get_display_instruction() == true) {
+		//	renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.3f, 0.9f, glm::vec3(1), trans, false, 1.f);
+		//}
 
 		if (WorldSystem::getInstance().get_show_fps() == true) {
 			renderText("FPS:", window_width_px / 2.45f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans, false, 1.f);
@@ -575,6 +607,10 @@ void RenderSystem::draw()
 			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::WIN);
 		}
 		if (menu.state == MENU_STATE::LOSE) {
+			drawToScreen();
+			// To prevent black boxes (Credit: piazza @176_f1)
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			for (Entity entity : registry.loseMenus.entities) {
 				if (registry.textsPerm.has(entity)) {
 					Motion& text_motion = registry.motions.get(entity);
@@ -598,9 +634,12 @@ void RenderSystem::draw()
 		render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::MAIN_MENU);
 	}
 
-
-	// Truely render to the screen
-	drawToScreen();
+	// We have this here so that the black screen is retained when lost screen is shown
+	// as we need draw lose screen after drawToScreen call
+	if (menu.state != MENU_STATE::LOSE) {
+		// Truely render to the screen
+		drawToScreen();
+	}
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
