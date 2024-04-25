@@ -29,8 +29,6 @@ private:
 	RenderSystem* renderer;
 	VisibilitySystem* visibility_system;
 
-	// old version
-	void generate_door_tiles(std::vector<std::vector<int>>& map);
 	void generate_obstacles(std::vector<std::vector<int>>& map);
 
 	std::vector<Room> rooms;
@@ -57,6 +55,7 @@ public:
 	Room generateBossRoom();
 	void generateRandomMap(float room_size);
 	void generateTutorialMap();
+	void generate_door_tiles(std::vector<std::vector<int>>& map);
 	void printMap();
 	void spawnEnemiesInRooms();
 	// spawn enemies inside room

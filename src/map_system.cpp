@@ -529,8 +529,6 @@ void MapSystem::generateRandomMap(float room_size) {
 		game_info.add_room(bsptree.rooms[i]);
 	}
 
-	// generates door info then the tiles
-	generate_door_tiles(world_map);
 	// Generates rocks in room
 	generate_obstacles(world_map);
 }
@@ -562,16 +560,18 @@ std::vector<vec4> MapSystem::generateDoorInfo(std::vector<Room_struct>& rooms, s
 	for (int i = 0; i < rooms.size(); i++)
 	{
 		Room_struct& room = rooms[i];
-
+		ROOM_TYPE room_type = bsptree.rooms[i].type;
 		// Check edges of room which are walls, when there is a floor, add a door
 		for (int x = room.top_left.x - 1; x <= room.bottom_right.x + 1; x++) {
 			// top edge
 			if (map_copy[room.top_left.y][x + 1] == (int)TILE_TYPE::FLOOR) {
 				doors.push_back(addSingleDoor(room.top_left.y - 1, x, DIRECTION::DOWN, i, room, world_map));
+				createRoomSignifier(renderer, convert_grid_to_world(vec2(x, room.top_left.y)), room_type);
 			}
 			// bottom edge
 			if (map_copy[room.bottom_right.y + 2][x + 1] == (int)TILE_TYPE::FLOOR) {
 				doors.push_back(addSingleDoor(room.bottom_right.y + 1, x, DIRECTION::UP, i, room, world_map));
+				createRoomSignifier(renderer, convert_grid_to_world(vec2(x, room.bottom_right.y)), room_type);
 			}
 		}
 
@@ -579,10 +579,12 @@ std::vector<vec4> MapSystem::generateDoorInfo(std::vector<Room_struct>& rooms, s
 			// left edge
 			if (map_copy[y + 1][room.top_left.x] == (int)TILE_TYPE::FLOOR) {
 				doors.push_back(addSingleDoor(y, room.top_left.x - 1, DIRECTION::RIGHT, i, room, world_map));
+				createRoomSignifier(renderer, convert_grid_to_world(vec2(room.top_left.x, y)), room_type);
 			}
 			// right edge
 			if (map_copy[y + 1][room.bottom_right.x + 2] == (int)TILE_TYPE::FLOOR) {
 				doors.push_back(addSingleDoor(y, room.bottom_right.x + 1, DIRECTION::LEFT, i, room, world_map));
+				createRoomSignifier(renderer, convert_grid_to_world(vec2(room.bottom_right.x, y)), room_type);
 			}
 		}
 	}

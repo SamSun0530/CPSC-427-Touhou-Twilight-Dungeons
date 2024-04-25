@@ -544,6 +544,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	K = 1.0f - pow(1.0f - sharpness_factor_camera, 3 * elapsed_ms_since_last_update / 1000.f);
 	for (Entity entity : registry.flytoplayers.entities) {
 		Motion& motion = registry.motions.get(entity);
+		vec2 dist = motion.position - player_position;
+		if (dist.x * dist.x + dist.y * dist.y < 30000)
 		motion.position = vec2_lerp(motion.position, player_position, K);
 	}
 
@@ -697,6 +699,8 @@ void WorldSystem::next_level() {
 	else {
 		map->generateRandomMap(11); // room_size must be > 3
 		player = map->spawnPlayerInRoom(0);
+		// generates door info then the tiles
+		map->generate_door_tiles(world_map);
 	}
 
 	registry.players.get(player) = player_component;
@@ -784,6 +788,8 @@ void WorldSystem::restart_game() {
 	else {
 		map->generateRandomMap(11); // room_size must be > 3
 		player = map->spawnPlayerInRoom(0);
+		// generates door info then the tiles
+		map->generate_door_tiles(world_map);
 	}
 
 	//createPillar(renderer, { world_center.x, world_center.y - 2 }, std::vector<TEXTURE_ASSET_ID>{TEXTURE_ASSET_ID::PILLAR_BOTTOM, TEXTURE_ASSET_ID::PILLAR_TOP});

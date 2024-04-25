@@ -114,7 +114,7 @@ private:
 	// Bomb stuff (resets at restart_game)
 	float bomb_timer = 0.f;
 	float bomb_timer_max = 500.f;
-	int bomb_damage = 100;
+	int bomb_damage = 50;
 	void deal_damage_to_deadly(const Entity& entity, int damage);
 
 	// Update player direction based on pressed
