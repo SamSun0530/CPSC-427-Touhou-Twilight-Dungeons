@@ -3,6 +3,7 @@
 #include <vector>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include "../ext/stb_image/stb_image.h"
 
 // statistics to show at end screen
@@ -58,7 +59,8 @@ extern DialogueInfo dialogue_info;
 enum class MAP_LEVEL {
 	TUTORIAL,
 	LEVEL1,
-	LEVEL2
+	LEVEL2,
+	LEVEL3
 };
 
 // World map loader
@@ -118,8 +120,11 @@ struct ComboMode {
 extern ComboMode combo_mode;
 
 struct VisibilityInfo {
-	// TODO: limit how fast tiles are revealed using flood fill
-	bool need_update = false;
+	// exclude these map levels from using visibility tiles
+	std::unordered_set<MAP_LEVEL> excluded{
+		MAP_LEVEL::TUTORIAL,
+		//MAP_LEVEL::LEVEL3
+	};
 };
 extern VisibilityInfo visibility_info;
 
@@ -665,6 +670,10 @@ enum class TILE_NAME {
 	BOTTOM_LEFT_LIGHT, // 0,4
 	// BOTTOM_WALL_LIGHT -> use TOP_WALL
 	BOTTOM_RIGHT_LIGHT, // 2,4
+	TOP_RIGHT, // 3,2
+	TOP_LEFT, // 3,3
+	CORRIDOR_TOP_RIGHT, // 3,5
+	CORRIDOR_TOP_LEFT, // 3,4
 };
 
 // A non interactable tile of the map
@@ -1055,7 +1064,8 @@ enum class TEXTURE_ASSET_ID {
 	BOSS_SIGN = NORMAL_SIGN + 1,
 	START_SIGN = BOSS_SIGN + 1,
 	SHOP_SIGN = START_SIGN + 1,
-	TEXTURE_COUNT = SHOP_SIGN + 1,
+	TILES_ATLAS_WATER = SHOP_SIGN + 1,
+	TEXTURE_COUNT = TILES_ATLAS_WATER + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

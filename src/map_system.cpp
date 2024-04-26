@@ -75,7 +75,7 @@ void MapSystem::step(float elapsed_ms_since_last_update) {
 					ani.is_active = false;
 					vec2 scale = 2.f * vec2(TELEPORTER_WIDTH, TELEPORTER_HEIGHT);
 					float teleport_time = 2300;
-					
+
 					createTeleporter(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f), scale, scale / 6.f, MAP_LEVEL::LEVEL2, ani, TEXTURE_ASSET_ID::TELEPORTER, teleport_time, "Press \"E\" to enter next level", "Next Level");
 					createChest(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f + vec2(0.0f, 4.0f)));
 				}
@@ -142,13 +142,6 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 			if (world_map[spawn_point.y][spawn_point.x] == (int)TILE_TYPE::WALL) continue;
 			spawn_points.push_back(convert_grid_to_world(spawn_point));
 			valid_spawn_points++;
-		}
-		for (int i = 0; i < enemy_num; i++) {
-			std::uniform_real_distribution<> real_distrib_x(room.top_left.x + 0.3f, room.bottom_right.x - 0.3f);
-			float loc_x = real_distrib_x(rng);
-			std::uniform_real_distribution<> real_distrib_y(room.top_left.y + 0.3f, room.bottom_right.y - 0.3f);
-			float loc_y = real_distrib_y(rng);
-			spawn_points.push_back(convert_grid_to_world(vec2(loc_x, loc_y)));
 		}
 		std::uniform_real_distribution<> real_dist(0, 1);
 		for (vec2 point : spawn_points) {
@@ -518,7 +511,12 @@ void MapSystem::generateRandomMap(float room_size) {
 	// for order of operations, please see VisibilitySystem class
 	visibility_system->restart_map();
 	generate_all_tiles(world_map);
-	visibility_system->init_visibility();
+
+	// Do not set tiles to not visible
+	if (visibility_info.excluded.find(map_info.level) == visibility_info.excluded.end()) {
+		visibility_system->init_visibility();
+	}
+
 	// set buffer data for visibility tile instance rendering
 	renderer->set_visibility_tiles_instance_buffer_max();
 	// set buffer data for tile instance rendering
@@ -661,6 +659,37 @@ TILE_NAME MapSystem::get_tile_name(int x, int y, std::vector<std::vector<int>>& 
 			}
 			break;
 		}
+		case MAP_LEVEL::LEVEL3: {
+			std::random_device ran;
+			std::mt19937 gen(ran());
+			std::uniform_real_distribution<> dis(0.f, 1.f);
+			float random_number = dis(gen);
+			if (random_number < 0.5f) {
+				temp = TILE_NAME::DEFAULT_FLOOR;
+			}
+			else if (random_number < 0.61) {
+				temp = TILE_NAME::FLOOR_1_0;
+			}
+			else if (random_number < 0.68) {
+				temp = TILE_NAME::FLOOR_2_0;
+			}
+			else if (random_number < 0.75) {
+				temp = TILE_NAME::FLOOR_3_0;
+			}
+			else if (random_number < 0.82) {
+				temp = TILE_NAME::FLOOR_0_1;
+			}
+			else if (random_number < 0.89) {
+				temp = TILE_NAME::FLOOR_1_1;
+			}
+			else if (random_number < 0.96) {
+				temp = TILE_NAME::FLOOR_2_1;
+			}
+			else {
+				temp = TILE_NAME::FLOOR_3_1;
+			}
+			break;
+		}
 		default:
 			break;
 		}
@@ -679,35 +708,79 @@ TILE_NAME MapSystem::get_tile_name(int x, int y, std::vector<std::vector<int>>& 
 
 	TILE_NAME result = TILE_NAME::NONE;
 
-	if (UR == F && U == W && R == W && D != F) {
-		result = TILE_NAME::BOTTOM_LEFT;
+	if (map_info.level == MAP_LEVEL::LEVEL3) {
+		if (UR == F && U == W && R == W && D != F) {
+			result = TILE_NAME::BOTTOM_LEFT;
+		}
+		else if (UL == F && U == W && L == W && D != F) {
+			result = TILE_NAME::BOTTOM_RIGHT;
+		}
+		else if ((U == F && L == F && R == W && D == W) ||
+			(U == F && L == W && R == W && D == W && DL == F && DR == E)) {
+			result = TILE_NAME::CORRIDOR_BOTTOM_LEFT;
+		}
+		else if ((U == F && L == W && R == F && D == W) ||
+			(U == F && L == W && R == W && D == W && DR == F && DL == E)) {
+			result = TILE_NAME::CORRIDOR_BOTTOM_RIGHT;
+		}
+		else if ((U == W && L == F && R == W && D == F)) {
+			result = TILE_NAME::CORRIDOR_TOP_LEFT;
+		}
+		else if ((U == W && L == W && R == F && D == F)) {
+			result = TILE_NAME::CORRIDOR_TOP_RIGHT;
+		}
+		else if (L == W && DL == F && D == W) {
+			result = TILE_NAME::TOP_RIGHT;
+		}
+		else if (R == W && DR == F && D == W) {
+			result = TILE_NAME::TOP_LEFT;
+		}
+		else if (D == F ||
+			(U == W && L == W && D == F && R == F) ||
+			(U == W && L == F && D == F && R == W)) {
+			result = TILE_NAME::TOP_WALL;
+		}
+		else if (L == F) {
+			result = TILE_NAME::RIGHT_WALL;
+		}
+		else if (R == F) {
+			result = TILE_NAME::LEFT_WALL;
+		}
+		else if (U == F) {
+			result = TILE_NAME::BOTTOM_WALL;
+		}
 	}
-	else if (UL == F && U == W && L == W && D != F) {
-		result = TILE_NAME::BOTTOM_RIGHT;
-	}
-	else if ((U == F && L == F && R == W && D == W) ||
-		(U == F && L == W && R == W && D == W && DL == F && DR == E)) {
-		result = TILE_NAME::CORRIDOR_BOTTOM_LEFT;
-	}
-	else if ((U == F && L == W && R == F && D == W) ||
-		(U == F && L == W && R == W && D == W && DR == F && DL == E)) {
-		result = TILE_NAME::CORRIDOR_BOTTOM_RIGHT;
-	}
-	else if (D == F ||
-		(U == W && L == W && D == F && R == F) ||
-		(U == W && L == F && D == F && R == W)) {
-		result = TILE_NAME::TOP_WALL;
-	}
-	else if (L == F ||
-		(L == W && DL == F && D == W)) {
-		result = TILE_NAME::RIGHT_WALL;
-	}
-	else if (R == F ||
-		(R == W && DR == F && D == W)) {
-		result = TILE_NAME::LEFT_WALL;
-	}
-	else if (U == F) {
-		result = TILE_NAME::BOTTOM_WALL;
+	else {
+		if (UR == F && U == W && R == W && D != F) {
+			result = TILE_NAME::BOTTOM_LEFT;
+		}
+		else if (UL == F && U == W && L == W && D != F) {
+			result = TILE_NAME::BOTTOM_RIGHT;
+		}
+		else if ((U == F && L == F && R == W && D == W) ||
+			(U == F && L == W && R == W && D == W && DL == F && DR == E)) {
+			result = TILE_NAME::CORRIDOR_BOTTOM_LEFT;
+		}
+		else if ((U == F && L == W && R == F && D == W) ||
+			(U == F && L == W && R == W && D == W && DR == F && DL == E)) {
+			result = TILE_NAME::CORRIDOR_BOTTOM_RIGHT;
+		}
+		else if (D == F ||
+			(U == W && L == W && D == F && R == F) ||
+			(U == W && L == F && D == F && R == W)) {
+			result = TILE_NAME::TOP_WALL;
+		}
+		else if (L == F ||
+			(L == W && DL == F && D == W)) {
+			result = TILE_NAME::RIGHT_WALL;
+		}
+		else if (R == F ||
+			(R == W && DR == F && D == W)) {
+			result = TILE_NAME::LEFT_WALL;
+		}
+		else if (U == F) {
+			result = TILE_NAME::BOTTOM_WALL;
+		}
 	}
 
 	return result;
@@ -739,7 +812,6 @@ void MapSystem::generate_obstacles(std::vector<std::vector<int>>& map) {
 				if (to_spawn < spawn_chance) {
 					createObstacle(renderer, { col, row });
 				}
-
 			}
 		}
 	}

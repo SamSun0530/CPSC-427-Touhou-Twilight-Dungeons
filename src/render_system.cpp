@@ -357,10 +357,14 @@ void RenderSystem::draw()
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
 	//glClearColor(0.674, 0.847, 1.0, 1.0);
-	if (map_info.level == MAP_LEVEL::LEVEL2) {
+	if (map_info.level == MAP_LEVEL::LEVEL3) {
+		glClearColor(52.f / 255.f, 144.f / 255.f, 151.f / 255.f, 1.f);
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL2) {
 		glClearColor(131.f / 255.f, 164.f / 255.f, 72.f / 255.f, 1.f);
 	}
 	else {
+		// level1 and tutorial
 		glClearColor(0, 0, 0, 1.0);
 	}
 	glClearDepth(10.f);
@@ -926,6 +930,7 @@ vec4 RenderSystem::get_spriteloc(TILE_NAME tile_name) {
 	case TILE_NAME::BOTTOM_RIGHT:
 		spriteloc = { 2.f, 6.f, 1.0, 1.0 };
 		break;
+	// LIGHT VERSIONS ARE NOT USED: can delete if needed
 	case TILE_NAME::CORRIDOR_BOTTOM_RIGHT_LIGHT:
 		spriteloc = { 0.f, 3.f, 1.0, 1.0 };
 		break;
@@ -937,6 +942,19 @@ vec4 RenderSystem::get_spriteloc(TILE_NAME tile_name) {
 		break;
 	case TILE_NAME::BOTTOM_RIGHT_LIGHT:
 		spriteloc = { 2.f, 4.f, 1.0, 1.0 };
+		break;
+	// SIDE TILES (on the right)
+	case TILE_NAME::TOP_RIGHT:
+		spriteloc = { 3.f, 2.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME::TOP_LEFT:
+		spriteloc = { 3.f, 3.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME::CORRIDOR_TOP_RIGHT:
+		spriteloc = { 3.f, 5.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME::CORRIDOR_TOP_LEFT:
+		spriteloc = { 3.f, 4.f, 1.0, 1.0 };
 		break;
 	default:
 		break;
@@ -973,6 +991,9 @@ void RenderSystem::drawTilesInstanced(const glm::mat3& projection, const glm::ma
 	GLuint texture_id;
 	if (map_info.level == MAP_LEVEL::LEVEL2) {
 		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::TILES_ATLAS_RUINS];
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL3) {
+		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::TILES_ATLAS_WATER];
 	}
 	else {
 		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::TILES_ATLAS_SANDSTONE];
@@ -1043,7 +1064,10 @@ void RenderSystem::drawVisibilityTilesInstanced(const glm::mat3& projection, con
 	GLint color_uloc = glGetUniformLocation(visibility_tile_instance_program, "fcolor");
 	//const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
 	vec3 color;
-	if (map_info.level == MAP_LEVEL::LEVEL2) {
+	if (map_info.level == MAP_LEVEL::LEVEL3) {
+		color = vec3(52.f / 255.f, 144.f / 255.f, 151.f / 255.f);
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL2) {
 		color = vec3(131.f / 255.f, 164.f / 255.f, 72.f / 255.f);
 	}
 	else {
