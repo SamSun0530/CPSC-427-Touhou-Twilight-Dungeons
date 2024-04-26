@@ -737,7 +737,7 @@ void WorldSystem::restart_game() {
 	boss_system->init_phases();
 
 	audio->restart_audio_level1();
-	map_info.level = MAP_LEVEL::LEVEL3; // TODO TEMPORARY
+	map_info.level = MAP_LEVEL::LEVEL4; // TODO TEMPORARY
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
 	if (map_info.level == MAP_LEVEL::LEVEL2) map_info.level = MAP_LEVEL::LEVEL1;

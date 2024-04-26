@@ -620,6 +620,140 @@ void MapSystem::set_map_walls(std::vector<std::vector<int>>& map) {
 	}
 }
 
+TILE_NAME MapSystem::get_tile_name_sky(int x, int y, std::vector<std::vector<int>>& map) {
+	int type = map[y][x];
+	// Specify int casted enums
+	const int E = (int)TILE_TYPE::EMPTY;
+	const int W = (int)TILE_TYPE::WALL;
+	const int F = (int)TILE_TYPE::FLOOR;
+
+	if (type == E) return TILE_NAME::NONE;
+
+	// Specify neighbors for hardcoded checks
+	const int U = map[y - 1][x];	// Up
+	const int D = map[y + 1][x];	// Down
+	const int L = map[y][x - 1];	// Left
+	const int R = map[y][x + 1];	// Right
+	const int UL = map[y - 1][x - 1];	// Up left
+	const int UR = map[y - 1][x + 1];	// Up right
+	const int DL = map[y + 1][x - 1];	// Down left
+	const int DR = map[y + 1][x + 1];	// Down right
+
+	TILE_NAME result = TILE_NAME::NONE;
+
+	if (type == W) {
+		if (U == F) {
+			result = TILE_NAME::S15;
+		}
+		else {
+			result = TILE_NAME::TRANSPARENT_TILE;
+		}
+	}
+	else if (type == F) {
+		// corridor entrance tiles
+		if (U == F && L == F && R == F && D == F && UL == W && UR == W) {
+			result = TILE_NAME::S30;
+		}
+		else if (U == F && L == F && R == F && D == F && UR == W && DR == W) {
+			result = TILE_NAME::S01;
+		}
+		else if (U == F && L == F && R == F && D == F && UL == W && DL == W) {
+			result = TILE_NAME::S11;
+		}
+		else if (U == F && L == F && R == F && D == F && DL == W && DR == W) {
+			result = TILE_NAME::S21;
+		}
+		else if (U == F && L == F && R == W && D == F && UL == W && UR == W) {
+			result = TILE_NAME::S31;
+		}
+		else if (U == F && L == F && R == F && D == W && DL == W && UL == W) {
+			result = TILE_NAME::S32;
+		}
+		else if (U == F && L == F && R == F && D == W && UR == W && DR == W) {
+			result = TILE_NAME::S33;
+		}
+		else if (U == F && L == W && R == F && D == F && UL == W && UR == W) {
+			result = TILE_NAME::S34;
+		}
+		else if (U == W && L == F && R == F && D == F && UL == W && DL == W) {
+			result = TILE_NAME::S35;
+		}
+		else if (U == W && L == F && R == F && D == F && UR == W && DR == W) {
+			result = TILE_NAME::S06;
+		}
+		else if (U == F && L == F && R == W && D == F && DL == W && DR == W) {
+			result = TILE_NAME::S16;
+		}
+		else if (U == F && L == W && R == F && D == F && DL == W && DR == W) {
+			result = TILE_NAME::S26;
+		}
+		else if (U == F && L == F && R == F && D == F && UL == W && UR == W && DL == W && DR == F) {
+			result = TILE_NAME::S41;
+		}
+		else if (U == F && L == F && R == F && D == F && UL == W && UR == W && DL == F && DR == W) {
+			result = TILE_NAME::S42;
+		}
+		else if (U == F && L == F && R == F && D == F && UL == W && UR == F && DL == W && DR == W) {
+			result = TILE_NAME::S43;
+		}
+		else if (U == F && L == F && R == F && D == F && UL == F && UR == W && DL == W && DR == W) {
+			result = TILE_NAME::S44;
+		}
+		else if (U == F && L == F && R == F && D == F && UL == W) {
+			result = TILE_NAME::S00;
+		}
+		else if (U == F && L == F && R == F && D == F && UR == W) {
+			result = TILE_NAME::S10;
+		}
+		else if (U == F && L == F && R == F && D == F && DL == W) {
+			result = TILE_NAME::S20;
+		}
+		else if (U == F && L == F && R == F && D == F && DR == W) {
+			result = TILE_NAME::S40;
+		}
+		// real tiles
+		else if (U == F && L == F && R == F && D == W) {
+			result = TILE_NAME::S14;
+		}
+		else if (U == F && L == W && R == F && D == W) {
+			result = TILE_NAME::S04;
+		}
+		else if (U == F && L == F && R == W && D == W) {
+			result = TILE_NAME::S24;
+		}
+		else if (U == F && L == W && R == W && D == F) {
+			result = TILE_NAME::S25;
+		}
+		else if (U == W && L == F && R == F && D == W) {
+			result = TILE_NAME::S05;
+		}
+		else if (U == F && L == W && R == F && D == F) {
+			result = TILE_NAME::S03;
+		}
+		else if (U == F && L == F && R == W && D == F) {
+			result = TILE_NAME::S23;
+		}
+		else if (U == W && L == F && R == F && D == F) {
+			result = TILE_NAME::S12;
+		}
+		else if (U == W && L == W && R == F && D == F) {
+			result = TILE_NAME::S02;
+		}
+		else if (U == W && L == F && R == W && D == F) {
+			result = TILE_NAME::S22;
+		}
+		else {
+			result = TILE_NAME::S13;
+		}
+
+	}
+	else {
+		assert(false && "tile type not supported");
+	}
+
+	return result;
+}
+
 TILE_NAME MapSystem::get_tile_name(int x, int y, std::vector<std::vector<int>>& map) {
 	int type = map[y][x];
 	// Specify int casted enums
@@ -831,7 +965,13 @@ void MapSystem::generate_all_tiles(std::vector<std::vector<int>>& map) {
 
 	for (int y = 0; y < map_height; ++y) {
 		for (int x = 0; x < map_width; ++x) {
-			TILE_NAME result = get_tile_name(x + 1, y + 1, map_copy);
+			TILE_NAME result;
+			if (map_info.level == MAP_LEVEL::LEVEL4) {
+				result = get_tile_name_sky(x + 1, y + 1, map_copy);
+			}
+			else {
+				result = get_tile_name(x + 1, y + 1, map_copy);
+			}
 			if (result == TILE_NAME::NONE) continue;
 			createTile(renderer, visibility_system, { x, y }, result, map[y][x] == (int)TILE_TYPE::WALL);
 		}

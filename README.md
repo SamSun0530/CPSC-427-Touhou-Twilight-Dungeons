@@ -43,4 +43,6 @@ Alan Huang <br />
 - Icons - https://quintino-pixels.itch.io/assorted-icons
 - Aura - https://codemanu.itch.io/pixelart-effect-pack
 - Buttons - https://kenney.nl/assets/input-prompts-pixel-16
+- Sky - https://caturra.itch.io/sky-island-animated-tileset
+- Water/Forest - https://pixivan.itch.io/top-down-forest-tileset
 - 

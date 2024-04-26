@@ -19,6 +19,6 @@ void main()
     // Another way to fix this is by setting GL_NEAREST instead of GL_LINEAR to prevent pixel interpolation
     // Size of one pixel
     // TODO: Create generic texture atlas class - current atlas size is hardcoded
-    vec2 pixel = vec2(1.0) / vec2(136.0,238.0); 
+    vec2 pixel = vec2(1.0) / vec2(204.0,238.0); 
     color = vec4(fcolor, 1.0) * texture(sampler0, texcoord * (sprite_loc.zw - pixel * 2.0) + sprite_loc.xy + pixel);
 }

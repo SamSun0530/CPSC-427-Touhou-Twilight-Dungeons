@@ -876,7 +876,7 @@ vec4 RenderSystem::get_spriteloc(TILE_NAME tile_name) {
 	// spriteloc will be scaled by (x,y)=(sprite_width/atlas_width, sprite_height/atlas_height)
 	// e.g. (1.f/2.f, 1.f/3.f) is the same as (32.f/64.f, 32.f/96.f) assuming each texture is 32x32. Also works for any texture size in atlas
 	// then shifted by (x,y)=(offset_x/atlas_width, offset_y/atlas_height), works the same with above example
-	const float ATLAS_WIDTH = 4.f;
+	const float ATLAS_WIDTH = 6.f;
 	const float ATLAS_HEIGHT = 7.f;
 	const vec4 DIVISOR = vec4(ATLAS_WIDTH, ATLAS_HEIGHT, ATLAS_WIDTH, ATLAS_HEIGHT);
 	vec4 spriteloc = { -1.f, -1.f, -1.f, -1.f };
@@ -930,20 +930,7 @@ vec4 RenderSystem::get_spriteloc(TILE_NAME tile_name) {
 	case TILE_NAME::BOTTOM_RIGHT:
 		spriteloc = { 2.f, 6.f, 1.0, 1.0 };
 		break;
-	// LIGHT VERSIONS ARE NOT USED: can delete if needed
-	case TILE_NAME::CORRIDOR_BOTTOM_RIGHT_LIGHT:
-		spriteloc = { 0.f, 3.f, 1.0, 1.0 };
-		break;
-	case TILE_NAME::CORRIDOR_BOTTOM_LEFT_LIGHT:
-		spriteloc = { 2.f, 3.f, 1.0, 1.0 };
-		break;
-	case TILE_NAME::BOTTOM_LEFT_LIGHT:
-		spriteloc = { 0.f, 4.f, 1.0, 1.0 };
-		break;
-	case TILE_NAME::BOTTOM_RIGHT_LIGHT:
-		spriteloc = { 2.f, 4.f, 1.0, 1.0 };
-		break;
-	// SIDE TILES (on the right)
+		// SIDE TILES (on the right)
 	case TILE_NAME::TOP_RIGHT:
 		spriteloc = { 3.f, 2.f, 1.0, 1.0 };
 		break;
@@ -955,6 +942,136 @@ vec4 RenderSystem::get_spriteloc(TILE_NAME tile_name) {
 		break;
 	case TILE_NAME::CORRIDOR_TOP_LEFT:
 		spriteloc = { 3.f, 4.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME::TRANSPARENT_TILE:
+		spriteloc = { 3.f, 6.f, 1.0, 1.0 };
+		break;
+		// SKY TILES
+	case TILE_NAME::S02:
+		spriteloc = { 0.f, 2.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S12:
+		spriteloc = { 1.f, 2.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S22:
+		spriteloc = { 2.f, 2.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S03:
+		spriteloc = { 0.f, 3.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S13:
+		spriteloc = { 1.f, 3.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S23:
+		spriteloc = { 2.f, 3.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S04:
+		spriteloc = { 0.f, 4.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S14:
+		spriteloc = { 1.f, 4.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S24:
+		spriteloc = { 2.f, 4.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S05:
+		spriteloc = { 0.f, 5.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S15:
+		spriteloc = { 1.f, 5.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S25:
+		spriteloc = { 2.f, 5.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S00:
+		spriteloc = { 0.f, 0.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S10:
+		spriteloc = { 1.f, 0.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S20:
+		spriteloc = { 2.f, 0.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S30:
+		spriteloc = { 3.f, 0.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S01:
+		spriteloc = { 0.f, 1.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S11:
+		spriteloc = { 1.f, 1.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S21:
+		spriteloc = { 2.f, 1.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S31:
+		spriteloc = { 3.f, 1.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S32:
+		spriteloc = { 3.f, 2.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S33:
+		spriteloc = { 3.f, 3.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S34:
+		spriteloc = { 3.f, 4.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S35:
+		spriteloc = { 3.f, 5.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S06:
+		spriteloc = { 0.f, 6.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S16:
+		spriteloc = { 1.f, 6.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S26:
+		spriteloc = { 2.f, 6.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S36:
+		spriteloc = { 3.f, 6.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S40:
+		spriteloc = { 4.f, 0.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S50:
+		spriteloc = { 5.f, 0.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S41:
+		spriteloc = { 4.f, 1.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S51:
+		spriteloc = { 5.f, 1.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S42:
+		spriteloc = { 4.f, 2.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S52:
+		spriteloc = { 5.f, 2.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S43:
+		spriteloc = { 4.f, 3.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S53:
+		spriteloc = { 5.f, 3.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S44:
+		spriteloc = { 4.f, 4.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S54:
+		spriteloc = { 5.f, 4.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S45:
+		spriteloc = { 4.f, 5.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S55:
+		spriteloc = { 5.f, 5.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S46:
+		spriteloc = { 4.f, 6.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S56:
+		spriteloc = { 5.f, 6.f, 1.f, 1.f };
 		break;
 	default:
 		break;
@@ -994,6 +1111,9 @@ void RenderSystem::drawTilesInstanced(const glm::mat3& projection, const glm::ma
 	}
 	else if (map_info.level == MAP_LEVEL::LEVEL3) {
 		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::TILES_ATLAS_WATER];
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL4) {
+		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::TILES_ATLAS_SKY];
 	}
 	else {
 		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::TILES_ATLAS_SANDSTONE];
