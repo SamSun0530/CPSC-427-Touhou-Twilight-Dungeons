@@ -309,7 +309,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	vec2 player_position = registry.motions.get(player).position;
 	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), player_position, K));
-
+	for (Entity& p : registry.parrallaxes.entities) {
+		Motion& p_motion = registry.motions.get(p);
+		p_motion.position = renderer->camera.getPosition()*0.82f + vec2(800/1.5f, 500 / 1.5f);
+	}
 	// Interpolate mouse-camera offset
 	// sharpness_factor_camera_offset possible values:
 	// - 0.0 - offset
@@ -806,6 +809,7 @@ void WorldSystem::restart_game() {
 	is_alive = true;
 	createHealthUI(renderer);
 	createAttributeUI(renderer);
+	createParralex(renderer, {0,0});
 	combo_mode.restart();
 	focus_mode.restart();
 	ai->restart_flow_field_map();

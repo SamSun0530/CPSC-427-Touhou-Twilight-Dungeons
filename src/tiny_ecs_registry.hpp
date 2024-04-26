@@ -96,6 +96,7 @@ public:
 	ComponentContainer<FlyToPlayer> flytoplayers;
 	ComponentContainer<Aura> auras;
 	ComponentContainer<AuraLink> auraLinks;
+	ComponentContainer<Parralex> parrallaxes;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -186,6 +187,7 @@ public:
 		registry_list.push_back(&flytoplayers);
 		registry_list.push_back(&auras);
 		registry_list.push_back(&auraLinks);
+		registry_list.push_back(&parrallaxes);
 	}
 
 	void clear_all_components() {

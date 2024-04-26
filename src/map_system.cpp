@@ -143,13 +143,6 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 			spawn_points.push_back(convert_grid_to_world(spawn_point));
 			valid_spawn_points++;
 		}
-		for (int i = 0; i < enemy_num; i++) {
-			std::uniform_real_distribution<> real_distrib_x(room.top_left.x + 0.3f, room.bottom_right.x - 0.3f);
-			float loc_x = real_distrib_x(rng);
-			std::uniform_real_distribution<> real_distrib_y(room.top_left.y + 0.3f, room.bottom_right.y - 0.3f);
-			float loc_y = real_distrib_y(rng);
-			spawn_points.push_back(convert_grid_to_world(vec2(loc_x, loc_y)));
-		}
 		std::uniform_real_distribution<> real_dist(0, 1);
 		for (vec2 point : spawn_points) {
 

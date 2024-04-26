@@ -387,6 +387,10 @@ void RenderSystem::draw()
 		// Draw all textured meshes that have a position and size component
 		std::vector<Entity> boss_ui_entities;
 		std::vector<Entity> uiux_world_entities;
+		// Parallaxes should always at the back
+		for (Entity entity : registry.parrallaxes.entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
 
 		drawTilesInstanced(projection_2D, view_2D);
 
@@ -431,6 +435,7 @@ void RenderSystem::draw()
 			if (registry.infographicsMenus.has(entity)) continue;
 			if (registry.teleporters.has(entity)) continue;
 			if (registry.auras.has(entity)) continue;
+			if (registry.parrallaxes.has(entity)) continue;
 
 			// Note, its not very efficient to access elements indirectly via the entity
 			// albeit iterating through all Sprites in sequence. A good point to optimize
