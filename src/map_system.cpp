@@ -75,7 +75,7 @@ void MapSystem::step(float elapsed_ms_since_last_update) {
 					ani.is_active = false;
 					vec2 scale = 2.f * vec2(TELEPORTER_WIDTH, TELEPORTER_HEIGHT);
 					float teleport_time = 2300;
-					
+
 					createTeleporter(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f), scale, scale / 6.f, MAP_LEVEL::LEVEL2, ani, TEXTURE_ASSET_ID::TELEPORTER, teleport_time, "Press \"E\" to enter next level", "Next Level");
 					createChest(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f + vec2(0.0f, 4.0f)));
 				}
@@ -511,7 +511,12 @@ void MapSystem::generateRandomMap(float room_size) {
 	// for order of operations, please see VisibilitySystem class
 	visibility_system->restart_map();
 	generate_all_tiles(world_map);
-	visibility_system->init_visibility();
+
+	// Do not set tiles to not visible
+	if (visibility_info.excluded.find(map_info.level) == visibility_info.excluded.end()) {
+		visibility_system->init_visibility();
+	}
+
 	// set buffer data for visibility tile instance rendering
 	renderer->set_visibility_tiles_instance_buffer_max();
 	// set buffer data for tile instance rendering
@@ -615,6 +620,140 @@ void MapSystem::set_map_walls(std::vector<std::vector<int>>& map) {
 	}
 }
 
+TILE_NAME MapSystem::get_tile_name_sky(int x, int y, std::vector<std::vector<int>>& map) {
+	int type = map[y][x];
+	// Specify int casted enums
+	const int E = (int)TILE_TYPE::EMPTY;
+	const int W = (int)TILE_TYPE::WALL;
+	const int F = (int)TILE_TYPE::FLOOR;
+
+	if (type == E) return TILE_NAME::NONE;
+
+	// Specify neighbors for hardcoded checks
+	const int U = map[y - 1][x];	// Up
+	const int D = map[y + 1][x];	// Down
+	const int L = map[y][x - 1];	// Left
+	const int R = map[y][x + 1];	// Right
+	const int UL = map[y - 1][x - 1];	// Up left
+	const int UR = map[y - 1][x + 1];	// Up right
+	const int DL = map[y + 1][x - 1];	// Down left
+	const int DR = map[y + 1][x + 1];	// Down right
+
+	TILE_NAME result = TILE_NAME::NONE;
+
+	if (type == W) {
+		if (U == F) {
+			result = TILE_NAME::S15;
+		}
+		else {
+			result = TILE_NAME::TRANSPARENT_TILE;
+		}
+	}
+	else if (type == F) {
+		// corridor entrance tiles
+		if (U == F && L == F && R == F && D == F && UL == W && UR == W) {
+			result = TILE_NAME::S30;
+		}
+		else if (U == F && L == F && R == F && D == F && UR == W && DR == W) {
+			result = TILE_NAME::S01;
+		}
+		else if (U == F && L == F && R == F && D == F && UL == W && DL == W) {
+			result = TILE_NAME::S11;
+		}
+		else if (U == F && L == F && R == F && D == F && DL == W && DR == W) {
+			result = TILE_NAME::S21;
+		}
+		else if (U == F && L == F && R == W && D == F && UL == W && UR == W) {
+			result = TILE_NAME::S31;
+		}
+		else if (U == F && L == F && R == F && D == W && DL == W && UL == W) {
+			result = TILE_NAME::S32;
+		}
+		else if (U == F && L == F && R == F && D == W && UR == W && DR == W) {
+			result = TILE_NAME::S33;
+		}
+		else if (U == F && L == W && R == F && D == F && UL == W && UR == W) {
+			result = TILE_NAME::S34;
+		}
+		else if (U == W && L == F && R == F && D == F && UL == W && DL == W) {
+			result = TILE_NAME::S35;
+		}
+		else if (U == W && L == F && R == F && D == F && UR == W && DR == W) {
+			result = TILE_NAME::S06;
+		}
+		else if (U == F && L == F && R == W && D == F && DL == W && DR == W) {
+			result = TILE_NAME::S16;
+		}
+		else if (U == F && L == W && R == F && D == F && DL == W && DR == W) {
+			result = TILE_NAME::S26;
+		}
+		else if (U == F && L == F && R == F && D == F && UL == W && UR == W && DL == W && DR == F) {
+			result = TILE_NAME::S41;
+		}
+		else if (U == F && L == F && R == F && D == F && UL == W && UR == W && DL == F && DR == W) {
+			result = TILE_NAME::S42;
+		}
+		else if (U == F && L == F && R == F && D == F && UL == W && UR == F && DL == W && DR == W) {
+			result = TILE_NAME::S43;
+		}
+		else if (U == F && L == F && R == F && D == F && UL == F && UR == W && DL == W && DR == W) {
+			result = TILE_NAME::S44;
+		}
+		else if (U == F && L == F && R == F && D == F && UL == W) {
+			result = TILE_NAME::S00;
+		}
+		else if (U == F && L == F && R == F && D == F && UR == W) {
+			result = TILE_NAME::S10;
+		}
+		else if (U == F && L == F && R == F && D == F && DL == W) {
+			result = TILE_NAME::S20;
+		}
+		else if (U == F && L == F && R == F && D == F && DR == W) {
+			result = TILE_NAME::S40;
+		}
+		// real tiles
+		else if (U == F && L == F && R == F && D == W) {
+			result = TILE_NAME::S14;
+		}
+		else if (U == F && L == W && R == F && D == W) {
+			result = TILE_NAME::S04;
+		}
+		else if (U == F && L == F && R == W && D == W) {
+			result = TILE_NAME::S24;
+		}
+		else if (U == F && L == W && R == W && D == F) {
+			result = TILE_NAME::S25;
+		}
+		else if (U == W && L == F && R == F && D == W) {
+			result = TILE_NAME::S05;
+		}
+		else if (U == F && L == W && R == F && D == F) {
+			result = TILE_NAME::S03;
+		}
+		else if (U == F && L == F && R == W && D == F) {
+			result = TILE_NAME::S23;
+		}
+		else if (U == W && L == F && R == F && D == F) {
+			result = TILE_NAME::S12;
+		}
+		else if (U == W && L == W && R == F && D == F) {
+			result = TILE_NAME::S02;
+		}
+		else if (U == W && L == F && R == W && D == F) {
+			result = TILE_NAME::S22;
+		}
+		else {
+			result = TILE_NAME::S13;
+		}
+
+	}
+	else {
+		assert(false && "tile type not supported");
+	}
+
+	return result;
+}
+
 TILE_NAME MapSystem::get_tile_name(int x, int y, std::vector<std::vector<int>>& map) {
 	int type = map[y][x];
 	// Specify int casted enums
@@ -654,6 +793,37 @@ TILE_NAME MapSystem::get_tile_name(int x, int y, std::vector<std::vector<int>>& 
 			}
 			break;
 		}
+		case MAP_LEVEL::LEVEL3: {
+			std::random_device ran;
+			std::mt19937 gen(ran());
+			std::uniform_real_distribution<> dis(0.f, 1.f);
+			float random_number = dis(gen);
+			if (random_number < 0.5f) {
+				temp = TILE_NAME::DEFAULT_FLOOR;
+			}
+			else if (random_number < 0.61) {
+				temp = TILE_NAME::FLOOR_1_0;
+			}
+			else if (random_number < 0.68) {
+				temp = TILE_NAME::FLOOR_2_0;
+			}
+			else if (random_number < 0.75) {
+				temp = TILE_NAME::FLOOR_3_0;
+			}
+			else if (random_number < 0.82) {
+				temp = TILE_NAME::FLOOR_0_1;
+			}
+			else if (random_number < 0.89) {
+				temp = TILE_NAME::FLOOR_1_1;
+			}
+			else if (random_number < 0.96) {
+				temp = TILE_NAME::FLOOR_2_1;
+			}
+			else {
+				temp = TILE_NAME::FLOOR_3_1;
+			}
+			break;
+		}
 		default:
 			break;
 		}
@@ -672,35 +842,79 @@ TILE_NAME MapSystem::get_tile_name(int x, int y, std::vector<std::vector<int>>& 
 
 	TILE_NAME result = TILE_NAME::NONE;
 
-	if (UR == F && U == W && R == W && D != F) {
-		result = TILE_NAME::BOTTOM_LEFT;
+	if (map_info.level == MAP_LEVEL::LEVEL3) {
+		if (UR == F && U == W && R == W && D != F) {
+			result = TILE_NAME::BOTTOM_LEFT;
+		}
+		else if (UL == F && U == W && L == W && D != F) {
+			result = TILE_NAME::BOTTOM_RIGHT;
+		}
+		else if ((U == F && L == F && R == W && D == W) ||
+			(U == F && L == W && R == W && D == W && DL == F && DR == E)) {
+			result = TILE_NAME::CORRIDOR_BOTTOM_LEFT;
+		}
+		else if ((U == F && L == W && R == F && D == W) ||
+			(U == F && L == W && R == W && D == W && DR == F && DL == E)) {
+			result = TILE_NAME::CORRIDOR_BOTTOM_RIGHT;
+		}
+		else if ((U == W && L == F && R == W && D == F)) {
+			result = TILE_NAME::CORRIDOR_TOP_LEFT;
+		}
+		else if ((U == W && L == W && R == F && D == F)) {
+			result = TILE_NAME::CORRIDOR_TOP_RIGHT;
+		}
+		else if (L == W && DL == F && D == W) {
+			result = TILE_NAME::TOP_RIGHT;
+		}
+		else if (R == W && DR == F && D == W) {
+			result = TILE_NAME::TOP_LEFT;
+		}
+		else if (D == F ||
+			(U == W && L == W && D == F && R == F) ||
+			(U == W && L == F && D == F && R == W)) {
+			result = TILE_NAME::TOP_WALL;
+		}
+		else if (L == F) {
+			result = TILE_NAME::RIGHT_WALL;
+		}
+		else if (R == F) {
+			result = TILE_NAME::LEFT_WALL;
+		}
+		else if (U == F) {
+			result = TILE_NAME::BOTTOM_WALL;
+		}
 	}
-	else if (UL == F && U == W && L == W && D != F) {
-		result = TILE_NAME::BOTTOM_RIGHT;
-	}
-	else if ((U == F && L == F && R == W && D == W) ||
-		(U == F && L == W && R == W && D == W && DL == F && DR == E)) {
-		result = TILE_NAME::CORRIDOR_BOTTOM_LEFT;
-	}
-	else if ((U == F && L == W && R == F && D == W) ||
-		(U == F && L == W && R == W && D == W && DR == F && DL == E)) {
-		result = TILE_NAME::CORRIDOR_BOTTOM_RIGHT;
-	}
-	else if (D == F ||
-		(U == W && L == W && D == F && R == F) ||
-		(U == W && L == F && D == F && R == W)) {
-		result = TILE_NAME::TOP_WALL;
-	}
-	else if (L == F ||
-		(L == W && DL == F && D == W)) {
-		result = TILE_NAME::RIGHT_WALL;
-	}
-	else if (R == F ||
-		(R == W && DR == F && D == W)) {
-		result = TILE_NAME::LEFT_WALL;
-	}
-	else if (U == F) {
-		result = TILE_NAME::BOTTOM_WALL;
+	else {
+		if (UR == F && U == W && R == W && D != F) {
+			result = TILE_NAME::BOTTOM_LEFT;
+		}
+		else if (UL == F && U == W && L == W && D != F) {
+			result = TILE_NAME::BOTTOM_RIGHT;
+		}
+		else if ((U == F && L == F && R == W && D == W) ||
+			(U == F && L == W && R == W && D == W && DL == F && DR == E)) {
+			result = TILE_NAME::CORRIDOR_BOTTOM_LEFT;
+		}
+		else if ((U == F && L == W && R == F && D == W) ||
+			(U == F && L == W && R == W && D == W && DR == F && DL == E)) {
+			result = TILE_NAME::CORRIDOR_BOTTOM_RIGHT;
+		}
+		else if (D == F ||
+			(U == W && L == W && D == F && R == F) ||
+			(U == W && L == F && D == F && R == W)) {
+			result = TILE_NAME::TOP_WALL;
+		}
+		else if (L == F ||
+			(L == W && DL == F && D == W)) {
+			result = TILE_NAME::RIGHT_WALL;
+		}
+		else if (R == F ||
+			(R == W && DR == F && D == W)) {
+			result = TILE_NAME::LEFT_WALL;
+		}
+		else if (U == F) {
+			result = TILE_NAME::BOTTOM_WALL;
+		}
 	}
 
 	return result;
@@ -732,7 +946,6 @@ void MapSystem::generate_obstacles(std::vector<std::vector<int>>& map) {
 				if (to_spawn < spawn_chance) {
 					createObstacle(renderer, { col, row });
 				}
-
 			}
 		}
 	}
@@ -752,7 +965,13 @@ void MapSystem::generate_all_tiles(std::vector<std::vector<int>>& map) {
 
 	for (int y = 0; y < map_height; ++y) {
 		for (int x = 0; x < map_width; ++x) {
-			TILE_NAME result = get_tile_name(x + 1, y + 1, map_copy);
+			TILE_NAME result;
+			if (map_info.level == MAP_LEVEL::LEVEL4) {
+				result = get_tile_name_sky(x + 1, y + 1, map_copy);
+			}
+			else {
+				result = get_tile_name(x + 1, y + 1, map_copy);
+			}
 			if (result == TILE_NAME::NONE) continue;
 			createTile(renderer, visibility_system, { x, y }, result, map[y][x] == (int)TILE_TYPE::WALL);
 		}

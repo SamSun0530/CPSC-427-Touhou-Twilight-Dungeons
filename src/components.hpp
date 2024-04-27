@@ -3,6 +3,7 @@
 #include <vector>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include "../ext/stb_image/stb_image.h"
 
 // statistics to show at end screen
@@ -58,7 +59,9 @@ extern DialogueInfo dialogue_info;
 enum class MAP_LEVEL {
 	TUTORIAL,
 	LEVEL1,
-	LEVEL2
+	LEVEL2,
+	LEVEL3,
+	LEVEL4
 };
 
 // World map loader
@@ -118,8 +121,12 @@ struct ComboMode {
 extern ComboMode combo_mode;
 
 struct VisibilityInfo {
-	// TODO: limit how fast tiles are revealed using flood fill
-	bool need_update = false;
+	// exclude these map levels from using visibility tiles
+	std::unordered_set<MAP_LEVEL> excluded{
+		MAP_LEVEL::TUTORIAL,
+		MAP_LEVEL::LEVEL4
+		//MAP_LEVEL::LEVEL3
+	};
 };
 extern VisibilityInfo visibility_info;
 
@@ -227,7 +234,8 @@ struct PauseMenu {
 };
 
 struct Parralex {
-
+	float parrallax_value;
+	vec2 position;
 };
 
 struct Button {
@@ -664,11 +672,56 @@ enum class TILE_NAME {
 	BOTTOM_LEFT, // 0,6
 	BOTTOM_WALL, // 1,6
 	BOTTOM_RIGHT, // 2,6
-	CORRIDOR_BOTTOM_RIGHT_LIGHT, // 0,3
-	CORRIDOR_BOTTOM_LEFT_LIGHT, // 2,3
-	BOTTOM_LEFT_LIGHT, // 0,4
-	// BOTTOM_WALL_LIGHT -> use TOP_WALL
 	BOTTOM_RIGHT_LIGHT, // 2,4
+	TOP_RIGHT, // 3,2
+	TOP_LEFT, // 3,3
+	CORRIDOR_TOP_RIGHT, // 3,5
+	CORRIDOR_TOP_LEFT, // 3,4
+	TRANSPARENT_TILE, // 3,6
+	// SKY TILES
+	S02,
+	S12,
+	S22,
+	S03,
+	S13,
+	S23,
+	S04,
+	S14,
+	S24,
+	S05,
+	S15,
+	S25,
+	// SKY TILES FOR ENTRANCE OF CORRIDOR
+	S00,
+	S10,
+	S20,
+	S30,
+	S01,
+	S11,
+	S21,
+	S31,
+	S32,
+	S33,
+	S34,
+	S35,
+	S06,
+	S16,
+	S26,
+	S36,
+	S40,
+	S50,
+	S41,
+	S51,
+	S42,
+	S52,
+	S43,
+	S53,
+	S44,
+	S54,
+	S45,
+	S55,
+	S46,
+	S56,
 };
 
 // A non interactable tile of the map
@@ -1060,7 +1113,10 @@ enum class TEXTURE_ASSET_ID {
 	START_SIGN = BOSS_SIGN + 1,
 	SHOP_SIGN = START_SIGN + 1,
 	PARRALEX = SHOP_SIGN + 1,
-	TEXTURE_COUNT = PARRALEX + 1,
+	TILES_ATLAS_WATER = PARRALEX + 1,
+	TILES_ATLAS_SKY = TILES_ATLAS_WATER + 1,
+	CLOUDS = TILES_ATLAS_SKY + 1,
+	TEXTURE_COUNT = CLOUDS + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
