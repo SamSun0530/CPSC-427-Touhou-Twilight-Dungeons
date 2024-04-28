@@ -238,6 +238,14 @@ void PhysicsSystem::step(float elapsed_ms)
 		motion.position += kinematic.velocity * step_seconds;
 	}
 
+	// Update aura position
+	for (Entity entity : registry.auras.entities) {
+		AuraLink& link = registry.auraLinks.get(entity);
+		Motion& motion_aura = registry.motions.get(entity);
+		Motion& motion_entity = registry.motions.get(link.other);
+		motion_aura.position = motion_entity.position;
+	}
+
 	// Set boss invisible spawner position
 	for (Entity entity_boss : registry.bosses.entities) {
 		Boss& boss = registry.bosses.get(entity_boss);
@@ -364,19 +372,19 @@ void PhysicsSystem::step(float elapsed_ms)
 				//registry.collisions.emplace(bullet_entity, wall_entity); // causes bullet to go through walls
 				registry.remove_all_components_of(bullet_entity);
 			}
-			else if (focus_mode.in_focus_mode) {
-				if (collides_circle_AABB(player_motion, playerCircleCollidable, motion, collidable)) {
-					registry.collisions.emplace_with_duplicates(player_entity, bullet_entity);
-					registry.collisions.emplace_with_duplicates(bullet_entity, player_entity);
-				}
-			}
-			// TODO: Mesh not working as expected (aabb collidable box is lower half, won't be checked)
-			//else if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable) &&
-			//	collides_mesh_AABB(player_entity, player_motion, motion, collidable)) {
-			else if (collides_AABB_AABB_player(motion, player_motion, collidable)) {
-				if (collides_mesh_AABB(player_entity, player_motion, motion, collidable))
-				registry.collisions.emplace_with_duplicates(player_entity, bullet_entity);
-			}
+			//else if (focus_mode.in_focus_mode) {
+			//	if (collides_circle_AABB(player_motion, playerCircleCollidable, motion, collidable)) {
+			//		registry.collisions.emplace_with_duplicates(player_entity, bullet_entity);
+			//		registry.collisions.emplace_with_duplicates(bullet_entity, player_entity);
+			//	}
+			//}
+			//// TODO: Mesh not working as expected (aabb collidable box is lower half, won't be checked)
+			////else if (collides_AABB_AABB(motion, player_motion, collidable, player_collidable) &&
+			////	collides_mesh_AABB(player_entity, player_motion, motion, collidable)) {
+			//else if (collides_AABB_AABB_player(motion, player_motion, collidable)) {
+			//	if (collides_mesh_AABB(player_entity, player_motion, motion, collidable))
+			//	registry.collisions.emplace_with_duplicates(player_entity, bullet_entity);
+			//}
 		}
 
 		// Player to deadly

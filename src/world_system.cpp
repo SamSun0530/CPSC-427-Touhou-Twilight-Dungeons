@@ -285,7 +285,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::S;
 	}
 
-
 	// Create on screen player attributes ui
 	HP& player_hp = registry.hps.get(player);
 	//createText({ 128 * 1.3 + 70 - 4, window_height_px - 77 }, { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);

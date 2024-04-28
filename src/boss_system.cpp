@@ -24,6 +24,8 @@ void BossSystem::step(float elapsed_ms) {
 				InvulnerableTimer& invulnerable_timer = registry.invulnerableTimers.emplace_with_duplicates(entity);
 				invulnerable_timer.invulnerable_counter_ms = boss.phase_change_time;
 				BulletStartFiringTimer& bullet_start_firing_timer = registry.bulletStartFiringTimers.emplace_with_duplicates(entity);
+
+				if (!registry.bulletSpawners.has(entity)) continue;
 				BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
 				bullet_spawner.is_firing = false;
 				bullet_start_firing_timer.counter_ms = boss.phase_change_time;
@@ -41,10 +43,13 @@ void BossSystem::step(float elapsed_ms) {
 		if (boss.duration != -1) {
 			boss.current_duration += elapsed_ms;
 			if (boss.current_duration >= boss.duration) {
-				std::random_device ran;
-				std::mt19937 gen(ran());
-				set_random_phase(boss, gen, entity);
-				boss.current_duration = 0;
+				// prevent random phase change during firing
+				if (registry.bulletSpawners.has(entity) && registry.bulletSpawners.get(entity).is_cooldown) {
+					std::random_device ran;
+					std::mt19937 gen(ran());
+					set_random_phase(boss, gen, entity);
+					boss.current_duration = 0;
+				}
 			}
 		}
 	}
@@ -336,41 +341,220 @@ void BossSystem::init_phases() {
 	}
 	else if (map_info.level == MAP_LEVEL::LEVEL3) {
 		// currently assume we have 4 phases (index 0 phase empty)
-		//bs = BulletSpawner();
-		//b_pattern = BulletPattern();
-		//bs.fire_rate = 2;
-		//bs.is_firing = true;
-		//bs.spin_rate = 2;
-		//bs.invert = false;
-		//bs.spin_delta = 0.f;
-		//bs.max_spin_rate = 10.f;
-		//bs.total_bullet_array = 5;
-		//bs.spread_between_array = 72;
-		//bs.bullets_per_array = 1;
-		//bs.spread_within_array = 0;
-		//bs.bullet_initial_speed = 200;
-		//bs.cooldown_rate = 99999999; // TODO
-		//bs.number_to_fire = 20;
-		//b_pattern.commands = {
-		//	{ BULLET_ACTION::SPEED_TIMER, vec3(200, 0, 4000)},
-		//	{ BULLET_ACTION::DELAY, 4100 },
-		//	{ BULLET_ACTION::ROTATE, 90 },
-		//	{ BULLET_ACTION::SPEED_TIMER, vec3(0, 100, 2000)},
-		//	{ BULLET_ACTION::DELAY, 2100 },
-		//	{ BULLET_ACTION::ROTATE, 30 },
-		//	{ BULLET_ACTION::DELAY, 2000 },
-		//	{ BULLET_ACTION::SPEED_TIMER, vec3(100, 0, 1000)},
-		//	{ BULLET_ACTION::DELAY, 1100 },
-		//	{ BULLET_ACTION::ROTATE, -90 },
-		//	{ BULLET_ACTION::SPEED_TIMER, vec3(0, 150, 1000)},
-		//	{ BULLET_ACTION::DELAY, 1200 },
-		//	{ BULLET_ACTION::SPLIT, vec3(2,30,0) },
-		//	// TODO
-		//};
-		//b_phase.bullet_pattern = b_pattern;
-		//b_phase.bullet_spawner = bs;
-		//b_phase.id = bullet_phase_id_count++;
-		//bullet_phases[1].push_back(b_phase);
+
+		b_pattern = BulletPattern();
+		bs = BulletSpawner();
+		bs.start_angle = 90;
+		bs.fire_rate = 10;
+		bs.is_firing = true;
+		bs.spin_rate = 0.1f;
+		bs.invert = true;
+		bs.spin_delta = 0.1f;
+		bs.max_spin_rate = 5.f;
+		bs.total_bullet_array = 1;
+		bs.spread_between_array = 0;
+		bs.bullets_per_array = 10;
+		bs.spread_within_array = 18;
+		bs.bullet_initial_speed = 0;
+		bs.cooldown_rate = 20;
+		b_pattern.commands = {
+			{ BULLET_ACTION::DELAY, 300},
+			{ BULLET_ACTION::RANDOM_DIRECTION, 0.f},
+			{ BULLET_ACTION::SPLIT, vec3(2, 180, 0)},
+		};
+
+		b_pattern2 = BulletPattern();
+		bs2 = BulletSpawner();
+		bs2.fire_rate = 5;
+		bs2.is_firing = true;
+		bs2.spin_rate = 0.f;
+		bs2.invert = false;
+		bs2.spin_delta = 0.1f;
+		bs2.max_spin_rate = 5.f;
+		bs2.total_bullet_array = 1;
+		bs2.spread_between_array = 0;
+		bs2.bullets_per_array = 25;
+		bs2.spread_within_array = 14.4f;
+		bs2.bullet_initial_speed = 200;
+		bs2.cooldown_rate = 100;
+		bs2.number_to_fire = 3;
+		b_pattern2.commands = {
+			{ BULLET_ACTION::SPEED_TIMER, vec3(200, 0, 1000)},
+			{ BULLET_ACTION::DELAY, 4000},
+			{ BULLET_ACTION::SPEED_TIMER, vec3(0, 1000, 1000)},
+			{ BULLET_ACTION::PLAYER_DIRECTION, 0.f},
+			{ BULLET_ACTION::DELAY, 1200},
+		};
+
+		b_phase.bullet_pattern = b_pattern;
+		b_phase.bullet_spawner = bs;
+		b_phase.bullet_pattern2 = b_pattern2;
+		b_phase.bullet_spawner2 = bs2;
+		b_phase.id = bullet_phase_id_count++;
+		bullet_phases[4].push_back(b_phase);
+
+		////////////////////////////////////////////////////
+
+		b_pattern = BulletPattern();
+		bs = BulletSpawner();
+		bs.fire_rate = 2;
+		bs.is_firing = true;
+		bs.spin_rate = 15.f;
+		bs.invert = false;
+		bs.spin_delta = 0.f;
+		bs.max_spin_rate = 10.f;
+		bs.total_bullet_array = 20;
+		bs.spread_between_array = 10;
+		bs.bullets_per_array = 2;
+		bs.spread_within_array = 5;
+		bs.bullet_initial_speed = 50;
+		bs.cooldown_rate = 20;
+		bs.number_to_fire = 3;
+
+		b_pattern2 = BulletPattern();
+		bs2 = BulletSpawner();
+		bs2.start_angle = 0;
+		bs2.fire_rate = 3;
+		bs2.is_firing = true;
+		bs2.spin_rate = 0.f;
+		bs2.invert = false;
+		bs2.spin_delta = 0.f;
+		bs2.max_spin_rate = 10.f;
+		bs2.total_bullet_array = 1;
+		bs2.spread_between_array = 0;
+		bs2.bullets_per_array = 30;
+		bs2.spread_within_array = 12;
+		bs2.bullet_initial_speed = 40;
+		bs2.cooldown_rate = 99999999;
+		bs2.number_to_fire = 3;
+		b_pattern2.commands = {
+			{ BULLET_ACTION::SPEED_TIMER, vec3(200, 0, 4000)},
+			{ BULLET_ACTION::DELAY, 4500 },
+			{ BULLET_ACTION::SPEED, 200.f },
+			{ BULLET_ACTION::ROTATE, 90.f },
+			{ BULLET_ACTION::ROTATE, 5.f },
+			{ BULLET_ACTION::DELAY, 200.f },
+			{ BULLET_ACTION::LOOP, vec2(99999, 4) },
+		};
+
+		b_phase.bullet_pattern = b_pattern;
+		b_phase.bullet_spawner = bs;
+		b_phase.bullet_pattern2 = b_pattern2;
+		b_phase.bullet_spawner2 = bs2;
+		b_phase.id = bullet_phase_id_count++;
+		bullet_phases[3].push_back(b_phase);
+
+		////////////////////////////////////////////////////
+
+		b_pattern = BulletPattern();
+		bs = BulletSpawner();
+		bs.fire_rate = 3;
+		bs.is_firing = true;
+		bs.spin_rate = 2.5f;
+		bs.invert = false;
+		bs.spin_delta = 0.f;
+		bs.max_spin_rate = 10.f;
+		bs.total_bullet_array = 5;
+		bs.spread_between_array = 72;
+		bs.bullets_per_array = 1;
+		bs.spread_within_array = 0;
+		bs.bullet_initial_speed = 60;
+		bs.cooldown_rate = 100;
+		bs.number_to_fire = 26;
+
+		b_pattern2 = BulletPattern();
+		bs2 = BulletSpawner();
+		bs2.fire_rate = 3;
+		bs2.is_firing = true;
+		bs2.spin_rate = -2.5f;
+		bs2.invert = false;
+		bs2.spin_delta = 0.f;
+		bs2.max_spin_rate = 10.f;
+		bs2.total_bullet_array = 5;
+		bs2.spread_between_array = 72;
+		bs2.bullets_per_array = 1;
+		bs2.spread_within_array = 0;
+		bs2.bullet_initial_speed = 60;
+		bs2.cooldown_rate = 100;
+		bs2.number_to_fire = 26;
+
+		b_phase.bullet_pattern = b_pattern;
+		b_phase.bullet_spawner = bs;
+		b_phase.bullet_pattern2 = b_pattern2;
+		b_phase.bullet_spawner2 = bs2;
+		b_phase.id = bullet_phase_id_count++;
+		bullet_phases[1].push_back(b_phase);
+
+		////////////////////////////////////////////////////
+
+		b_pattern = BulletPattern();
+		bs = BulletSpawner();
+		bs.fire_rate = 2;
+		bs.is_firing = true;
+		bs.spin_rate = 2;
+		bs.invert = false;
+		bs.spin_delta = 0.f;
+		bs.max_spin_rate = 10.f;
+		bs.total_bullet_array = 5;
+		bs.spread_between_array = 72;
+		bs.bullets_per_array = 1;
+		bs.spread_within_array = 0;
+		bs.bullet_initial_speed = 200;
+		bs.cooldown_rate = 240;
+		bs.number_to_fire = 20;
+		b_pattern.commands = {
+			{ BULLET_ACTION::SPEED_TIMER, vec3(200, 0, 4000)},
+			{ BULLET_ACTION::DELAY, 4100 },
+			{ BULLET_ACTION::ROTATE, 90 },
+			{ BULLET_ACTION::SPEED, 100 },
+			{ BULLET_ACTION::DELAY, 2100 },
+			{ BULLET_ACTION::ROTATE, 1.8f },
+			{ BULLET_ACTION::DELAY, 100 },
+			{ BULLET_ACTION::LOOP, vec2(5, 50) },
+			{ BULLET_ACTION::SPEED_TIMER, vec3(100, 0, 1000)},
+			{ BULLET_ACTION::DELAY, 2000 },
+			{ BULLET_ACTION::ROTATE, -90 },
+			{ BULLET_ACTION::DELAY, 1200 },
+			{ BULLET_ACTION::SPLIT, vec3(2,180,100) },
+		};
+
+		bs2 = BulletSpawner();
+		b_pattern2 = BulletPattern();
+		bs2.fire_rate = 2;
+		bs2.is_firing = true;
+		bs2.spin_rate = 2;
+		bs2.invert = false;
+		bs2.spin_delta = 0.f;
+		bs2.max_spin_rate = 10.f;
+		bs2.total_bullet_array = 5;
+		bs2.spread_between_array = 72;
+		bs2.bullets_per_array = 1;
+		bs2.spread_within_array = 0;
+		bs2.bullet_initial_speed = 100;
+		bs2.cooldown_rate = 250;
+		bs2.number_to_fire = 15;
+		b_pattern2.commands = {
+			{ BULLET_ACTION::SPEED_TIMER, vec3(100, 0, 4000)},
+			{ BULLET_ACTION::DELAY, 4100 },
+			{ BULLET_ACTION::ROTATE, 100 },
+			{ BULLET_ACTION::SPEED, 50 },
+			{ BULLET_ACTION::DELAY, 2100 },
+			{ BULLET_ACTION::ROTATE, 10.f },
+			{ BULLET_ACTION::DELAY, 100 },
+			{ BULLET_ACTION::LOOP, vec2(5, 50) },
+			{ BULLET_ACTION::SPEED_TIMER, vec3(100, 0, 1000)},
+			{ BULLET_ACTION::DELAY, 2000 },
+			{ BULLET_ACTION::ROTATE, -90 },
+			{ BULLET_ACTION::DELAY, 1200 },
+			{ BULLET_ACTION::SPLIT, vec3(2,120,100) },
+		};
+
+		b_phase.bullet_pattern = b_pattern;
+		b_phase.bullet_spawner = bs;
+		b_phase.bullet_pattern2 = b_pattern2;
+		b_phase.bullet_spawner2 = bs2;
+		b_phase.id = bullet_phase_id_count++;
+		bullet_phases[2].push_back(b_phase);
 	}
 }
 
@@ -382,6 +566,7 @@ None:
 PLAYER_DIRECTION - change bullet to face player direction (only for enemies)
 ENEMY_DIRECTION - change bullet to face direction of deadly closest to cursor (only for players)
 CURSOR_DIRECTION - change bullet to face direction cursor (only for players)
+RANDOM_DIRECTION - change bullet to random direction
 
 Floats:
 SPEED - float - change in velocity magnitude

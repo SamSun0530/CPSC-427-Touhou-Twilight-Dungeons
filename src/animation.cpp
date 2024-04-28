@@ -338,17 +338,34 @@ void Animation::step(float elapsed_ms)
 		if (!enemy_ani.is_active) continue;
 		vec2 enemy_velocity = normalize(registry.kinematics.get(enemy).velocity);
 		float facing_degree = (-atan2(enemy_velocity.x, enemy_velocity.y) + M_PI) * (180.0 / M_PI);
-		if (facing_degree <= 45 || facing_degree >= 325) {
-			enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y;
-		}
-		else if (facing_degree <= 135) {
-			enemy_ani.render_pos.y = 3 * enemy_ani.spritesheet_scale.y;
-		}
-		else if (facing_degree <= 225) {
-			enemy_ani.render_pos.y = 1 * enemy_ani.spritesheet_scale.y;
+		Boss& boss = registry.bosses.get(enemy);
+		if (boss.boss_id == BOSS_ID::SAKUYA) {
+			if (facing_degree <= 45 || facing_degree >= 325) {
+				enemy_ani.render_pos.y = (4 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+			}
+			else if (facing_degree <= 135) {
+				enemy_ani.render_pos.y = (3 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+			}
+			else if (facing_degree <= 225) {
+				enemy_ani.render_pos.y = (1 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+			}
+			else {
+				enemy_ani.render_pos.y = (2 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
+			}
 		}
 		else {
-			enemy_ani.render_pos.y = 2 * enemy_ani.spritesheet_scale.y;
+			if (facing_degree <= 45 || facing_degree >= 325) {
+				enemy_ani.render_pos.y = 4 * enemy_ani.spritesheet_scale.y;
+			}
+			else if (facing_degree <= 135) {
+				enemy_ani.render_pos.y = 3 * enemy_ani.spritesheet_scale.y;
+			}
+			else if (facing_degree <= 225) {
+				enemy_ani.render_pos.y = 1 * enemy_ani.spritesheet_scale.y;
+			}
+			else {
+				enemy_ani.render_pos.y = 2 * enemy_ani.spritesheet_scale.y;
+			}
 		}
 	}
 
