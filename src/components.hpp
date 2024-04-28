@@ -36,10 +36,15 @@ struct UniversalTimer {
 	float aimbot_bullet_timer = 0;
 	float aimbot_bullet_timer_default = 2000;
 
+	// Boss movement
+	float boss_can_move_timer = -1;
+	float boss_can_move_timer_default = 10000;
+
 	void restart() {
 		closest_enemy_timer = 0;
 		closest_enemy = -1;
 		aimbot_bullet_timer = 0;
+		boss_can_move_timer = -1;
 	}
 };
 extern UniversalTimer uni_timer;
@@ -299,6 +304,7 @@ None:
 PLAYER_DIRECTION - change bullet to face player direction (only for enemies)
 ENEMY_DIRECTION - change bullet to face direction of deadly closest to cursor (only for players)
 CURSOR_DIRECTION - change bullet to face direction cursor (only for players)
+RANDOM_DIRECTION - change bullet to random direction
 
 Floats:
 SPEED - float - change in velocity magnitude
@@ -321,7 +327,7 @@ SPEED_TIMER - vec3 - lerp velocity magnitude over a time interval
 	- vec3[0] = start bullet velocity
 	- vec3[1] = end bullet velocity
 	- vec3[2] = time interval in ms to lerp from start to end velocity
-	- Note: 
+	- Note:
 	-	if second timer interval overlap with first, does not do the action
 */
 enum class BULLET_ACTION {
@@ -335,7 +341,8 @@ enum class BULLET_ACTION {
 	PLAYER_DIRECTION,
 	ENEMY_DIRECTION,
 	CURSOR_DIRECTION,
-	SPEED_TIMER
+	SPEED_TIMER,
+	RANDOM_DIRECTION
 };
 
 enum class CHARACTER {
@@ -474,10 +481,15 @@ struct Boss {
 	// optional invisible entity for extra bullet spawner/pattern
 	// IMPORTANT: remember to remove this if removing this boss
 	Entity invis_spawner;
+
+	// room waypoints in grid coordinates
+	std::vector<coord> waypoints;
 };
 
 struct BossInvisible {
 	BulletPattern bullet_pattern;
+	Entity boss;
+	BossInvisible(Entity& other) { this->boss = other; };
 };
 
 // Keeps track of what aura this belongs to
@@ -1157,7 +1169,8 @@ enum class TEXTURE_ASSET_ID {
 	BOSS_SAKUYA = TILES_ATLAS_SKY + 1,
 	BOSS_REMILIA = BOSS_SAKUYA + 1,
 	CLOUDS = BOSS_REMILIA + 1,
-	TEXTURE_COUNT = CLOUDS + 1,
+	SAKUYA_AURA = CLOUDS + 1,
+	TEXTURE_COUNT = SAKUYA_AURA + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

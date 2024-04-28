@@ -173,13 +173,13 @@ path astar(coord start, coord goal) {
 
 // Takes in from & to in world coordinates
 void set_follow_path(Entity& entity, coord from, coord to) {
-	path path_to_player = astar(convert_world_to_grid(from), convert_world_to_grid(to));
-	if (path_to_player.size() == 0) return;
+	path path = astar(convert_world_to_grid(from), convert_world_to_grid(to));
+	if (path.size() == 0) return;
 	if (!registry.followpaths.has(entity)) {
 		registry.followpaths.emplace(entity);
 	}
 	FollowPath& fp = registry.followpaths.get(entity);
-	fp.path = path_to_player;
+	fp.path = path;
 	fp.next_path_index = 0;
 }
 
@@ -368,6 +368,10 @@ void AISystem::init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg
 			if (!dialogue_info.sakuya_played) {
 				dialogue_info.sakuya_pt = 0;
 				boss_info.has_sakuya_talked = true;
+
+				if (!registry.auraLinks.has(entity)) {
+					createAura(renderer, motion.position, 6.f, entity, 1.f / 91.f, TEXTURE_ASSET_ID::SAKUYA_AURA);
+				}
 			}
 		}
 		else if (boss.boss_id == BOSS_ID::REMILIA) {
@@ -491,16 +495,38 @@ void AISystem::init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg
 	this->flandre_boss_tree.setRoot(is_in_range_flandre);
 
 	/*
-	Sakuya boss decision tree (same as cirno)
-	COND in range global?
-		F -> hide boss health bar
-		T -> show boss health bar
+	Sakuya boss decision tree
 	*/
+	std::function<bool(Entity& entity)> isInLastPhase = [&](Entity& entity) {
+		Boss& boss = registry.bosses.get(entity);
+		return boss.phase_index >= boss.health_phase_thresholds.size() - 1; // last index is -1
+		};
+	std::function<void(Entity& entity)> moveBossToRandomWaypoint = [&](Entity& entity) {
+		if (uni_timer.boss_can_move_timer < 0 && !registry.followpaths.has(entity) && registry.bosses.has(entity)) {
+			Boss& boss = registry.bosses.get(entity);
+			std::random_device ran;
+			std::mt19937 gen(ran());
+			std::uniform_int_distribution<> dis(0, boss.waypoints.size() - 1);
+			int random_number = dis(gen);
+
+			set_follow_path(entity, registry.motions.get(entity).position, convert_grid_to_world(boss.waypoints[random_number]));
+			if (registry.followpaths.has(entity)) registry.followpaths.get(entity).is_player_target = false;
+			uni_timer.boss_can_move_timer = uni_timer.boss_can_move_timer_default;
+		}
+		};
+
+	//ActionNode* show_boss_health_bar_sakuya = new ActionNode(showBossInfo);
+	////ActionNode* hide_boss_health_bar_sakuya = new ActionNode(hideBossInfo);
+	//ActionNode* do_nothing_sakuya = new ActionNode(doNothing); // player can't go out of range in new door system
+	//ConditionalNode* is_in_range_sakuya = new ConditionalNode(show_boss_health_bar_sakuya, do_nothing_sakuya, isInRangeBoss);
+	//this->sakuya_boss_tree.setRoot(is_in_range_sakuya);
+
 	ActionNode* show_boss_health_bar_sakuya = new ActionNode(showBossInfo);
-	//ActionNode* hide_boss_health_bar_sakuya = new ActionNode(hideBossInfo);
-	ActionNode* do_nothing_sakuya = new ActionNode(doNothing); // player can't go out of range in new door system
+	ActionNode* do_nothing_sakuya = new ActionNode(doNothing);
+	ActionNode* move_boss_to_random_waypoint_sakuya = new ActionNode(moveBossToRandomWaypoint);
 	ConditionalNode* is_in_range_sakuya = new ConditionalNode(show_boss_health_bar_sakuya, do_nothing_sakuya, isInRangeBoss);
-	this->sakuya_boss_tree.setRoot(is_in_range_sakuya);
+	ConditionalNode* is_last_phase_sakuya = new ConditionalNode(move_boss_to_random_waypoint_sakuya, is_in_range_sakuya, isInLastPhase);
+	this->sakuya_boss_tree.setRoot(is_last_phase_sakuya);
 
 	/*
 	Remilia boss decision tree (same as cirno)

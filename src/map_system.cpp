@@ -181,18 +181,34 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		}
 	}
 	else if (room.type == ROOM_TYPE::BOSS) {
+		Entity entity;
 		if (map_info.level == MAP_LEVEL::LEVEL1) {
-			room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Cirno, the Ice Fairy", BOSS_ID::CIRNO, vec3(1, 0, 0)));
+			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Cirno, the Ice Fairy", BOSS_ID::CIRNO, vec3(1, 0, 0));
+			room.enemies.push_back(entity);
 		}
 		else if (map_info.level == MAP_LEVEL::LEVEL2) {
-			room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Flandre, the Sister of the Devil", BOSS_ID::FLANDRE, vec3(1, 0, 0)));
+			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Flandre, the Sister of the Devil", BOSS_ID::FLANDRE, vec3(1, 0, 0));
+			room.enemies.push_back(entity);
 		}
 		else if (map_info.level == MAP_LEVEL::LEVEL3) {
-			room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Sakuya, the Chief Maid", BOSS_ID::SAKUYA, vec3(1, 0, 0)));
+			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Sakuya, the Chief Maid", BOSS_ID::SAKUYA, vec3(1, 0, 0));
+			room.enemies.push_back(entity);
 		}
-		else if (map_info.level == MAP_LEVEL::LEVEL4) {
-			room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Remilia, the Scarlet Devil", BOSS_ID::REMILIA, vec3(1, 0, 0)));
-		}
+		//else if (map_info.level == MAP_LEVEL::LEVEL4) {
+		else {
+			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Remilia, the Scarlet Devil", BOSS_ID::REMILIA, vec3(1, 0, 0));
+			room.enemies.push_back(entity);
+		}	
+		Boss& boss = registry.bosses.get(entity);
+		boss.waypoints.push_back((room.top_left + room.bottom_right) / 2.f);
+		boss.waypoints.push_back(room.bottom_right);
+		boss.waypoints.push_back(room.top_left);
+		boss.waypoints.push_back(vec2(room.bottom_right.x, room.top_left.y));
+		boss.waypoints.push_back(vec2(room.top_left.x, room.bottom_right.y));
+		boss.waypoints.push_back(vec2((room.top_left.x + room.bottom_right.x) / 2.f, room.bottom_right.y));
+		boss.waypoints.push_back(vec2((room.top_left.x + room.bottom_right.x) / 2.f, room.top_left.y));
+		boss.waypoints.push_back(vec2(room.top_left.x, (room.top_left.y + room.bottom_right.y) / 2.f));
+		boss.waypoints.push_back(vec2(room.bottom_right.x, (room.top_left.y + room.bottom_right.y) / 2.f));
 	}
 	else if (room.type == ROOM_TYPE::START) {
 		// spawn nothing
@@ -262,7 +278,7 @@ Entity MapSystem::spawnPlayerInRoom(int room_number) {
 
 	//return createPlayer(renderer, spawn_point);
 	room_number = bsptree.rooms.size() - 1;
-	return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left + vec2(-2, 0)));
+	return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left + vec2(-1, 0)));
 }
 
 // Getting out of map results? Consider that there is empty padding in the world map.

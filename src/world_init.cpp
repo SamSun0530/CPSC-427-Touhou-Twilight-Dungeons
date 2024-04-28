@@ -1387,10 +1387,9 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 	deadly.damage = 1;
 
 	// Animation
-	EntityAnimation enemy_ani;
+	EntityAnimation& enemy_ani = registry.animation.emplace(entity);
 	enemy_ani.spritesheet_scale = { 1.f / 4.f, 1.f / 4.f };
 	enemy_ani.render_pos = { 1.f / 4.f, 1.f / 4.f };
-	registry.animation.insert(entity, enemy_ani);
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
@@ -1432,8 +1431,11 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 		hp.max_hp = 120;
 		hp.curr_hp = hp.max_hp;
 
-		boss.health_phase_thresholds = { 100, 4, 3, 2, -1 }; // -1 for end of phase
+		boss.health_phase_thresholds = { 100, 90, 80, 70, -1 }; // -1 for end of phase
 		//boss.health_phase_thresholds = { 15000, 11250, 7500, 3750, -1 }; // -1 for end of phase
+
+		enemy_ani.spritesheet_scale = { 1.f / 4.f, 1.f / 8.f };
+		enemy_ani.render_pos = { 1.f / 4.f, 1.f / 8.f };
 
 		registry.renderRequests.insert(
 			entity,
@@ -1459,7 +1461,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 
 	Entity invis_entity = createInvisible(renderer, position);
 	boss.invis_spawner = invis_entity;
-	registry.bossInvisibles.emplace(invis_entity);
+	registry.bossInvisibles.emplace(invis_entity, entity);
 
 	registry.colors.insert(entity, { 1,1,1 });
 	// Boss health bar ui

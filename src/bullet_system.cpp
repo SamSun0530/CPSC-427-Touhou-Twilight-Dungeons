@@ -126,6 +126,9 @@ void BulletSystem::step(float elapsed_ms)
 			else if (registry.bosses.has(entity)) {
 				initial_dir = transform.mat * vec3(1, 0, 1);
 			}
+			else if (registry.bossInvisibles.has(entity)) {
+				initial_dir = transform.mat * vec3(1, 0, 1);
+			}
 			else if (registry.deadlys.has(entity)) {
 				Motion& player_motion = registry.motions.get(player);
 				vec2 player_dir = player_motion.position - motion.position;
@@ -152,6 +155,15 @@ void BulletSystem::step(float elapsed_ms)
 				if (has_patterns) bullet_pattern = &boss.bullet_pattern;
 				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false, bullet_pattern);
 				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, motion.position, kinematic, false, bullet_pattern);
+			}
+			else if (registry.bossInvisibles.has(entity)) {
+				BossInvisible& invis = registry.bossInvisibles.get(entity);
+				Kinematic& boss_kin = registry.kinematics.get(invis.boss);
+				bool has_patterns = invis.bullet_pattern.commands.size() != 0;
+				BulletPattern* bullet_pattern = nullptr;
+				if (has_patterns) bullet_pattern = &invis.bullet_pattern;
+				spawn_bullets(renderer, initial_bullet_directions, bullet_spawner.bullet_initial_speed, motion.position, boss_kin, false, bullet_pattern);
+				spawn_bullets(renderer, bullet_direcions, bullet_spawner.bullet_initial_speed, motion.position, boss_kin, false, bullet_pattern);
 			}
 			else if (registry.deadlys.has(entity)) {
 				Deadly& deadly = registry.deadlys.get(entity);
@@ -321,6 +333,14 @@ void BulletSystem::step(float elapsed_ms)
 				speed_t.max_timer_ms = info[2];
 				break;
 			}
+			case BULLET_ACTION::RANDOM_DIRECTION: {
+				std::random_device ran;
+				std::mt19937 gen(ran());
+				std::uniform_real_distribution<float> dis(-1, 1);
+				Kinematic& bullet_kinematic = registry.kinematics.get(entity);
+				bullet_kinematic.direction = vec2(dis(gen), dis(gen));
+				break;
+			}
 			default:
 				break;
 			}
@@ -356,8 +376,17 @@ void BulletSystem::step(float elapsed_ms)
 		bullet_stop_firing_timer.counter_ms -= elapsed_ms;
 		if (bullet_stop_firing_timer.counter_ms < 0) {
 			Entity& entity = bullet_stop_firing_container.entities[i];
+			if (!registry.bulletSpawners.has(entity)) continue;
 			BulletSpawner& bs = registry.bulletSpawners.get(entity);
 			bs.is_firing = true;
+
+			if (registry.bosses.has(entity)) {
+				Boss& boss = registry.bosses.get(entity);
+				if (registry.bulletSpawners.has(boss.invis_spawner)) {
+					registry.bulletSpawners.get(boss.invis_spawner).is_firing = true;
+				}
+			}
+
 			registry.bulletStartFiringTimers.remove(entity);
 		}
 	}

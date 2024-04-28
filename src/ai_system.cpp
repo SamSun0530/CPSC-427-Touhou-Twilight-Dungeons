@@ -3,6 +3,9 @@
 
 void AISystem::step(float elapsed_ms)
 {
+	// Update boss can move timer
+	uni_timer.boss_can_move_timer = max(uni_timer.boss_can_move_timer - elapsed_ms, -1.f);
+
 	// Update flow field
 	flow_field.update_timer_ms -= elapsed_ms;
 	if (flow_field.update_timer_ms < 0) {
