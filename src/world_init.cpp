@@ -938,6 +938,22 @@ Entity createLose(RenderSystem* renderer) {
 			EFFECT_ASSET_ID::UI,
 			GEOMETRY_BUFFER_ID::SPRITE });
 	registry.loseMenus.emplace(entity);
+	auto entity_reimu = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh_reimu = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity_reimu, &mesh_reimu);
+
+	Motion& motion_reimu = registry.motions.emplace(entity_reimu);
+	motion_reimu.position = vec2(0, 0);
+	motion_reimu.scale = vec2(256, 256);
+
+	registry.renderRequests.insert(
+		entity_reimu,
+		{ TEXTURE_ASSET_ID::REIMUCRY,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.loseMenus.emplace(entity_reimu);
 	registry.loseMenus.emplace(createText(vec2(0, -200), vec2(1.5, 1.5), "Game Over!!!", vec3(0, 0, 0), true, false));
 
 	return entity;
