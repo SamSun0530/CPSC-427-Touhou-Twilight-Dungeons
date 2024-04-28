@@ -754,6 +754,7 @@ void WorldSystem::next_level() {
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
 	assert(registry.screenStates.components.size() <= 1);
+	start_time = Clock::now();
 	ScreenState& screen = registry.screenStates.components[0];
 	screen.darken_screen_factor = 0;
 
@@ -1460,6 +1461,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		// Debugging
 		if (key == GLFW_KEY_G) {
+
+			createStats(renderer, start_time);
+			menu.state = MENU_STATE::WIN;
 			if (action == GLFW_RELEASE)
 				debugging.in_debug_mode = !debugging.in_debug_mode;
 		}

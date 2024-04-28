@@ -881,6 +881,24 @@ Entity createWin(RenderSystem* renderer) {
 
 }
 
+void createStats(RenderSystem* renderer, std::chrono::steady_clock::time_point start_time) {
+	auto end = Clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start_time);
+
+	int hours = duration.count() / 3600;
+	int minutes = (duration.count() % 3600) / 60;
+	int seconds = duration.count() % 60;
+
+	stats.time_taken_to_win = std::to_string(hours) + " hrs, " + std::to_string(minutes) + " mins, " + std::to_string(seconds) + " secs";
+	registry.winMenus.emplace(createText(vec2(0, -100), vec2(1 ,1), "Enemies hit: "+ std::to_string(stats.enemies_hit), vec3(0, 0, 0), true, false));
+	registry.winMenus.emplace(createText(vec2(0, -50), vec2(1 ,1), "Enemies killed: "+ std::to_string(stats.enemies_killed), vec3(0, 0, 0), true, false));
+	registry.winMenus.emplace(createText(vec2(0, 0), vec2(1 ,1), "Bullets fired: "+ std::to_string(stats.bullets_fired), vec3(0, 0, 0), true, false));
+	stats.accuracy = stats.enemies_hit / (float)stats.bullets_fired;
+	std::string accuracy = std::to_string(stats.accuracy);
+	registry.winMenus.emplace(createText(vec2(0, 50), vec2(1 ,1), "Accuracy: "+ accuracy.substr(0, accuracy.find(".") + 3), vec3(0, 0, 0), true, false));
+	registry.winMenus.emplace(createText(vec2(0, 100), vec2(1 ,1), "Time spent in total: "+ stats.time_taken_to_win, vec3(0, 0, 0), true, false));
+}
+
 Entity createInfographic(RenderSystem* renderer) {
 	auto entity = Entity();
 

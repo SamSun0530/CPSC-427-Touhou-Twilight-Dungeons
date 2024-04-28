@@ -21,6 +21,8 @@
 #include <map>
 #include "visibility_system.hpp"
 #include "boss_system.hpp"
+#include <chrono>
+using Clock = std::chrono::high_resolution_clock;
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -87,6 +89,7 @@ public:
 	void update_aimbot_cursor(float elapsed_ms);
 private:
 	// Input callback functions
+	std::chrono::steady_clock::time_point start_time;
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_key(int button, int action, int mods);

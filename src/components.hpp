@@ -8,11 +8,11 @@
 
 // statistics to show at end screen
 struct Statistic {
-	float enemies_killed = 0;
-	float enemies_hit = 0;
-	float bullets_fired = 0;
+	int enemies_killed = 0;
+	int enemies_hit = 0;
+	int bullets_fired = 0;
 	float accuracy = 1; // this will be enemies_hit / bullets_fired
-	float time_taken_to_win = 0; // accumulate via elapsed ms
+	std::string time_taken_to_win = ""; // accumulate via elapsed ms
 	// TODO: add some more interesting facts
 
 	void reset() {
@@ -20,7 +20,7 @@ struct Statistic {
 		enemies_hit = 0;
 		bullets_fired = 0;
 		accuracy = 1;
-		time_taken_to_win = 0;
+		time_taken_to_win = "";
 	}
 };
 extern Statistic stats;
