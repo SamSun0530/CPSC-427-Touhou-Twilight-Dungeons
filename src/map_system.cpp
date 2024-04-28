@@ -238,29 +238,31 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 
 Entity MapSystem::spawnPlayerInRoom(int room_number) {
 	if (room_number < 0 || room_number >= bsptree.rooms.size()) assert(false && "Room number out of bounds");
-	bsptree.rooms[room_number].type = ROOM_TYPE::START;
-	Room_struct& room = game_info.room_index[room_number];
-	room.type = ROOM_TYPE::START;
-	room.is_cleared = true;
-	room.need_to_spawn = false;
+	//bsptree.rooms[room_number].type = ROOM_TYPE::START;
+	//Room_struct& room = game_info.room_index[room_number];
+	//room.type = ROOM_TYPE::START;
+	//room.is_cleared = true;
+	//room.need_to_spawn = false;
 
-	vec2 spawn_point = convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f);
+	//vec2 spawn_point = convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f);
 
-	if (map_info.level == MAP_LEVEL::LEVEL1) {
-		// teleporter to tutorial
-		EntityAnimation ani;
-		ani.spritesheet_scale = { 1 / 26.f, 1 };
-		ani.render_pos = { 1 / 26.f, 1 };
-		ani.frame_rate_ms = 100;
-		ani.full_rate_ms = 100;
-		ani.is_active = false;
-		vec2 scale = 1.5f * vec2(TELEPORTER_SMALL_WIDTH, TELEPORTER_SMALL_HEIGHT);
-		float teleport_time = 1000;
+	//if (map_info.level == MAP_LEVEL::LEVEL1) {
+	//	// teleporter to tutorial
+	//	EntityAnimation ani;
+	//	ani.spritesheet_scale = { 1 / 26.f, 1 };
+	//	ani.render_pos = { 1 / 26.f, 1 };
+	//	ani.frame_rate_ms = 100;
+	//	ani.full_rate_ms = 100;
+	//	ani.is_active = false;
+	//	vec2 scale = 1.5f * vec2(TELEPORTER_SMALL_WIDTH, TELEPORTER_SMALL_HEIGHT);
+	//	float teleport_time = 1000;
 
-		createTeleporter(renderer, spawn_point + vec2(0, -world_tile_size * 1.5f), scale, scale / 10.f, MAP_LEVEL::TUTORIAL, ani, TEXTURE_ASSET_ID::TELEPORTER_SMALL, teleport_time, "Press \"E\" to enter tutorial", "Tutorial");
-	}
+	//	createTeleporter(renderer, spawn_point + vec2(0, -world_tile_size * 1.5f), scale, scale / 10.f, MAP_LEVEL::TUTORIAL, ani, TEXTURE_ASSET_ID::TELEPORTER_SMALL, teleport_time, "Press \"E\" to enter tutorial", "Tutorial");
+	//}
 
-	return createPlayer(renderer, spawn_point);
+	//return createPlayer(renderer, spawn_point);
+	room_number = bsptree.rooms.size() - 1;
+	return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left + vec2(-2, 0)));
 }
 
 // Getting out of map results? Consider that there is empty padding in the world map.

@@ -1320,7 +1320,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 	motion.angle = 0.f;
 	motion.position = position;
 	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ ENEMY_BB_WIDTH / 1.2f, ENEMY_BB_HEIGHT / 1.2f });
+	motion.scale = vec2({ ENEMY_BB_HEIGHT_128 / 1.8f, ENEMY_BB_HEIGHT_128 / 1.8f });
 
 	auto& kinematic = registry.kinematics.emplace(entity);
 	kinematic.speed_base = 100.f;

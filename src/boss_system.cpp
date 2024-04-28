@@ -336,34 +336,41 @@ void BossSystem::init_phases() {
 	}
 	else if (map_info.level == MAP_LEVEL::LEVEL3) {
 		// currently assume we have 4 phases (index 0 phase empty)
-		bs = BulletSpawner();
-		b_pattern = BulletPattern();
-		bs.fire_rate = 2;
-		bs.is_firing = true;
-		bs.spin_rate = 2;
-		bs.invert = false;
-		bs.spin_delta = 0.f;
-		bs.max_spin_rate = 10.f;
-		bs.total_bullet_array = 5;
-		bs.spread_between_array = 72;
-		bs.bullets_per_array = 1;
-		bs.spread_within_array = 0;
-		bs.bullet_initial_speed = 100;
-		bs.cooldown_rate = 99999999; // TODO
-		bs.number_to_fire = 48;
-		b_pattern.commands = {
-			{ BULLET_ACTION::SPEED_TIMER, vec3(100, 0, 2000)},
-			{ BULLET_ACTION::DELAY, 2500 },
-			{ BULLET_ACTION::ROTATE, -90 },
-			{ BULLET_ACTION::SPEED_TIMER, vec3(0, 50, 150)},
-			{ BULLET_ACTION::DELAY, 150 },
-			{ BULLET_ACTION::SPEED_TIMER, vec3(50, 0, 150)},
-			// TODO
-		};
-		b_phase.bullet_pattern = b_pattern;
-		b_phase.bullet_spawner = bs;
-		b_phase.id = bullet_phase_id_count++;
-		bullet_phases[1].push_back(b_phase);
+		//bs = BulletSpawner();
+		//b_pattern = BulletPattern();
+		//bs.fire_rate = 2;
+		//bs.is_firing = true;
+		//bs.spin_rate = 2;
+		//bs.invert = false;
+		//bs.spin_delta = 0.f;
+		//bs.max_spin_rate = 10.f;
+		//bs.total_bullet_array = 5;
+		//bs.spread_between_array = 72;
+		//bs.bullets_per_array = 1;
+		//bs.spread_within_array = 0;
+		//bs.bullet_initial_speed = 200;
+		//bs.cooldown_rate = 99999999; // TODO
+		//bs.number_to_fire = 20;
+		//b_pattern.commands = {
+		//	{ BULLET_ACTION::SPEED_TIMER, vec3(200, 0, 4000)},
+		//	{ BULLET_ACTION::DELAY, 4100 },
+		//	{ BULLET_ACTION::ROTATE, 90 },
+		//	{ BULLET_ACTION::SPEED_TIMER, vec3(0, 100, 2000)},
+		//	{ BULLET_ACTION::DELAY, 2100 },
+		//	{ BULLET_ACTION::ROTATE, 30 },
+		//	{ BULLET_ACTION::DELAY, 2000 },
+		//	{ BULLET_ACTION::SPEED_TIMER, vec3(100, 0, 1000)},
+		//	{ BULLET_ACTION::DELAY, 1100 },
+		//	{ BULLET_ACTION::ROTATE, -90 },
+		//	{ BULLET_ACTION::SPEED_TIMER, vec3(0, 150, 1000)},
+		//	{ BULLET_ACTION::DELAY, 1200 },
+		//	{ BULLET_ACTION::SPLIT, vec3(2,30,0) },
+		//	// TODO
+		//};
+		//b_phase.bullet_pattern = b_pattern;
+		//b_phase.bullet_spawner = bs;
+		//b_phase.id = bullet_phase_id_count++;
+		//bullet_phases[1].push_back(b_phase);
 	}
 }
 

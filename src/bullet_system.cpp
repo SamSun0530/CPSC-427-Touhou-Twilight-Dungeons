@@ -198,8 +198,7 @@ void BulletSystem::step(float elapsed_ms)
 		}
 
 		Kinematic& kin = registry.kinematics.get(entity);
-		bullet_speed_timer.start_speed = float_lerp(bullet_speed_timer.start_speed, bullet_speed_timer.end_speed, bullet_speed_timer.timer_ms / bullet_speed_timer.max_timer_ms);
-		kin.speed_modified = bullet_speed_timer.start_speed;
+		kin.speed_modified = float_lerp(bullet_speed_timer.start_speed, bullet_speed_timer.end_speed, bullet_speed_timer.timer_ms / bullet_speed_timer.max_timer_ms);
 	}
 
 	// Process bullet pattern

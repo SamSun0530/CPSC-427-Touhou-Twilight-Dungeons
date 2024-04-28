@@ -736,10 +736,10 @@ void WorldSystem::restart_game() {
 	ScreenState& screen = registry.screenStates.components[0];
 	screen.darken_screen_factor = 0;
 
+	map_info.level = MAP_LEVEL::LEVEL3; // TODO TEMPORARY
 	boss_system->init_phases();
 
 	audio->restart_audio_level1();
-	map_info.level = MAP_LEVEL::LEVEL3; // TODO TEMPORARY
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
 	if (map_info.level == MAP_LEVEL::LEVEL2) map_info.level = MAP_LEVEL::LEVEL1;
