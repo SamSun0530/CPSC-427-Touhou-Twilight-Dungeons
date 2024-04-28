@@ -442,7 +442,7 @@ void BossSystem::init_phases() {
 		b_phase.bullet_pattern2 = b_pattern2;
 		b_phase.bullet_spawner2 = bs2;
 		b_phase.id = bullet_phase_id_count++;
-		bullet_phases[3].push_back(b_phase);
+		bullet_phases[2].push_back(b_phase);
 
 		////////////////////////////////////////////////////
 
@@ -554,7 +554,7 @@ void BossSystem::init_phases() {
 		b_phase.bullet_pattern2 = b_pattern2;
 		b_phase.bullet_spawner2 = bs2;
 		b_phase.id = bullet_phase_id_count++;
-		bullet_phases[2].push_back(b_phase);
+		bullet_phases[3].push_back(b_phase);
 	}
 }
 
