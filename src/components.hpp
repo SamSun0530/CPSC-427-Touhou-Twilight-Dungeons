@@ -239,6 +239,11 @@ struct PauseMenu {
 
 };
 
+struct Parralex {
+	float parrallax_value;
+	vec2 position;
+};
+
 struct Button {
 	MENU_STATE state; // button related to which state
 	std::string text = ""; // button text
@@ -1138,11 +1143,13 @@ enum class TEXTURE_ASSET_ID {
 	BOSS_SIGN = NORMAL_SIGN + 1,
 	START_SIGN = BOSS_SIGN + 1,
 	SHOP_SIGN = START_SIGN + 1,
-	TILES_ATLAS_WATER = SHOP_SIGN + 1,
+	PARRALEX = SHOP_SIGN + 1,
+	TILES_ATLAS_WATER = PARRALEX + 1,
 	TILES_ATLAS_SKY = TILES_ATLAS_WATER + 1,
 	BOSS_SAKUYA = TILES_ATLAS_SKY + 1,
 	BOSS_REMILIA = BOSS_SAKUYA + 1,
-	TEXTURE_COUNT = BOSS_REMILIA + 1,
+	CLOUDS = BOSS_REMILIA + 1,
+	TEXTURE_COUNT = CLOUDS + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

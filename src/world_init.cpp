@@ -451,6 +451,56 @@ Entity createTreasure(RenderSystem* renderer, vec2 position, bool is_bezier)
 	return entity;
 }
 
+Entity createParralex(RenderSystem* renderer, vec2 position) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ 4152, 2886 });
+	Parralex& parra = registry.parrallaxes.emplace(entity);
+	parra.parrallax_value = 0.82;
+	parra.position = position;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::PARRALEX,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
+}
+
+Entity createCloud(RenderSystem* renderer, vec2 position, float parrallax_value, float scale) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the position, scale, and physics components
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.position = position;
+	// Setting initial values, scale is negative to make it face the opposite way
+	motion.scale = vec2({ 384, 128 }) * scale;
+	Parralex& parra = registry.parrallaxes.emplace(entity);
+	parra.parrallax_value = parrallax_value;
+	parra.position = position;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::CLOUDS,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	return entity;
+}
+
 Entity createCoin(RenderSystem* renderer, vec2 position, int value, float bezier_start, float bezier_end, vec2 bezier_up, float bezier_x_rand)
 {
 	// Reserve en entity

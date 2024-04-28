@@ -57,6 +57,10 @@ Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bo
 
 Entity createCombo(RenderSystem* renderer);
 
+Entity createParralex(RenderSystem* renderer, vec2 position);
+
+Entity createCloud(RenderSystem* renderer, vec2 position, float parrallax_value, float scale);
+
 void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2, EMOTION emotion);
 
 Entity createCriHit(RenderSystem* renderer, vec2 pos);

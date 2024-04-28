@@ -309,7 +309,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	vec2 player_position = registry.motions.get(player).position;
 	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), player_position, K));
-
+	for (Entity& p : registry.parrallaxes.entities) {
+		Motion& p_motion = registry.motions.get(p);
+		Parralex& p_parra = registry.parrallaxes.get(p);
+		p_motion.position = renderer->camera.getPosition()*p_parra.parrallax_value + p_parra.position;
+	}
 	// Interpolate mouse-camera offset
 	// sharpness_factor_camera_offset possible values:
 	// - 0.0 - offset
@@ -719,6 +723,19 @@ void WorldSystem::next_level() {
 	is_alive = true;
 	createHealthUI(renderer);
 	createAttributeUI(renderer);
+	if (map_info.level == MAP_LEVEL::LEVEL4) {
+		createParralex(renderer, { 800 / 1.5f, 500 / 1.5f });
+		createCloud(renderer, { 0,0 }, 0.7, 1.0f);
+		createCloud(renderer, { -400 ,600 }, 0.7, 1.0f);
+		createCloud(renderer, { -700,1100 }, 0.7, 1.0f);
+		createCloud(renderer, { 600 ,600 }, 0.6, 1.25f);
+		createCloud(renderer, { 1200 ,1200 }, 0.6, 1.25f);
+		createCloud(renderer, { 2000 ,500 }, 0.5, 1.5f);
+		createCloud(renderer, { 1300 , 900 }, 0.5, 1.5f);
+		createCloud(renderer, { 1434 ,800 }, 0.5, 1.5f);
+		createCloud(renderer, { 1843 ,400 }, 0.5, 1.5f);
+		createCloud(renderer, { 900 ,700 }, 0.5, 1.5f);
+	}
 	focus_mode.restart();
 	ai->restart_flow_field_map();
 	display_combo = createCombo(renderer);
@@ -742,7 +759,8 @@ void WorldSystem::restart_game() {
 	audio->restart_audio_level1();
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
-	if (map_info.level == MAP_LEVEL::LEVEL2) map_info.level = MAP_LEVEL::LEVEL1;
+	// TODO: re-add later
+	//if (map_info.level == MAP_LEVEL::LEVEL2 || map_info.level == MAP_LEVEL::LEVEL3 || map_info.level == MAP_LEVEL::LEVEL4) map_info.level = MAP_LEVEL::LEVEL1;
 	if (map_info.level != MAP_LEVEL::TUTORIAL && map_info.level != MAP_LEVEL::LEVEL2) {
 		start_pt = 0;
 		dialogue_info.cirno_pt = 1000;
@@ -755,6 +773,7 @@ void WorldSystem::restart_game() {
 		dialogue_info.marisa_played = false;
 		start_dialogue_timer = 1000.f;
 	}
+
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -808,6 +827,19 @@ void WorldSystem::restart_game() {
 	is_alive = true;
 	createHealthUI(renderer);
 	createAttributeUI(renderer);
+	if (map_info.level == MAP_LEVEL::LEVEL4) {
+		createParralex(renderer, { 800 / 1.5f, 500 / 1.5f });
+		createCloud(renderer, { 0,0 }, 0.7, 1.0f);
+		createCloud(renderer, { -400 ,600 }, 0.7, 1.0f);
+		createCloud(renderer, { -700,1100 }, 0.7, 1.0f);
+		createCloud(renderer, { 600 ,600 }, 0.6, 1.25f);
+		createCloud(renderer, { 1200 ,1200 }, 0.6, 1.25f);
+		createCloud(renderer, { 2000 ,500 }, 0.5, 1.5f);
+		createCloud(renderer, { 1300 , 900 }, 0.5, 1.5f);
+		createCloud(renderer, { 1434 ,800 }, 0.5, 1.5f);
+		createCloud(renderer, { 1843 ,400 }, 0.5, 1.5f);
+		createCloud(renderer, { 900 ,700 }, 0.5, 1.5f);
+	}
 	combo_mode.restart();
 	focus_mode.restart();
 	ai->restart_flow_field_map();
