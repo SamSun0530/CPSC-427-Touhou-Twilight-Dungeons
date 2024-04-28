@@ -31,8 +31,12 @@ WorldSystem::WorldSystem()
 	loadScript("cirno.txt", cirno_script);
 	loadScript("cirno_after.txt", cirno_after_script);
 	loadScript("flandre_after.txt", flandre_after_script);
+	loadScript("remilia_after.txt", remilia_after_script);
+	loadScript("sakuya_after.txt", sakuya_after_script);
 	loadScript("flandre.txt", flandre_script);
 	loadScript("marisa.txt", marisa_script);
+	loadScript("remilia.txt", remilia_script);
+	loadScript("sakuya.txt", sakuya_script);
 }
 
 WorldSystem::~WorldSystem() {
@@ -1653,6 +1657,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			dialogue_info.marisa_pt += 1;
 			dialogue_info.cirno_after_pt += 1;
 			dialogue_info.flandre_after_pt += 1;
+			dialogue_info.remilia_pt += 1;
+			dialogue_info.remilia_after_pt += 1;
+			dialogue_info.sakuya_after_pt += 1;
+			dialogue_info.sakuya_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
 		}
@@ -1720,6 +1728,14 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		dialogue_info.flandre_played = false;
 		dialogue_info.flandre_after_pt = 0;
 	}
+	if (registry.bosses.size() == 0 && dialogue_info.sakuya_played) {
+		dialogue_info.sakuya_played = false;
+		dialogue_info.sakuya_after_pt = 0;
+	}
+	if (registry.bosses.size() == 0 && dialogue_info.remilia_played) {
+		dialogue_info.remilia_played = false;
+		dialogue_info.remilia_after_pt = 0;
+	}
 	if (start_pt < start_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
@@ -1736,6 +1752,12 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		}
 		else if (token == "Marisa:") {
 			speaking_chara = CHARACTER::MARISA;
+		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
 		}
 
 		std::getline(ss, token, ' ');
@@ -1791,6 +1813,12 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		else if (token == "Marisa:") {
 			speaking_chara = CHARACTER::MARISA;
 		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
 
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
@@ -1845,6 +1873,12 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		else if (token == "Marisa:") {
 			speaking_chara = CHARACTER::MARISA;
 		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
 			emotion = EMOTION::LAUGH;
@@ -1898,6 +1932,12 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		else if (token == "Marisa:") {
 			speaking_chara = CHARACTER::MARISA;
 		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
 			emotion = EMOTION::LAUGH;
@@ -1932,7 +1972,6 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	}
 	else if (dialogue_info.cirno_after_pt == cirno_after_script.size()) {
 		dialogue_info.cirno_after_pt += 1;
-
 		resume_game();
 	}
 	else if (dialogue_info.flandre_pt < flandre_script.size()) {
@@ -1950,6 +1989,12 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		}
 		else if (token == "Marisa:") {
 			speaking_chara = CHARACTER::MARISA;
+		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
 		}
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
@@ -2004,6 +2049,12 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		else if (token == "Marisa:") {
 			speaking_chara = CHARACTER::MARISA;
 		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
 			emotion = EMOTION::LAUGH;
@@ -2038,8 +2089,243 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	}
 	else if (dialogue_info.flandre_after_pt == flandre_after_script.size()) {
 		dialogue_info.flandre_after_pt += 1;
-		menu.state = MENU_STATE::WIN;
+		resume_game();
 	}
+	else if (dialogue_info.sakuya_pt < sakuya_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
+		std::istringstream ss(sakuya_script[dialogue_info.sakuya_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		else if (token == "Flandre:") {
+			speaking_chara = CHARACTER::FlANDRE;
+		}
+		else if (token == "Marisa:") {
+			speaking_chara = CHARACTER::MARISA;
+		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		if (menu.state != MENU_STATE::LOSE)
+			menu.state = MENU_STATE::DIALOGUE;
+
+		createDialogue(speaking_chara, start_buffer, CHARACTER::SAKUYA, emotion);
+		}
+	else if (dialogue_info.sakuya_pt == sakuya_script.size()) {
+			dialogue_info.sakuya_pt += 1;
+			dialogue_info.sakuya_played = true;
+			resume_game();
+	}
+	else if (dialogue_info.sakuya_after_pt < sakuya_after_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
+		std::istringstream ss(sakuya_after_script[dialogue_info.sakuya_after_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		else if (token == "Flandre:") {
+			speaking_chara = CHARACTER::FlANDRE;
+		}
+		else if (token == "Marisa:") {
+			speaking_chara = CHARACTER::MARISA;
+		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		if (menu.state != MENU_STATE::LOSE)
+			menu.state = MENU_STATE::DIALOGUE;
+
+		createDialogue(speaking_chara, start_buffer, CHARACTER::SAKUYA, emotion);
+		}
+	else if (dialogue_info.sakuya_after_pt == sakuya_after_script.size()) {
+			dialogue_info.sakuya_after_pt += 1;
+			resume_game();
+			}
+	else if (dialogue_info.remilia_pt < remilia_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
+		std::istringstream ss(remilia_script[dialogue_info.remilia_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		else if (token == "Flandre:") {
+			speaking_chara = CHARACTER::FlANDRE;
+		}
+		else if (token == "Marisa:") {
+			speaking_chara = CHARACTER::MARISA;
+		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		if (menu.state != MENU_STATE::LOSE)
+			menu.state = MENU_STATE::DIALOGUE;
+
+		createDialogue(speaking_chara, start_buffer, CHARACTER::REMILIA, emotion);
+		}
+	else if (dialogue_info.remilia_pt == remilia_script.size()) {
+		dialogue_info.flandre_pt += 1;
+		dialogue_info.remilia_played = true;
+		resume_game();
+	}
+	else if (dialogue_info.remilia_after_pt < remilia_after_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
+		std::istringstream ss(remilia_after_script[dialogue_info.remilia_after_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		else if (token == "Flandre:") {
+			speaking_chara = CHARACTER::FlANDRE;
+		}
+		else if (token == "Marisa:") {
+			speaking_chara = CHARACTER::MARISA;
+		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		if (menu.state != MENU_STATE::LOSE)
+			menu.state = MENU_STATE::DIALOGUE;
+
+		createDialogue(speaking_chara, start_buffer, CHARACTER::REMILIA, emotion);
+		}
+	else if (dialogue_info.remilia_after_pt == remilia_after_script.size()) {
+			dialogue_info.remilia_after_pt += 1;
+			resume_game();
+			}
+
 
 }
 
@@ -2112,6 +2398,10 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 			dialogue_info.flandre_pt += 1;
 			dialogue_info.flandre_after_pt += 1;
 			dialogue_info.marisa_pt += 1;
+			dialogue_info.remilia_pt += 1;
+			dialogue_info.remilia_after_pt += 1;
+			dialogue_info.sakuya_after_pt += 1;
+			dialogue_info.sakuya_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
 		}

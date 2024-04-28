@@ -980,6 +980,7 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2,
 		motion_other.position = vec2(250, 0);
 		motion_other.angle = 0.f;
 		motion_other.scale = vec2({ 550.f, 600.f });
+		if (talk_2 == CHARACTER::REMILIA) motion_other.scale = vec2({ 800.f, 600.f });
 		EntityAnimation& ani_other = registry.alwaysplayAni.emplace(other_entity);
 		ani_other.spritesheet_scale = { 1 / 6.f, 1 };
 

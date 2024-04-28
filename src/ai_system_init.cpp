@@ -366,11 +366,13 @@ void AISystem::init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg
 		}
 		else if (boss.boss_id == BOSS_ID::SAKUYA) {
 			if (!dialogue_info.sakuya_played) {
+				dialogue_info.sakuya_pt = 0;
 				boss_info.has_sakuya_talked = true;
 			}
 		}
 		else if (boss.boss_id == BOSS_ID::REMILIA) {
 			if (!dialogue_info.remilia_played) {
+				dialogue_info.remilia_pt = 0;
 				boss_info.has_remilia_talked = true;
 			}
 		}

@@ -49,6 +49,10 @@ struct DialogueInfo {
 	unsigned int cirno_after_pt = 1000000;
 	unsigned int flandre_pt = 1000000;
 	unsigned int flandre_after_pt = 1000000;
+	unsigned int sakuya_pt = 1000000;
+	unsigned int sakuya_after_pt = 1000000;
+	unsigned int remilia_pt = 1000000;
+	unsigned int remilia_after_pt = 1000000;
 	unsigned int marisa_pt = 1000000;
 	bool cirno_played = false;
 	bool flandre_played = false;
@@ -339,6 +343,8 @@ enum class CHARACTER {
 	CIRNO,
 	FlANDRE,
 	MARISA,
+	REMILIA,
+	SAKUYA,
 	NONE,
 };
 
@@ -1108,7 +1114,9 @@ enum class TEXTURE_ASSET_ID {
 	CIRNO_PORTRAIT = REIMU_PORTRAIT + 1,
 	FLANDRE_PORTRAIT = CIRNO_PORTRAIT + 1,
 	MARISA_PORTRAIT = FLANDRE_PORTRAIT + 1,
-	DIALOGUE_BOX = MARISA_PORTRAIT + 1,
+	REMILIA_PORTRAIT = MARISA_PORTRAIT + 1,
+	SAKUYA_PORTRAIT = REMILIA_PORTRAIT + 1,
+	DIALOGUE_BOX = SAKUYA_PORTRAIT + 1,
 	TELEPORTER = DIALOGUE_BOX + 1,
 	WINDEATH_SCREEN = TELEPORTER + 1,
 	BOSS_FLANDRE = WINDEATH_SCREEN + 1,
