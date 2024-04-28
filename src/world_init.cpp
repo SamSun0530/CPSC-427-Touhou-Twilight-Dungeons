@@ -1367,6 +1367,7 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 		hp.max_hp = 10020;
 		hp.curr_hp = hp.max_hp;
 
+		//boss.health_phase_thresholds = { 5, 4, 3, 2, -1 }; // -1 for end of phase
 		boss.health_phase_thresholds = { 10000, 7500, 5000, 2500, -1 }; // -1 for end of phase
 
 		registry.renderRequests.insert(
@@ -1375,7 +1376,39 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 			 EFFECT_ASSET_ID::TEXTURED,
 			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
+	else if (boss_id == BOSS_ID::SAKUYA) {
+		//hp.max_hp = 15020;
+		hp.max_hp = 120;
+		hp.curr_hp = hp.max_hp;
 
+		boss.health_phase_thresholds = { 100, 4, 3, 2, -1 }; // -1 for end of phase
+		//boss.health_phase_thresholds = { 15000, 11250, 7500, 3750, -1 }; // -1 for end of phase
+
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::BOSS_SAKUYA,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else if (boss_id == BOSS_ID::REMILIA) {
+		//hp.max_hp = 20020;
+		hp.max_hp = 120;
+		hp.curr_hp = hp.max_hp;
+
+		// TODO: increase health to 40000, add more phases
+		boss.health_phase_thresholds = { 100, 4, 3, 2, -1 }; // -1 for end of phase
+		//boss.health_phase_thresholds = { 20000, 15000, 10000, 5000, -1 }; // -1 for end of phase
+
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::BOSS_REMILIA,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+	Entity invis_entity = createInvisible(renderer, position);
+	boss.invis_spawner = invis_entity;
+	registry.bossInvisibles.emplace(invis_entity);
 
 	registry.colors.insert(entity, { 1,1,1 });
 	// Boss health bar ui

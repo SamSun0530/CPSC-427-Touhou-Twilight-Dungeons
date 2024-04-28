@@ -364,6 +364,16 @@ void AISystem::init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg
 				}
 			}
 		}
+		else if (boss.boss_id == BOSS_ID::SAKUYA) {
+			if (!dialogue_info.sakuya_played) {
+				boss_info.has_sakuya_talked = true;
+			}
+		}
+		else if (boss.boss_id == BOSS_ID::REMILIA) {
+			if (!dialogue_info.remilia_played) {
+				boss_info.has_remilia_talked = true;
+			}
+		}
 		HP& hp = registry.hps.get(entity);
 		hp.curr_hp -= 20; // activate bullet firing
 		if (registry.invulnerableTimers.has(entity)) registry.invulnerableTimers.remove(entity);
@@ -477,6 +487,31 @@ void AISystem::init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg
 	ActionNode* do_nothing_flandre = new ActionNode(doNothing); // player can't go out of range in new door system
 	ConditionalNode* is_in_range_flandre = new ConditionalNode(show_boss_health_bar_flandre, do_nothing_flandre, isInRangeBoss);
 	this->flandre_boss_tree.setRoot(is_in_range_flandre);
+
+	/*
+	Sakuya boss decision tree (same as cirno)
+	COND in range global?
+		F -> hide boss health bar
+		T -> show boss health bar
+	*/
+	ActionNode* show_boss_health_bar_sakuya = new ActionNode(showBossInfo);
+	//ActionNode* hide_boss_health_bar_sakuya = new ActionNode(hideBossInfo);
+	ActionNode* do_nothing_sakuya = new ActionNode(doNothing); // player can't go out of range in new door system
+	ConditionalNode* is_in_range_sakuya = new ConditionalNode(show_boss_health_bar_sakuya, do_nothing_sakuya, isInRangeBoss);
+	this->sakuya_boss_tree.setRoot(is_in_range_sakuya);
+
+	/*
+	Remilia boss decision tree (same as cirno)
+	COND in range global?
+		F -> hide boss health bar
+		T -> show boss health bar
+	*/
+	ActionNode* show_boss_health_bar_remilia = new ActionNode(showBossInfo);
+	//ActionNode* hide_boss_health_bar_remilia = new ActionNode(hideBossInfo);
+	ActionNode* do_nothing_remilia = new ActionNode(doNothing); // player can't go out of range in new door system
+	ConditionalNode* is_in_range_remilia = new ConditionalNode(show_boss_health_bar_remilia, do_nothing_remilia, isInRangeBoss);
+	this->remilia_boss_tree.setRoot(is_in_range_remilia);
+
 
 	/*
 	Lizard (same as wolf)

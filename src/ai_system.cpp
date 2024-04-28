@@ -52,11 +52,21 @@ void AISystem::step(float elapsed_ms)
 			}
 			else if (registry.bosses.has(entity)) {
 				Boss& boss = registry.bosses.get(entity);
-				if (boss.boss_id == BOSS_ID::CIRNO) {
-					cirno_boss_tree.update(entity);
-				}
-				else if (boss.boss_id == BOSS_ID::FLANDRE) {
-					flandre_boss_tree.update(entity);
+				switch (boss.boss_id) {
+					case BOSS_ID::CIRNO:
+						cirno_boss_tree.update(entity);
+						break;
+					case BOSS_ID::FLANDRE:
+						flandre_boss_tree.update(entity);
+						break;
+					case BOSS_ID::SAKUYA	:
+						sakuya_boss_tree.update(entity);
+						break;
+					case BOSS_ID::REMILIA:
+						remilia_boss_tree.update(entity);
+						break;
+					default:
+						break;
 				}
 			}
 			else if (registry.lizardEnemies.has(entity)) {

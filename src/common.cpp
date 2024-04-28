@@ -63,3 +63,7 @@ vec2 vec2_lerp(vec2 start, vec2 end, float t) {
 	// same as: start * (1 - t) + end * t;
 	return start + t * (end - start);
 }
+
+float float_lerp(float start, float end, float t) {
+	return start + t * (end - start);
+}

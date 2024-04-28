@@ -584,6 +584,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 						if (boss.boss_id == BOSS_ID::FLANDRE) {
 							boss_info.should_use_flandre_bullet = false;
 						}
+						// remove boss invisible reference
+						registry.remove_all_components_of(boss.invis_spawner);
 					}
 
 					// prevent -1 out of bounds access
@@ -737,7 +739,7 @@ void WorldSystem::restart_game() {
 	boss_system->init_phases();
 
 	audio->restart_audio_level1();
-	map_info.level = MAP_LEVEL::LEVEL4; // TODO TEMPORARY
+	map_info.level = MAP_LEVEL::LEVEL3; // TODO TEMPORARY
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
 	if (map_info.level == MAP_LEVEL::LEVEL2) map_info.level = MAP_LEVEL::LEVEL1;

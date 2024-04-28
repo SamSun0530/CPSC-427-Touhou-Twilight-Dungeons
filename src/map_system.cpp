@@ -63,7 +63,13 @@ void MapSystem::step(float elapsed_ms_since_last_update) {
 					max_teleporters = 2;
 				}
 				else if (map_info.level == MAP_LEVEL::LEVEL2) {
-					max_teleporters = 0; // switch this for the last/final stage where a teleporter is not needed
+					max_teleporters = 1;
+				}
+				else if (map_info.level == MAP_LEVEL::LEVEL3) {
+					max_teleporters = 1;
+				}
+				else if (map_info.level == MAP_LEVEL::LEVEL4) {
+					max_teleporters = 0;
 				}
 
 				if (registry.teleporters.size() < max_teleporters) {
@@ -176,10 +182,16 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 	}
 	else if (room.type == ROOM_TYPE::BOSS) {
 		if (map_info.level == MAP_LEVEL::LEVEL1) {
-			room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Cirno, the Ice Fairy", BOSS_ID::CIRNO, vec3(0, 0, 1)));
+			room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Cirno, the Ice Fairy", BOSS_ID::CIRNO, vec3(1, 0, 0)));
 		}
 		else if (map_info.level == MAP_LEVEL::LEVEL2) {
-			room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Flandre, the Scarlet Devil", BOSS_ID::FLANDRE, vec3(1, 0, 0)));
+			room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Flandre, the Sister of the Devil", BOSS_ID::FLANDRE, vec3(1, 0, 0)));
+		}
+		else if (map_info.level == MAP_LEVEL::LEVEL3) {
+			room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Sakuya, the Chief Maid", BOSS_ID::SAKUYA, vec3(1, 0, 0)));
+		}
+		else if (map_info.level == MAP_LEVEL::LEVEL4) {
+			room.enemies.push_back(createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Remilia, the Scarlet Devil", BOSS_ID::REMILIA, vec3(1, 0, 0)));
 		}
 	}
 	else if (room.type == ROOM_TYPE::START) {

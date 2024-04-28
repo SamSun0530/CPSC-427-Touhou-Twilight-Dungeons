@@ -18,7 +18,7 @@ void BossSystem::step(float elapsed_ms) {
 			set_random_phase(boss, gen, entity);
 
 			// ignore index 0 phase, as boss does not attack in phase 0. this can be changed if index 0 is firing bullets.
-			if (boss.phase_index - 1 > 0) {
+			if (boss.phase_index > 1) {
 				// set invulnerable and stop firing after amount of time
 				// emplace with duplicates if a phase is close to each other, triggering phase change before time expires
 				InvulnerableTimer& invulnerable_timer = registry.invulnerableTimers.emplace_with_duplicates(entity);
@@ -27,6 +27,11 @@ void BossSystem::step(float elapsed_ms) {
 				BulletSpawner& bullet_spawner = registry.bulletSpawners.get(entity);
 				bullet_spawner.is_firing = false;
 				bullet_start_firing_timer.counter_ms = boss.phase_change_time;
+
+				if (registry.bulletSpawners.has(boss.invis_spawner)) {
+					registry.bulletSpawners.get(boss.invis_spawner).is_firing = false;
+				}
+
 				// remove all bullets
 				while (registry.enemyBullets.entities.size() > 0)
 					registry.remove_all_components_of(registry.enemyBullets.entities.back());
@@ -64,7 +69,14 @@ void BossSystem::set_random_phase(Boss& boss, std::mt19937& gen, const Entity& e
 			BulletSpawner& boss_spawner = registry.bulletSpawners.get(entity);
 			boss_spawner = phase.bullet_spawner;
 		}
+		if (phase.bullet_spawner2 != BulletSpawner()) {
+			if (!registry.bulletSpawners.has(boss.invis_spawner)) registry.bulletSpawners.emplace(boss.invis_spawner);
+			BulletSpawner& invis_spawner = registry.bulletSpawners.get(boss.invis_spawner);
+			invis_spawner = phase.bullet_spawner2;
+		}
 		boss.bullet_pattern = phase.bullet_pattern;
+		BossInvisible& invis = registry.bossInvisibles.get(boss.invis_spawner);
+		invis.bullet_pattern = phase.bullet_pattern2;
 		boss.current_bullet_phase_id = phase.id;
 	}
 }
@@ -74,6 +86,8 @@ void BossSystem::init_phases() {
 	BulletPhase b_phase;
 	BulletPattern b_pattern;
 	BulletSpawner bs;
+	BulletPattern b_pattern2;
+	BulletSpawner bs2;
 	bullet_phases = std::vector<std::vector<BulletPhase>>(5);
 
 	if (map_info.level == MAP_LEVEL::LEVEL1) {
@@ -320,16 +334,52 @@ void BossSystem::init_phases() {
 		b_phase.id = bullet_phase_id_count++;
 		bullet_phases[4].push_back(b_phase);
 	}
+	else if (map_info.level == MAP_LEVEL::LEVEL3) {
+		// currently assume we have 4 phases (index 0 phase empty)
+		bs = BulletSpawner();
+		b_pattern = BulletPattern();
+		bs.fire_rate = 2;
+		bs.is_firing = true;
+		bs.spin_rate = 2;
+		bs.invert = false;
+		bs.spin_delta = 0.f;
+		bs.max_spin_rate = 10.f;
+		bs.total_bullet_array = 5;
+		bs.spread_between_array = 72;
+		bs.bullets_per_array = 1;
+		bs.spread_within_array = 0;
+		bs.bullet_initial_speed = 100;
+		bs.cooldown_rate = 99999999; // TODO
+		bs.number_to_fire = 48;
+		b_pattern.commands = {
+			{ BULLET_ACTION::SPEED_TIMER, vec3(100, 0, 2000)},
+			{ BULLET_ACTION::DELAY, 2500 },
+			{ BULLET_ACTION::ROTATE, -90 },
+			{ BULLET_ACTION::SPEED_TIMER, vec3(0, 50, 150)},
+			{ BULLET_ACTION::DELAY, 150 },
+			{ BULLET_ACTION::SPEED_TIMER, vec3(50, 0, 150)},
+			// TODO
+		};
+		b_phase.bullet_pattern = b_pattern;
+		b_phase.bullet_spawner = bs;
+		b_phase.id = bullet_phase_id_count++;
+		bullet_phases[1].push_back(b_phase);
+	}
 }
 
 /*
 REFERENCE:
 
-Bullet actions:
+Bullet actions: (parameter argument specification)
+None:
+PLAYER_DIRECTION - change bullet to face player direction (only for enemies)
+ENEMY_DIRECTION - change bullet to face direction of deadly closest to cursor (only for players)
+CURSOR_DIRECTION - change bullet to face direction cursor (only for players)
+
 Floats:
 SPEED - float - change in velocity magnitude
 ROTATE - float - change in bullet direction
-DELAY - float - wait until executing next command
+DELAY - float - wait until executing next command (Blocking - blocks next action)
 DEL - float - bullet death timer to remove bullet
 
 Vec2s:
@@ -340,17 +390,13 @@ DIRECTION - vec2 - change direction to x,y
 
 Vec3s:
 SPLIT - vec3 - split one bullets into multiple bullets based on angle
-	- vec2[0] = number of bullets to split into (<= 1 - won't do anything)
-	- vec2[1] = angle for the bullet spread
-	- vec2[2] = initial bullet speed
-
-enum class BULLET_ACTION {
-	SPEED,
-	ROTATE,
-	DELAY,
-	LOOP,
-	DEL,
-	SPLIT,
-	DIRECTION
-};
+	- vec3[0] = number of bullets to split into (<= 1 - won't do anything)
+	- vec3[1] = angle for the bullet spread
+	- vec3[2] = initial bullet speed
+SPEED_TIMER - vec3 - lerp velocity magnitude over a time interval
+	- vec3[0] = start bullet velocity
+	- vec3[1] = end bullet velocity
+	- vec3[2] = time interval in ms to lerp from start to end velocity
+	- Note:
+	-	if second timer interval overlap with first, does not do the action
 */

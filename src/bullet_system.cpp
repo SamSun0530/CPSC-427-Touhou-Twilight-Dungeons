@@ -184,6 +184,24 @@ void BulletSystem::step(float elapsed_ms)
 		}
 	}
 
+	// Process bullet action speed timers
+	ComponentContainer<BulletSpeedTimer>& speed_container = registry.bulletSpeedTimers;
+	int speed_container_size = speed_container.components.size();
+	for (int i = speed_container_size - 1; i >= 0; --i) {
+		BulletSpeedTimer& bullet_speed_timer = speed_container.components[i];
+		Entity entity = speed_container.entities[i];
+		bullet_speed_timer.timer_ms += elapsed_ms;
+			
+		if (bullet_speed_timer.timer_ms > bullet_speed_timer.max_timer_ms) {
+			speed_container.remove(entity);
+			continue;
+		}
+
+		Kinematic& kin = registry.kinematics.get(entity);
+		bullet_speed_timer.start_speed = float_lerp(bullet_speed_timer.start_speed, bullet_speed_timer.end_speed, bullet_speed_timer.timer_ms / bullet_speed_timer.max_timer_ms);
+		kin.speed_modified = bullet_speed_timer.start_speed;
+	}
+
 	// Process bullet pattern
 	// Iterate backwards to remove without interfering with next entity
 	ComponentContainer<BulletPattern>& pattern_container = registry.bulletPatterns;
@@ -293,6 +311,15 @@ void BulletSystem::step(float elapsed_ms)
 				glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
 				vec2 mouse_position = vec2(mouse_pos_x, mouse_pos_y) - window_px_half + registry.motions.get(registry.players.entities[0]).position;
 				registry.kinematics.get(entity).direction = mouse_position - registry.motions.get(entity).position;
+				break;
+			}
+			case BULLET_ACTION::SPEED_TIMER: {
+				if (registry.bulletSpeedTimers.has(entity)) break;
+				BulletSpeedTimer& speed_t = registry.bulletSpeedTimers.emplace(entity);
+				vec3& info = commands[bullet_pattern.bc_index].value_vec3;
+				speed_t.start_speed = info[0];
+				speed_t.end_speed = info[1];
+				speed_t.max_timer_ms = info[2];
 				break;
 			}
 			default:

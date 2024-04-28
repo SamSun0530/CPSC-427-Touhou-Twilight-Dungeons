@@ -238,6 +238,13 @@ void PhysicsSystem::step(float elapsed_ms)
 		motion.position += kinematic.velocity * step_seconds;
 	}
 
+	// Set boss invisible spawner position
+	for (Entity entity_boss : registry.bosses.entities) {
+		Boss& boss = registry.bosses.get(entity_boss);
+		registry.motions.get(boss.invis_spawner).position = registry.motions.get(entity_boss).position;
+	}
+
+	// Bezier curves
 	for (uint i = 0; i < registry.bezierCurves.size(); i++) {
 		Entity& entity = registry.bezierCurves.entities[i];
 		BezierCurve& bezier_curve = registry.bezierCurves.components[i];

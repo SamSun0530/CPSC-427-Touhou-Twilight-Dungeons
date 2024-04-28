@@ -73,6 +73,7 @@ struct Transform {
 bool gl_has_errors();
 
 vec2 vec2_lerp(vec2 start, vec2 end, float t);
+float float_lerp(float start, float end, float t);
 
 // Checks if (x,y) on the map is valid, this is not world coordinates
 bool is_valid_cell(int x, int y);

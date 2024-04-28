@@ -53,6 +53,8 @@ struct DialogueInfo {
 	bool cirno_played = false;
 	bool flandre_played = false;
 	bool marisa_played = false;
+	bool sakuya_played = false;
+	bool remilia_played = false;
 };
 extern DialogueInfo dialogue_info;
 
@@ -166,11 +168,15 @@ struct BossInfo {
 
 	bool has_cirno_talked = false;
 	bool has_flandre_talked = false;
+	bool has_sakuya_talked = false;
+	bool has_remilia_talked = false;
 
 	void reset() {
 		should_use_flandre_bullet = false;
 		has_cirno_talked = false;
 		has_flandre_talked = false;
+		has_sakuya_talked = false;
+		has_remilia_talked = false;
 	}
 };
 extern BossInfo boss_info;
@@ -288,7 +294,7 @@ CURSOR_DIRECTION - change bullet to face direction cursor (only for players)
 Floats:
 SPEED - float - change in velocity magnitude
 ROTATE - float - change in bullet direction
-DELAY - float - wait until executing next command
+DELAY - float - wait until executing next command (Blocking - blocks next action)
 DEL - float - bullet death timer to remove bullet
 
 Vec2s:
@@ -302,6 +308,12 @@ SPLIT - vec3 - split one bullets into multiple bullets based on angle
 	- vec3[0] = number of bullets to split into (<= 1 - won't do anything)
 	- vec3[1] = angle for the bullet spread
 	- vec3[2] = initial bullet speed
+SPEED_TIMER - vec3 - lerp velocity magnitude over a time interval
+	- vec3[0] = start bullet velocity
+	- vec3[1] = end bullet velocity
+	- vec3[2] = time interval in ms to lerp from start to end velocity
+	- Note: 
+	-	if second timer interval overlap with first, does not do the action
 */
 enum class BULLET_ACTION {
 	SPEED,
@@ -314,6 +326,7 @@ enum class BULLET_ACTION {
 	PLAYER_DIRECTION,
 	ENEMY_DIRECTION,
 	CURSOR_DIRECTION,
+	SPEED_TIMER
 };
 
 enum class CHARACTER {
@@ -419,7 +432,9 @@ struct BulletSpawner
 
 enum class BOSS_ID {
 	CIRNO,
-	FLANDRE
+	FLANDRE,
+	SAKUYA,
+	REMILIA
 };
 
 struct Boss {
@@ -444,6 +459,14 @@ struct Boss {
 	int current_bullet_phase_id = -1;
 	// between phase change time
 	float phase_change_time = -1;
+
+	// optional invisible entity for extra bullet spawner/pattern
+	// IMPORTANT: remember to remove this if removing this boss
+	Entity invis_spawner;
+};
+
+struct BossInvisible {
+	BulletPattern bullet_pattern;
 };
 
 // Keeps track of what aura this belongs to
@@ -858,6 +881,14 @@ struct BulletDelayTimer {
 	float delay_counter_ms = -1;
 };
 
+// for BULLET_ACTION::SPEED_TIMER
+struct BulletSpeedTimer {
+	float start_speed = 0;
+	float end_speed = 0;
+	float timer_ms = 0;
+	float max_timer_ms = 0;
+};
+
 // Update entity ai behavior tree after update ms
 struct AiTimer {
 	float update_timer_ms = 500;
@@ -1109,7 +1140,9 @@ enum class TEXTURE_ASSET_ID {
 	SHOP_SIGN = START_SIGN + 1,
 	TILES_ATLAS_WATER = SHOP_SIGN + 1,
 	TILES_ATLAS_SKY = TILES_ATLAS_WATER + 1,
-	TEXTURE_COUNT = TILES_ATLAS_SKY + 1,
+	BOSS_SAKUYA = TILES_ATLAS_SKY + 1,
+	BOSS_REMILIA = BOSS_SAKUYA + 1,
+	TEXTURE_COUNT = BOSS_REMILIA + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

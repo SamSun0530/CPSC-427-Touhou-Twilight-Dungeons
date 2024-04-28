@@ -10,6 +10,10 @@ struct BulletPhase {
 	int id;
 	BulletPattern bullet_pattern;
 	BulletSpawner bullet_spawner;
+
+	// second bullet spawner/pattern
+	BulletPattern bullet_pattern2;
+	BulletSpawner bullet_spawner2;
 };
 
 class BossSystem

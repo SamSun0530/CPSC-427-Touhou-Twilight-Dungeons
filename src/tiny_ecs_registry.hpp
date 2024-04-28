@@ -96,6 +96,8 @@ public:
 	ComponentContainer<FlyToPlayer> flytoplayers;
 	ComponentContainer<Aura> auras;
 	ComponentContainer<AuraLink> auraLinks;
+	ComponentContainer<BulletSpeedTimer> bulletSpeedTimers;
+	ComponentContainer<BossInvisible> bossInvisibles;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -186,6 +188,8 @@ public:
 		registry_list.push_back(&flytoplayers);
 		registry_list.push_back(&auras);
 		registry_list.push_back(&auraLinks);
+		registry_list.push_back(&bulletSpeedTimers);
+		registry_list.push_back(&bossInvisibles);
 	}
 
 	void clear_all_components() {

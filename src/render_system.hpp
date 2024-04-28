@@ -146,7 +146,9 @@ class RenderSystem {
 			textures_path("StartSign.png"),
 			textures_path("ShopSign.png"),
 			textures_path("TileAtlasWater.png"),
-			textures_path("TileAtlasSky.png")
+			textures_path("TileAtlasSky.png"),
+			textures_path("Sakuya-Figure.png"),
+			textures_path("Remilia-Figure.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
