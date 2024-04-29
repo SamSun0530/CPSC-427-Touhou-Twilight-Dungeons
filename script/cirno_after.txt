@@ -1,8 +1,7 @@
-Reimu: (normal) It's over, Cirno. Do you understand now?\n Your actions have consequences beyond your 'training'.\n People depend on that water.
-Cirno: (cry) Hmph... I didn't think it would cause trouble\n for humans... or for you, Reimu. \nI just wanted to be stronger.
-Reimu: (normal) There's nothing wrong with wanting to improve yourself.\n But there's a time and place for everything.\n Your actions affected the shrine and the people of Gensokyo.
-Cirno: (cry) I... I understand now. \nI'm sorry, Reimu.\n I didn't mean to cause trouble for everyone.
-Reimu: (normal) Apology accepted. Just make sure to \nthink about others before you decide to\n turn your training ground into a winter wonderland again.
-Cirno: (laugh) I will! And... maybe you can teach\n me a few things sometime? You know, so I \ncan be strong without causing trouble?
-Reimu: (laugh) We'll see, Cirno. For now, let's make \nsure the well is back to normal. 
-Reimu: (special) And next time you want to train, let's \nfind a place that won't freeze \nover Gensokyo's water supply.
+Reimu: (normal) It's over, Cirno. Do you see now?\n Your actions have repercussions. People depend on that water.
+Cirno: (cry) I didn't realize I was causing so much trouble...\n I just wanted to be stronger.
+Reimu: (normal) It¡¯s good to improve, but you must think\n about when and where.\n You¡¯ve affected everyone in Gensokyo.
+Cirno: (cry) I¡¯m sorry, Reimu.\n I¡¯ll be more careful next time.
+Reimu: (normal) Apology accepted. Just be mindful of others.\n Now, let¡¯s get the well back to normal.
+Cirno: (normal) Oh yes definitely, also,\n do you know Flandre has been setting fires around the grasslands?\n It¡¯s getting out of control.
+Reimu: (shock) Fires? That's bad!\n Let's get back the surface and stop her!

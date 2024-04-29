@@ -367,6 +367,7 @@ void AISystem::init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg
 		else if (boss.boss_id == BOSS_ID::SAKUYA) {
 			boss_info.should_use_sakuya_bullet = true;
 			if (!dialogue_info.sakuya_played) {
+				dialogue_info.sakuya_pt = 0;
 				boss_info.has_sakuya_talked = true;
 
 				if (!registry.auraLinks.has(entity)) {
@@ -377,6 +378,7 @@ void AISystem::init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg
 		else if (boss.boss_id == BOSS_ID::REMILIA) {
 			boss_info.should_use_remilia_bullet = true;
 			if (!dialogue_info.remilia_played) {
+				dialogue_info.remilia_pt = 0;
 				boss_info.has_remilia_talked = true;
 
 				if (!registry.auraLinks.has(entity)) {

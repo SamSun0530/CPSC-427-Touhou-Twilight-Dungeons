@@ -75,6 +75,7 @@ Entity createPurchasableHealth(RenderSystem* renderer, vec2 position);
 Entity createPurchasableAmmo(RenderSystem* renderer, vec2 position, AMMO_TYPE ammo_type);
 Entity createTreasure(RenderSystem* renderer, vec2 position, bool is_bezier = false);
 Entity createNPC(RenderSystem* renderer, vec2 pos);
+void createStats(RenderSystem* renderer, std::chrono::steady_clock::time_point start_time);
 Entity createWin(RenderSystem* renderer);
 Entity createLose(RenderSystem* renderer);
 Entity createInfographic(RenderSystem* renderer);

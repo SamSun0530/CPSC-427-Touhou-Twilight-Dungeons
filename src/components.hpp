@@ -8,11 +8,11 @@
 
 // statistics to show at end screen
 struct Statistic {
-	float enemies_killed = 0;
-	float enemies_hit = 0;
-	float bullets_fired = 0;
+	int enemies_killed = 0;
+	int enemies_hit = 0;
+	int bullets_fired = 0;
 	float accuracy = 1; // this will be enemies_hit / bullets_fired
-	float time_taken_to_win = 0; // accumulate via elapsed ms
+	std::string time_taken_to_win = ""; // accumulate via elapsed ms
 	// TODO: add some more interesting facts
 
 	void reset() {
@@ -20,7 +20,7 @@ struct Statistic {
 		enemies_hit = 0;
 		bullets_fired = 0;
 		accuracy = 1;
-		time_taken_to_win = 0;
+		time_taken_to_win = "";
 	}
 };
 extern Statistic stats;
@@ -54,6 +54,10 @@ struct DialogueInfo {
 	unsigned int cirno_after_pt = 1000000;
 	unsigned int flandre_pt = 1000000;
 	unsigned int flandre_after_pt = 1000000;
+	unsigned int sakuya_pt = 1000000;
+	unsigned int sakuya_after_pt = 1000000;
+	unsigned int remilia_pt = 1000000;
+	unsigned int remilia_after_pt = 1000000;
 	unsigned int marisa_pt = 1000000;
 	bool cirno_played = false;
 	bool flandre_played = false;
@@ -354,6 +358,8 @@ enum class CHARACTER {
 	CIRNO,
 	FlANDRE,
 	MARISA,
+	REMILIA,
+	SAKUYA,
 	NONE,
 };
 
@@ -1130,7 +1136,9 @@ enum class TEXTURE_ASSET_ID {
 	CIRNO_PORTRAIT = REIMU_PORTRAIT + 1,
 	FLANDRE_PORTRAIT = CIRNO_PORTRAIT + 1,
 	MARISA_PORTRAIT = FLANDRE_PORTRAIT + 1,
-	DIALOGUE_BOX = MARISA_PORTRAIT + 1,
+	REMILIA_PORTRAIT = MARISA_PORTRAIT + 1,
+	SAKUYA_PORTRAIT = REMILIA_PORTRAIT + 1,
+	DIALOGUE_BOX = SAKUYA_PORTRAIT + 1,
 	TELEPORTER = DIALOGUE_BOX + 1,
 	WINDEATH_SCREEN = TELEPORTER + 1,
 	BOSS_FLANDRE = WINDEATH_SCREEN + 1,
@@ -1175,7 +1183,8 @@ enum class TEXTURE_ASSET_ID {
 	REMILIA_AURA = SAKUYA_AURA + 1,
 	SAKUYA_BULLET = REMILIA_AURA + 1,
 	REMILIA_BULLET = SAKUYA_BULLET + 1,
-	TEXTURE_COUNT = REMILIA_BULLET + 1,
+	REIMUCRY = REMILIA_BULLET + 1,
+	TEXTURE_COUNT = REIMUCRY + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

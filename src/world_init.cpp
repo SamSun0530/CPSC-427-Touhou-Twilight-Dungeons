@@ -881,6 +881,24 @@ Entity createWin(RenderSystem* renderer) {
 
 }
 
+void createStats(RenderSystem* renderer, std::chrono::steady_clock::time_point start_time) {
+	auto end = Clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start_time);
+
+	int hours = duration.count() / 3600;
+	int minutes = (duration.count() % 3600) / 60;
+	int seconds = duration.count() % 60;
+
+	stats.time_taken_to_win = std::to_string(hours) + " hrs, " + std::to_string(minutes) + " mins, " + std::to_string(seconds) + " secs";
+	registry.winMenus.emplace(createText(vec2(0, -100), vec2(1 ,1), "Enemies hit: "+ std::to_string(stats.enemies_hit), vec3(0, 0, 0), true, false));
+	registry.winMenus.emplace(createText(vec2(0, -50), vec2(1 ,1), "Enemies killed: "+ std::to_string(stats.enemies_killed), vec3(0, 0, 0), true, false));
+	registry.winMenus.emplace(createText(vec2(0, 0), vec2(1 ,1), "Bullets fired: "+ std::to_string(stats.bullets_fired), vec3(0, 0, 0), true, false));
+	stats.accuracy = stats.enemies_hit / (float)stats.bullets_fired;
+	std::string accuracy = std::to_string(stats.accuracy);
+	registry.winMenus.emplace(createText(vec2(0, 50), vec2(1 ,1), "Accuracy: "+ accuracy.substr(0, accuracy.find(".") + 3), vec3(0, 0, 0), true, false));
+	registry.winMenus.emplace(createText(vec2(0, 100), vec2(1 ,1), "Time spent in total: "+ stats.time_taken_to_win, vec3(0, 0, 0), true, false));
+}
+
 Entity createInfographic(RenderSystem* renderer) {
 	auto entity = Entity();
 
@@ -938,6 +956,22 @@ Entity createLose(RenderSystem* renderer) {
 			EFFECT_ASSET_ID::UI,
 			GEOMETRY_BUFFER_ID::SPRITE });
 	registry.loseMenus.emplace(entity);
+	auto entity_reimu = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh_reimu = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity_reimu, &mesh_reimu);
+
+	Motion& motion_reimu = registry.motions.emplace(entity_reimu);
+	motion_reimu.position = vec2(0, 0);
+	motion_reimu.scale = vec2(256, 256);
+
+	registry.renderRequests.insert(
+		entity_reimu,
+		{ TEXTURE_ASSET_ID::REIMUCRY,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.loseMenus.emplace(entity_reimu);
 	registry.loseMenus.emplace(createText(vec2(0, -200), vec2(1.5, 1.5), "Game Over!!!", vec3(0, 0, 0), true, false));
 
 	return entity;
@@ -980,6 +1014,7 @@ void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2,
 		motion_other.position = vec2(250, 0);
 		motion_other.angle = 0.f;
 		motion_other.scale = vec2({ 550.f, 600.f });
+		if (talk_2 == CHARACTER::REMILIA) motion_other.scale = vec2({ 800.f, 600.f });
 		EntityAnimation& ani_other = registry.alwaysplayAni.emplace(other_entity);
 		ani_other.spritesheet_scale = { 1 / 6.f, 1 };
 

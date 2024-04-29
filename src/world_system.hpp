@@ -21,6 +21,8 @@
 #include <map>
 #include "visibility_system.hpp"
 #include "boss_system.hpp"
+#include <chrono>
+using Clock = std::chrono::high_resolution_clock;
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -87,6 +89,7 @@ public:
 	void update_aimbot_cursor(float elapsed_ms);
 private:
 	// Input callback functions
+	std::chrono::steady_clock::time_point start_time;
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_key(int button, int action, int mods);
@@ -103,11 +106,16 @@ private:
 	std::vector<std::string> cirno_script;
 	std::vector<std::string> marisa_script;
 	std::vector<std::string> flandre_script;
+	std::vector<std::string> sakuya_script;
+	std::vector<std::string> remilia_script;
 	std::vector<std::string> cirno_after_script;
 	std::vector<std::string> flandre_after_script;
+	std::vector<std::string> sakuya_after_script;
+	std::vector<std::string> remilia_after_script;
 	unsigned int start_pt = 0;
 	float start_dialogue_timer = 1000.f;
 	float word_up_ms = 50.f;
+	float click_cd = 1000.f;
 	unsigned int curr_word = 0;
 	std::string start_buffer;
 

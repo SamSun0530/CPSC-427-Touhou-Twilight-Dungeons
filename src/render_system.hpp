@@ -110,6 +110,8 @@ class RenderSystem {
 			textures_path("cirno_portrait.png"),
 			textures_path("flandre_portrait.png"),
 			textures_path("marisa_portrait.png"),
+			textures_path("remilia_portrait.png"),
+			textures_path("sakuya_portrait.png"),
 			textures_path("DialogueBox.png"),
 			textures_path("Teleporter.png"),
 			textures_path("WinDeathMenu.png"),
@@ -155,6 +157,7 @@ class RenderSystem {
 			textures_path("RemiliaAura.png"),
 			textures_path("Sakuya-Bullet.png"),
 			textures_path("Remilia-Bullet.png"),
+			textures_path("ReimuCry.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
