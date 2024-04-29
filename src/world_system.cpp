@@ -586,6 +586,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (registry.deadlys.has(entity)) {
 				// remove boss health bar ui
 				if (registry.bossHealthBarLink.has(entity)) {
+					stats.enemies_killed++;
 					registry.remove_all_components_of(registry.bossHealthBarLink.get(entity).other);
 					if (registry.bosses.has(entity)) {
 						Boss& boss = registry.bosses.get(entity);
