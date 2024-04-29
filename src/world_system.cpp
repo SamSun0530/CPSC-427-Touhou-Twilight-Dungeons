@@ -345,7 +345,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 	else if (focus_mode.counter_ms + elapsed_ms_since_last_update < focus_mode.max_counter_ms) {
-		focus_mode.counter_ms = min(focus_mode.counter_ms + elapsed_ms_since_last_update, focus_mode.max_counter_ms);
+		focus_mode.counter_ms = min(focus_mode.counter_ms + elapsed_ms_since_last_update * 2.f, focus_mode.max_counter_ms);
 	}
 
 	// Tutorial dummy spawner
@@ -434,6 +434,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	float min_invulnerable_time_ms = 1000.f;
 	for (Entity entity : registry.invulnerableTimers.entities) {
+		if (!registry.invulnerableTimers.has(entity)) continue;
 		InvulnerableTimer& counter = registry.invulnerableTimers.get(entity);
 		counter.invulnerable_counter_ms -= elapsed_ms_since_last_update;
 		if (counter.invulnerable_counter_ms < min_invulnerable_time_ms) {
@@ -448,9 +449,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	if (bomb_timer > 0) {
 		bomb_timer -= elapsed_ms_since_last_update;
-		for (Entity bullets : registry.enemyBullets.entities) {
-			registry.remove_all_components_of(bullets);
-		}
+
 	}
 	else {
 		screen.bomb_screen_factor = 0;
@@ -584,9 +583,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					registry.remove_all_components_of(registry.bossHealthBarLink.get(entity).other);
 					if (registry.bosses.has(entity)) {
 						Boss& boss = registry.bosses.get(entity);
-						if (boss.boss_id == BOSS_ID::FLANDRE) {
-							boss_info.should_use_flandre_bullet = false;
-						}
+						boss_info.reset_bullet_textures();
 						// remove boss invisible reference
 						registry.remove_all_components_of(boss.invis_spawner);
 					}
@@ -1574,6 +1571,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			if (player_component.bomb > 0) {
 				player_component.bomb -= 1;
 				bomb_timer = bomb_timer_max;
+				for (Entity bullets : registry.enemyBullets.entities) {
+					registry.remove_all_components_of(bullets);
+				}
 
 				// deal damage
 				// in tutorial
@@ -2037,7 +2037,8 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	}
 	else if (dialogue_info.flandre_after_pt == flandre_after_script.size()) {
 		dialogue_info.flandre_after_pt += 1;
-		menu.state = MENU_STATE::WIN;
+		//menu.state = MENU_STATE::WIN;
+		resume_game();
 	}
 
 }

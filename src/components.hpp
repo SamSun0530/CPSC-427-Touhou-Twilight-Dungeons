@@ -170,14 +170,22 @@ extern GameInfo game_info;
 
 struct BossInfo {
 	bool should_use_flandre_bullet = false;
+	bool should_use_sakuya_bullet = false;
+	bool should_use_remilia_bullet = false;
 
 	bool has_cirno_talked = false;
 	bool has_flandre_talked = false;
 	bool has_sakuya_talked = false;
 	bool has_remilia_talked = false;
 
-	void reset() {
+	void reset_bullet_textures() {
 		should_use_flandre_bullet = false;
+		should_use_sakuya_bullet = false;
+		should_use_remilia_bullet = false;
+	}
+
+	void reset() {
+		reset_bullet_textures();
 		has_cirno_talked = false;
 		has_flandre_talked = false;
 		has_sakuya_talked = false;
@@ -206,7 +214,7 @@ enum AMMO_TYPE {
 struct Player
 {
 	bool invulnerability = false;
-	int bullet_damage = 10;
+	int bullet_damage = 1000;
 	int coin_amount = 0;
 	int key_amount = 0;
 	float invulnerability_time_ms = 1000;
@@ -373,6 +381,8 @@ struct BulletPattern {
 // Inspiration/Credit from: https://youtu.be/whrInb6Z7QI
 struct BulletSpawner
 {
+	// determines if this bullet spawner is used or not
+	bool is_active = false;
 	// determines if bullet can be fired
 	bool is_firing = false;
 	// set this to -1 so entity can fire immediately
@@ -1162,7 +1172,10 @@ enum class TEXTURE_ASSET_ID {
 	BOSS_REMILIA = BOSS_SAKUYA + 1,
 	CLOUDS = BOSS_REMILIA + 1,
 	SAKUYA_AURA = CLOUDS + 1,
-	TEXTURE_COUNT = SAKUYA_AURA + 1,
+	REMILIA_AURA = SAKUYA_AURA + 1,
+	SAKUYA_BULLET = REMILIA_AURA + 1,
+	REMILIA_BULLET = SAKUYA_BULLET + 1,
+	TEXTURE_COUNT = REMILIA_BULLET + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

@@ -82,7 +82,22 @@ void MapSystem::step(float elapsed_ms_since_last_update) {
 					vec2 scale = 2.f * vec2(TELEPORTER_WIDTH, TELEPORTER_HEIGHT);
 					float teleport_time = 2300;
 
-					createTeleporter(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f), scale, scale / 6.f, MAP_LEVEL::LEVEL2, ani, TEXTURE_ASSET_ID::TELEPORTER, teleport_time, "Press \"E\" to enter next level", "Next Level");
+					MAP_LEVEL destination = MAP_LEVEL::LEVEL1;
+					switch (map_info.level) {
+					case MAP_LEVEL::LEVEL1:
+						destination = MAP_LEVEL::LEVEL2;
+						break;
+					case MAP_LEVEL::LEVEL2:
+						destination = MAP_LEVEL::LEVEL3;
+						break;
+					case MAP_LEVEL::LEVEL3:
+						destination = MAP_LEVEL::LEVEL4;
+						break;
+					default:
+						break;
+					}
+
+					createTeleporter(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f), scale, scale / 6.f, destination, ani, TEXTURE_ASSET_ID::TELEPORTER, teleport_time, "Press \"E\" to enter next level", "Next Level");
 					createChest(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f + vec2(0.0f, 4.0f)));
 				}
 			}

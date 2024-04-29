@@ -1447,9 +1447,11 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 		hp.max_hp = 120;
 		hp.curr_hp = hp.max_hp;
 
-		// TODO: increase health to 40000, add more phases
-		boss.health_phase_thresholds = { 100, 4, 3, 2, -1 }; // -1 for end of phase
+		boss.health_phase_thresholds = { 100, 90, 80, 70, -1 }; // -1 for end of phase
 		//boss.health_phase_thresholds = { 20000, 15000, 10000, 5000, -1 }; // -1 for end of phase
+
+		enemy_ani.spritesheet_scale = { 1.f / 4.f, 1.f / 8.f };
+		enemy_ani.render_pos = { 1.f / 4.f, 1.f / 8.f };
 
 		registry.renderRequests.insert(
 			entity,
@@ -2510,7 +2512,7 @@ Entity createTeleporter(RenderSystem* renderer, vec2 pos, vec2 scale, vec2 colli
 	return entity;
 }
 
-Entity createAura(RenderSystem* renderer, vec2 pos, float scale, Entity entity_to_link, float spritesheet_x_scale, TEXTURE_ASSET_ID texture_asset) {
+Entity createAura(RenderSystem* renderer, vec2 pos, float scale, Entity entity_to_link, float spritesheet_x_scale, TEXTURE_ASSET_ID texture_asset, float framerate) {
 	auto entity = Entity();
 
 	// Setting initial motion values
@@ -2521,8 +2523,8 @@ Entity createAura(RenderSystem* renderer, vec2 pos, float scale, Entity entity_t
 	EntityAnimation ani;
 	ani.spritesheet_scale = { spritesheet_x_scale, 1.f }; // 1/61
 	ani.render_pos = { spritesheet_x_scale, 1.f };
-	ani.frame_rate_ms = 1000.f / 10.f;
-	ani.full_rate_ms = 1000.f / 10.f;
+	ani.frame_rate_ms = framerate;
+	ani.full_rate_ms = framerate;
 	ani.is_active = true;
 	registry.alwaysplayAni.insert(entity, ani);
 

@@ -339,7 +339,7 @@ void Animation::step(float elapsed_ms)
 		vec2 enemy_velocity = normalize(registry.kinematics.get(enemy).velocity);
 		float facing_degree = (-atan2(enemy_velocity.x, enemy_velocity.y) + M_PI) * (180.0 / M_PI);
 		Boss& boss = registry.bosses.get(enemy);
-		if (boss.boss_id == BOSS_ID::SAKUYA) {
+		if (boss.boss_id == BOSS_ID::SAKUYA || boss.boss_id == BOSS_ID::REMILIA) {
 			if (facing_degree <= 45 || facing_degree >= 325) {
 				enemy_ani.render_pos.y = (4 + enemy_ani.offset) * enemy_ani.spritesheet_scale.y;
 			}

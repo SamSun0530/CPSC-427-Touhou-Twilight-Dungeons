@@ -383,7 +383,11 @@ void BulletSystem::step(float elapsed_ms)
 			if (registry.bosses.has(entity)) {
 				Boss& boss = registry.bosses.get(entity);
 				if (registry.bulletSpawners.has(boss.invis_spawner)) {
-					registry.bulletSpawners.get(boss.invis_spawner).is_firing = true;
+					BulletSpawner& invis_bs = registry.bulletSpawners.get(boss.invis_spawner);
+					// only fire if it is used
+					if (invis_bs.is_active) {
+						registry.bulletSpawners.get(boss.invis_spawner).is_firing = true;
+					}
 				}
 			}
 

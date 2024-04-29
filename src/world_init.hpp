@@ -80,7 +80,7 @@ Entity createLose(RenderSystem* renderer);
 Entity createInfographic(RenderSystem* renderer);
 Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name, vec3 name_color);
 
-Entity createAura(RenderSystem* renderer, vec2 pos, float scale, Entity entity_to_link, float spritesheet_x_scale, TEXTURE_ASSET_ID texture_asset);
+Entity createAura(RenderSystem* renderer, vec2 pos, float scale, Entity entity_to_link, float spritesheet_x_scale, TEXTURE_ASSET_ID texture_asset, float framerate);
 
 
 // ui key

@@ -243,7 +243,9 @@ void PhysicsSystem::step(float elapsed_ms)
 		AuraLink& link = registry.auraLinks.get(entity);
 		Motion& motion_aura = registry.motions.get(entity);
 		Motion& motion_entity = registry.motions.get(link.other);
-		motion_aura.position = motion_entity.position;
+		if (registry.bosses.has(entity) && registry.bosses.get(entity).boss_id != BOSS_ID::CIRNO) {
+			motion_aura.position = motion_entity.position;
+		}
 	}
 
 	// Set boss invisible spawner position

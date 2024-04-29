@@ -349,7 +349,7 @@ void AISystem::init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg
 
 				if (!registry.auraLinks.has(entity)) {
 					float scale = 6.f;
-					createAura(renderer, motion.position - vec2(scale * 3), scale, entity, 1.f / 61.f, TEXTURE_ASSET_ID::CIRNO_AURA);
+					createAura(renderer, motion.position - vec2(scale * 3), scale, entity, 1.f / 61.f, TEXTURE_ASSET_ID::CIRNO_AURA, 1000.f / 23.f);
 				}
 			}
 		}
@@ -360,22 +360,28 @@ void AISystem::init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg
 				boss_info.has_flandre_talked = true;
 
 				if (!registry.auraLinks.has(entity)) {
-					createAura(renderer, motion.position, 6.f, entity, 1.f / 61.f, TEXTURE_ASSET_ID::FLANDRE_AURA);
+					createAura(renderer, motion.position, 6.f, entity, 1.f / 61.f, TEXTURE_ASSET_ID::FLANDRE_AURA, 1000.f / 23.f);
 				}
 			}
 		}
 		else if (boss.boss_id == BOSS_ID::SAKUYA) {
+			boss_info.should_use_sakuya_bullet = true;
 			if (!dialogue_info.sakuya_played) {
 				boss_info.has_sakuya_talked = true;
 
 				if (!registry.auraLinks.has(entity)) {
-					createAura(renderer, motion.position, 6.f, entity, 1.f / 91.f, TEXTURE_ASSET_ID::SAKUYA_AURA);
+					createAura(renderer, motion.position, 6.f, entity, 1.f / 91.f, TEXTURE_ASSET_ID::SAKUYA_AURA, 1000.f / 23.f);
 				}
 			}
 		}
 		else if (boss.boss_id == BOSS_ID::REMILIA) {
+			boss_info.should_use_remilia_bullet = true;
 			if (!dialogue_info.remilia_played) {
 				boss_info.has_remilia_talked = true;
+
+				if (!registry.auraLinks.has(entity)) {
+					createAura(renderer, motion.position, 6.f, entity, 1.f / 61.f, TEXTURE_ASSET_ID::REMILIA_AURA, 1000.f / 23.f);
+				}
 			}
 		}
 		HP& hp = registry.hps.get(entity);
@@ -528,16 +534,19 @@ void AISystem::init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg
 
 	/*
 	Remilia boss decision tree (same as cirno)
-	COND in range global?
-		F -> hide boss health bar
-		T -> show boss health bar
 	*/
-	ActionNode* show_boss_health_bar_remilia = new ActionNode(showBossInfo);
-	//ActionNode* hide_boss_health_bar_remilia = new ActionNode(hideBossInfo);
-	ActionNode* do_nothing_remilia = new ActionNode(doNothing); // player can't go out of range in new door system
-	ConditionalNode* is_in_range_remilia = new ConditionalNode(show_boss_health_bar_remilia, do_nothing_remilia, isInRangeBoss);
-	this->remilia_boss_tree.setRoot(is_in_range_remilia);
+	//ActionNode* show_boss_health_bar_remilia = new ActionNode(showBossInfo);
+	////ActionNode* hide_boss_health_bar_remilia = new ActionNode(hideBossInfo);
+	//ActionNode* do_nothing_remilia = new ActionNode(doNothing); // player can't go out of range in new door system
+	//ConditionalNode* is_in_range_remilia = new ConditionalNode(show_boss_health_bar_remilia, do_nothing_remilia, isInRangeBoss);
+	//this->remilia_boss_tree.setRoot(is_in_range_remilia);
 
+	ActionNode* show_boss_health_bar_remilia = new ActionNode(showBossInfo);
+	ActionNode* do_nothing_remilia = new ActionNode(doNothing);
+	ActionNode* move_boss_to_random_waypoint_remilia = new ActionNode(moveBossToRandomWaypoint);
+	ConditionalNode* is_in_range_remilia = new ConditionalNode(show_boss_health_bar_remilia, do_nothing_remilia, isInRangeBoss);
+	ConditionalNode* is_last_phase_remilia = new ConditionalNode(move_boss_to_random_waypoint_remilia, is_in_range_remilia, isInLastPhase);
+	this->remilia_boss_tree.setRoot(is_last_phase_remilia);
 
 	/*
 	Lizard (same as wolf)
