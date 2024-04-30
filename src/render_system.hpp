@@ -160,6 +160,11 @@ class RenderSystem {
 			textures_path("SkyTree6.png"),
 			textures_path("SkyTree7.png"),
 			textures_path("SkyTree8.png"),
+			textures_path("Log.png"),
+			textures_path("LogMushroom.png"),
+			textures_path("RockMoss0.png"),
+			textures_path("RockMoss1.png"),
+			textures_path("RockMoss2.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

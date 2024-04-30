@@ -1386,7 +1386,7 @@ Entity createRoomSignifier(RenderSystem* renderer, vec2 position, ROOM_TYPE room
 		{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::NORMAL_SIGN + (int)room_type),
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
-	
+
 	registry.roomSignifiers.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
 
@@ -2336,7 +2336,55 @@ Entity createObstacle(RenderSystem* renderer, vec2 grid_position) {
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else if (map_info.level == MAP_LEVEL::LEVEL3) {
-
+		collidable.size = vec2(motion.scale.x, motion.scale.y) / 1.2f;
+		if (number < 0.2) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::ROCK_MOSS_0,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else if (number < 0.4) {
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::ROCK_MOSS_1,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else if (number < 0.6) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::ROCK_MOSS_2,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else if (number < 0.8) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::LOG,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::LOG_MUSHROOM,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
 	}
 	else if (map_info.level == MAP_LEVEL::LEVEL4) {
 		if (number < 0.2) {

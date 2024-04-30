@@ -642,8 +642,32 @@ void MapSystem::generateRandomMap(float room_size) {
 		createPillar(renderer, vec2(boss_room.top_left.x + 2, boss_room.bottom_right.y - 2), dis(gen) < 0.5f);
 		createPillar(renderer, vec2(boss_room.bottom_right.x - 2, boss_room.top_left.y + 2), dis(gen) < 0.5f);
 	}
-	else if (map_info.level == MAP_LEVEL::LEVEL4) {
-		// TODO
+	else if (map_info.level == MAP_LEVEL::LEVEL3) {
+		Room_struct& boss_room = bsptree.rooms[bsptree.rooms.size() - 1];
+		std::random_device ran;
+		std::mt19937 gen(ran());
+		std::uniform_int_distribution<> dis(2, 3);
+
+		auto createObstacleInRoom = [&](vec2 position, bool x_add, bool y_add) {
+			float x_sign = x_add ? 1.f : -1.f;
+			float y_sign = y_add ? 1.f : -1.f;
+			vec2 pos = position + vec2(x_sign * dis(gen), y_sign * dis(gen));
+
+			while (world_map[pos.y][pos.x] == static_cast<int>(TILE_TYPE::WALL)) {
+				pos = position + vec2(x_sign * dis(gen), y_sign * dis(gen));
+			}
+			createObstacle(renderer, pos);
+		};
+
+		createObstacle(renderer, boss_room.top_left + vec2(2, 2));
+		createObstacle(renderer, boss_room.bottom_right - vec2(2, 2));
+		createObstacle(renderer, vec2(boss_room.top_left.x + 2, boss_room.bottom_right.y - 2));
+		createObstacle(renderer, vec2(boss_room.bottom_right.x - 2, boss_room.top_left.y + 2));
+
+		createObstacleInRoom(boss_room.top_left, true, true);
+		createObstacleInRoom(boss_room.bottom_right, false, false);
+		createObstacleInRoom(vec2(boss_room.top_left.x, boss_room.bottom_right.y), true, false);
+		createObstacleInRoom(vec2(boss_room.bottom_right.x, boss_room.top_left.y), false, true);
 	}
 
 	// Do not set tiles to not visible
@@ -922,19 +946,19 @@ TILE_NAME MapSystem::get_tile_name(int x, int y, std::vector<std::vector<int>>& 
 			std::mt19937 gen(ran());
 			std::uniform_real_distribution<> dis(0.f, 1.f);
 			float random_number = dis(gen);
-			if (random_number < 0.4f) {
+			if (random_number < 0.7f) {
 				temp = TILE_NAME::DEFAULT_FLOOR;
 			}
-			else if (random_number < 0.5) {
+			else if (random_number < 0.75) {
 				temp = TILE_NAME::FLOOR_1_0;
 			}
-			else if (random_number < 0.6) {
+			else if (random_number < 0.8) {
 				temp = TILE_NAME::FLOOR_2_0;
 			}
-			else if (random_number < 0.7) {
+			else if (random_number < 0.85) {
 				temp = TILE_NAME::FLOOR_3_0;
 			}
-			else if (random_number < 0.8) {
+			else if (random_number < 0.9) {
 				temp = TILE_NAME::FLOOR_3_1;
 			}
 			else {
