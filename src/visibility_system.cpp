@@ -19,7 +19,12 @@ void VisibilitySystem::init_visibility()
 {
 	for (int i = 0; i < WORLD_HEIGHT_DEFAULT; ++i) {
 		for (int j = 0; j < WORLD_WIDTH_DEFAULT; ++j) {
-			map[i][j] = world_map[i][j] == (int)TILE_TYPE::EMPTY ? (int)VISIBILITY_STATE::VISIBLE : (int)VISIBILITY_STATE::NOT_VISIBLE;
+			if (world_map[i][j] == (int)TILE_TYPE::EMPTY || world_map[i][j] == (int)TILE_TYPE::EMPTY_PLACEBO) {
+				map[i][j] = (int)VISIBILITY_STATE::VISIBLE;
+			}
+			else {
+				map[i][j] = (int)VISIBILITY_STATE::NOT_VISIBLE;
+			}
 		}
 	}
 }

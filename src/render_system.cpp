@@ -398,6 +398,15 @@ void RenderSystem::draw()
 
 		drawTilesInstanced(projection_2D, view_2D);
 
+		// Room signifier has motion, don't have to check
+		// It should be rendered at the bottom as it should not be on top of aura
+		for (Entity entity : registry.roomSignifiers.entities) {
+			if (!camera.isInCameraView(registry.motions.get(entity).position)) {
+				continue;
+			}
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
 		// Auras should not disappear off camera (since there is a small # of them)
 		for (Entity entity : registry.auras.entities) {
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
@@ -440,6 +449,7 @@ void RenderSystem::draw()
 			if (registry.teleporters.has(entity)) continue;
 			if (registry.auras.has(entity)) continue;
 			if (registry.parrallaxes.has(entity)) continue;
+			if (registry.roomSignifiers.has(entity)) continue;
 
 			// Note, its not very efficient to access elements indirectly via the entity
 			// albeit iterating through all Sprites in sequence. A good point to optimize

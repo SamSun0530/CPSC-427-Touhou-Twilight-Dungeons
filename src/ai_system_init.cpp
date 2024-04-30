@@ -8,7 +8,9 @@ bool is_valid_cell(int x, int y) {
 	return !(y < 0 || x < 0 || y >= world_height || x >= world_width
 		|| world_map[y][x] == (int)TILE_TYPE::WALL
 		|| world_map[y][x] == (int)TILE_TYPE::EMPTY
-		|| world_map[y][x] == (int)TILE_TYPE::DOOR);
+		|| world_map[y][x] == (int)TILE_TYPE::DOOR
+		|| world_map[y][x] == (int)TILE_TYPE::EMPTY_PLACEBO
+		|| world_map[y][x] == (int)TILE_TYPE::WALL_PLACEBO);
 }
 
 // checks if entity has a line of sight of the player

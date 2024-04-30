@@ -146,7 +146,7 @@ Entity createDoor(RenderSystem* renderer, vec2 position, DIRECTION dir, int room
 Entity createDoorUpTexture(RenderSystem* renderer, vec2 grid_position);
 // Tile for instance rendering
 // Note: different than other create* calls where it is GRID position argument
-Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, vec2 grid_position, TILE_NAME tile_name, bool is_wall);
+Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, vec2 grid_position, TILE_NAME tile_name, bool is_wall, bool is_placebo_wall);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);

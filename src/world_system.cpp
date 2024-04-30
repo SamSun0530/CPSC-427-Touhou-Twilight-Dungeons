@@ -169,7 +169,7 @@ void WorldSystem::init_menu() {
 		offset_y += offset_y_delta;
 	}
 	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "New Game", 1.f, [&]() {
-		map_info.level = MAP_LEVEL::LEVEL4;
+		map_info.level = MAP_LEVEL::LEVEL3;
 		Mix_PlayChannel(audio->abackground_music.channel, audio->level1_background_music, -1);
 		//map_info.level = MAP_LEVEL::LEVEL3; // TODO TEMPORARY
 		restart_game();
@@ -1345,7 +1345,7 @@ void WorldSystem::handle_collisions() {
 		}
 		// Checks wall collisions
 		// Checks locked door collisions
-		else if (registry.walls.has(entity)) {
+		else if (registry.walls.has(entity) || registry.placeboWalls.has(entity)) {
 			// enemy/player bullets to wall are handled in physics system 
 			if (registry.players.has(entity_other) || registry.deadlys.has(entity_other)) {
 				handle_wall_collisions(entity, entity_other);

@@ -217,7 +217,7 @@ enum AMMO_TYPE {
 struct Player
 {
 	bool invulnerability = false;
-	int bullet_damage = 1000;
+	int bullet_damage = 10;
 	int coin_amount = 0;
 	int key_amount = 0;
 	float invulnerability_time_ms = 1000;
@@ -786,6 +786,10 @@ enum class TILE_NAME {
 	S56,
 };
 
+struct RoomSignifier {
+
+};
+
 // A non interactable tile of the map
 struct Floor
 {
@@ -793,6 +797,9 @@ struct Floor
 
 // A interactable tile of the map
 struct Wall {
+};
+
+struct PlaceboWall {
 };
 
 // Tile data to be instance rendered
@@ -1039,7 +1046,9 @@ enum class TILE_TYPE {
 	EMPTY = 0,
 	FLOOR = EMPTY + 1,
 	WALL = FLOOR + 1,
-	DOOR = WALL + 1
+	DOOR = WALL + 1,
+	WALL_PLACEBO = DOOR + 1, // has wall tile but bullets can go through
+	EMPTY_PLACEBO = WALL_PLACEBO + 1, // bullets can go through
 };
 
 enum class EMOTION {

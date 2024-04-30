@@ -488,7 +488,30 @@ void MapSystem::generateTutorialMap() {
 Room MapSystem::generateBossRoom() {
 	rooms.clear();
 	Room room;
-	if (map_info.level == MAP_LEVEL::LEVEL2) {
+	if (map_info.level == MAP_LEVEL::LEVEL1) {
+		room.grid = {
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+			{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+			{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		};
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL2) {
 		room.grid = {
 			{1, 1, 1, 1, 1, 1, 2, 2, 0, 0, 0, 2, 2, 1, 1, 1, 1, 1, 1},
 			{1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1},
@@ -511,25 +534,48 @@ Room MapSystem::generateBossRoom() {
 			{1, 1, 1, 1, 1, 1, 2, 2, 0, 0, 0, 2, 2, 1, 1, 1, 1, 1, 1},
 		};
 	}
+	else if (map_info.level == MAP_LEVEL::LEVEL3) {
+		room.grid = {
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 4, 4, 4, 4, 1, 4, 4, 4, 4, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 4, 4, 4, 4, 1, 4, 4, 4, 4, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1},
+			{1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1},
+			{1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1},
+			{1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1},
+			{1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 4, 4, 4, 4, 1, 4, 4, 4, 4, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 4, 4, 4, 4, 1, 4, 4, 4, 4, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		};
+	}
 	else {
 		room.grid = {
 			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-			{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
-			{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 4, 4, 4, 4, 1, 1, 1, 4, 4, 4, 4, 1, 1, 1, 1},
+			{1, 1, 1, 1, 4, 4, 4, 4, 1, 1, 1, 4, 4, 4, 4, 1, 1, 1, 1},
+			{1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1},
+			{1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1},
 			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			{1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1},
+			{1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1},
+			{1, 1, 1, 1, 4, 4, 4, 4, 1, 1, 1, 4, 4, 4, 4, 1, 1, 1, 1},
+			{1, 1, 1, 1, 4, 4, 4, 4, 1, 1, 1, 4, 4, 4, 4, 1, 1, 1, 1},
 			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-			{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
-			{1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1},
 			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 		};
@@ -584,6 +630,21 @@ void MapSystem::generateRandomMap(float room_size) {
 	// for order of operations, please see VisibilitySystem class
 	visibility_system->restart_map();
 	generate_all_tiles(world_map);
+
+	// Generate special obstacles for specific levels
+	if (map_info.level == MAP_LEVEL::LEVEL4) {
+		Room_struct& boss_room = bsptree.rooms[bsptree.rooms.size() - 1];
+		std::random_device ran;
+		std::mt19937 gen(ran());
+		std::uniform_real_distribution<float> dis(0, 1);
+		createPillar(renderer, boss_room.top_left + vec2(2, 2), dis(gen) < 0.5f);
+		createPillar(renderer, boss_room.bottom_right - vec2(2 , 2), dis(gen) < 0.5f);
+		createPillar(renderer, vec2(boss_room.top_left.x + 2, boss_room.bottom_right.y - 2), dis(gen) < 0.5f);
+		createPillar(renderer, vec2(boss_room.bottom_right.x - 2, boss_room.top_left.y + 2), dis(gen) < 0.5f);
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL4) {
+		// TODO
+	}
 
 	// Do not set tiles to not visible
 	if (visibility_info.excluded.find(map_info.level) == visibility_info.excluded.end()) {
@@ -697,22 +758,35 @@ TILE_NAME MapSystem::get_tile_name_sky(int x, int y, std::vector<std::vector<int
 	int type = map[y][x];
 	// Specify int casted enums
 	const int E = (int)TILE_TYPE::EMPTY;
+	const int EP = (int)TILE_TYPE::EMPTY_PLACEBO;
 	const int W = (int)TILE_TYPE::WALL;
+	const int WP = (int)TILE_TYPE::WALL_PLACEBO;
 	const int F = (int)TILE_TYPE::FLOOR;
 
-	if (type == E) return TILE_NAME::NONE;
+	if (type == E || type == EP) return TILE_NAME::NONE;
 
 	// Specify neighbors for hardcoded checks
-	const int U = map[y - 1][x];	// Up
-	const int D = map[y + 1][x];	// Down
-	const int L = map[y][x - 1];	// Left
-	const int R = map[y][x + 1];	// Right
-	const int UL = map[y - 1][x - 1];	// Up left
-	const int UR = map[y - 1][x + 1];	// Up right
-	const int DL = map[y + 1][x - 1];	// Down left
-	const int DR = map[y + 1][x + 1];	// Down right
+	int U = map[y - 1][x];	// Up
+	int D = map[y + 1][x];	// Down
+	int L = map[y][x - 1];	// Left
+	int R = map[y][x + 1];	// Right
+	int UL = map[y - 1][x - 1];	// Up left
+	int UR = map[y - 1][x + 1];	// Up right
+	int DL = map[y + 1][x - 1];	// Down left
+	int DR = map[y + 1][x + 1];	// Down right
 
 	TILE_NAME result = TILE_NAME::NONE;
+
+	// quick hack so we don't need another duplicate if statement of W for WP
+	if (type == WP) type = W;
+	U = U == WP ? W : U;
+	D = D == WP ? W : D;
+	L = L == WP ? W : L;
+	R = R == WP ? W : R;
+	UL = UL == WP ? W : UL;
+	UR = UR == WP ? W : UR;
+	DL = DL == WP ? W : DL;
+	DR = DR == WP ? W : DR;
 
 	if (type == W) {
 		if (U == F) {
@@ -832,9 +906,11 @@ TILE_NAME MapSystem::get_tile_name(int x, int y, std::vector<std::vector<int>>& 
 	// Specify int casted enums
 	const int E = (int)TILE_TYPE::EMPTY;
 	const int W = (int)TILE_TYPE::WALL;
+	const int WP = (int)TILE_TYPE::WALL_PLACEBO;
 	const int F = (int)TILE_TYPE::FLOOR;
+	const int EP = (int)TILE_TYPE::EMPTY_PLACEBO;
 
-	if (type == E) return TILE_NAME::NONE;
+	if (type == E || type == EP) return TILE_NAME::NONE;
 	else if (type == F) {
 		TILE_NAME temp = TILE_NAME::FLOOR_3_1;
 		switch (map_info.level) {
@@ -904,14 +980,25 @@ TILE_NAME MapSystem::get_tile_name(int x, int y, std::vector<std::vector<int>>& 
 	}
 
 	// Specify neighbors for hardcoded checks
-	const int U = map[y - 1][x];	// Up
-	const int D = map[y + 1][x];	// Down
-	const int L = map[y][x - 1];	// Left
-	const int R = map[y][x + 1];	// Right
-	const int UL = map[y - 1][x - 1];	// Up left
-	const int UR = map[y - 1][x + 1];	// Up right
-	const int DL = map[y + 1][x - 1];	// Down left
-	const int DR = map[y + 1][x + 1];	// Down right
+	int U = map[y - 1][x];	// Up
+	int D = map[y + 1][x];	// Down
+	int L = map[y][x - 1];	// Left
+	int R = map[y][x + 1];	// Right
+	int UL = map[y - 1][x - 1];	// Up left
+	int UR = map[y - 1][x + 1];	// Up right
+	int DL = map[y + 1][x - 1];	// Down left
+	int DR = map[y + 1][x + 1];	// Down right
+
+	// quick hack so we don't need another duplicate if statement of W for WP
+	if (type == WP) type = W;
+	U = U == WP ? W : U;
+	D = D == WP ? W : D;
+	L = L == WP ? W : L;
+	R = R == WP ? W : R;
+	UL = UL == WP ? W : UL;
+	UR = UR == WP ? W : UR;
+	DL = DL == WP ? W : DL;
+	DR = DR == WP ? W : DR;
 
 	TILE_NAME result = TILE_NAME::NONE;
 
@@ -1046,7 +1133,7 @@ void MapSystem::generate_all_tiles(std::vector<std::vector<int>>& map) {
 				result = get_tile_name(x + 1, y + 1, map_copy);
 			}
 			if (result == TILE_NAME::NONE) continue;
-			createTile(renderer, visibility_system, { x, y }, result, map[y][x] == (int)TILE_TYPE::WALL);
+			createTile(renderer, visibility_system, { x, y }, result, map[y][x] == (int)TILE_TYPE::WALL, map[y][x] == (int)TILE_TYPE::WALL_PLACEBO);
 		}
 	}
 }

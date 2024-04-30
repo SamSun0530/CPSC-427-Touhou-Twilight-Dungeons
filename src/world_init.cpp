@@ -1386,7 +1386,8 @@ Entity createRoomSignifier(RenderSystem* renderer, vec2 position, ROOM_TYPE room
 		{ static_cast<TEXTURE_ASSET_ID>((int)TEXTURE_ASSET_ID::NORMAL_SIGN + (int)room_type),
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
-
+	
+	registry.roomSignifiers.emplace(entity);
 	registry.colors.insert(entity, { 1,1,1 });
 
 	return entity;
@@ -2444,7 +2445,7 @@ Entity createDoorUpTexture(RenderSystem* renderer, vec2 grid_position) {
 	return entity;
 }
 
-Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, vec2 grid_position, TILE_NAME tile_name, bool is_wall) {
+Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, vec2 grid_position, TILE_NAME tile_name, bool is_wall, bool is_placebo_wall) {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -2459,6 +2460,13 @@ Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, v
 	// Create wall or floor entity for physics collision
 	if (is_wall) {
 		registry.walls.emplace(entity);
+		// Set the collision box
+		auto& collidable = registry.collidables.emplace(entity);
+		collidable.size = { motion.scale.x, motion.scale.y };
+		collidable.shift = { 0, 0 };
+	}
+	else if (is_placebo_wall) {
+		registry.placeboWalls.emplace(entity);
 		// Set the collision box
 		auto& collidable = registry.collidables.emplace(entity);
 		collidable.size = { motion.scale.x, motion.scale.y };

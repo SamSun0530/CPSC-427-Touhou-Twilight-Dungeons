@@ -575,7 +575,6 @@ void BossSystem::init_phases() {
 		bullet_phases[3].push_back(b_phase);
 	}
 	else if (map_info.level == MAP_LEVEL::LEVEL4) {
-		// Define the pattern and spawner for the simplified bullet phase
 		b_pattern = BulletPattern();
 		bs = BulletSpawner();
 		bs.is_active = true;

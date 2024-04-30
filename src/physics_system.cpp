@@ -14,6 +14,15 @@ void PhysicsSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 }
 
+// checks if (x,y) on the map grid is valid, this is not world coordinates
+// this is dedicated for physics only -> does not check for placebo walls/empty
+bool is_valid_cell_physics(int x, int y) {
+	return !(y < 0 || x < 0 || y >= world_height || x >= world_width
+		|| world_map[y][x] == (int)TILE_TYPE::WALL
+		|| world_map[y][x] == (int)TILE_TYPE::EMPTY
+		|| world_map[y][x] == (int)TILE_TYPE::DOOR);
+}
+
 // Collision test between circle and AABB
 // Credit to "Ghoster": https://gamedev.stackexchange.com/a/178154
 bool collides_circle_AABB(const Motion& circleMotion, const CircleCollidable& circleCollidable, const Motion& AABBMotion, const Collidable& AABB)
@@ -238,20 +247,20 @@ void PhysicsSystem::step(float elapsed_ms)
 		motion.position += kinematic.velocity * step_seconds;
 	}
 
-	// Update aura position
-	for (Entity entity : registry.auras.entities) {
-		AuraLink& link = registry.auraLinks.get(entity);
-		Motion& motion_aura = registry.motions.get(entity);
-		Motion& motion_entity = registry.motions.get(link.other);
-		if (registry.bosses.has(entity) && registry.bosses.get(entity).boss_id != BOSS_ID::CIRNO) {
-			motion_aura.position = motion_entity.position;
-		}
-	}
-
 	// Set boss invisible spawner position
 	for (Entity entity_boss : registry.bosses.entities) {
 		Boss& boss = registry.bosses.get(entity_boss);
 		registry.motions.get(boss.invis_spawner).position = registry.motions.get(entity_boss).position;
+
+		// Update aura position
+		if (registry.auraLinks.has(entity_boss)) {
+			AuraLink& link = registry.auraLinks.get(entity_boss);
+			Motion& motion_boss = registry.motions.get(entity_boss);
+			Motion& motion_aura = registry.motions.get(link.other);
+			if (boss.boss_id != BOSS_ID::CIRNO) {
+				motion_aura.position = motion_boss.position;
+			}
+		}
 	}
 
 	// Bezier curves
@@ -321,7 +330,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		Collidable& collidable = registry.collidables.get(entity);
 		coord grid_coord = convert_world_to_grid(motion.position);
 
-		if (!is_valid_cell(grid_coord.x, grid_coord.y)) {
+		if (!is_valid_cell_physics(grid_coord.x, grid_coord.y)) {
 			if (registry.normalBullets.has(entity)) {
 				registry.realDeathTimers.emplace(createBulletDisappear(renderer, motion.position, motion.angle, true)).death_counter_ms = 200;
 			}
@@ -370,7 +379,7 @@ void PhysicsSystem::step(float elapsed_ms)
 			Collidable& collidable = registry.collidables.get(bullet_entity);
 			coord grid_coord = convert_world_to_grid(motion.position);
 
-			if (!is_valid_cell(grid_coord.x, grid_coord.y)) {
+			if (!is_valid_cell_physics(grid_coord.x, grid_coord.y)) {
 				//registry.collisions.emplace(bullet_entity, wall_entity); // causes bullet to go through walls
 				registry.remove_all_components_of(bullet_entity);
 			}
@@ -497,7 +506,6 @@ void PhysicsSystem::step(float elapsed_ms)
 	ComponentContainer<Wall>& wall_container = registry.walls;
 	for (uint i = 0; i < wall_container.components.size(); i++)
 	{
-		Wall& wall = wall_container.components[i];
 		Entity entity_i = wall_container.entities[i];
 		Collidable& collidable_i = registry.collidables.get(entity_i);
 		Motion& motion_i = motion_container.get(entity_i);
@@ -514,6 +522,37 @@ void PhysicsSystem::step(float elapsed_ms)
 		//}
 
 		// Wall to enemy collision
+		for (Entity& entity_j : registry.deadlys.entities) {
+			Collidable& collidable_j = registry.collidables.get(entity_j);
+			Motion& motion_j = registry.motions.get(entity_j);
+			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
+			{
+				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+			}
+		}
+	}
+
+	// Placebo wall collisions
+	ComponentContainer<PlaceboWall>& placebo_wall_container = registry.placeboWalls;
+	for (uint i = 0; i < placebo_wall_container.components.size(); i++)
+	{
+		Entity entity_i = placebo_wall_container.entities[i];
+		Collidable& collidable_i = registry.collidables.get(entity_i);
+		Motion& motion_i = motion_container.get(entity_i);
+
+		// Placebo wall to player collision
+		for (Entity& entity_j : registry.players.entities) {
+			Collidable& collidable_j = registry.collidables.get(entity_j);
+			Motion& motion_j = registry.motions.get(entity_j);
+			if (collides_AABB_AABB(motion_i, motion_j, collidable_i, collidable_j))
+			{
+				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
+			}
+		}
+
+		// Placebo wall to enemy collision
 		for (Entity& entity_j : registry.deadlys.entities) {
 			Collidable& collidable_j = registry.collidables.get(entity_j);
 			Motion& motion_j = registry.motions.get(entity_j);
