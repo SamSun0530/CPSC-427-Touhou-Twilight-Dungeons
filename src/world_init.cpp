@@ -1462,12 +1462,12 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else if (boss_id == BOSS_ID::SAKUYA) {
-		//hp.max_hp = 15020;
-		hp.max_hp = 120;
+		hp.max_hp = 15020;
+		//hp.max_hp = 120;
 		hp.curr_hp = hp.max_hp;
 
-		boss.health_phase_thresholds = { 100, 90, 80, 70, -1 }; // -1 for end of phase
-		//boss.health_phase_thresholds = { 15000, 11250, 7500, 3750, -1 }; // -1 for end of phase
+		//boss.health_phase_thresholds = { 100, 90, 80, 70, -1 }; // -1 for end of phase
+		boss.health_phase_thresholds = { 15000, 11250, 7500, 3750, -1 }; // -1 for end of phase
 
 		enemy_ani.spritesheet_scale = { 1.f / 4.f, 1.f / 8.f };
 		enemy_ani.render_pos = { 1.f / 4.f, 1.f / 8.f };
@@ -1479,12 +1479,12 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else if (boss_id == BOSS_ID::REMILIA) {
-		//hp.max_hp = 20020;
-		hp.max_hp = 120;
+		hp.max_hp = 20020;
+		//hp.max_hp = 120;
 		hp.curr_hp = hp.max_hp;
 
-		boss.health_phase_thresholds = { 100, 90, 80, 70, -1 }; // -1 for end of phase
-		//boss.health_phase_thresholds = { 20000, 15000, 10000, 5000, -1 }; // -1 for end of phase
+		//boss.health_phase_thresholds = { 100, 90, 80, 70, -1 }; // -1 for end of phase
+		boss.health_phase_thresholds = { 20000, 15000, 10000, 5000, -1 }; // -1 for end of phase
 
 		enemy_ani.spritesheet_scale = { 1.f / 4.f, 1.f / 8.f };
 		enemy_ani.render_pos = { 1.f / 4.f, 1.f / 8.f };
@@ -2179,45 +2179,6 @@ Entity createSeagullEnemy(RenderSystem* renderer, vec2 position) {
 	return entity;
 }
 
-std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs) {
-	std::vector<Entity> entities;
-	//for (int i = 0; i < textureIDs.size(); i++) {
-	//	auto entity = Entity();
-
-	//	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	//	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	//	registry.meshPtrs.emplace(entity, &mesh);
-
-	//	// Initialize the motion
-	//	auto& motion = registry.motions.emplace(entity);
-	//	motion.angle = 0.f;
-	//	motion.position = position;
-	//	motion.scale = vec2(world_tile_size, world_tile_size);
-
-	//	// TODO: remove this, used for testing ai can see player
-	//	if (textureIDs[i] == TEXTURE_ASSET_ID::PILLAR_TOP) {
-	//		registry.floors.emplace(entity);
-	//		registry.renderRequestsForeground.insert(
-	//			entity,
-	//			{ textureIDs[i],
-	//			 EFFECT_ASSET_ID::TEXTURED,
-	//			 GEOMETRY_BUFFER_ID::SPRITE });
-	//		entities.push_back(entity);
-	//		continue;
-	//	}
-
-	//	// Create and (empty) Tile component to be able to refer to all decoration tiles
-	//	registry.floors.emplace(entity);
-	//	registry.renderRequests.insert( // TODO Change to ground texture
-	//		entity,
-	//		{ textureIDs[i],
-	//		 EFFECT_ASSET_ID::TEXTURED,
-	//		 GEOMETRY_BUFFER_ID::SPRITE });
-	//	entities.push_back(entity);
-	//}
-	return entities;
-}
-
 std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs) {
 	std::vector<Entity> entities;
 	for (int i = 0; i < textureIDs.size(); i++) {
@@ -2659,7 +2620,6 @@ Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, v
 	if (visibility_info.excluded.find(map_info.level) != visibility_info.excluded.end()) return entity;
 
 	auto entity2 = Entity();
-	//registry.visibilityTiles.emplace(entity2); // TODO
 	registry.visibilityTileInstanceData.emplace(entity2) = {
 		t.mat,
 		1.0

@@ -77,7 +77,10 @@ void Audio::restart_audio_boss() {
 }
 
 void Audio::restart_audio_background() {
-	if (map_info.level == MAP_LEVEL::LEVEL1) {
+	if (map_info.level == MAP_LEVEL::TUTORIAL) {
+		Mix_PlayChannel(abackground_music.channel, tutorial_background_music, -1);
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL1) {
 		Mix_PlayChannel(abackground_music.channel, level1_background_music, -1);
 	}
 	else if (map_info.level == MAP_LEVEL::LEVEL2) {
@@ -120,6 +123,7 @@ Audio::Audio() {
 	flandre_boss_music = Mix_LoadWAV(audio_path("flandre_boss_fight.wav").c_str());
 	remilia_boss_music = Mix_LoadWAV(audio_path("remilia_boss_fight.wav").c_str());
 	sakuya_boss_music = Mix_LoadWAV(audio_path("sakuya_boss_fight.wav").c_str());
+	tutorial_background_music = Mix_LoadWAV(audio_path("tutorial.wav").c_str());
 
 	Mix_PlayChannel(1, menu_music, -1);
 	Mix_PlayChannel(2, level1_background_music, -1);
@@ -154,7 +158,8 @@ Audio::Audio() {
 		sakuya_boss_music == nullptr ||
 		remilia_boss_music == nullptr ||
 		open_gate_sound == nullptr ||
-		game_ending_sound == nullptr) {
+		game_ending_sound == nullptr ||
+		tutorial_background_music == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("level1_background_music.wav").c_str(),
 			audio_path("level2_background_music.wav").c_str(),
@@ -170,7 +175,8 @@ Audio::Audio() {
 			audio_path("open_gate_sound.wav").c_str(),
 			audio_path("flandre_boss_fight.wav").c_str(),
 			audio_path("remilia_boss_fight.wav").c_str(),
-			audio_path("sakuya_boss_fight.wav").c_str()
+			audio_path("sakuya_boss_fight.wav").c_str(),
+			audio_path("tutorial.wav").c_str()
 		);
 
 		assert(false && "Failed to load sounds, make sure the data directory is present");
@@ -208,7 +214,9 @@ Audio::~Audio() {
 	if (sakuya_boss_music != nullptr)
 		Mix_FreeChunk(sakuya_boss_music);
 	if (remilia_boss_music != nullptr)
-		Mix_FreeChunk(remilia_boss_music);
+		Mix_FreeChunk(remilia_boss_music);	
+	if (tutorial_background_music != nullptr)
+		Mix_FreeChunk(tutorial_background_music);
 
 	Mix_CloseAudio();
 }

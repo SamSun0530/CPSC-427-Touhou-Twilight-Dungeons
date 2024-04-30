@@ -142,11 +142,11 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map,
 	//Sets the size of the empty world
 	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
 	//Mix_PlayChannel(1, audio->menu_music, -1);
-	// TODO: remove, redundant
-	if (menu.state == MENU_STATE::PLAY) {
-		// Set all states to default
-		restart_game();
-	}
+	// TODO: remove, redundant (as we start in menu instead)
+	//if (menu.state == MENU_STATE::PLAY) {
+	//	// Set all states to default
+	//	restart_game();
+	//}
 }
 
 void WorldSystem::init_menu() {
@@ -169,9 +169,8 @@ void WorldSystem::init_menu() {
 		offset_y += offset_y_delta;
 	}
 	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "New Game", 1.f, [&]() {
-		map_info.level = MAP_LEVEL::LEVEL2;
+		map_info.level = MAP_LEVEL::LEVEL1;
 		Mix_PlayChannel(audio->abackground_music.channel, audio->level1_background_music, -1);
-		//map_info.level = MAP_LEVEL::LEVEL3; // TODO TEMPORARY
 		restart_game();
 		});
 	offset_y += offset_y_delta;
@@ -503,7 +502,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				std::random_device rd;
 				std::mt19937 gen(rd());
 				std::uniform_real_distribution<> distrib(0, 1);
-				double number = distrib(gen) * combo_mode.combo_meter/2;
+				double number = distrib(gen) * combo_mode.combo_meter / 2;
 				int coin_number = 1;
 				if (number < 0.5) {
 					coin_number = 1.0;
@@ -1462,18 +1461,18 @@ void WorldSystem::updateFocusDot() {
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (menu.state == MENU_STATE::PLAY) {
 		// Resetting game
-		if (action == GLFW_RELEASE && key == GLFW_KEY_F1) {
-			int w, h;
-			glfwGetWindowSize(window, &w, &h);
-			map_info.level = MAP_LEVEL::LEVEL1;
-			restart_game();
-		}
+		//if (action == GLFW_RELEASE && key == GLFW_KEY_F1) {
+		//	int w, h;
+		//	glfwGetWindowSize(window, &w, &h);
+		//	map_info.level = MAP_LEVEL::LEVEL1;
+		//	restart_game();
+		//}
 
-		// Debugging
-		if (key == GLFW_KEY_G) {
-			if (action == GLFW_RELEASE)
-				debugging.in_debug_mode = !debugging.in_debug_mode;
-		}
+		//// Debugging
+		//if (key == GLFW_KEY_G) {
+		//	if (action == GLFW_RELEASE)
+		//		debugging.in_debug_mode = !debugging.in_debug_mode;
+		//}
 
 		// Toggle FPS display
 		if (key == GLFW_KEY_F && action == GLFW_RELEASE) {

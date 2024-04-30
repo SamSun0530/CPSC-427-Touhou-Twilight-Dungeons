@@ -43,6 +43,7 @@ public:
 	Mix_Chunk* level3_background_music;
 	Mix_Chunk* level4_background_music;
 	Mix_Chunk* menu_music;
+	Mix_Chunk* tutorial_background_music;
 	Mix_Chunk* open_gate_sound;
 	Mix_Chunk* cirno_boss_music;
 	Mix_Chunk* pause_menu_sound;

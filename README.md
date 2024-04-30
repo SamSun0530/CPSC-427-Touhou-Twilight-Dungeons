@@ -71,6 +71,7 @@ Alan Huang <br />
 	- Calming Rivers of Youkai Mountain: https://fantouhoumusic.itch.io/immense-will-of-a-thousand-swords
 	- Well of Infinite Depth ~ Electric Onryo: https://fantouhoumusic.itch.io/awakening-deep-mythos-boss-themes-arrangements
 	- Blessed Pathfinder: https://fantouhoumusic.itch.io/wonderful-waking-world-boss-themes-arrangements
+	- End of a Battle: https://fantouhoumusic.itch.io/immense-will-of-a-thousand-swords
 - Music - U.N.オーエンは彼女なのか？ Piano Arrange: https://commons.nicovideo.jp/works/nc235125
 - Sound effects:
 	- Hit spell sound effect by EdR: https://pixabay.com/users/edr-1177074/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=135821

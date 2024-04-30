@@ -297,31 +297,32 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 
 Entity MapSystem::spawnPlayerInRoom(int room_number) {
 	if (room_number < 0 || room_number >= bsptree.rooms.size()) assert(false && "Room number out of bounds");
-	//bsptree.rooms[room_number].type = ROOM_TYPE::START;
-	//Room_struct& room = game_info.room_index[room_number];
-	//room.type = ROOM_TYPE::START;
-	//room.is_cleared = true;
-	//room.need_to_spawn = false;
+	bsptree.rooms[room_number].type = ROOM_TYPE::START;
+	Room_struct& room = game_info.room_index[room_number];
+	room.type = ROOM_TYPE::START;
+	room.is_cleared = true;
+	room.need_to_spawn = false;
 
-	//vec2 spawn_point = convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f);
+	vec2 spawn_point = convert_grid_to_world((bsptree.rooms[room_number].top_left + bsptree.rooms[room_number].bottom_right) / 2.f);
 
-	//if (map_info.level == MAP_LEVEL::LEVEL1) {
-	//	// teleporter to tutorial
-	//	EntityAnimation ani;
-	//	ani.spritesheet_scale = { 1 / 26.f, 1 };
-	//	ani.render_pos = { 1 / 26.f, 1 };
-	//	ani.frame_rate_ms = 100;
-	//	ani.full_rate_ms = 100;
-	//	ani.is_active = false;
-	//	vec2 scale = 1.5f * vec2(TELEPORTER_SMALL_WIDTH, TELEPORTER_SMALL_HEIGHT);
-	//	float teleport_time = 1000;
+	if (map_info.level == MAP_LEVEL::LEVEL1) {
+		// teleporter to tutorial
+		EntityAnimation ani;
+		ani.spritesheet_scale = { 1 / 26.f, 1 };
+		ani.render_pos = { 1 / 26.f, 1 };
+		ani.frame_rate_ms = 100;
+		ani.full_rate_ms = 100;
+		ani.is_active = false;
+		vec2 scale = 1.5f * vec2(TELEPORTER_SMALL_WIDTH, TELEPORTER_SMALL_HEIGHT);
+		float teleport_time = 1000;
+		createTeleporter(renderer, spawn_point + vec2(0, -world_tile_size * 1.5f), scale, vec2(3.f), MAP_LEVEL::TUTORIAL, ani, TEXTURE_ASSET_ID::TELEPORTER_SMALL, teleport_time, "Press \"E\" to enter tutorial", "Tutorial");
+	}
 
-	//	createTeleporter(renderer, spawn_point + vec2(0, -world_tile_size * 1.5f), scale, vec2(3.f), MAP_LEVEL::TUTORIAL, ani, TEXTURE_ASSET_ID::TELEPORTER_SMALL, teleport_time, "Press \"E\" to enter tutorial", "Tutorial");
-	//}
-
-	//return createPlayer(renderer, spawn_point);
-	room_number = bsptree.rooms.size() - 1;
-	return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left + vec2(-1, 0)));
+	return createPlayer(renderer, spawn_point);
+	
+	//if (room_number < 0 || room_number >= bsptree.rooms.size()) assert(false && "Room number out of bounds");
+	//room_number = bsptree.rooms.size() - 1;
+	//return createPlayer(renderer, convert_grid_to_world(bsptree.rooms[room_number].top_left + vec2(-1, 0)));
 }
 
 // Getting out of map results? Consider that there is empty padding in the world map.
@@ -443,7 +444,6 @@ void MapSystem::generateTutorialMap() {
 	spawner1.max_spawn = 5;
 
 	// remaining buttons
-	// TODO: spawn an item here
 	createKey(convert_grid_to_world({ 36, 16 }), vec2(global_key_size), KEYS::E, false, true);
 	Entity entity = createPurchasableHealth(renderer, convert_grid_to_world({ 38.f, 16.f }));
 	if (registry.bezierCurves.has(entity)) registry.bezierCurves.remove(entity);
@@ -638,7 +638,7 @@ void MapSystem::generateRandomMap(float room_size) {
 		std::mt19937 gen(ran());
 		std::uniform_real_distribution<float> dis(0, 1);
 		createPillar(renderer, boss_room.top_left + vec2(2, 2), dis(gen) < 0.5f);
-		createPillar(renderer, boss_room.bottom_right - vec2(2 , 2), dis(gen) < 0.5f);
+		createPillar(renderer, boss_room.bottom_right - vec2(2, 2), dis(gen) < 0.5f);
 		createPillar(renderer, vec2(boss_room.top_left.x + 2, boss_room.bottom_right.y - 2), dis(gen) < 0.5f);
 		createPillar(renderer, vec2(boss_room.bottom_right.x - 2, boss_room.top_left.y + 2), dis(gen) < 0.5f);
 	}
@@ -657,7 +657,7 @@ void MapSystem::generateRandomMap(float room_size) {
 				pos = position + vec2(x_sign * dis(gen), y_sign * dis(gen));
 			}
 			createObstacle(renderer, pos);
-		};
+			};
 
 		createObstacle(renderer, boss_room.top_left + vec2(2, 2));
 		createObstacle(renderer, boss_room.bottom_right - vec2(2, 2));

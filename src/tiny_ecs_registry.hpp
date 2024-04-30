@@ -76,7 +76,6 @@ public:
 	ComponentContainer<MainMenu> mainMenus;
 	ComponentContainer<PauseMenu> pauseMenus;
 	ComponentContainer<Purchasableable> purchasableables;
-	ComponentContainer<VisibilityTile> visibilityTiles;
 	ComponentContainer<Dialogue> dialogueMenus;
 	ComponentContainer<Teleporter> teleporters;
 	ComponentContainer<WinMenu> winMenus;
@@ -174,7 +173,6 @@ public:
 		registry_list.push_back(&mainMenus);
 		registry_list.push_back(&pauseMenus);
 		registry_list.push_back(&purchasableables);
-		registry_list.push_back(&visibilityTiles);
 		registry_list.push_back(&dialogueMenus);
 		registry_list.push_back(&teleporters);
 		registry_list.push_back(&winMenus);
