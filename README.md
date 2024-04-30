@@ -45,4 +45,7 @@ Alan Huang <br />
 - Buttons - https://kenney.nl/assets/input-prompts-pixel-16
 - Sky - https://caturra.itch.io/sky-island-animated-tileset
 - Water/Forest - https://pixivan.itch.io/top-down-forest-tileset
-- 
+- Boss music by FanTouhouMusic https://fantouhoumusic.itch.io/
+	- God's Hand Relying on Dreams: https://fantouhoumusic.itch.io/memory-of-dream-pillow-boss-themes-arrangements
+	- Phantasm Paradise ~ Lost Dreams: https://fantouhoumusic.itch.io/champaign-of-unfinished-dreams-boss-themes-arrangements
+

@@ -658,6 +658,9 @@ void WorldSystem::next_level() {
 
 	boss_system->init_phases();
 
+	//audio->restart_audio_level();
+	audio->restart_audio_boss();
+
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
 
@@ -759,7 +762,7 @@ void WorldSystem::restart_game() {
 
 	boss_system->init_phases();
 
-	audio->restart_audio_level1();
+	audio->restart_audio_level();
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
 

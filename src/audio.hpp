@@ -29,8 +29,9 @@ public:
 	Audio();
 	~Audio();
 
-	// restart audio to level 1 playing
-	void restart_audio_level1();
+	// restart audio playing
+	void restart_audio_level();
+	void restart_audio_boss();
 
 	void step(float elapsed);
 
@@ -38,16 +39,17 @@ public:
 	Mix_Chunk* background_music;
 	Mix_Chunk* menu_music;
 	Mix_Chunk* open_gate_sound;
-	Mix_Chunk* boss_music;
+	Mix_Chunk* cirno_boss_music;
 	Mix_Chunk* pause_menu_sound;
 	Mix_Chunk* game_ending_sound;
 	Mix_Chunk* firing_sound;
 	Mix_Chunk* damage_sound;
 	Mix_Chunk* hit_spell;
 	Mix_Chunk* flandre_boss_music;
+	Mix_Chunk* remilia_boss_music;
+	Mix_Chunk* sakuya_boss_music;
 
 	audio abackground_music;
 	audio amenu_music;
-	audio aflandre_boss_music;
 	audio aboss_music;
 };
