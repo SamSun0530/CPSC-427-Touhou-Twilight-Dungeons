@@ -32,11 +32,15 @@ public:
 	// restart audio playing
 	void restart_audio_level();
 	void restart_audio_boss();
+	void restart_audio_background();
 
 	void step(float elapsed);
 
 	// music references
-	Mix_Chunk* background_music;
+	Mix_Chunk* level1_background_music;
+	Mix_Chunk* level2_background_music;
+	Mix_Chunk* level3_background_music;
+	Mix_Chunk* level4_background_music;
 	Mix_Chunk* menu_music;
 	Mix_Chunk* open_gate_sound;
 	Mix_Chunk* cirno_boss_music;

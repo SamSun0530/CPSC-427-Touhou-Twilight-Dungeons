@@ -170,7 +170,7 @@ void WorldSystem::init_menu() {
 	}
 	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "New Game", 1.f, [&]() {
 		map_info.level = MAP_LEVEL::LEVEL3;
-		Mix_PlayChannel(audio->abackground_music.channel, audio->background_music, -1);
+		Mix_PlayChannel(audio->abackground_music.channel, audio->level1_background_music, -1);
 		//map_info.level = MAP_LEVEL::LEVEL3; // TODO TEMPORARY
 		restart_game();
 		});
@@ -658,8 +658,7 @@ void WorldSystem::next_level() {
 
 	boss_system->init_phases();
 
-	//audio->restart_audio_level();
-	audio->restart_audio_boss();
+	audio->restart_audio_level();
 
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;

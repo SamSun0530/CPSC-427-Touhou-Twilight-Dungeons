@@ -46,8 +46,8 @@ void Audio::step(float elapsed) {
 
 void Audio::restart_audio_level() {
 	Mix_PlayChannel(1, menu_music, -1);
-	Mix_PlayChannel(2, background_music, -1);
 	restart_audio_boss();
+	restart_audio_background();
 
 	amenu_music.pause();
 	abackground_music.play();
@@ -56,19 +56,36 @@ void Audio::restart_audio_level() {
 
 void Audio::restart_audio_boss() {
 	if (map_info.level == MAP_LEVEL::LEVEL1) {
-		Mix_PlayChannel(4, cirno_boss_music, -1);
+		Mix_PlayChannel(aboss_music.channel, cirno_boss_music, -1);
 	}
 	else if (map_info.level == MAP_LEVEL::LEVEL2) {
-		Mix_PlayChannel(4, flandre_boss_music, -1);
+		Mix_PlayChannel(aboss_music.channel, flandre_boss_music, -1);
 	}
 	else if (map_info.level == MAP_LEVEL::LEVEL3) {
-		Mix_PlayChannel(4, sakuya_boss_music, -1);
+		Mix_PlayChannel(aboss_music.channel, sakuya_boss_music, -1);
 	}
 	else {
-		Mix_PlayChannel(4, remilia_boss_music, -1);
+		Mix_PlayChannel(aboss_music.channel, remilia_boss_music, -1);
 	}
 
 	aboss_music.pause();
+}
+
+void Audio::restart_audio_background() {
+	if (map_info.level == MAP_LEVEL::LEVEL1) {
+		Mix_PlayChannel(abackground_music.channel, level1_background_music, -1);
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL2) {
+		Mix_PlayChannel(abackground_music.channel, level2_background_music, -1);
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL3) {
+		Mix_PlayChannel(abackground_music.channel, level3_background_music, -1);
+	}
+	else {
+		Mix_PlayChannel(abackground_music.channel, level4_background_music, -1);
+	}
+
+	abackground_music.pause();
 }
 
 Audio::Audio() {
@@ -83,7 +100,10 @@ Audio::Audio() {
 		assert(false && "Failed to open audio device");
 	}
 
-	background_music = Mix_LoadWAV(audio_path("regular_room_bgm.wav").c_str());
+	level1_background_music = Mix_LoadWAV(audio_path("level1_background_music.wav").c_str());
+	level2_background_music = Mix_LoadWAV(audio_path("level2_background_music.wav").c_str());
+	level3_background_music = Mix_LoadWAV(audio_path("level3_background_music.wav").c_str());
+	level4_background_music = Mix_LoadWAV(audio_path("level4_background_music.wav").c_str());
 	menu_music = Mix_LoadWAV(audio_path("main_menu_bgm.wav").c_str());
 	cirno_boss_music = Mix_LoadWAV(audio_path("cirno_boss_fight.wav").c_str());
 	game_ending_sound = Mix_LoadWAV(audio_path("game_ending_sound.wav").c_str());
@@ -97,7 +117,7 @@ Audio::Audio() {
 	sakuya_boss_music = Mix_LoadWAV(audio_path("sakuya_boss_fight.wav").c_str());
 
 	Mix_PlayChannel(1, menu_music, -1);
-	Mix_PlayChannel(2, background_music, -1);
+	Mix_PlayChannel(2, level1_background_music, -1);
 	Mix_PlayChannel(4, cirno_boss_music, -1);
 
 	amenu_music.channel = 1;
@@ -111,11 +131,14 @@ Audio::Audio() {
 	// Set the music volume
 	Mix_VolumeMusic(15);
 	Mix_Volume(-1, 20);
-	Mix_Volume(amenu_music.channel, 20);
-	Mix_Volume(abackground_music.channel, 20);
+	Mix_Volume(amenu_music.channel, 30);
+	Mix_Volume(abackground_music.channel, 40);
 	Mix_Volume(aboss_music.channel, 30);
 
-	if (background_music == nullptr ||
+	if (level1_background_music == nullptr ||
+		level2_background_music == nullptr ||
+		level3_background_music == nullptr ||
+		level4_background_music == nullptr ||
 		menu_music == nullptr ||
 		cirno_boss_music == nullptr ||
 		firing_sound == nullptr ||
@@ -128,7 +151,10 @@ Audio::Audio() {
 		open_gate_sound == nullptr ||
 		game_ending_sound == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
-			audio_path("regular_room_bgm.wav").c_str(),
+			audio_path("level1_background_music.wav").c_str(),
+			audio_path("level2_background_music.wav").c_str(),
+			audio_path("level3_background_music.wav").c_str(),
+			audio_path("level4_background_music.wav").c_str(),
 			audio_path("main_menu_bgm.wav").c_str(),
 			audio_path("boss_fight_bgm.wav").c_str(),
 			audio_path("game_ending_sound.wav").c_str(),
@@ -148,6 +174,14 @@ Audio::Audio() {
 
 Audio::~Audio() {
 	// Destroy music components
+	if (level1_background_music != nullptr)
+		Mix_FreeChunk(level1_background_music);
+	if (level2_background_music != nullptr)
+		Mix_FreeChunk(level2_background_music);
+	if (level3_background_music != nullptr)
+		Mix_FreeChunk(level3_background_music);
+	if (level4_background_music != nullptr)
+		Mix_FreeChunk(level4_background_music);
 	if (game_ending_sound != nullptr)
 		Mix_FreeChunk(game_ending_sound);
 	if (firing_sound != nullptr)
