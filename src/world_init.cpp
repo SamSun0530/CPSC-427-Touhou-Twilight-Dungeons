@@ -1740,7 +1740,7 @@ Entity createLizardEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 50;
+	hp.max_hp = static_cast<int>( 50 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1769,10 +1769,10 @@ Entity createLizardEnemy(RenderSystem* renderer, vec2 position) {
 	//bs.cooldown_rate = 50; // every 5 seconds
 	//bs.is_cooldown = true;
 
-	bs.fire_rate = 2;
+	bs.fire_rate = 2 * 1/combo_mode.combo_meter;
 	bs.is_firing = false;
 	bs.bullets_per_array = 6;
-	bs.spread_within_array = 60;
+	bs.spread_within_array =static_cast<int>( 60 * combo_mode.combo_meter);
 	bs.bullet_initial_speed = 100;
 	bs.number_to_fire = 1;
 	bs.is_cooldown = true;
@@ -1821,7 +1821,7 @@ Entity createWormEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 50;
+	hp.max_hp = static_cast<int>( 50 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1842,9 +1842,9 @@ Entity createWormEnemy(RenderSystem* renderer, vec2 position) {
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 1.5;
+	bs.fire_rate = 1.5 * 1/combo_mode.combo_meter;
 	bs.is_firing = false;
-	bs.bullet_initial_speed = 100;
+	bs.bullet_initial_speed = static_cast<int>( 100 * combo_mode.combo_meter);
 	bs.number_to_fire = 14;
 	bs.is_cooldown = true;
 	bs.cooldown_rate = 60;
@@ -1952,7 +1952,7 @@ Entity createGargoyleEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 60;
+	hp.max_hp = static_cast<int>( 60 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1973,7 +1973,7 @@ Entity createGargoyleEnemy(RenderSystem* renderer, vec2 position) {
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 50;
+	bs.fire_rate = 50 * 1/combo_mode.combo_meter;
 	bs.is_firing = false;
 	bs.bullet_initial_speed = 100;
 
@@ -2011,7 +2011,7 @@ Entity createTurtleEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 60;
+	hp.max_hp = static_cast<int> ( 60 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -2032,9 +2032,9 @@ Entity createTurtleEnemy(RenderSystem* renderer, vec2 position) {
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 2;
+	bs.fire_rate = 2 * 1/combo_mode.combo_meter;
 	bs.is_firing = false;
-	bs.bullets_per_array = 12;
+	bs.bullets_per_array = static_cast<int>( 12 * combo_mode.combo_meter);
 	bs.spread_within_array = 30;
 	bs.bullet_initial_speed = 10;
 	bs.number_to_fire = 1;
@@ -2076,7 +2076,7 @@ Entity createSkeletonEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 60;
+	hp.max_hp = static_cast<int>( 60 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -2097,7 +2097,7 @@ Entity createSkeletonEnemy(RenderSystem* renderer, vec2 position) {
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 60;
+	bs.fire_rate = 60 * 1/combo_mode.combo_meter;
 	bs.is_firing = false;
 	bs.bullet_initial_speed = 400;
 
@@ -2135,7 +2135,7 @@ Entity createSeagullEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = 60;
+	hp.max_hp = static_cast<int> ( 60 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -2156,7 +2156,7 @@ Entity createSeagullEnemy(RenderSystem* renderer, vec2 position) {
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 5;
+	bs.fire_rate = 5 * 1/combo_mode.combo_meter;
 	bs.is_firing = false;
 	bs.bullet_initial_speed = -kinematic.speed_base + 10;
 

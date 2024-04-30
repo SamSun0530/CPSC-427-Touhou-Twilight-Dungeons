@@ -501,16 +501,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				std::random_device rd;
 				std::mt19937 gen(rd());
 				std::uniform_real_distribution<> distrib(0, 1);
-				double number = distrib(gen);
+				double number = distrib(gen) * combo_mode.combo_meter/2;
 				int coin_number = 1;
 				if (number < 0.5) {
-					coin_number = static_cast<int>(1.0 * combo_mode.combo_meter);
+					coin_number = 1.0;
 				}
 				else if (number < 0.8) {
-					coin_number = static_cast<int>(2.0 * combo_mode.combo_meter);
+					coin_number = 2.0;
 				}
 				else {
-					coin_number = static_cast<int>(3.0 * combo_mode.combo_meter);
+					coin_number = 3.0;
 				}
 				vec2 entity_position = registry.motions.get(entity).position;
 				for (int i = 0; i < coin_number; i++) {
@@ -1469,9 +1469,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		// Debugging
 		if (key == GLFW_KEY_G) {
-
-			//createStats(renderer, start_time);
-			//menu.state = MENU_STATE::WIN;
 			if (action == GLFW_RELEASE)
 				debugging.in_debug_mode = !debugging.in_debug_mode;
 		}
@@ -2341,7 +2338,8 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	}
 	else if (dialogue_info.remilia_after_pt == remilia_after_script.size()) {
 		dialogue_info.remilia_after_pt += 1;
-		resume_game();
+		createStats(renderer, start_time);
+		menu.state = MENU_STATE::WIN;
 	}
 
 
