@@ -2271,13 +2271,24 @@ Entity createObstacle(RenderSystem* renderer, vec2 grid_position) {
 
 	// Placeholder texure
 	if (map_info.level == MAP_LEVEL::LEVEL1) {
-		if (number < 0.2) {
+		if (number < 0.1) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+			collidable.size = vec2(motion.scale.x, motion.scale.y) / 1.5f;
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::CRATES_SMALL,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else if (number < 0.2) {
 			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
 			registry.walls.emplace(entity);
 			registry.renderRequests.insert(
 				entity,
 				{
-				TEXTURE_ASSET_ID::ROCK,
+				TEXTURE_ASSET_ID::CRATES,
 				 EFFECT_ASSET_ID::TEXTURED,
 				 GEOMETRY_BUFFER_ID::SPRITE });
 		}
@@ -2326,14 +2337,29 @@ Entity createObstacle(RenderSystem* renderer, vec2 grid_position) {
 		}
 	}
 	else if (map_info.level == MAP_LEVEL::LEVEL2) {
-		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
-		registry.walls.emplace(entity);
-		registry.renderRequests.insert(
-			entity,
-			{
-			TEXTURE_ASSET_ID::ROCK,
-				EFFECT_ASSET_ID::TEXTURED,
-				GEOMETRY_BUFFER_ID::SPRITE });
+		if (number < 0.6) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::ROCK,
+					EFFECT_ASSET_ID::TEXTURED,
+					GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else if (number < 0.8) {
+			registry.remove_all_components_of(entity);
+			createRuinsPillar(renderer, grid_position, false);
+		}
+		else {
+			registry.remove_all_components_of(entity);
+			if (world_map[grid_position.y][grid_position.x + 1] == (int)TILE_TYPE::WALL) {
+				createRuinsPillar(renderer, grid_position, false);
+			}
+			else {
+				createRuinsPillar(renderer, grid_position, true);
+			}
+		}
 	}
 	else if (map_info.level == MAP_LEVEL::LEVEL3) {
 		collidable.size = vec2(motion.scale.x, motion.scale.y) / 1.2f;
@@ -2433,6 +2459,92 @@ Entity createObstacle(RenderSystem* renderer, vec2 grid_position) {
 	return entity;
 }
 
+Entity createRuinsPillar(RenderSystem* renderer, vec2 grid_position, bool is_horizontal) {
+	auto entity = Entity();
+	world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+
+	if (is_horizontal) {
+		// horizontal ruins pillar
+		auto right_entity = Entity();
+
+		// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(entity, &mesh);
+		Mesh& right_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(right_entity, &right_mesh);
+
+		auto& left_motion = registry.motions.emplace(entity);
+		left_motion.position = convert_grid_to_world(grid_position);
+		left_motion.scale = vec2(world_tile_size, world_tile_size);
+		auto& right_motion = registry.motions.emplace(right_entity);
+		right_motion.position = convert_grid_to_world(grid_position + vec2(1, 0));
+		right_motion.scale = vec2(world_tile_size, world_tile_size);
+
+		// Set the collision box
+		auto& left_collidable = registry.collidables.emplace(entity);
+		left_collidable.size = { left_motion.scale.x, left_motion.scale.y };
+		left_collidable.shift = { 0, 0 };
+		registry.walls.emplace(entity);
+
+		// Set the collision box
+		auto& right_collidable = registry.collidables.emplace(right_entity);
+		right_collidable.size = { right_motion.scale.x, right_motion.scale.y };
+		right_collidable.shift = { 0, 0 };
+		registry.walls.emplace(right_entity);
+
+		world_map[grid_position.y][grid_position.x + 1] = (int)TILE_TYPE::WALL;
+
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::RUINS_PILLAR_LEFT,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+		registry.renderRequests.insert(
+			right_entity,
+			{ TEXTURE_ASSET_ID::RUINS_PILLAR_RIGHT,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		// vertical ruins pillar
+		auto top_entity = Entity();
+
+		// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(entity, &mesh);
+		Mesh& top_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(top_entity, &top_mesh);
+
+		auto& bottom_motion = registry.motions.emplace(entity);
+		bottom_motion.position = convert_grid_to_world(grid_position);
+		bottom_motion.scale = vec2(world_tile_size, world_tile_size);
+		auto& top_motion = registry.motions.emplace(top_entity);
+		top_motion.position = convert_grid_to_world(grid_position + vec2(0, -1));
+		top_motion.scale = vec2(world_tile_size, world_tile_size);
+
+		// Set the collision box
+		auto& bottom_collidable = registry.collidables.emplace(entity);
+		bottom_collidable.size = { bottom_motion.scale.x, bottom_motion.scale.y };
+		bottom_collidable.shift = { 0, 0 };
+
+		registry.walls.emplace(entity);
+		registry.floors.emplace(top_entity);
+
+		// ordered from bottom to top
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::RUINS_PILLAR_BOTTOM,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+		registry.renderRequestsForeground.insert(
+			top_entity,
+			{ TEXTURE_ASSET_ID::RUINS_PILLAR_TOP,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+	return entity;
+}
 
 // IMPORTANT: createDoor takes in grid coordinates
 Entity createDoor(RenderSystem* renderer, vec2 grid_position, DIRECTION dir, int room_index) {

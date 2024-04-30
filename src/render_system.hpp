@@ -165,6 +165,12 @@ class RenderSystem {
 			textures_path("RockMoss0.png"),
 			textures_path("RockMoss1.png"),
 			textures_path("RockMoss2.png"),
+			textures_path("Crates.png"),
+			textures_path("CratesSmall.png"),
+			textures_path("RuinsPillarTop.png"),
+			textures_path("RuinsPillarBottom.png"),
+			textures_path("RuinsPillarLeft.png"),
+			textures_path("RuinsPillarRight.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

@@ -138,6 +138,8 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 Entity createObstacle(RenderSystem* renderer, vec2 position);
 // Pillar tile
 Entity createPillar(RenderSystem* renderer, vec2 grid_position, bool is_broken);
+// Ruins pillar tile for level 2
+Entity createRuinsPillar(RenderSystem* renderer, vec2 grid_position, bool is_horizontal);
 // Sky tree tile
 Entity createSkyTree(RenderSystem* renderer, vec2 grid_position);
 // Door tile that can be open or closed
