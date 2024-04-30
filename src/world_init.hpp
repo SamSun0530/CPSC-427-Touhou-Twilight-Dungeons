@@ -114,6 +114,9 @@ Entity createLizardEnemy(RenderSystem* renderer, vec2 position);
 Entity createWormEnemy(RenderSystem* renderer, vec2 position);
 Entity createBee2Enemy(RenderSystem* renderer, vec2 position);
 Entity createGargoyleEnemy(RenderSystem* renderer, vec2 position);
+Entity createTurtleEnemy(RenderSystem* renderer, vec2 position);
+Entity createSkeletonEnemy(RenderSystem* renderer, vec2 position);
+Entity createSeagullEnemy(RenderSystem* renderer, vec2 position);
 // the grenade launcher enemy
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
 // boss enemy

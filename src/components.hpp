@@ -350,7 +350,7 @@ enum class BULLET_ACTION {
 	ENEMY_DIRECTION,
 	CURSOR_DIRECTION,
 	SPEED_TIMER,
-	RANDOM_DIRECTION
+	RANDOM_DIRECTION,
 };
 
 enum class CHARACTER {
@@ -605,6 +605,18 @@ struct GargoyleEnemy {
 };
 
 struct WormEnemy {
+
+};
+
+struct TurtleEnemy {
+
+};
+
+struct SkeletonEnemy {
+
+};
+
+struct SeagullEnemy {
 
 };
 
@@ -1184,7 +1196,10 @@ enum class TEXTURE_ASSET_ID {
 	SAKUYA_BULLET = REMILIA_AURA + 1,
 	REMILIA_BULLET = SAKUYA_BULLET + 1,
 	REIMUCRY = REMILIA_BULLET + 1,
-	TEXTURE_COUNT = REIMUCRY + 1,
+	ENEMY_TURTLE = REIMUCRY + 1,
+	ENEMY_SKELETON = ENEMY_TURTLE + 1,
+	ENEMY_SEAGULL = ENEMY_SKELETON + 1,
+	TEXTURE_COUNT = ENEMY_SEAGULL + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

@@ -115,7 +115,6 @@ private:
 	unsigned int start_pt = 0;
 	float start_dialogue_timer = 1000.f;
 	float word_up_ms = 50.f;
-	float click_cd = 1000.f;
 	unsigned int curr_word = 0;
 	std::string start_buffer;
 

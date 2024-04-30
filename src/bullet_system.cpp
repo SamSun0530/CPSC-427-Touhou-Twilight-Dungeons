@@ -203,7 +203,7 @@ void BulletSystem::step(float elapsed_ms)
 		BulletSpeedTimer& bullet_speed_timer = speed_container.components[i];
 		Entity entity = speed_container.entities[i];
 		bullet_speed_timer.timer_ms += elapsed_ms;
-			
+
 		if (bullet_speed_timer.timer_ms > bullet_speed_timer.max_timer_ms) {
 			speed_container.remove(entity);
 			continue;

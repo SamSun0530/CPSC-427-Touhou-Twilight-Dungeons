@@ -97,7 +97,7 @@ void MapSystem::step(float elapsed_ms_since_last_update) {
 						break;
 					}
 
-					createTeleporter(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f), scale, scale / 6.f, destination, ani, TEXTURE_ASSET_ID::TELEPORTER, teleport_time, "Press \"E\" to enter next level", "Next Level");
+					createTeleporter(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f), scale, vec2(3.f), destination, ani, TEXTURE_ASSET_ID::TELEPORTER, teleport_time, "Press \"E\" to enter next level", "Next Level");
 					createChest(renderer, convert_grid_to_world((cur_room.top_left + cur_room.bottom_right) / 2.f + vec2(0.0f, 4.0f)));
 				}
 			}
@@ -173,7 +173,7 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 					room.enemies.push_back(createGargoyleEnemy(renderer, point));
 				}
 				else if (random_number <= 0.75) {
-					room.enemies.push_back(createWolfEnemy(renderer, point));
+					room.enemies.push_back(createSkeletonEnemy(renderer, point));
 				}
 				else {
 					room.enemies.push_back(createBomberEnemy(renderer, point));
@@ -187,10 +187,38 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 					room.enemies.push_back(createBee2Enemy(renderer, point));
 				}
 				else if (random_number <= 0.9) {
+					room.enemies.push_back(createWolfEnemy(renderer, point));
+				}
+				else {
+					room.enemies.push_back(createLizardEnemy(renderer, point));
+				}
+			}
+			else if (map_info.level == MAP_LEVEL::LEVEL3) {
+				if (random_number <= 0.50) {
+					room.enemies.push_back(createBee2Enemy(renderer, point));
+				}
+				else if (random_number <= 0.7) {
+					room.enemies.push_back(createTurtleEnemy(renderer, point));
+				}
+				else if (random_number <= 0.9) {
 					room.enemies.push_back(createWormEnemy(renderer, point));
 				}
 				else {
 					room.enemies.push_back(createLizardEnemy(renderer, point));
+				}
+			}
+			else if (map_info.level == MAP_LEVEL::LEVEL4) {
+				if (random_number <= 0.40) {
+					room.enemies.push_back(createSeagullEnemy(renderer, point));
+				}
+				else if (random_number <= 0.6) {
+					room.enemies.push_back(createBee2Enemy(renderer, point));
+				}
+				else if (random_number <= 0.8) {
+					room.enemies.push_back(createGargoyleEnemy(renderer, point));
+				}
+				else {
+					room.enemies.push_back(createBeeEnemy(renderer, point));
 				}
 			}
 		}
@@ -213,7 +241,7 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 		else {
 			entity = createBoss(renderer, convert_grid_to_world((room.top_left + room.bottom_right) / 2.f), "Remilia, the Scarlet Devil", BOSS_ID::REMILIA, vec3(1, 0, 0));
 			room.enemies.push_back(entity);
-		}	
+		}
 		Boss& boss = registry.bosses.get(entity);
 		boss.waypoints.push_back((room.top_left + room.bottom_right) / 2.f);
 		boss.waypoints.push_back(room.bottom_right);
@@ -288,7 +316,7 @@ Entity MapSystem::spawnPlayerInRoom(int room_number) {
 	//	vec2 scale = 1.5f * vec2(TELEPORTER_SMALL_WIDTH, TELEPORTER_SMALL_HEIGHT);
 	//	float teleport_time = 1000;
 
-	//	createTeleporter(renderer, spawn_point + vec2(0, -world_tile_size * 1.5f), scale, scale / 10.f, MAP_LEVEL::TUTORIAL, ani, TEXTURE_ASSET_ID::TELEPORTER_SMALL, teleport_time, "Press \"E\" to enter tutorial", "Tutorial");
+	//	createTeleporter(renderer, spawn_point + vec2(0, -world_tile_size * 1.5f), scale, vec2(3.f), MAP_LEVEL::TUTORIAL, ani, TEXTURE_ASSET_ID::TELEPORTER_SMALL, teleport_time, "Press \"E\" to enter tutorial", "Tutorial");
 	//}
 
 	//return createPlayer(renderer, spawn_point);
@@ -446,7 +474,7 @@ void MapSystem::generateTutorialMap() {
 	vec2 scale = 1.5f * vec2(TELEPORTER_SMALL_WIDTH, TELEPORTER_SMALL_HEIGHT);
 	float teleport_time = 1000;
 
-	createTeleporter(renderer, convert_grid_to_world({ 60.f, 16.5f }), scale, scale / 10.f, MAP_LEVEL::LEVEL1, ani, TEXTURE_ASSET_ID::TELEPORTER_SMALL, teleport_time, "Press \"E\" to enter main world", "Return to Main World");
+	createTeleporter(renderer, convert_grid_to_world({ 60.f, 16.5f }), scale, vec2(3.f), MAP_LEVEL::LEVEL1, ani, TEXTURE_ASSET_ID::TELEPORTER_SMALL, teleport_time, "Press \"E\" to enter main world", "Return to Main World");
 
 	// Add grid to map
 	for (int y = 0; y < grid.size(); ++y) {

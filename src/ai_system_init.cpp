@@ -300,9 +300,16 @@ void AISystem::init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg
 			registry.followpaths.remove(entity);
 		}
 		};
-	// find player by following flow field
+	// find player by following flow field (does not shoot - bomber)
 	std::function<void(Entity& entity)> followFlowField = [&](Entity& entity) {
 		if (registry.bulletSpawners.has(entity)) registry.bulletSpawners.get(entity).is_firing = false;
+		if (!registry.followFlowField.has(entity)) {
+			registry.followFlowField.emplace(entity);
+		}
+		};
+	// find player by following flow field (shoot while following - seagull)
+	std::function<void(Entity& entity)> followFlowFieldWhileShooting = [&](Entity& entity) {
+		if (registry.bulletSpawners.has(entity)) registry.bulletSpawners.get(entity).is_firing = true;
 		if (!registry.followFlowField.has(entity)) {
 			registry.followFlowField.emplace(entity);
 		}
@@ -648,6 +655,54 @@ void AISystem::init(VisibilitySystem* visibility_arg, RenderSystem* renderer_arg
 	is_in_range_gargoyle->setTrue(can_see_player_gargoyle);
 	is_in_range_gargoyle->setFalse(move_random_direction_gargoyle);
 	this->gargoyle_tree.setRoot(is_in_range_gargoyle);
+
+	/*
+	Turtle (same as wolf)
+	*/
+	ConditionalNode* can_see_player_turtle = new ConditionalNode([&](Entity& entity) {
+		return canSeePlayer(entity);
+		});
+	ConditionalNode* is_in_range_turtle = new ConditionalNode(isInRange);
+	ConditionalNode* can_shoot_turtle = new ConditionalNode(canShoot);
+	ActionNode* move_random_direction_turtle = new ActionNode(moveRandomDirection);
+	ActionNode* fire_at_player_turtle = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_turtle = new ActionNode(followFlowField);
+	ActionNode* find_player_threshold_turtle = new ActionNode(followFlowFieldThreshold);
+	can_shoot_turtle->setTrue(fire_at_player_turtle);
+	can_shoot_turtle->setFalse(find_player_threshold_turtle);
+	can_see_player_turtle->setTrue(can_shoot_turtle);
+	can_see_player_turtle->setFalse(find_player_turtle);
+	is_in_range_turtle->setTrue(can_see_player_turtle);
+	is_in_range_turtle->setFalse(move_random_direction_turtle);
+	this->turtle_tree.setRoot(is_in_range_turtle);
+
+	/*
+	Skeleton (same as wolf)
+	*/
+	ConditionalNode* can_see_player_skeleton = new ConditionalNode([&](Entity& entity) {
+		return canSeePlayer(entity);
+		});
+	ConditionalNode* is_in_range_skeleton = new ConditionalNode(isInRange);
+	ConditionalNode* can_shoot_skeleton = new ConditionalNode(canShoot);
+	ActionNode* move_random_direction_skeleton = new ActionNode(moveRandomDirection);
+	ActionNode* fire_at_player_skeleton = new ActionNode(fireAtPlayer);
+	ActionNode* find_player_skeleton = new ActionNode(followFlowField);
+	ActionNode* find_player_threshold_skeleton = new ActionNode(followFlowFieldThreshold);
+	can_shoot_skeleton->setTrue(fire_at_player_skeleton);
+	can_shoot_skeleton->setFalse(find_player_threshold_skeleton);
+	can_see_player_skeleton->setTrue(can_shoot_skeleton);
+	can_see_player_skeleton->setFalse(find_player_skeleton);
+	is_in_range_skeleton->setTrue(can_see_player_skeleton);
+	is_in_range_skeleton->setFalse(move_random_direction_skeleton);
+	this->skeleton_tree.setRoot(is_in_range_skeleton);
+
+	/*
+	Seagull
+	*/
+	ActionNode* move_random_direction_seagull = new ActionNode(moveRandomDirection);
+	ActionNode* follow_flow_field_seagull = new ActionNode(followFlowFieldWhileShooting);
+	ConditionalNode* is_in_range_seagull = new ConditionalNode(follow_flow_field_seagull, move_random_direction_seagull, isInRangeRemoveFollow);
+	this->seagull_tree.setRoot(is_in_range_seagull);
 
 	// TODO: create decision trees/condition/action functions here for different enemies
 }

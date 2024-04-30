@@ -39,6 +39,9 @@ private:
 	DecisionTree bee2_tree;
 	DecisionTree worm_tree;
 	DecisionTree gargoyle_tree;
+	DecisionTree turtle_tree;
+	DecisionTree skeleton_tree;
+	DecisionTree seagull_tree;
 	DecisionTree cirno_boss_tree;
 	DecisionTree flandre_boss_tree;
 	DecisionTree sakuya_boss_tree;

@@ -169,7 +169,7 @@ void WorldSystem::init_menu() {
 		offset_y += offset_y_delta;
 	}
 	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "New Game", 1.f, [&]() {
-		map_info.level = MAP_LEVEL::LEVEL1;
+		map_info.level = MAP_LEVEL::LEVEL3;
 		Mix_PlayChannel(audio->abackground_music.channel, audio->background_music, -1);
 		//map_info.level = MAP_LEVEL::LEVEL3; // TODO TEMPORARY
 		restart_game();
@@ -748,7 +748,6 @@ void WorldSystem::next_level() {
 	init_win_menu();
 	init_lose_menu();
 	renderer->camera.setPosition({ 0, 0 });
-	click_cd = 1000.f;
 }
 
 // Reset the world state to its initial state
@@ -780,7 +779,6 @@ void WorldSystem::restart_game() {
 	dialogue_info.flandre_played = false;
 	dialogue_info.marisa_played = false;
 	start_dialogue_timer = 1000.f;
-	click_cd = 1000.f;
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -1214,7 +1212,10 @@ void WorldSystem::handle_collisions() {
 									registry.lizardEnemies.has(deadly_entity) ||
 									registry.bee2Enemies.has(deadly_entity) ||
 									registry.wormEnemies.has(deadly_entity) ||
-									registry.gargoyleEnemies.has(deadly_entity)) {
+									registry.gargoyleEnemies.has(deadly_entity) ||
+									registry.skeletonEnemies.has(deadly_entity) ||
+									registry.turtleEnemies.has(deadly_entity) ||
+									registry.seagullEnemies.has(deadly_entity)) {
 									registry.realDeathTimers.emplace(deadly_entity).death_counter_ms = 1000;
 									registry.hps.remove(deadly_entity);
 									registry.aitimers.remove(deadly_entity);
@@ -1277,7 +1278,10 @@ void WorldSystem::handle_collisions() {
 								registry.lizardEnemies.has(entity) ||
 								registry.bee2Enemies.has(entity) ||
 								registry.wormEnemies.has(entity) ||
-								registry.gargoyleEnemies.has(entity)) {
+								registry.gargoyleEnemies.has(entity) ||
+								registry.skeletonEnemies.has(entity) ||
+								registry.turtleEnemies.has(entity) ||
+								registry.seagullEnemies.has(entity)) {
 								registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
 								registry.hps.remove(entity);
 								registry.aitimers.remove(entity);
@@ -1464,8 +1468,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// Debugging
 		if (key == GLFW_KEY_G) {
 
-			createStats(renderer, start_time);
-			menu.state = MENU_STATE::WIN;
+			//createStats(renderer, start_time);
+			//menu.state = MENU_STATE::WIN;
 			if (action == GLFW_RELEASE)
 				debugging.in_debug_mode = !debugging.in_debug_mode;
 		}
@@ -1659,7 +1663,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 	else if (menu.state == MENU_STATE::DIALOGUE) {
-		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS && click_cd < 0) {
+		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
 			start_pt += 1;
 			dialogue_info.cirno_pt += 1;
 			dialogue_info.flandre_pt += 1;
@@ -1672,7 +1676,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			dialogue_info.sakuya_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
-			click_cd = 1000.f;
 		}
 	}
 }
@@ -1695,7 +1698,10 @@ void WorldSystem::deal_damage_to_deadly(const Entity& entity, int damage)
 			registry.lizardEnemies.has(entity) ||
 			registry.bee2Enemies.has(entity) ||
 			registry.wormEnemies.has(entity) ||
-			registry.gargoyleEnemies.has(entity)) {
+			registry.gargoyleEnemies.has(entity) ||
+			registry.skeletonEnemies.has(entity) ||
+			registry.turtleEnemies.has(entity) ||
+			registry.seagullEnemies.has(entity)) {
 			registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
 			registry.hps.remove(entity);
 			registry.aitimers.remove(entity);
@@ -1747,7 +1753,6 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		dialogue_info.remilia_after_pt = 0;
 	}
 	if (start_pt < start_script.size()) {
-		click_cd -= elapsed_time;
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		EMOTION emotion = EMOTION::NORMAL;
@@ -1808,7 +1813,6 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		resume_game();
 	}
 	else if (dialogue_info.marisa_pt < marisa_script.size()) {
-		click_cd -= elapsed_time;
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		EMOTION emotion = EMOTION::NORMAL;
@@ -1870,7 +1874,6 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		resume_game();
 	}
 	else if (dialogue_info.cirno_pt < cirno_script.size()) {
-		click_cd -= elapsed_time;
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		EMOTION emotion = EMOTION::NORMAL;
@@ -1930,7 +1933,6 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		resume_game();
 	}
 	else if (dialogue_info.cirno_after_pt < cirno_after_script.size()) {
-		click_cd -= elapsed_time;
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		EMOTION emotion = EMOTION::NORMAL;
@@ -1989,7 +1991,6 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		resume_game();
 	}
 	else if (dialogue_info.flandre_pt < flandre_script.size()) {
-		click_cd -= elapsed_time;
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		EMOTION emotion = EMOTION::NORMAL;
@@ -2049,7 +2050,6 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		resume_game();
 	}
 	else if (dialogue_info.flandre_after_pt < flandre_after_script.size()) {
-		click_cd -= elapsed_time;
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		EMOTION emotion = EMOTION::NORMAL;
@@ -2108,7 +2108,6 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		resume_game();
 	}
 	else if (dialogue_info.sakuya_pt < sakuya_script.size()) {
-		click_cd -= elapsed_time;
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		EMOTION emotion = EMOTION::NORMAL;
@@ -2168,7 +2167,6 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		resume_game();
 	}
 	else if (dialogue_info.sakuya_after_pt < sakuya_after_script.size()) {
-		click_cd -= elapsed_time;
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		EMOTION emotion = EMOTION::NORMAL;
@@ -2227,7 +2225,6 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		resume_game();
 	}
 	else if (dialogue_info.remilia_pt < remilia_script.size()) {
-		click_cd -= elapsed_time;
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		EMOTION emotion = EMOTION::NORMAL;
@@ -2287,7 +2284,6 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		resume_game();
 	}
 	else if (dialogue_info.remilia_after_pt < remilia_after_script.size()) {
-		click_cd -= elapsed_time;
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
 		EMOTION emotion = EMOTION::NORMAL;
@@ -2411,7 +2407,7 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 		}
 	}
 	else if (menu.state == MENU_STATE::DIALOGUE) {
-		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && click_cd < 0) {
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 			start_pt += 1;
 			dialogue_info.cirno_pt += 1;
 			dialogue_info.cirno_after_pt += 1;
@@ -2424,7 +2420,6 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 			dialogue_info.sakuya_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
-			click_cd = 1000.f;
 		}
 	}
 	else {
