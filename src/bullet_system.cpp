@@ -203,7 +203,7 @@ void BulletSystem::step(float elapsed_ms)
 		BulletSpeedTimer& bullet_speed_timer = speed_container.components[i];
 		Entity entity = speed_container.entities[i];
 		bullet_speed_timer.timer_ms += elapsed_ms;
-			
+
 		if (bullet_speed_timer.timer_ms > bullet_speed_timer.max_timer_ms) {
 			speed_container.remove(entity);
 			continue;
@@ -383,7 +383,11 @@ void BulletSystem::step(float elapsed_ms)
 			if (registry.bosses.has(entity)) {
 				Boss& boss = registry.bosses.get(entity);
 				if (registry.bulletSpawners.has(boss.invis_spawner)) {
-					registry.bulletSpawners.get(boss.invis_spawner).is_firing = true;
+					BulletSpawner& invis_bs = registry.bulletSpawners.get(boss.invis_spawner);
+					// only fire if it is used
+					if (invis_bs.is_active) {
+						registry.bulletSpawners.get(boss.invis_spawner).is_firing = true;
+					}
 				}
 			}
 

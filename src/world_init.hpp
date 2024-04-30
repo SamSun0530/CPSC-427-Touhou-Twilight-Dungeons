@@ -75,12 +75,13 @@ Entity createPurchasableHealth(RenderSystem* renderer, vec2 position);
 Entity createPurchasableAmmo(RenderSystem* renderer, vec2 position, AMMO_TYPE ammo_type);
 Entity createTreasure(RenderSystem* renderer, vec2 position, bool is_bezier = false);
 Entity createNPC(RenderSystem* renderer, vec2 pos);
+void createStats(RenderSystem* renderer, std::chrono::steady_clock::time_point start_time);
 Entity createWin(RenderSystem* renderer);
 Entity createLose(RenderSystem* renderer);
 Entity createInfographic(RenderSystem* renderer);
 Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name, vec3 name_color);
 
-Entity createAura(RenderSystem* renderer, vec2 pos, float scale, Entity entity_to_link, float spritesheet_x_scale, TEXTURE_ASSET_ID texture_asset);
+Entity createAura(RenderSystem* renderer, vec2 pos, float scale, Entity entity_to_link, float spritesheet_x_scale, TEXTURE_ASSET_ID texture_asset, float framerate);
 
 
 // ui key
@@ -113,6 +114,9 @@ Entity createLizardEnemy(RenderSystem* renderer, vec2 position);
 Entity createWormEnemy(RenderSystem* renderer, vec2 position);
 Entity createBee2Enemy(RenderSystem* renderer, vec2 position);
 Entity createGargoyleEnemy(RenderSystem* renderer, vec2 position);
+Entity createTurtleEnemy(RenderSystem* renderer, vec2 position);
+Entity createSkeletonEnemy(RenderSystem* renderer, vec2 position);
+Entity createSeagullEnemy(RenderSystem* renderer, vec2 position);
 // the grenade launcher enemy
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
 // boss enemy

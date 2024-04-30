@@ -154,6 +154,13 @@ class RenderSystem {
 			textures_path("Remilia-Figure.png"),
 			textures_path("Cloud.png"),
 			textures_path("SakuyaAura.png"),
+			textures_path("RemiliaAura.png"),
+			textures_path("Sakuya-Bullet.png"),
+			textures_path("Remilia-Bullet.png"),
+			textures_path("ReimuCry.png"),
+			textures_path("Turtle-Figure.png"),
+			textures_path("Skeleton-Figure.png"),
+			textures_path("Seagull-Figure.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

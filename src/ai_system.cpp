@@ -84,6 +84,15 @@ void AISystem::step(float elapsed_ms)
 			else if (registry.gargoyleEnemies.has(entity)) {
 				gargoyle_tree.update(entity);
 			}
+			else if (registry.skeletonEnemies.has(entity)) {
+				skeleton_tree.update(entity);
+			}
+			else if (registry.seagullEnemies.has(entity)) {
+				seagull_tree.update(entity);
+			}
+			else if (registry.turtleEnemies.has(entity)) {
+				turtle_tree.update(entity);
+			}
 			aitimer.update_timer_ms = aitimer.update_base;
 		}
 	}

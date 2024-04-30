@@ -822,6 +822,12 @@ void RenderSystem::drawBulletsInstanced(const std::vector<Entity>& entities, con
 	if (boss_info.should_use_flandre_bullet) {
 		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::FLANDRE_BULLET];
 	}
+	else if (boss_info.should_use_sakuya_bullet) {
+		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::SAKUYA_BULLET];
+	}
+	else if (boss_info.should_use_remilia_bullet) {
+		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::REMILIA_BULLET];
+	}
 	else {
 		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::ENEMY_BULLET];
 	}

@@ -99,6 +99,9 @@ public:
 	ComponentContainer<BulletSpeedTimer> bulletSpeedTimers;
 	ComponentContainer<BossInvisible> bossInvisibles;
 	ComponentContainer<Parralex> parrallaxes;
+	ComponentContainer<TurtleEnemy> turtleEnemies;
+	ComponentContainer<SkeletonEnemy> skeletonEnemies;
+	ComponentContainer<SeagullEnemy> seagullEnemies;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -192,6 +195,9 @@ public:
 		registry_list.push_back(&bulletSpeedTimers);
 		registry_list.push_back(&bossInvisibles);
 		registry_list.push_back(&parrallaxes);
+		registry_list.push_back(&turtleEnemies);
+		registry_list.push_back(&skeletonEnemies);
+		registry_list.push_back(&seagullEnemies);
 	}
 
 	void clear_all_components() {
