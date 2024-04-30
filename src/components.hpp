@@ -946,7 +946,7 @@ struct AiTimer {
 	float update_base = 500;
 };
 
-// A timer that will be associated to dying chicken
+// A timer that will be associated to entities hit
 struct HitTimer
 {
 	float counter_ms = 80;
@@ -1094,8 +1094,7 @@ enum class TEXTURE_ASSET_ID {
 	ROCK = ENEMY_BULLET + 1,
 	REIMU_HEALTH = ROCK + 1,
 	REIMU_HEAD = REIMU_HEALTH + 1,
-	EMPTY_HEART = REIMU_HEAD + 1,
-	HEALTH_1 = EMPTY_HEART + 1,
+	HEALTH_1 = REIMU_HEAD + 1,
 	HEALTH_2 = HEALTH_1 + 1,
 	REGENERATE_HEALTH = HEALTH_2 + 1,
 	BOSS_CIRNO = REGENERATE_HEALTH + 1,

@@ -48,7 +48,6 @@ class RenderSystem {
 			textures_path("Rock_1.png"),
 			textures_path("Reimu_HealthBar.png"),
 			textures_path("Reimu_Head.png"),
-			textures_path("EmptyHeart.png"),
 			textures_path("Health+1.png"),
 			textures_path("Health+2.png"),
 			textures_path("RegenerateHealth.png"),
