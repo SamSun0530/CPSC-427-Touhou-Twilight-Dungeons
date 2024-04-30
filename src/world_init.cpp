@@ -925,8 +925,8 @@ Entity createInfographic(RenderSystem* renderer) {
 	registry.meshPtrs.emplace(entity2, &mesh2);
 
 	Motion& motion2 = registry.motions.emplace(entity2);
-	motion2.position = vec2(0, -25);
-	motion2.scale = vec2(886, 364);
+	motion2.position = vec2(0, -30);
+	motion2.scale = vec2(887, 417);
 
 	registry.renderRequests.insert(
 		entity2,
