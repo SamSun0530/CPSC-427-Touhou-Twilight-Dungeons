@@ -495,12 +495,6 @@ void RenderSystem::draw()
 		}
 		drawBulletsInstanced(enemy_bullets, projection_2D, view_2D);
 
-		// this will only have at most one aimbot cursor
-		// it will always be in camera view, and has motion
-		for (Entity entity : registry.aimbotCursors.entities) {
-			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-		}
-
 		// this will only have at most one focusdots
 		// it will always be in camera view, and has motion
 		for (Entity entity : registry.focusdots.entities) {
@@ -512,6 +506,12 @@ void RenderSystem::draw()
 			if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 				continue;
 			}
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
+		// this will only have at most one aimbot cursor
+		// it will always be in camera view, and has motion
+		for (Entity entity : registry.aimbotCursors.entities) {
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
 
@@ -539,11 +539,6 @@ void RenderSystem::draw()
 				}
 			}
 		}
-
-		//// Render user guide on screen
-		//if (WorldSystem::getInstance().get_display_instruction() == true) {
-		//	renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.3f, 0.9f, glm::vec3(1), trans, false, 1.f);
-		//}
 
 		if (WorldSystem::getInstance().get_show_fps() == true) {
 			renderText("FPS:", window_width_px / 2.45f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans, false, 1.f);

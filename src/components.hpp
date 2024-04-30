@@ -229,7 +229,7 @@ struct Player
 	// we store this here because 
 	// - carry it to next level
 	// - exclusive to the player only (enemies should not have this)
-	AMMO_TYPE ammo_type = AMMO_TYPE::NORMAL;
+	AMMO_TYPE ammo_type = AMMO_TYPE::AIMBOT;
 };
 
 struct Teleporter {
@@ -1181,7 +1181,23 @@ enum class TEXTURE_ASSET_ID {
 	ENEMY_TURTLE = REIMUCRY + 1,
 	ENEMY_SKELETON = ENEMY_TURTLE + 1,
 	ENEMY_SEAGULL = ENEMY_SKELETON + 1,
-	TEXTURE_COUNT = ENEMY_SEAGULL + 1,
+	TOMBSTONE_BROKEN = ENEMY_SEAGULL + 1,
+	CYLINDER_1 = TOMBSTONE_BROKEN + 1,
+	CYLINDER_2 = CYLINDER_1 + 1,
+	PILLAR_TOP_BROKEN = CYLINDER_2 + 1,
+	PILLAR_TOP = PILLAR_TOP_BROKEN + 1,
+	PILLAR_MIDDLE = PILLAR_TOP + 1,
+	PILLAR_BOTTOM = PILLAR_MIDDLE + 1,
+	SKY_TREE_0 = PILLAR_BOTTOM + 1,
+	SKY_TREE_1 = SKY_TREE_0 + 1,
+	SKY_TREE_2 = SKY_TREE_1 + 1,
+	SKY_TREE_3 = SKY_TREE_2 + 1,
+	SKY_TREE_4 = SKY_TREE_3 + 1,
+	SKY_TREE_5 = SKY_TREE_4 + 1,
+	SKY_TREE_6 = SKY_TREE_5 + 1,
+	SKY_TREE_7 = SKY_TREE_6 + 1,
+	SKY_TREE_8 = SKY_TREE_7 + 1,
+	TEXTURE_COUNT = SKY_TREE_8 + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

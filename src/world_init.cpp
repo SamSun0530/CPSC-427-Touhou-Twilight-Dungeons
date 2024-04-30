@@ -1740,7 +1740,7 @@ Entity createLizardEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = static_cast<int>( 50 * combo_mode.combo_meter);
+	hp.max_hp = static_cast<int>(50 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1769,10 +1769,10 @@ Entity createLizardEnemy(RenderSystem* renderer, vec2 position) {
 	//bs.cooldown_rate = 50; // every 5 seconds
 	//bs.is_cooldown = true;
 
-	bs.fire_rate = 2 * 1/combo_mode.combo_meter;
+	bs.fire_rate = 2 * 1 / combo_mode.combo_meter;
 	bs.is_firing = false;
 	bs.bullets_per_array = 6;
-	bs.spread_within_array =static_cast<int>( 60 * combo_mode.combo_meter);
+	bs.spread_within_array = static_cast<int>(60 * combo_mode.combo_meter);
 	bs.bullet_initial_speed = 100;
 	bs.number_to_fire = 1;
 	bs.is_cooldown = true;
@@ -1821,7 +1821,7 @@ Entity createWormEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = static_cast<int>( 50 * combo_mode.combo_meter);
+	hp.max_hp = static_cast<int>(50 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1842,9 +1842,9 @@ Entity createWormEnemy(RenderSystem* renderer, vec2 position) {
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 1.5 * 1/combo_mode.combo_meter;
+	bs.fire_rate = 1.5 * 1 / combo_mode.combo_meter;
 	bs.is_firing = false;
-	bs.bullet_initial_speed = static_cast<int>( 100 * combo_mode.combo_meter);
+	bs.bullet_initial_speed = static_cast<int>(100 * combo_mode.combo_meter);
 	bs.number_to_fire = 14;
 	bs.is_cooldown = true;
 	bs.cooldown_rate = 60;
@@ -1952,7 +1952,7 @@ Entity createGargoyleEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = static_cast<int>( 60 * combo_mode.combo_meter);
+	hp.max_hp = static_cast<int>(60 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -1973,7 +1973,7 @@ Entity createGargoyleEnemy(RenderSystem* renderer, vec2 position) {
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 50 * 1/combo_mode.combo_meter;
+	bs.fire_rate = 50 * 1 / combo_mode.combo_meter;
 	bs.is_firing = false;
 	bs.bullet_initial_speed = 100;
 
@@ -2011,7 +2011,7 @@ Entity createTurtleEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = static_cast<int> ( 60 * combo_mode.combo_meter);
+	hp.max_hp = static_cast<int> (60 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -2032,9 +2032,9 @@ Entity createTurtleEnemy(RenderSystem* renderer, vec2 position) {
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 2 * 1/combo_mode.combo_meter;
+	bs.fire_rate = 2 * 1 / combo_mode.combo_meter;
 	bs.is_firing = false;
-	bs.bullets_per_array = static_cast<int>( 12 * combo_mode.combo_meter);
+	bs.bullets_per_array = static_cast<int>(12 * combo_mode.combo_meter);
 	bs.spread_within_array = 30;
 	bs.bullet_initial_speed = 10;
 	bs.number_to_fire = 1;
@@ -2076,7 +2076,7 @@ Entity createSkeletonEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = static_cast<int>( 60 * combo_mode.combo_meter);
+	hp.max_hp = static_cast<int>(60 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -2097,7 +2097,7 @@ Entity createSkeletonEnemy(RenderSystem* renderer, vec2 position) {
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 60 * 1/combo_mode.combo_meter;
+	bs.fire_rate = 60 * 1 / combo_mode.combo_meter;
 	bs.is_firing = false;
 	bs.bullet_initial_speed = 400;
 
@@ -2135,7 +2135,7 @@ Entity createSeagullEnemy(RenderSystem* renderer, vec2 position) {
 
 	// HP
 	HP& hp = registry.hps.emplace(entity);
-	hp.max_hp = static_cast<int> ( 60 * combo_mode.combo_meter);
+	hp.max_hp = static_cast<int> (60 * combo_mode.combo_meter);
 	hp.curr_hp = hp.max_hp;
 
 	// Collision damage
@@ -2156,7 +2156,7 @@ Entity createSeagullEnemy(RenderSystem* renderer, vec2 position) {
 	registry.idleMoveActions.emplace(entity);
 
 	BulletSpawner bs;
-	bs.fire_rate = 5 * 1/combo_mode.combo_meter;
+	bs.fire_rate = 5 * 1 / combo_mode.combo_meter;
 	bs.is_firing = false;
 	bs.bullet_initial_speed = -kinematic.speed_base + 10;
 
@@ -2273,7 +2273,6 @@ Entity createObstacle(RenderSystem* renderer, vec2 grid_position) {
 		if (number < 0.2) {
 			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
 			registry.walls.emplace(entity);
-
 			registry.renderRequests.insert(
 				entity,
 				{
@@ -2292,7 +2291,6 @@ Entity createObstacle(RenderSystem* renderer, vec2 grid_position) {
 		else if (number < 0.6) {
 			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
 			registry.walls.emplace(entity);
-
 			registry.renderRequests.insert(
 				entity,
 				{
@@ -2303,7 +2301,6 @@ Entity createObstacle(RenderSystem* renderer, vec2 grid_position) {
 		else if (number < 0.8) {
 			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
 			registry.walls.emplace(entity);
-
 			registry.renderRequests.insert(
 				entity,
 				{
@@ -2314,13 +2311,11 @@ Entity createObstacle(RenderSystem* renderer, vec2 grid_position) {
 		else {
 			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
 			registry.walls.emplace(entity);
-
 			EntityAnimation& animation = registry.alwaysplayAni.emplace(entity);
 			animation.spritesheet_scale = { 1 / 8.f, 1.0f };
 			animation.render_pos = { 1 / 8.f, 1.0f };
 			animation.full_rate_ms = 100.f;
 			animation.frame_rate_ms = 100.f;
-
 			registry.renderRequests.insert(
 				entity,
 				{
@@ -2332,7 +2327,6 @@ Entity createObstacle(RenderSystem* renderer, vec2 grid_position) {
 	else if (map_info.level == MAP_LEVEL::LEVEL2) {
 		world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
 		registry.walls.emplace(entity);
-
 		registry.renderRequests.insert(
 			entity,
 			{
@@ -2344,12 +2338,51 @@ Entity createObstacle(RenderSystem* renderer, vec2 grid_position) {
 
 	}
 	else if (map_info.level == MAP_LEVEL::LEVEL4) {
-
+		if (number < 0.2) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::CYLINDER_1,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else if (number < 0.4) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::CYLINDER_2,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else if (number < 0.6) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
+			registry.renderRequests.insert(
+				entity,
+				{
+				TEXTURE_ASSET_ID::TOMBSTONE_BROKEN,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else if (number < 0.8) {
+			registry.remove_all_components_of(entity);
+			entity = createPillar(renderer, grid_position, true);
+		}
+		else if (number < 0.95) {
+			registry.remove_all_components_of(entity);
+			entity = createPillar(renderer, grid_position, false);
+		}
+		else {
+			registry.remove_all_components_of(entity);
+			entity = createSkyTree(renderer, grid_position);
+		}
 	}
-
 	return entity;
 }
-
 
 
 // IMPORTANT: createDoor takes in grid coordinates
@@ -2470,62 +2503,144 @@ Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, v
 	return entity;
 }
 
-
-// IMPORTANT: creates pillar using grid coordinates, NOT world coorindates
-// textureIDs[0] == bottom, textureIDs[1] == top
-std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std::vector<TEXTURE_ASSET_ID> textureIDs) {
-	assert(textureIDs.size() == 2 && "textureIDs do not have size 2");
-	assert((!is_valid_cell(grid_position.x, grid_position.y) ||
-		!(grid_position.y < 0 ||
-			grid_position.x < 0 ||
-			grid_position.y >= world_height ||
-			grid_position.x >= world_width)) && "Pillar position not valid");
-
-	std::vector<Entity> entities;
-	auto bottom_entity = Entity();
-	auto top_entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& bottom_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(bottom_entity, &bottom_mesh);
-	Mesh& top_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(top_entity, &top_mesh);
-
-	// Initialize the motion
-	vec2 bottom_world_position = convert_grid_to_world(grid_position);
-
-	auto& bottom_motion = registry.motions.emplace(bottom_entity);
-	bottom_motion.position = bottom_world_position;
-	bottom_motion.scale = vec2(world_tile_size, world_tile_size);
-	auto& top_motion = registry.motions.emplace(top_entity);
-	top_motion.position = bottom_world_position + vec2{ 0, -world_tile_size };
-	top_motion.scale = vec2(world_tile_size, world_tile_size);
-
-	// Set the collision box
-	auto& bottom_collidable = registry.collidables.emplace(bottom_entity);
-	bottom_collidable.size = { bottom_motion.scale.x, bottom_motion.scale.y };
-	bottom_collidable.shift = { 0, 0 };
-
+// world_map at grid_position has been set as wall before calling
+// returns tile that is a wall
+Entity createPillar(RenderSystem* renderer, vec2 grid_position, bool is_broken) {
 	world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
 
-	registry.walls.emplace(bottom_entity);
-	registry.floors.emplace(top_entity); // TODO: maybe foreground.emplace
+	auto bottom_entity = Entity();
+	auto top_entity = Entity();
+	if (is_broken) {
+		// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+		Mesh& bottom_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(bottom_entity, &bottom_mesh);
+		Mesh& top_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(top_entity, &top_mesh);
 
-	registry.renderRequests.insert(
-		bottom_entity,
-		{ textureIDs[0],
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
-	registry.renderRequestsForeground.insert(
-		top_entity,
-		{ textureIDs[1],
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+		auto& bottom_motion = registry.motions.emplace(bottom_entity);
+		bottom_motion.position = convert_grid_to_world(grid_position);
+		bottom_motion.scale = vec2(world_tile_size, world_tile_size);
+		auto& top_motion = registry.motions.emplace(top_entity);
+		top_motion.position = convert_grid_to_world(grid_position + vec2(0, -1));
+		top_motion.scale = vec2(world_tile_size, world_tile_size);
 
-	entities.push_back(top_entity);
-	entities.push_back(bottom_entity);
+		// Set the collision box
+		auto& bottom_collidable = registry.collidables.emplace(bottom_entity);
+		bottom_collidable.size = { bottom_motion.scale.x, bottom_motion.scale.y };
+		bottom_collidable.shift = { 0, 0 };
 
-	return entities;
+		registry.walls.emplace(bottom_entity);
+		registry.floors.emplace(top_entity);
+
+		// ordered from bottom to top
+		registry.renderRequests.insert(
+			bottom_entity,
+			{ TEXTURE_ASSET_ID::PILLAR_BOTTOM,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+		registry.renderRequestsForeground.insert(
+			top_entity,
+			{ TEXTURE_ASSET_ID::PILLAR_TOP_BROKEN,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		auto middle_entity = Entity();
+
+		// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+		Mesh& bottom_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(bottom_entity, &bottom_mesh);
+		Mesh& middle_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(middle_entity, &middle_mesh);
+		Mesh& top_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(top_entity, &top_mesh);
+
+		auto& bottom_motion = registry.motions.emplace(bottom_entity);
+		bottom_motion.position = convert_grid_to_world(grid_position);
+		bottom_motion.scale = vec2(world_tile_size, world_tile_size);
+		auto& middle_motion = registry.motions.emplace(middle_entity);
+		middle_motion.position = convert_grid_to_world(grid_position + vec2(0, -1));
+		middle_motion.scale = vec2(world_tile_size, world_tile_size);
+		auto& top_motion = registry.motions.emplace(top_entity);
+		top_motion.position = convert_grid_to_world(grid_position + vec2(0, -2));
+		top_motion.scale = vec2(world_tile_size, world_tile_size);
+
+		// Set the collision box
+		auto& bottom_collidable = registry.collidables.emplace(bottom_entity);
+		bottom_collidable.size = { bottom_motion.scale.x, bottom_motion.scale.y };
+		bottom_collidable.shift = { 0, 0 };
+
+		registry.walls.emplace(bottom_entity);
+		registry.floors.emplace(top_entity);
+		registry.floors.emplace(middle_entity);
+
+		// ordered from bottom to top
+		registry.renderRequests.insert(
+			bottom_entity,
+			{ TEXTURE_ASSET_ID::PILLAR_BOTTOM,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE });
+		registry.renderRequestsForeground.insert(
+			middle_entity,
+			{ TEXTURE_ASSET_ID::PILLAR_MIDDLE,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+		registry.renderRequestsForeground.insert(
+			top_entity,
+			{ TEXTURE_ASSET_ID::PILLAR_TOP,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+	return bottom_entity;
+}
+
+// world_map at grid_position has been set as wall before calling
+// returns tile that is a wall
+Entity createSkyTree(RenderSystem* renderer, vec2 grid_position) {
+	world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+	Entity wall_entity;
+	int start = (int)TEXTURE_ASSET_ID::SKY_TREE_0;
+
+	for (int i = 0; i < 9; ++i) {
+		auto entity = Entity();
+
+		// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(entity, &mesh);
+
+		// Calculate shift
+		vec2 shift = { -1 + i % 3, -2 + i / 3 };
+
+		auto& motion = registry.motions.emplace(entity);
+		motion.position = convert_grid_to_world(grid_position + shift);
+		motion.scale = vec2(world_tile_size, world_tile_size);
+
+		// Set the collision box
+		auto& bottom_collidable = registry.collidables.emplace(entity);
+		bottom_collidable.size = { motion.scale.x, motion.scale.y };
+		bottom_collidable.shift = { 0, 0 };
+
+		if (i == 7) {
+			wall_entity = entity;
+			registry.walls.emplace(entity);
+			registry.renderRequests.insert(
+				entity,
+				{ static_cast<TEXTURE_ASSET_ID>(start + i),
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+		else {
+			registry.floors.emplace(entity);
+			registry.renderRequestsForeground.insert(
+				entity,
+				{ static_cast<TEXTURE_ASSET_ID>(start + i),
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE });
+		}
+	}
+
+	return wall_entity;
 }
 
 Entity createLine(vec2 position, vec2 scale)

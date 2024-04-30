@@ -144,6 +144,22 @@ class RenderSystem {
 			textures_path("Turtle-Figure.png"),
 			textures_path("Skeleton-Figure.png"),
 			textures_path("Seagull-Figure.png"),
+			textures_path("TombstoneBroken.png"),
+			textures_path("Cylinder1.png"),
+			textures_path("Cylinder2.png"),
+			textures_path("PillarTopBroken.png"),
+			textures_path("PillarTop.png"),
+			textures_path("PillarMiddle.png"),
+			textures_path("PillarBottom.png"),
+			textures_path("SkyTree0.png"),
+			textures_path("SkyTree1.png"),
+			textures_path("SkyTree2.png"),
+			textures_path("SkyTree3.png"),
+			textures_path("SkyTree4.png"),
+			textures_path("SkyTree5.png"),
+			textures_path("SkyTree6.png"),
+			textures_path("SkyTree7.png"),
+			textures_path("SkyTree8.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

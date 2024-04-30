@@ -1,9 +1,16 @@
 #include "audio.hpp"
 
 void Audio::step(float elapsed) {
-	if (menu.state == MENU_STATE::MAIN_MENU || menu.state == MENU_STATE::WIN || menu.state == MENU_STATE::LOSE) {
+	if (menu.state == MENU_STATE::MAIN_MENU ||
+		menu.state == MENU_STATE::PAUSE ||
+		menu.state == MENU_STATE::INFOGRAPHIC ||
+		menu.state == MENU_STATE::WIN || 
+		menu.state == MENU_STATE::LOSE) {
 		if (abackground_music.is_playing ||
 			aboss_music.is_playing) {
+			// Reset menu music
+			restart_audio_menu();
+
 			aboss_music.pause();
 			abackground_music.pause();
 			amenu_music.play();
@@ -27,14 +34,6 @@ void Audio::step(float elapsed) {
 			}
 		}
 	}
-	else if (menu.state == MENU_STATE::PAUSE || menu.state == MENU_STATE::INFOGRAPHIC) {
-		if (abackground_music.is_playing ||
-			aboss_music.is_playing) {
-			aboss_music.pause();
-			abackground_music.pause();
-			amenu_music.play();
-		}
-	}
 	else if (aboss_music.is_playing) {
 		bool boss_alive = registry.bosses.size() == 1;
 		if (!boss_alive) {
@@ -44,8 +43,14 @@ void Audio::step(float elapsed) {
 	}
 }
 
-void Audio::restart_audio_level() {
+void Audio::restart_audio_menu() {
 	Mix_PlayChannel(1, menu_music, -1);
+
+	amenu_music.pause();
+}
+
+void Audio::restart_audio_level() {
+	restart_audio_menu();
 	restart_audio_boss();
 	restart_audio_background();
 
@@ -130,10 +135,10 @@ Audio::Audio() {
 
 	// Set the music volume
 	Mix_VolumeMusic(15);
-	Mix_Volume(-1, 20);
-	Mix_Volume(amenu_music.channel, 30);
-	Mix_Volume(abackground_music.channel, 40);
-	Mix_Volume(aboss_music.channel, 30);
+	Mix_Volume(-1, 64);
+	Mix_Volume(amenu_music.channel, 128);
+	Mix_Volume(abackground_music.channel, 128);
+	Mix_Volume(aboss_music.channel, 128);
 
 	if (level1_background_music == nullptr ||
 		level2_background_music == nullptr ||

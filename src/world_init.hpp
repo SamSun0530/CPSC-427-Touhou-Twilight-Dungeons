@@ -137,7 +137,9 @@ std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vecto
 // Same as wall with different texture
 Entity createObstacle(RenderSystem* renderer, vec2 position);
 // Pillar tile
-std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std::vector<TEXTURE_ASSET_ID> textureIDs);
+Entity createPillar(RenderSystem* renderer, vec2 grid_position, bool is_broken);
+// Sky tree tile
+Entity createSkyTree(RenderSystem* renderer, vec2 grid_position);
 // Door tile that can be open or closed
 Entity createDoor(RenderSystem* renderer, vec2 position, DIRECTION dir, int room_index);
 // Top texture of vertical doors for aesthetic effects

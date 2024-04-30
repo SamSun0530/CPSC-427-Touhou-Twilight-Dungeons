@@ -33,6 +33,7 @@ public:
 	void restart_audio_level();
 	void restart_audio_boss();
 	void restart_audio_background();
+	void restart_audio_menu();
 
 	void step(float elapsed);
 
