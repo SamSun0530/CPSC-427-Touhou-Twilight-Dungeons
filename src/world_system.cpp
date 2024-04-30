@@ -639,7 +639,7 @@ std::string replaceNewlines(std::string str) {
 unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::string>& scripts) {
 	std::ifstream script_file("../../../script/" + file_name);
 	if (script_file.is_open()) {
-		std::cout << "opened" << std::endl;
+		//std::cout << "opened" << std::endl;
 		std::string line;
 		while (getline(script_file, line)) {
 			scripts.push_back(replaceNewlines(line));
@@ -766,22 +766,24 @@ void WorldSystem::restart_game() {
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
 
-	start_pt = 0;
-	dialogue_info.cirno_pt = 1000;
-	dialogue_info.cirno_after_pt = 1000;
-	dialogue_info.cirno_played = false;
-	dialogue_info.flandre_pt = 1000;
-	dialogue_info.marisa_pt = 1000;
-	dialogue_info.sakuya_pt = 1000;
-	dialogue_info.sakuya_after_pt = 1000;
-	dialogue_info.sakuya_played = false;
-	dialogue_info.remilia_pt = 1000;
-	dialogue_info.remilia_after_pt = 1000;
-	dialogue_info.remilia_played = false;
-	dialogue_info.flandre_after_pt = 1000;
-	dialogue_info.flandre_played = false;
-	dialogue_info.marisa_played = false;
-	start_dialogue_timer = 1000.f;
+	if (map_info.level != MAP_LEVEL::TUTORIAL) {
+		start_pt = 0;
+		dialogue_info.cirno_pt = 1000;
+		dialogue_info.cirno_after_pt = 1000;
+		dialogue_info.cirno_played = false;
+		dialogue_info.flandre_pt = 1000;
+		dialogue_info.marisa_pt = 1000;
+		dialogue_info.sakuya_pt = 1000;
+		dialogue_info.sakuya_after_pt = 1000;
+		dialogue_info.sakuya_played = false;
+		dialogue_info.remilia_pt = 1000;
+		dialogue_info.remilia_after_pt = 1000;
+		dialogue_info.remilia_played = false;
+		dialogue_info.flandre_after_pt = 1000;
+		dialogue_info.flandre_played = false;
+		dialogue_info.marisa_played = false;
+		start_dialogue_timer = 1000.f;
+	}
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
