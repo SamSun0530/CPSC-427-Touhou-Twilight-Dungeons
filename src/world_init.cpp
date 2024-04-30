@@ -2180,40 +2180,40 @@ Entity createSeagullEnemy(RenderSystem* renderer, vec2 position) {
 
 std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs) {
 	std::vector<Entity> entities;
-	for (int i = 0; i < textureIDs.size(); i++) {
-		auto entity = Entity();
+	//for (int i = 0; i < textureIDs.size(); i++) {
+	//	auto entity = Entity();
 
-		// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-		registry.meshPtrs.emplace(entity, &mesh);
+	//	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	//	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	//	registry.meshPtrs.emplace(entity, &mesh);
 
-		// Initialize the motion
-		auto& motion = registry.motions.emplace(entity);
-		motion.angle = 0.f;
-		motion.position = position;
-		motion.scale = vec2(world_tile_size, world_tile_size);
+	//	// Initialize the motion
+	//	auto& motion = registry.motions.emplace(entity);
+	//	motion.angle = 0.f;
+	//	motion.position = position;
+	//	motion.scale = vec2(world_tile_size, world_tile_size);
 
-		// TODO: remove this, used for testing ai can see player
-		if (textureIDs[i] == TEXTURE_ASSET_ID::PILLAR_TOP) {
-			registry.floors.emplace(entity);
-			registry.renderRequestsForeground.insert(
-				entity,
-				{ textureIDs[i],
-				 EFFECT_ASSET_ID::TEXTURED,
-				 GEOMETRY_BUFFER_ID::SPRITE });
-			entities.push_back(entity);
-			continue;
-		}
+	//	// TODO: remove this, used for testing ai can see player
+	//	if (textureIDs[i] == TEXTURE_ASSET_ID::PILLAR_TOP) {
+	//		registry.floors.emplace(entity);
+	//		registry.renderRequestsForeground.insert(
+	//			entity,
+	//			{ textureIDs[i],
+	//			 EFFECT_ASSET_ID::TEXTURED,
+	//			 GEOMETRY_BUFFER_ID::SPRITE });
+	//		entities.push_back(entity);
+	//		continue;
+	//	}
 
-		// Create and (empty) Tile component to be able to refer to all decoration tiles
-		registry.floors.emplace(entity);
-		registry.renderRequests.insert( // TODO Change to ground texture
-			entity,
-			{ textureIDs[i],
-			 EFFECT_ASSET_ID::TEXTURED,
-			 GEOMETRY_BUFFER_ID::SPRITE });
-		entities.push_back(entity);
-	}
+	//	// Create and (empty) Tile component to be able to refer to all decoration tiles
+	//	registry.floors.emplace(entity);
+	//	registry.renderRequests.insert( // TODO Change to ground texture
+	//		entity,
+	//		{ textureIDs[i],
+	//		 EFFECT_ASSET_ID::TEXTURED,
+	//		 GEOMETRY_BUFFER_ID::SPRITE });
+	//	entities.push_back(entity);
+	//}
 	return entities;
 }
 
@@ -2339,6 +2339,12 @@ Entity createObstacle(RenderSystem* renderer, vec2 grid_position) {
 			TEXTURE_ASSET_ID::ROCK,
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL3) {
+
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL4) {
+
 	}
 
 	return entity;
@@ -2722,6 +2728,7 @@ Entity createTeleporter(RenderSystem* renderer, vec2 pos, vec2 scale, vec2 colli
 
 	Collidable& collidable = registry.collidables.emplace(entity);
 	collidable.size = collidable_size;
+	collidable.shift = { 0, -10 };
 
 	registry.alwaysplayAni.insert(entity, ani);
 	registry.renderRequests.insert(
