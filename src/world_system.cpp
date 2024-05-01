@@ -83,8 +83,8 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", nullptr, nullptr);
-	// window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", glfwGetPrimaryMonitor(), nullptr);
+	//window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", nullptr, nullptr);
+	window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", glfwGetPrimaryMonitor(), nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -332,7 +332,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		BossHealthBarUI& bar = registry.bossHealthBarUIs.get(entity);
 		if (bar.is_visible) {
 			Motion& motion = registry.motions.get(entity);
-			createText(motion.position - vec2(100.f, 40.f), vec2(0.7f), bar.boss_name, bar.name_color, false, false);
+			createText(motion.position - vec2(0, 40.f), vec2(0.7f), bar.boss_name, bar.name_color, false, false);
 		}
 	}
 
@@ -504,14 +504,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				std::uniform_real_distribution<> distrib(0, 1);
 				double number = distrib(gen) * combo_mode.combo_meter / 2;
 				int coin_number = 1;
-				if (number < 0.5) {
+				if (number < 0.15f) {
 					coin_number = 1.0;
 				}
-				else if (number < 0.8) {
+				else if (number < 0.35f) {
 					coin_number = 2.0;
 				}
-				else {
+				else if (number < 0.65f) {
 					coin_number = 3.0;
+				}
+				else if (number < 0.85f) {
+					coin_number = 4.0;
+				}
+				else {
+					coin_number = 5.0;
 				}
 				vec2 entity_position = registry.motions.get(entity).position;
 				for (int i = 0; i < coin_number; i++) {

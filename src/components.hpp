@@ -518,7 +518,7 @@ struct AimbotCursor {
 
 struct CoinFountain
 {
-	int remain_coins = 30;
+	int remain_coins = 50;
 	float time_per_coins = 100.f;
 };
 

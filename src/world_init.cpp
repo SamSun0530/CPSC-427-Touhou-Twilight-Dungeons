@@ -2335,6 +2335,8 @@ Entity createObstacle(RenderSystem* renderer, vec2 grid_position) {
 				 GEOMETRY_BUFFER_ID::SPRITE });
 		}
 		else if (number < 0.4) {
+			world_map[grid_position.y][grid_position.x] = (int)TILE_TYPE::WALL;
+			registry.walls.emplace(entity);
 			registry.renderRequests.insert(
 				entity,
 				{
