@@ -643,7 +643,7 @@ std::string replaceNewlines(std::string str) {
 }
 
 unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::string>& scripts) {
-	std::ifstream script_file("../../../script/" + file_name);
+	std::ifstream script_file(script_path(file_name));
 	if (script_file.is_open()) {
 		//std::cout << "opened" << std::endl;
 		std::string line;
@@ -1690,7 +1690,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 void WorldSystem::deal_damage_to_deadly(const Entity& entity, int damage)
 {
-	if (registry.realDeathTimers.has(entity)) return;
+	if (registry.hitTimers.has(entity) || registry.realDeathTimers.has(entity)) return;
 	registry.hitTimers.emplace(entity);
 	registry.colors.get(entity) = vec3(-1.f);
 

@@ -34,7 +34,8 @@ inline std::string textures_path(const std::string& name) { return data_path() +
 inline std::string audio_path(const std::string& name) { return data_path() + "/audio/" + std::string(name); };
 inline std::string mesh_path(const std::string& name) { return data_path() + "/meshes/" + std::string(name); };
 inline std::string misc_path(const std::string& name) { return data_path() + "/misc/" + std::string(name); };
-inline std::string font_paht(const std::string& name) { return data_path() + "/fonts" + std::string(name); };
+inline std::string font_path(const std::string& name) { return data_path() + "/fonts/" + std::string(name); };
+inline std::string script_path(const std::string& name) { return std::string(PROJECT_SOURCE_DIR) + "script/" + std::string(name); };
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
