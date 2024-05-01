@@ -83,8 +83,8 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", nullptr, nullptr);
-	//window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", glfwGetPrimaryMonitor(), nullptr);
+	//window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", nullptr, nullptr);
+	window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", glfwGetPrimaryMonitor(), nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -643,7 +643,7 @@ std::string replaceNewlines(std::string str) {
 }
 
 unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::string>& scripts) {
-	std::ifstream script_file(script_path(file_name));
+	std::ifstream script_file(script_path(file_name).c_str());
 	if (script_file.is_open()) {
 		//std::cout << "opened" << std::endl;
 		std::string line;
