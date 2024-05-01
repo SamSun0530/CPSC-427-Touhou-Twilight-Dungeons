@@ -538,14 +538,16 @@ void RenderSystem::draw()
 		}
 
 		if (menu.state != MENU_STATE::DIALOGUE) {
-			for (Entity entity : registry.UIUX.entities) {
-				drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-			}
-
-			for (Entity entity : boss_ui_entities) {
-				BossHealthBarUI& bhp = registry.bossHealthBarUIs.get(entity);
-				if (bhp.is_visible) {
+			if (menu.state == MENU_STATE::PAUSE || !option.hide_ui) {
+				for (Entity entity : registry.UIUX.entities) {
 					drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+				}
+
+				for (Entity entity : boss_ui_entities) {
+					BossHealthBarUI& bhp = registry.bossHealthBarUIs.get(entity);
+					if (bhp.is_visible) {
+						drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+					}
 				}
 			}
 		}
@@ -663,6 +665,7 @@ void RenderSystem::draw()
 // This adapted from lecture material (Wednesday Feb 28th 2024)
 // fully transparent when transparency_rate = 0
 void RenderSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world, float transparency_rate) {
+	if (menu.state == MENU_STATE::PLAY && option.hide_ui) return;
 	// activate the shaders!
 	glUseProgram(m_font_shaderProgram);
 

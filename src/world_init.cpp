@@ -1462,12 +1462,12 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else if (boss_id == BOSS_ID::SAKUYA) {
-		hp.max_hp = 15020;
+		hp.max_hp = 20020;
 		//hp.max_hp = 120;
 		hp.curr_hp = hp.max_hp;
 
 		//boss.health_phase_thresholds = { 100, 90, 80, 70, -1 }; // -1 for end of phase
-		boss.health_phase_thresholds = { 15000, 11250, 7500, 3750, -1 }; // -1 for end of phase
+		boss.health_phase_thresholds = { 20000, 15000, 10000, 5000, -1 }; // -1 for end of phase
 
 		enemy_ani.spritesheet_scale = { 1.f / 4.f, 1.f / 8.f };
 		enemy_ani.render_pos = { 1.f / 4.f, 1.f / 8.f };
@@ -1479,12 +1479,12 @@ Entity createBoss(RenderSystem* renderer, vec2 position, std::string boss_name, 
 			 GEOMETRY_BUFFER_ID::SPRITE });
 	}
 	else if (boss_id == BOSS_ID::REMILIA) {
-		hp.max_hp = 20020;
+		hp.max_hp = 40020;
 		//hp.max_hp = 120;
 		hp.curr_hp = hp.max_hp;
 
 		//boss.health_phase_thresholds = { 100, 90, 80, 70, -1 }; // -1 for end of phase
-		boss.health_phase_thresholds = { 20000, 15000, 10000, 5000, -1 }; // -1 for end of phase
+		boss.health_phase_thresholds = { 40000, 30000, 20000, 10000, -1 }; // -1 for end of phase
 
 		enemy_ani.spritesheet_scale = { 1.f / 4.f, 1.f / 8.f };
 		enemy_ani.render_pos = { 1.f / 4.f, 1.f / 8.f };

@@ -6,6 +6,11 @@
 #include <unordered_set>
 #include "../ext/stb_image/stb_image.h"
 
+struct Option {
+	bool hide_ui = false;
+};
+extern Option option;
+
 // statistics to show at end screen
 struct Statistic {
 	int enemies_killed = 0;
