@@ -79,7 +79,7 @@ Alan Huang <br />
 - Pause sound effect (original by ZUN): https://commons.nicovideo.jp/works/nc245964
 	- License: https://commons.nicovideo.jp/works/agreement/nc245964
 - Character dialog portraits (Reimu/Cirno/Flandre/Marisa/Sakuya/Reimilia) self-made by Gensou Yugenan - https://gensoukyou.1000.tv/dl.html
-- TODO: Sky background
+- Sky Island background by Nextmars: https://www.dreamstime.com/game-map-game-board-top-view-game-map-game-board-top-view-medieval-style-video-game-s-digital-cg-artwork-colorful-concept-image100164168
 
 ## Disclaimer
 
