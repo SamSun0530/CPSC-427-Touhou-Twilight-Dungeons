@@ -155,8 +155,8 @@ private:
 	Entity display_combo;
 
 	// fonts seting
-	//std::string font_filename = "..//..//..//data//fonts//OpenSans-Bold.ttf";
-	std::string font_filename = "..//..//..//data//fonts//pixelmix//pixelmix.ttf";
+	//std::string font_filename = "..//..//..//data//fonts//pixelmix//pixelmix.ttf";
+	std::string font_filename = font_path("pixelmix/pixelmix.ttf").c_str();
 	unsigned int font_default_size = 25;
 
 	// Player state
