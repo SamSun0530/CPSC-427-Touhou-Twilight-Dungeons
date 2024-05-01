@@ -76,7 +76,6 @@ public:
 	ComponentContainer<MainMenu> mainMenus;
 	ComponentContainer<PauseMenu> pauseMenus;
 	ComponentContainer<Purchasableable> purchasableables;
-	ComponentContainer<VisibilityTile> visibilityTiles;
 	ComponentContainer<Dialogue> dialogueMenus;
 	ComponentContainer<Teleporter> teleporters;
 	ComponentContainer<WinMenu> winMenus;
@@ -96,6 +95,14 @@ public:
 	ComponentContainer<FlyToPlayer> flytoplayers;
 	ComponentContainer<Aura> auras;
 	ComponentContainer<AuraLink> auraLinks;
+	ComponentContainer<BulletSpeedTimer> bulletSpeedTimers;
+	ComponentContainer<BossInvisible> bossInvisibles;
+	ComponentContainer<Parralex> parrallaxes;
+	ComponentContainer<TurtleEnemy> turtleEnemies;
+	ComponentContainer<SkeletonEnemy> skeletonEnemies;
+	ComponentContainer<SeagullEnemy> seagullEnemies;
+	ComponentContainer<PlaceboWall> placeboWalls;
+	ComponentContainer<RoomSignifier> roomSignifiers;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -166,7 +173,6 @@ public:
 		registry_list.push_back(&mainMenus);
 		registry_list.push_back(&pauseMenus);
 		registry_list.push_back(&purchasableables);
-		registry_list.push_back(&visibilityTiles);
 		registry_list.push_back(&dialogueMenus);
 		registry_list.push_back(&teleporters);
 		registry_list.push_back(&winMenus);
@@ -186,6 +192,14 @@ public:
 		registry_list.push_back(&flytoplayers);
 		registry_list.push_back(&auras);
 		registry_list.push_back(&auraLinks);
+		registry_list.push_back(&bulletSpeedTimers);
+		registry_list.push_back(&bossInvisibles);
+		registry_list.push_back(&parrallaxes);
+		registry_list.push_back(&turtleEnemies);
+		registry_list.push_back(&skeletonEnemies);
+		registry_list.push_back(&seagullEnemies);
+		registry_list.push_back(&placeboWalls);
+		registry_list.push_back(&roomSignifiers);
 	}
 
 	void clear_all_components() {

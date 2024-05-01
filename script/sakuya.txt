@@ -1,0 +1,8 @@
+Reimu: (normal) Sakuya, I need your help.\n Remilia is on a dangerous path,\n and I believe you know where she is.
+Sakuya: (special) Reimu, you should not be here.\n My duties are clear. Protect the mistress, even from herself.\n Why do you pursue her so?
+Reimu: (angry) She plans to destroy the world, Sakuya!\n We must stop her before it's too late.\n You know as well as I do, this isn't right. Where is she?
+Sakuya: (special) I cannot betray my mistress, Reimu.\n Even for the world's sake, my loyalty is to her.
+Reimu: (angry) Sakuya, think about what you're saying.\n This isn't loyalty, it's madness! We can save her, together.\n But I need to know where she is.
+Sakuya: (normal) If you are so determined to change her fate,\n you must prove your strength to me.\n I cannot hand over such information lightly.
+Sakuya: (normal) If you can defeat me,\n then perhaps you are truly capable of facing Lady Remilia.
+Reimu: (normal) Then we have no choice.\n I don't want to fight you, Sakuya, but I will do what must be done.

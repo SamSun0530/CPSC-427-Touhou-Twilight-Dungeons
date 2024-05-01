@@ -11,7 +11,6 @@ class Camera {
 	const vec2 origin_offset;
 
 	// Zoom
-	float zoom;
 	float zoom_min;
 	float zoom_max;
 	float zoom_increment;
@@ -24,6 +23,7 @@ class Camera {
 public:
 	// Determine if camera could be controlled freely
 	bool isFreeCam;
+	float zoom;
 
 	// Offset for following mouse cursor
 	vec2 offset;

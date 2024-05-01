@@ -31,8 +31,12 @@ WorldSystem::WorldSystem()
 	loadScript("cirno.txt", cirno_script);
 	loadScript("cirno_after.txt", cirno_after_script);
 	loadScript("flandre_after.txt", flandre_after_script);
+	loadScript("remilia_after.txt", remilia_after_script);
+	loadScript("sakuya_after.txt", sakuya_after_script);
 	loadScript("flandre.txt", flandre_script);
 	loadScript("marisa.txt", marisa_script);
+	loadScript("remilia.txt", remilia_script);
+	loadScript("sakuya.txt", sakuya_script);
 }
 
 WorldSystem::~WorldSystem() {
@@ -80,7 +84,7 @@ GLFWwindow* WorldSystem::create_window() {
 
 	// Create the main window (for rendering, keyboard, and mouse input)
 	window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", nullptr, nullptr);
-	// window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", glfwGetPrimaryMonitor(), nullptr);
+	//window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", glfwGetPrimaryMonitor(), nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -138,11 +142,11 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map,
 	//Sets the size of the empty world
 	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
 	//Mix_PlayChannel(1, audio->menu_music, -1);
-	// TODO: remove, redundant
-	if (menu.state == MENU_STATE::PLAY) {
-		// Set all states to default
-		restart_game();
-	}
+	// TODO: remove, redundant (as we start in menu instead)
+	//if (menu.state == MENU_STATE::PLAY) {
+	//	// Set all states to default
+	//	restart_game();
+	//}
 }
 
 void WorldSystem::init_menu() {
@@ -166,7 +170,7 @@ void WorldSystem::init_menu() {
 	}
 	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "New Game", 1.f, [&]() {
 		map_info.level = MAP_LEVEL::LEVEL1;
-		Mix_PlayChannel(audio->abackground_music.channel, audio->background_music, -1);
+		Mix_PlayChannel(audio->abackground_music.channel, audio->level1_background_music, -1);
 		restart_game();
 		});
 	offset_y += offset_y_delta;
@@ -226,6 +230,7 @@ void WorldSystem::init_lose_menu() {
 	createLose(renderer);
 	const float button_scale = 0.7f;
 	createButton(renderer, { 0, 200 }, button_scale * 1.1, MENU_STATE::LOSE, "Restart", 0.85f, [&]() {
+		map_info.level = MAP_LEVEL::LEVEL1;
 		restart_game();
 		});
 }
@@ -285,7 +290,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.renderRequests.get(display_combo).used_texture = TEXTURE_ASSET_ID::S;
 	}
 
-
 	// Create on screen player attributes ui
 	HP& player_hp = registry.hps.get(player);
 	//createText({ 128 * 1.3 + 70 - 4, window_height_px - 77 }, { 1,1 }, std::to_string(player_hp.curr_hp) + " / " + std::to_string(player_hp.max_hp), vec3(1, 1, 1), false);
@@ -309,7 +313,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	vec2 player_position = registry.motions.get(player).position;
 	renderer->camera.setPosition(vec2_lerp(renderer->camera.getPosition(), player_position, K));
-
+	for (Entity& p : registry.parrallaxes.entities) {
+		Motion& p_motion = registry.motions.get(p);
+		Parralex& p_parra = registry.parrallaxes.get(p);
+		p_motion.position = renderer->camera.getPosition() * p_parra.parrallax_value + p_parra.position;
+	}
 	// Interpolate mouse-camera offset
 	// sharpness_factor_camera_offset possible values:
 	// - 0.0 - offset
@@ -324,7 +332,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		BossHealthBarUI& bar = registry.bossHealthBarUIs.get(entity);
 		if (bar.is_visible) {
 			Motion& motion = registry.motions.get(entity);
-			createText(motion.position - vec2(100.f, 40.f), vec2(0.7f), bar.boss_name, bar.name_color, false, false);
+			createText(motion.position - vec2(0, 40.f), vec2(0.7f), bar.boss_name, bar.name_color, false, false);
 		}
 	}
 
@@ -342,7 +350,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 	else if (focus_mode.counter_ms + elapsed_ms_since_last_update < focus_mode.max_counter_ms) {
-		focus_mode.counter_ms = min(focus_mode.counter_ms + elapsed_ms_since_last_update, focus_mode.max_counter_ms);
+		focus_mode.counter_ms = min(focus_mode.counter_ms + elapsed_ms_since_last_update * 2.f, focus_mode.max_counter_ms);
 	}
 
 	// Tutorial dummy spawner
@@ -385,7 +393,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			Entity entity_copy = (Entity)closest_entity_id;
 			if (registry.bosses.has(entity_copy)) {
 				if ((map_info.level == MAP_LEVEL::LEVEL1 && boss_info.has_cirno_talked) ||
-					(map_info.level == MAP_LEVEL::LEVEL2 && boss_info.has_flandre_talked))
+					(map_info.level == MAP_LEVEL::LEVEL2 && boss_info.has_flandre_talked) ||
+					(map_info.level == MAP_LEVEL::LEVEL3 && boss_info.has_sakuya_talked) ||
+					(map_info.level == MAP_LEVEL::LEVEL4 && boss_info.has_remilia_talked))
 					uni_timer.closest_enemy = closest_entity_id;
 			}
 			else {
@@ -431,6 +441,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	float min_invulnerable_time_ms = 1000.f;
 	for (Entity entity : registry.invulnerableTimers.entities) {
+		if (!registry.invulnerableTimers.has(entity)) continue;
 		InvulnerableTimer& counter = registry.invulnerableTimers.get(entity);
 		counter.invulnerable_counter_ms -= elapsed_ms_since_last_update;
 		if (counter.invulnerable_counter_ms < min_invulnerable_time_ms) {
@@ -445,9 +456,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	if (bomb_timer > 0) {
 		bomb_timer -= elapsed_ms_since_last_update;
-		for (Entity bullets : registry.enemyBullets.entities) {
-			registry.remove_all_components_of(bullets);
-		}
+
 	}
 	else {
 		screen.bomb_screen_factor = 0;
@@ -493,16 +502,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				std::random_device rd;
 				std::mt19937 gen(rd());
 				std::uniform_real_distribution<> distrib(0, 1);
-				double number = distrib(gen);
+				double number = distrib(gen) * combo_mode.combo_meter / 2;
 				int coin_number = 1;
-				if (number < 0.5) {
-					coin_number = static_cast<int>(1.0 * combo_mode.combo_meter);
+				if (number < 0.15f) {
+					coin_number = 1.0;
 				}
-				else if (number < 0.8) {
-					coin_number = static_cast<int>(2.0 * combo_mode.combo_meter);
+				else if (number < 0.35f) {
+					coin_number = 2.0;
+				}
+				else if (number < 0.65f) {
+					coin_number = 3.0;
+				}
+				else if (number < 0.85f) {
+					coin_number = 4.0;
 				}
 				else {
-					coin_number = static_cast<int>(3.0 * combo_mode.combo_meter);
+					coin_number = 5.0;
 				}
 				vec2 entity_position = registry.motions.get(entity).position;
 				for (int i = 0; i < coin_number; i++) {
@@ -546,7 +561,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Motion& motion = registry.motions.get(entity);
 		vec2 dist = motion.position - player_position;
 		if (dist.x * dist.x + dist.y * dist.y < 30000)
-		motion.position = vec2_lerp(motion.position, player_position, K);
+			motion.position = vec2_lerp(motion.position, player_position, K);
 	}
 
 	for (Entity entity : registry.bezierCurves.entities) {
@@ -578,12 +593,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (registry.deadlys.has(entity)) {
 				// remove boss health bar ui
 				if (registry.bossHealthBarLink.has(entity)) {
+					stats.enemies_killed++;
 					registry.remove_all_components_of(registry.bossHealthBarLink.get(entity).other);
 					if (registry.bosses.has(entity)) {
 						Boss& boss = registry.bosses.get(entity);
-						if (boss.boss_id == BOSS_ID::FLANDRE) {
-							boss_info.should_use_flandre_bullet = false;
-						}
+						boss_info.reset_bullet_textures();
+						// remove boss invisible reference
+						registry.remove_all_components_of(boss.invis_spawner);
 					}
 
 					// prevent -1 out of bounds access
@@ -627,9 +643,9 @@ std::string replaceNewlines(std::string str) {
 }
 
 unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::string>& scripts) {
-	std::ifstream script_file("../../../script/" + file_name);
+	std::ifstream script_file(script_path(file_name));
 	if (script_file.is_open()) {
-		std::cout << "opened" << std::endl;
+		//std::cout << "opened" << std::endl;
 		std::string line;
 		while (getline(script_file, line)) {
 			scripts.push_back(replaceNewlines(line));
@@ -648,6 +664,8 @@ void WorldSystem::next_level() {
 	screen.darken_screen_factor = 0;
 
 	boss_system->init_phases();
+
+	audio->restart_audio_level();
 
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
@@ -717,6 +735,19 @@ void WorldSystem::next_level() {
 	is_alive = true;
 	createHealthUI(renderer);
 	createAttributeUI(renderer);
+	if (map_info.level == MAP_LEVEL::LEVEL4) {
+		createParralex(renderer, { 800 / 1.5f, 500 / 1.5f });
+		createCloud(renderer, { 0,0 }, 0.7, 1.0f);
+		createCloud(renderer, { -400 ,600 }, 0.7, 1.0f);
+		createCloud(renderer, { -700,1100 }, 0.7, 1.0f);
+		createCloud(renderer, { 600 ,600 }, 0.6, 1.25f);
+		createCloud(renderer, { 1200 ,1200 }, 0.6, 1.25f);
+		createCloud(renderer, { 2000 ,500 }, 0.5, 1.5f);
+		createCloud(renderer, { 1300 , 900 }, 0.5, 1.5f);
+		createCloud(renderer, { 1434 ,800 }, 0.5, 1.5f);
+		createCloud(renderer, { 1843 ,400 }, 0.5, 1.5f);
+		createCloud(renderer, { 900 ,700 }, 0.5, 1.5f);
+	}
 	focus_mode.restart();
 	ai->restart_flow_field_map();
 	display_combo = createCombo(renderer);
@@ -731,23 +762,29 @@ void WorldSystem::next_level() {
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
 	assert(registry.screenStates.components.size() <= 1);
+	start_time = Clock::now();
 	ScreenState& screen = registry.screenStates.components[0];
 	screen.darken_screen_factor = 0;
 
 	boss_system->init_phases();
 
-	audio->restart_audio_level1();
-
+	audio->restart_audio_level();
 	menu.state = MENU_STATE::PLAY;
 	game_info.has_started = true;
-	if (map_info.level == MAP_LEVEL::LEVEL2) map_info.level = MAP_LEVEL::LEVEL1;
-	if (map_info.level != MAP_LEVEL::TUTORIAL && map_info.level != MAP_LEVEL::LEVEL2) {
+
+	if (map_info.level != MAP_LEVEL::TUTORIAL) {
 		start_pt = 0;
 		dialogue_info.cirno_pt = 1000;
 		dialogue_info.cirno_after_pt = 1000;
 		dialogue_info.cirno_played = false;
 		dialogue_info.flandre_pt = 1000;
 		dialogue_info.marisa_pt = 1000;
+		dialogue_info.sakuya_pt = 1000;
+		dialogue_info.sakuya_after_pt = 1000;
+		dialogue_info.sakuya_played = false;
+		dialogue_info.remilia_pt = 1000;
+		dialogue_info.remilia_after_pt = 1000;
+		dialogue_info.remilia_played = false;
 		dialogue_info.flandre_after_pt = 1000;
 		dialogue_info.flandre_played = false;
 		dialogue_info.marisa_played = false;
@@ -806,6 +843,19 @@ void WorldSystem::restart_game() {
 	is_alive = true;
 	createHealthUI(renderer);
 	createAttributeUI(renderer);
+	if (map_info.level == MAP_LEVEL::LEVEL4) {
+		createParralex(renderer, { 800 / 1.5f, 500 / 1.5f });
+		createCloud(renderer, { 0,0 }, 0.7, 1.0f);
+		createCloud(renderer, { -400 ,600 }, 0.7, 1.0f);
+		createCloud(renderer, { -700,1100 }, 0.7, 1.0f);
+		createCloud(renderer, { 600 ,600 }, 0.6, 1.25f);
+		createCloud(renderer, { 1200 ,1200 }, 0.6, 1.25f);
+		createCloud(renderer, { 2000 ,500 }, 0.5, 1.5f);
+		createCloud(renderer, { 1300 , 900 }, 0.5, 1.5f);
+		createCloud(renderer, { 1434 ,800 }, 0.5, 1.5f);
+		createCloud(renderer, { 1843 ,400 }, 0.5, 1.5f);
+		createCloud(renderer, { 900 ,700 }, 0.5, 1.5f);
+	}
 	combo_mode.restart();
 	focus_mode.restart();
 	ai->restart_flow_field_map();
@@ -1173,7 +1223,10 @@ void WorldSystem::handle_collisions() {
 									registry.lizardEnemies.has(deadly_entity) ||
 									registry.bee2Enemies.has(deadly_entity) ||
 									registry.wormEnemies.has(deadly_entity) ||
-									registry.gargoyleEnemies.has(deadly_entity)) {
+									registry.gargoyleEnemies.has(deadly_entity) ||
+									registry.skeletonEnemies.has(deadly_entity) ||
+									registry.turtleEnemies.has(deadly_entity) ||
+									registry.seagullEnemies.has(deadly_entity)) {
 									registry.realDeathTimers.emplace(deadly_entity).death_counter_ms = 1000;
 									registry.hps.remove(deadly_entity);
 									registry.aitimers.remove(deadly_entity);
@@ -1236,7 +1289,10 @@ void WorldSystem::handle_collisions() {
 								registry.lizardEnemies.has(entity) ||
 								registry.bee2Enemies.has(entity) ||
 								registry.wormEnemies.has(entity) ||
-								registry.gargoyleEnemies.has(entity)) {
+								registry.gargoyleEnemies.has(entity) ||
+								registry.skeletonEnemies.has(entity) ||
+								registry.turtleEnemies.has(entity) ||
+								registry.seagullEnemies.has(entity)) {
 								registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
 								registry.hps.remove(entity);
 								registry.aitimers.remove(entity);
@@ -1296,7 +1352,7 @@ void WorldSystem::handle_collisions() {
 		}
 		// Checks wall collisions
 		// Checks locked door collisions
-		else if (registry.walls.has(entity)) {
+		else if (registry.walls.has(entity) || registry.placeboWalls.has(entity)) {
 			// enemy/player bullets to wall are handled in physics system 
 			if (registry.players.has(entity_other) || registry.deadlys.has(entity_other)) {
 				handle_wall_collisions(entity, entity_other);
@@ -1413,18 +1469,18 @@ void WorldSystem::updateFocusDot() {
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (menu.state == MENU_STATE::PLAY) {
 		// Resetting game
-		if (action == GLFW_RELEASE && key == GLFW_KEY_F1) {
-			int w, h;
-			glfwGetWindowSize(window, &w, &h);
-			map_info.level = MAP_LEVEL::LEVEL1;
-			restart_game();
-		}
+		//if (action == GLFW_RELEASE && key == GLFW_KEY_F1) {
+		//	int w, h;
+		//	glfwGetWindowSize(window, &w, &h);
+		//	map_info.level = MAP_LEVEL::LEVEL1;
+		//	restart_game();
+		//}
 
-		// Debugging
-		if (key == GLFW_KEY_G) {
-			if (action == GLFW_RELEASE)
-				debugging.in_debug_mode = !debugging.in_debug_mode;
-		}
+		//// Debugging
+		//if (key == GLFW_KEY_G) {
+		//	if (action == GLFW_RELEASE)
+		//		debugging.in_debug_mode = !debugging.in_debug_mode;
+		//}
 
 		// Toggle FPS display
 		if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
@@ -1541,6 +1597,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			if (player_component.bomb > 0) {
 				player_component.bomb -= 1;
 				bomb_timer = bomb_timer_max;
+				for (Entity bullets : registry.enemyBullets.entities) {
+					registry.remove_all_components_of(bullets);
+				}
 
 				// deal damage
 				// in tutorial
@@ -1619,6 +1678,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			dialogue_info.marisa_pt += 1;
 			dialogue_info.cirno_after_pt += 1;
 			dialogue_info.flandre_after_pt += 1;
+			dialogue_info.remilia_pt += 1;
+			dialogue_info.remilia_after_pt += 1;
+			dialogue_info.sakuya_after_pt += 1;
+			dialogue_info.sakuya_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
 		}
@@ -1627,7 +1690,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 void WorldSystem::deal_damage_to_deadly(const Entity& entity, int damage)
 {
-	if (registry.realDeathTimers.has(entity)) return;
+	if (registry.hitTimers.has(entity) || registry.realDeathTimers.has(entity)) return;
 	registry.hitTimers.emplace(entity);
 	registry.colors.get(entity) = vec3(-1.f);
 
@@ -1643,7 +1706,10 @@ void WorldSystem::deal_damage_to_deadly(const Entity& entity, int damage)
 			registry.lizardEnemies.has(entity) ||
 			registry.bee2Enemies.has(entity) ||
 			registry.wormEnemies.has(entity) ||
-			registry.gargoyleEnemies.has(entity)) {
+			registry.gargoyleEnemies.has(entity) ||
+			registry.skeletonEnemies.has(entity) ||
+			registry.turtleEnemies.has(entity) ||
+			registry.seagullEnemies.has(entity)) {
 			registry.realDeathTimers.emplace(entity).death_counter_ms = 1000;
 			registry.hps.remove(entity);
 			registry.aitimers.remove(entity);
@@ -1686,6 +1752,14 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		dialogue_info.flandre_played = false;
 		dialogue_info.flandre_after_pt = 0;
 	}
+	if (registry.bosses.size() == 0 && dialogue_info.sakuya_played) {
+		dialogue_info.sakuya_played = false;
+		dialogue_info.sakuya_after_pt = 0;
+	}
+	if (registry.bosses.size() == 0 && dialogue_info.remilia_played) {
+		dialogue_info.remilia_played = false;
+		dialogue_info.remilia_after_pt = 0;
+	}
 	if (start_pt < start_script.size()) {
 		word_up_ms -= elapsed_time;
 		CHARACTER speaking_chara = CHARACTER::REIMU;
@@ -1702,6 +1776,12 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		}
 		else if (token == "Marisa:") {
 			speaking_chara = CHARACTER::MARISA;
+		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
 		}
 
 		std::getline(ss, token, ' ');
@@ -1757,6 +1837,12 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		else if (token == "Marisa:") {
 			speaking_chara = CHARACTER::MARISA;
 		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
 
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
@@ -1811,6 +1897,12 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		else if (token == "Marisa:") {
 			speaking_chara = CHARACTER::MARISA;
 		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
 			emotion = EMOTION::LAUGH;
@@ -1864,6 +1956,12 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		else if (token == "Marisa:") {
 			speaking_chara = CHARACTER::MARISA;
 		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
 			emotion = EMOTION::LAUGH;
@@ -1898,7 +1996,6 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	}
 	else if (dialogue_info.cirno_after_pt == cirno_after_script.size()) {
 		dialogue_info.cirno_after_pt += 1;
-
 		resume_game();
 	}
 	else if (dialogue_info.flandre_pt < flandre_script.size()) {
@@ -1916,6 +2013,12 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		}
 		else if (token == "Marisa:") {
 			speaking_chara = CHARACTER::MARISA;
+		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
 		}
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
@@ -1970,6 +2073,12 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 		else if (token == "Marisa:") {
 			speaking_chara = CHARACTER::MARISA;
 		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
 		std::getline(ss, token, ' ');
 		if (token == "(laugh)") {
 			emotion = EMOTION::LAUGH;
@@ -2004,8 +2113,244 @@ void WorldSystem::dialogue_step(float elapsed_time) {
 	}
 	else if (dialogue_info.flandre_after_pt == flandre_after_script.size()) {
 		dialogue_info.flandre_after_pt += 1;
+		resume_game();
+	}
+	else if (dialogue_info.sakuya_pt < sakuya_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
+		std::istringstream ss(sakuya_script[dialogue_info.sakuya_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		else if (token == "Flandre:") {
+			speaking_chara = CHARACTER::FlANDRE;
+		}
+		else if (token == "Marisa:") {
+			speaking_chara = CHARACTER::MARISA;
+		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		if (menu.state != MENU_STATE::LOSE)
+			menu.state = MENU_STATE::DIALOGUE;
+
+		createDialogue(speaking_chara, start_buffer, CHARACTER::SAKUYA, emotion);
+	}
+	else if (dialogue_info.sakuya_pt == sakuya_script.size()) {
+		dialogue_info.sakuya_pt += 1;
+		dialogue_info.sakuya_played = true;
+		resume_game();
+	}
+	else if (dialogue_info.sakuya_after_pt < sakuya_after_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
+		std::istringstream ss(sakuya_after_script[dialogue_info.sakuya_after_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		else if (token == "Flandre:") {
+			speaking_chara = CHARACTER::FlANDRE;
+		}
+		else if (token == "Marisa:") {
+			speaking_chara = CHARACTER::MARISA;
+		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		if (menu.state != MENU_STATE::LOSE)
+			menu.state = MENU_STATE::DIALOGUE;
+
+		createDialogue(speaking_chara, start_buffer, CHARACTER::SAKUYA, emotion);
+	}
+	else if (dialogue_info.sakuya_after_pt == sakuya_after_script.size()) {
+		dialogue_info.sakuya_after_pt += 1;
+		resume_game();
+	}
+	else if (dialogue_info.remilia_pt < remilia_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
+		std::istringstream ss(remilia_script[dialogue_info.remilia_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		else if (token == "Flandre:") {
+			speaking_chara = CHARACTER::FlANDRE;
+		}
+		else if (token == "Marisa:") {
+			speaking_chara = CHARACTER::MARISA;
+		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		if (menu.state != MENU_STATE::LOSE)
+			menu.state = MENU_STATE::DIALOGUE;
+
+		createDialogue(speaking_chara, start_buffer, CHARACTER::REMILIA, emotion);
+	}
+	else if (dialogue_info.remilia_pt == remilia_script.size()) {
+		dialogue_info.remilia_pt += 1;
+		dialogue_info.remilia_played = true;
+		resume_game();
+	}
+	else if (dialogue_info.remilia_after_pt < remilia_after_script.size()) {
+		word_up_ms -= elapsed_time;
+		CHARACTER speaking_chara = CHARACTER::REIMU;
+		EMOTION emotion = EMOTION::NORMAL;
+		std::istringstream ss(remilia_after_script[dialogue_info.remilia_after_pt]);
+		std::string token;
+		std::getline(ss, token, ' ');
+		if (token == "Cirno:") {
+			speaking_chara = CHARACTER::CIRNO;
+		}
+		else if (token == "Flandre:") {
+			speaking_chara = CHARACTER::FlANDRE;
+		}
+		else if (token == "Marisa:") {
+			speaking_chara = CHARACTER::MARISA;
+		}
+		else if (token == "Remilia:") {
+			speaking_chara = CHARACTER::REMILIA;
+		}
+		else if (token == "Sakuya:") {
+			speaking_chara = CHARACTER::SAKUYA;
+		}
+		std::getline(ss, token, ' ');
+		if (token == "(laugh)") {
+			emotion = EMOTION::LAUGH;
+		}
+		else if (token == "(cry)") {
+			emotion = EMOTION::CRY;
+		}
+		else if (token == "(special)") {
+			emotion = EMOTION::SPECIAL;
+		}
+		else if (token == "(shock)") {
+			emotion = EMOTION::SHOCK;
+		}
+		else if (token == "(angry)") {
+			emotion = EMOTION::ANGRY;
+		}
+		if (word_up_ms < 0) {
+			unsigned int i = 0;
+			while (std::getline(ss, token, ' ')) {
+				if (i == curr_word) {
+					start_buffer += " " + token;
+				}
+				i += 1;
+			}
+			word_up_ms = 50.f;
+			curr_word += 1;
+		}
+		if (menu.state != MENU_STATE::LOSE)
+			menu.state = MENU_STATE::DIALOGUE;
+
+		createDialogue(speaking_chara, start_buffer, CHARACTER::REMILIA, emotion);
+	}
+	else if (dialogue_info.remilia_after_pt == remilia_after_script.size()) {
+		dialogue_info.remilia_after_pt += 1;
+		createStats(renderer, start_time);
 		menu.state = MENU_STATE::WIN;
 	}
+
 
 }
 
@@ -2078,6 +2423,10 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 			dialogue_info.flandre_pt += 1;
 			dialogue_info.flandre_after_pt += 1;
 			dialogue_info.marisa_pt += 1;
+			dialogue_info.remilia_pt += 1;
+			dialogue_info.remilia_after_pt += 1;
+			dialogue_info.sakuya_after_pt += 1;
+			dialogue_info.sakuya_pt += 1;
 			curr_word = 0;
 			start_buffer = "";
 		}

@@ -31,8 +31,11 @@ private:
 
 	std::vector<Room> rooms;
 
-	// sandstone tile atlas
+	// generic tile atlas
 	TILE_NAME get_tile_name(int x, int y, std::vector<std::vector<int>>& map);
+	// sky tile atlas
+	TILE_NAME get_tile_name_sky(int x, int y, std::vector<std::vector<int>>& map);
+
 	void generate_all_tiles(std::vector<std::vector<int>>& map);
 
 	// C++ random number generator

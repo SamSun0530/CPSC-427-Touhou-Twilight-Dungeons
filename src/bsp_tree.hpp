@@ -119,7 +119,8 @@ private:
 
 	bool is_out_of_bounds(int x, int y) {
 		return !(y < 0 || x < 0 || y >= world_height || x >= world_width
-			|| world_map[y][x] == (int)TILE_TYPE::WALL);
+			|| world_map[y][x] == (int)TILE_TYPE::WALL
+			|| world_map[y][x] == (int)TILE_TYPE::WALL_PLACEBO);
 	}
 
 	// A-star path finding algorithm (does not store paths inside frontier)

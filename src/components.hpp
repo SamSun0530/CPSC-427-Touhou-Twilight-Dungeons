@@ -3,15 +3,21 @@
 #include <vector>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include "../ext/stb_image/stb_image.h"
+
+struct Option {
+	bool hide_ui = false;
+};
+extern Option option;
 
 // statistics to show at end screen
 struct Statistic {
-	float enemies_killed = 0;
-	float enemies_hit = 0;
-	float bullets_fired = 0;
+	int enemies_killed = 0;
+	int enemies_hit = 0;
+	int bullets_fired = 0;
 	float accuracy = 1; // this will be enemies_hit / bullets_fired
-	float time_taken_to_win = 0; // accumulate via elapsed ms
+	std::string time_taken_to_win = ""; // accumulate via elapsed ms
 	// TODO: add some more interesting facts
 
 	void reset() {
@@ -19,7 +25,7 @@ struct Statistic {
 		enemies_hit = 0;
 		bullets_fired = 0;
 		accuracy = 1;
-		time_taken_to_win = 0;
+		time_taken_to_win = "";
 	}
 };
 extern Statistic stats;
@@ -35,10 +41,15 @@ struct UniversalTimer {
 	float aimbot_bullet_timer = 0;
 	float aimbot_bullet_timer_default = 2000;
 
+	// Boss movement
+	float boss_can_move_timer = -1;
+	float boss_can_move_timer_default = 10000;
+
 	void restart() {
 		closest_enemy_timer = 0;
 		closest_enemy = -1;
 		aimbot_bullet_timer = 0;
+		boss_can_move_timer = -1;
 	}
 };
 extern UniversalTimer uni_timer;
@@ -48,17 +59,25 @@ struct DialogueInfo {
 	unsigned int cirno_after_pt = 1000000;
 	unsigned int flandre_pt = 1000000;
 	unsigned int flandre_after_pt = 1000000;
+	unsigned int sakuya_pt = 1000000;
+	unsigned int sakuya_after_pt = 1000000;
+	unsigned int remilia_pt = 1000000;
+	unsigned int remilia_after_pt = 1000000;
 	unsigned int marisa_pt = 1000000;
 	bool cirno_played = false;
 	bool flandre_played = false;
 	bool marisa_played = false;
+	bool sakuya_played = false;
+	bool remilia_played = false;
 };
 extern DialogueInfo dialogue_info;
 
 enum class MAP_LEVEL {
 	TUTORIAL,
 	LEVEL1,
-	LEVEL2
+	LEVEL2,
+	LEVEL3,
+	LEVEL4
 };
 
 // World map loader
@@ -73,7 +92,7 @@ enum class MENU_STATE {
 	PLAY,
 	PAUSE,
 	DIALOGUE,
-	INVENTORY,
+	//INVENTORY,
 	WIN,
 	LOSE,
 	INFOGRAPHIC
@@ -118,8 +137,11 @@ struct ComboMode {
 extern ComboMode combo_mode;
 
 struct VisibilityInfo {
-	// TODO: limit how fast tiles are revealed using flood fill
-	bool need_update = false;
+	// exclude these map levels from using visibility tiles
+	std::unordered_set<MAP_LEVEL> excluded{
+		MAP_LEVEL::TUTORIAL,
+		MAP_LEVEL::LEVEL4
+	};
 };
 extern VisibilityInfo visibility_info;
 
@@ -156,14 +178,26 @@ extern GameInfo game_info;
 
 struct BossInfo {
 	bool should_use_flandre_bullet = false;
+	bool should_use_sakuya_bullet = false;
+	bool should_use_remilia_bullet = false;
 
 	bool has_cirno_talked = false;
 	bool has_flandre_talked = false;
+	bool has_sakuya_talked = false;
+	bool has_remilia_talked = false;
+
+	void reset_bullet_textures() {
+		should_use_flandre_bullet = false;
+		should_use_sakuya_bullet = false;
+		should_use_remilia_bullet = false;
+	}
 
 	void reset() {
-		should_use_flandre_bullet = false;
+		reset_bullet_textures();
 		has_cirno_talked = false;
 		has_flandre_talked = false;
+		has_sakuya_talked = false;
+		has_remilia_talked = false;
 	}
 };
 extern BossInfo boss_info;
@@ -226,6 +260,11 @@ struct PauseMenu {
 
 };
 
+struct Parralex {
+	float parrallax_value;
+	vec2 position;
+};
+
 struct Button {
 	MENU_STATE state; // button related to which state
 	std::string text = ""; // button text
@@ -277,11 +316,12 @@ None:
 PLAYER_DIRECTION - change bullet to face player direction (only for enemies)
 ENEMY_DIRECTION - change bullet to face direction of deadly closest to cursor (only for players)
 CURSOR_DIRECTION - change bullet to face direction cursor (only for players)
+RANDOM_DIRECTION - change bullet to random direction
 
 Floats:
 SPEED - float - change in velocity magnitude
 ROTATE - float - change in bullet direction
-DELAY - float - wait until executing next command
+DELAY - float - wait until executing next command (Blocking - blocks next action)
 DEL - float - bullet death timer to remove bullet
 
 Vec2s:
@@ -295,6 +335,12 @@ SPLIT - vec3 - split one bullets into multiple bullets based on angle
 	- vec3[0] = number of bullets to split into (<= 1 - won't do anything)
 	- vec3[1] = angle for the bullet spread
 	- vec3[2] = initial bullet speed
+SPEED_TIMER - vec3 - lerp velocity magnitude over a time interval
+	- vec3[0] = start bullet velocity
+	- vec3[1] = end bullet velocity
+	- vec3[2] = time interval in ms to lerp from start to end velocity
+	- Note:
+	-	if second timer interval overlap with first, does not do the action
 */
 enum class BULLET_ACTION {
 	SPEED,
@@ -307,6 +353,8 @@ enum class BULLET_ACTION {
 	PLAYER_DIRECTION,
 	ENEMY_DIRECTION,
 	CURSOR_DIRECTION,
+	SPEED_TIMER,
+	RANDOM_DIRECTION,
 };
 
 enum class CHARACTER {
@@ -314,6 +362,8 @@ enum class CHARACTER {
 	CIRNO,
 	FlANDRE,
 	MARISA,
+	REMILIA,
+	SAKUYA,
 	NONE,
 };
 
@@ -341,6 +391,8 @@ struct BulletPattern {
 // Inspiration/Credit from: https://youtu.be/whrInb6Z7QI
 struct BulletSpawner
 {
+	// determines if this bullet spawner is used or not
+	bool is_active = false;
 	// determines if bullet can be fired
 	bool is_firing = false;
 	// set this to -1 so entity can fire immediately
@@ -412,7 +464,9 @@ struct BulletSpawner
 
 enum class BOSS_ID {
 	CIRNO,
-	FLANDRE
+	FLANDRE,
+	SAKUYA,
+	REMILIA
 };
 
 struct Boss {
@@ -437,6 +491,19 @@ struct Boss {
 	int current_bullet_phase_id = -1;
 	// between phase change time
 	float phase_change_time = -1;
+
+	// optional invisible entity for extra bullet spawner/pattern
+	// IMPORTANT: remember to remove this if removing this boss
+	Entity invis_spawner;
+
+	// room waypoints in grid coordinates
+	std::vector<coord> waypoints;
+};
+
+struct BossInvisible {
+	BulletPattern bullet_pattern;
+	Entity boss;
+	BossInvisible(Entity& other) { this->boss = other; };
 };
 
 // Keeps track of what aura this belongs to
@@ -456,7 +523,7 @@ struct AimbotCursor {
 
 struct CoinFountain
 {
-	int remain_coins = 30;
+	int remain_coins = 50;
 	float time_per_coins = 100.f;
 };
 
@@ -542,6 +609,18 @@ struct GargoyleEnemy {
 };
 
 struct WormEnemy {
+
+};
+
+struct TurtleEnemy {
+
+};
+
+struct SkeletonEnemy {
+
+};
+
+struct SeagullEnemy {
 
 };
 
@@ -660,11 +739,60 @@ enum class TILE_NAME {
 	BOTTOM_LEFT, // 0,6
 	BOTTOM_WALL, // 1,6
 	BOTTOM_RIGHT, // 2,6
-	CORRIDOR_BOTTOM_RIGHT_LIGHT, // 0,3
-	CORRIDOR_BOTTOM_LEFT_LIGHT, // 2,3
-	BOTTOM_LEFT_LIGHT, // 0,4
-	// BOTTOM_WALL_LIGHT -> use TOP_WALL
 	BOTTOM_RIGHT_LIGHT, // 2,4
+	TOP_RIGHT, // 3,2
+	TOP_LEFT, // 3,3
+	CORRIDOR_TOP_RIGHT, // 3,5
+	CORRIDOR_TOP_LEFT, // 3,4
+	TRANSPARENT_TILE, // 3,6
+	// SKY TILES
+	S02,
+	S12,
+	S22,
+	S03,
+	S13,
+	S23,
+	S04,
+	S14,
+	S24,
+	S05,
+	S15,
+	S25,
+	// SKY TILES FOR ENTRANCE OF CORRIDOR
+	S00,
+	S10,
+	S20,
+	S30,
+	S01,
+	S11,
+	S21,
+	S31,
+	S32,
+	S33,
+	S34,
+	S35,
+	S06,
+	S16,
+	S26,
+	S36,
+	S40,
+	S50,
+	S41,
+	S51,
+	S42,
+	S52,
+	S43,
+	S53,
+	S44,
+	S54,
+	S45,
+	S55,
+	S46,
+	S56,
+};
+
+struct RoomSignifier {
+
 };
 
 // A non interactable tile of the map
@@ -674,6 +802,9 @@ struct Floor
 
 // A interactable tile of the map
 struct Wall {
+};
+
+struct PlaceboWall {
 };
 
 // Tile data to be instance rendered
@@ -806,13 +937,21 @@ struct BulletDelayTimer {
 	float delay_counter_ms = -1;
 };
 
+// for BULLET_ACTION::SPEED_TIMER
+struct BulletSpeedTimer {
+	float start_speed = 0;
+	float end_speed = 0;
+	float timer_ms = 0;
+	float max_timer_ms = 0;
+};
+
 // Update entity ai behavior tree after update ms
 struct AiTimer {
 	float update_timer_ms = 500;
 	float update_base = 500;
 };
 
-// A timer that will be associated to dying chicken
+// A timer that will be associated to entities hit
 struct HitTimer
 {
 	float counter_ms = 80;
@@ -912,7 +1051,9 @@ enum class TILE_TYPE {
 	EMPTY = 0,
 	FLOOR = EMPTY + 1,
 	WALL = FLOOR + 1,
-	DOOR = WALL + 1
+	DOOR = WALL + 1,
+	WALL_PLACEBO = DOOR + 1, // has wall tile but bullets can go through
+	EMPTY_PLACEBO = WALL_PLACEBO + 1, // bullets can go through
 };
 
 enum class EMOTION {
@@ -955,28 +1096,10 @@ enum class TEXTURE_ASSET_ID {
 	ENEMY_WOLF = PLAYER + 1,
 	ENEMY_BOMBER = ENEMY_WOLF + 1,
 	ENEMY_BULLET = ENEMY_BOMBER + 1,
-	TILE_1 = ENEMY_BULLET + 1,
-	TILE_2 = TILE_1 + 1,
-	INNER_WALL = TILE_2 + 1,
-	TOP_WALL = INNER_WALL + 1,
-	DOOR = TOP_WALL + 1,
-	DOOR_OPEN = DOOR + 1,
-	LEFT_WALL = DOOR_OPEN + 1,
-	RIGHT_WALL = LEFT_WALL + 1,
-	LEFT_TOP_CORNER_WALL = RIGHT_WALL + 1,
-	LEFT_BOTTOM_CORNER_WALL = LEFT_TOP_CORNER_WALL + 1,
-	RIGHT_TOP_CORNER_WALL = LEFT_BOTTOM_CORNER_WALL + 1,
-	RIGHT_BOTTOM_CORNER_WALL = RIGHT_TOP_CORNER_WALL + 1,
-	ROCK = RIGHT_BOTTOM_CORNER_WALL + 1,
+	ROCK = ENEMY_BULLET + 1,
 	REIMU_HEALTH = ROCK + 1,
 	REIMU_HEAD = REIMU_HEALTH + 1,
-	EMPTY_HEART = REIMU_HEAD + 1,
-	BOTTOM_WALL = EMPTY_HEART + 1,
-	WALL_EDGE = BOTTOM_WALL + 1,
-	WALL_SURFACE = WALL_EDGE + 1,
-	PILLAR_TOP = WALL_SURFACE + 1,
-	PILLAR_BOTTOM = PILLAR_TOP + 1,
-	HEALTH_1 = PILLAR_BOTTOM + 1,
+	HEALTH_1 = REIMU_HEAD + 1,
 	HEALTH_2 = HEALTH_1 + 1,
 	REGENERATE_HEALTH = HEALTH_2 + 1,
 	BOSS_CIRNO = REGENERATE_HEALTH + 1,
@@ -1020,7 +1143,9 @@ enum class TEXTURE_ASSET_ID {
 	CIRNO_PORTRAIT = REIMU_PORTRAIT + 1,
 	FLANDRE_PORTRAIT = CIRNO_PORTRAIT + 1,
 	MARISA_PORTRAIT = FLANDRE_PORTRAIT + 1,
-	DIALOGUE_BOX = MARISA_PORTRAIT + 1,
+	REMILIA_PORTRAIT = MARISA_PORTRAIT + 1,
+	SAKUYA_PORTRAIT = REMILIA_PORTRAIT + 1,
+	DIALOGUE_BOX = SAKUYA_PORTRAIT + 1,
 	TELEPORTER = DIALOGUE_BOX + 1,
 	WINDEATH_SCREEN = TELEPORTER + 1,
 	BOSS_FLANDRE = WINDEATH_SCREEN + 1,
@@ -1055,7 +1180,48 @@ enum class TEXTURE_ASSET_ID {
 	BOSS_SIGN = NORMAL_SIGN + 1,
 	START_SIGN = BOSS_SIGN + 1,
 	SHOP_SIGN = START_SIGN + 1,
-	TEXTURE_COUNT = SHOP_SIGN + 1,
+	PARRALEX = SHOP_SIGN + 1,
+	TILES_ATLAS_WATER = PARRALEX + 1,
+	TILES_ATLAS_SKY = TILES_ATLAS_WATER + 1,
+	BOSS_SAKUYA = TILES_ATLAS_SKY + 1,
+	BOSS_REMILIA = BOSS_SAKUYA + 1,
+	CLOUDS = BOSS_REMILIA + 1,
+	SAKUYA_AURA = CLOUDS + 1,
+	REMILIA_AURA = SAKUYA_AURA + 1,
+	SAKUYA_BULLET = REMILIA_AURA + 1,
+	REMILIA_BULLET = SAKUYA_BULLET + 1,
+	REIMUCRY = REMILIA_BULLET + 1,
+	ENEMY_TURTLE = REIMUCRY + 1,
+	ENEMY_SKELETON = ENEMY_TURTLE + 1,
+	ENEMY_SEAGULL = ENEMY_SKELETON + 1,
+	TOMBSTONE_BROKEN = ENEMY_SEAGULL + 1,
+	CYLINDER_1 = TOMBSTONE_BROKEN + 1,
+	CYLINDER_2 = CYLINDER_1 + 1,
+	PILLAR_TOP_BROKEN = CYLINDER_2 + 1,
+	PILLAR_TOP = PILLAR_TOP_BROKEN + 1,
+	PILLAR_MIDDLE = PILLAR_TOP + 1,
+	PILLAR_BOTTOM = PILLAR_MIDDLE + 1,
+	SKY_TREE_0 = PILLAR_BOTTOM + 1,
+	SKY_TREE_1 = SKY_TREE_0 + 1,
+	SKY_TREE_2 = SKY_TREE_1 + 1,
+	SKY_TREE_3 = SKY_TREE_2 + 1,
+	SKY_TREE_4 = SKY_TREE_3 + 1,
+	SKY_TREE_5 = SKY_TREE_4 + 1,
+	SKY_TREE_6 = SKY_TREE_5 + 1,
+	SKY_TREE_7 = SKY_TREE_6 + 1,
+	SKY_TREE_8 = SKY_TREE_7 + 1,
+	LOG = SKY_TREE_8 + 1,
+	LOG_MUSHROOM = LOG + 1,
+	ROCK_MOSS_0 = LOG_MUSHROOM + 1,
+	ROCK_MOSS_1 = ROCK_MOSS_0 + 1,
+	ROCK_MOSS_2 = ROCK_MOSS_1 + 1,
+	CRATES = ROCK_MOSS_2 + 1,
+	CRATES_SMALL = CRATES + 1,
+	RUINS_PILLAR_TOP = CRATES_SMALL + 1,
+	RUINS_PILLAR_BOTTOM = RUINS_PILLAR_TOP + 1,
+	RUINS_PILLAR_LEFT = RUINS_PILLAR_BOTTOM + 1,
+	RUINS_PILLAR_RIGHT = RUINS_PILLAR_LEFT + 1,
+	TEXTURE_COUNT = RUINS_PILLAR_RIGHT + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

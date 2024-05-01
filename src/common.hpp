@@ -34,7 +34,8 @@ inline std::string textures_path(const std::string& name) { return data_path() +
 inline std::string audio_path(const std::string& name) { return data_path() + "/audio/" + std::string(name); };
 inline std::string mesh_path(const std::string& name) { return data_path() + "/meshes/" + std::string(name); };
 inline std::string misc_path(const std::string& name) { return data_path() + "/misc/" + std::string(name); };
-inline std::string font_paht(const std::string& name) { return data_path() + "/fonts" + std::string(name); };
+inline std::string font_path(const std::string& name) { return data_path() + "/fonts/" + std::string(name); };
+inline std::string script_path(const std::string& name) { return std::string(PROJECT_SOURCE_DIR) + "script/" + std::string(name); };
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
@@ -73,6 +74,7 @@ struct Transform {
 bool gl_has_errors();
 
 vec2 vec2_lerp(vec2 start, vec2 end, float t);
+float float_lerp(float start, float end, float t);
 
 // Checks if (x,y) on the map is valid, this is not world coordinates
 bool is_valid_cell(int x, int y);

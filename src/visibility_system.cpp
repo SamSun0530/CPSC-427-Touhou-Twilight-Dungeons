@@ -19,7 +19,12 @@ void VisibilitySystem::init_visibility()
 {
 	for (int i = 0; i < WORLD_HEIGHT_DEFAULT; ++i) {
 		for (int j = 0; j < WORLD_WIDTH_DEFAULT; ++j) {
-			map[i][j] = world_map[i][j] == (int)TILE_TYPE::EMPTY ? (int)VISIBILITY_STATE::VISIBLE : (int)VISIBILITY_STATE::NOT_VISIBLE;
+			if (world_map[i][j] == (int)TILE_TYPE::EMPTY || world_map[i][j] == (int)TILE_TYPE::EMPTY_PLACEBO) {
+				map[i][j] = (int)VISIBILITY_STATE::VISIBLE;
+			}
+			else {
+				map[i][j] = (int)VISIBILITY_STATE::NOT_VISIBLE;
+			}
 		}
 	}
 }
@@ -34,7 +39,7 @@ void VisibilitySystem::init(RenderSystem* renderer_arg)
 
 void VisibilitySystem::step(float elapsed_ms)
 {
-	if (map_info.level == MAP_LEVEL::TUTORIAL) return;
+	if (visibility_info.excluded.find(map_info.level) != visibility_info.excluded.end()) return;
 	if (!game_info.is_player_id_set) return;
 
 	counter_ms = counter_ms - elapsed_ms <= 0 ? 0 : counter_ms - elapsed_ms;

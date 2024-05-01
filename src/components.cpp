@@ -19,6 +19,7 @@ Debug debugging;
 BossInfo boss_info;
 UniversalTimer uni_timer;
 Statistic stats;
+Option option;
 
 float death_timer_counter_ms = 3000;
 

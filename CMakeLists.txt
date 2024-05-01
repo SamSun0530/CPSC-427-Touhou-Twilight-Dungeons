@@ -34,7 +34,6 @@ file(GLOB SOURCE_FILES src/*.cpp src/*.hpp)
 #	src/main.cpp
 #	src/common.cpp
 #	src/fish.cpp
-#	src/chicken.cpp
 #	src/turtle.cpp
 #	src/water.cpp
 #	src/world.cpp
@@ -44,7 +43,6 @@ file(GLOB SOURCE_FILES src/*.cpp src/*.hpp)
 #    ext/project_path.hpp
 #	src/common.hpp
 #	src/fish.hpp
-#	src/chicken.hpp
 #	src/turtle.hpp
 #	src/water.hpp
 #	src/world.hpp

@@ -39,8 +39,13 @@ private:
 	DecisionTree bee2_tree;
 	DecisionTree worm_tree;
 	DecisionTree gargoyle_tree;
+	DecisionTree turtle_tree;
+	DecisionTree skeleton_tree;
+	DecisionTree seagull_tree;
 	DecisionTree cirno_boss_tree;
 	DecisionTree flandre_boss_tree;
+	DecisionTree sakuya_boss_tree;
+	DecisionTree remilia_boss_tree;
 
 	// Flow field for controlling crowd movement
 	std::vector<std::vector<int>> flow_field_map;

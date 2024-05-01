@@ -57,6 +57,10 @@ Entity createText(vec2 pos, vec2 scale, std::string text_content, vec3 color, bo
 
 Entity createCombo(RenderSystem* renderer);
 
+Entity createParralex(RenderSystem* renderer, vec2 position);
+
+Entity createCloud(RenderSystem* renderer, vec2 position, float parrallax_value, float scale);
+
 void createDialogue(CHARACTER character, std::string sentence, CHARACTER talk_2, EMOTION emotion);
 
 Entity createCriHit(RenderSystem* renderer, vec2 pos);
@@ -71,12 +75,13 @@ Entity createPurchasableHealth(RenderSystem* renderer, vec2 position);
 Entity createPurchasableAmmo(RenderSystem* renderer, vec2 position, AMMO_TYPE ammo_type);
 Entity createTreasure(RenderSystem* renderer, vec2 position, bool is_bezier = false);
 Entity createNPC(RenderSystem* renderer, vec2 pos);
+void createStats(RenderSystem* renderer, std::chrono::steady_clock::time_point start_time);
 Entity createWin(RenderSystem* renderer);
 Entity createLose(RenderSystem* renderer);
 Entity createInfographic(RenderSystem* renderer);
 Entity createBossHealthBarUI(RenderSystem* renderer, Entity boss, std::string boss_name, vec3 name_color);
 
-Entity createAura(RenderSystem* renderer, vec2 pos, float scale, Entity entity_to_link, float spritesheet_x_scale, TEXTURE_ASSET_ID texture_asset);
+Entity createAura(RenderSystem* renderer, vec2 pos, float scale, Entity entity_to_link, float spritesheet_x_scale, TEXTURE_ASSET_ID texture_asset, float framerate);
 
 
 // ui key
@@ -109,6 +114,9 @@ Entity createLizardEnemy(RenderSystem* renderer, vec2 position);
 Entity createWormEnemy(RenderSystem* renderer, vec2 position);
 Entity createBee2Enemy(RenderSystem* renderer, vec2 position);
 Entity createGargoyleEnemy(RenderSystem* renderer, vec2 position);
+Entity createTurtleEnemy(RenderSystem* renderer, vec2 position);
+Entity createSkeletonEnemy(RenderSystem* renderer, vec2 position);
+Entity createSeagullEnemy(RenderSystem* renderer, vec2 position);
 // the grenade launcher enemy
 Entity createSubmachineGunEnemy(RenderSystem* renderer, vec2 position);
 // boss enemy
@@ -122,21 +130,23 @@ Entity createDummyEnemy(RenderSystem* renderer, vec2 position);
 Entity createDummyEnemySpawner(RenderSystem* renderer, vec2 position);
 // invisible entity with only position
 Entity createInvisible(RenderSystem* renderer, vec2 position);
-// Non interactable tile
-std::vector<Entity> createFloor(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 // Interactable Tile
 std::vector<Entity> createWall(RenderSystem* renderer, vec2 position, std::vector<TEXTURE_ASSET_ID> textureIDs);
 // Same as wall with different texture
 Entity createObstacle(RenderSystem* renderer, vec2 position);
 // Pillar tile
-std::vector<Entity> createPillar(RenderSystem* renderer, vec2 grid_position, std::vector<TEXTURE_ASSET_ID> textureIDs);
+Entity createPillar(RenderSystem* renderer, vec2 grid_position, bool is_broken);
+// Ruins pillar tile for level 2
+Entity createRuinsPillar(RenderSystem* renderer, vec2 grid_position, bool is_horizontal);
+// Sky tree tile
+Entity createSkyTree(RenderSystem* renderer, vec2 grid_position);
 // Door tile that can be open or closed
 Entity createDoor(RenderSystem* renderer, vec2 position, DIRECTION dir, int room_index);
 // Top texture of vertical doors for aesthetic effects
 Entity createDoorUpTexture(RenderSystem* renderer, vec2 grid_position);
 // Tile for instance rendering
 // Note: different than other create* calls where it is GRID position argument
-Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, vec2 grid_position, TILE_NAME tile_name, bool is_wall);
+Entity createTile(RenderSystem* renderer, VisibilitySystem* visibility_system, vec2 grid_position, TILE_NAME tile_name, bool is_wall, bool is_placebo_wall);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);

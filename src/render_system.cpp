@@ -357,10 +357,14 @@ void RenderSystem::draw()
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
 	//glClearColor(0.674, 0.847, 1.0, 1.0);
-	if (map_info.level == MAP_LEVEL::LEVEL2) {
+	if (map_info.level == MAP_LEVEL::LEVEL3) {
+		glClearColor(52.f / 255.f, 144.f / 255.f, 151.f / 255.f, 1.f);
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL2) {
 		glClearColor(131.f / 255.f, 164.f / 255.f, 72.f / 255.f, 1.f);
 	}
 	else {
+		// level1 and tutorial
 		glClearColor(0, 0, 0, 1.0);
 	}
 	glClearDepth(10.f);
@@ -387,8 +391,21 @@ void RenderSystem::draw()
 		// Draw all textured meshes that have a position and size component
 		std::vector<Entity> boss_ui_entities;
 		std::vector<Entity> uiux_world_entities;
+		// Parallaxes should always at the back
+		for (Entity entity : registry.parrallaxes.entities) {
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
 
 		drawTilesInstanced(projection_2D, view_2D);
+
+		// Room signifier has motion, don't have to check
+		// It should be rendered at the bottom as it should not be on top of aura
+		for (Entity entity : registry.roomSignifiers.entities) {
+			if (!camera.isInCameraView(registry.motions.get(entity).position)) {
+				continue;
+			}
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
 
 		// Auras should not disappear off camera (since there is a small # of them)
 		for (Entity entity : registry.auras.entities) {
@@ -431,6 +448,8 @@ void RenderSystem::draw()
 			if (registry.infographicsMenus.has(entity)) continue;
 			if (registry.teleporters.has(entity)) continue;
 			if (registry.auras.has(entity)) continue;
+			if (registry.parrallaxes.has(entity)) continue;
+			if (registry.roomSignifiers.has(entity)) continue;
 
 			// Note, its not very efficient to access elements indirectly via the entity
 			// albeit iterating through all Sprites in sequence. A good point to optimize
@@ -486,12 +505,6 @@ void RenderSystem::draw()
 		}
 		drawBulletsInstanced(enemy_bullets, projection_2D, view_2D);
 
-		// this will only have at most one aimbot cursor
-		// it will always be in camera view, and has motion
-		for (Entity entity : registry.aimbotCursors.entities) {
-			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-		}
-
 		// this will only have at most one focusdots
 		// it will always be in camera view, and has motion
 		for (Entity entity : registry.focusdots.entities) {
@@ -503,6 +516,12 @@ void RenderSystem::draw()
 			if (!registry.motions.has(entity) || !camera.isInCameraView(registry.motions.get(entity).position)) {
 				continue;
 			}
+			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+		}
+
+		// this will only have at most one aimbot cursor
+		// it will always be in camera view, and has motion
+		for (Entity entity : registry.aimbotCursors.entities) {
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
 
@@ -519,25 +538,22 @@ void RenderSystem::draw()
 		}
 
 		if (menu.state != MENU_STATE::DIALOGUE) {
-			for (Entity entity : registry.UIUX.entities) {
-				drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
-			}
-
-			for (Entity entity : boss_ui_entities) {
-				BossHealthBarUI& bhp = registry.bossHealthBarUIs.get(entity);
-				if (bhp.is_visible) {
+			if (menu.state == MENU_STATE::PAUSE || !option.hide_ui) {
+				for (Entity entity : registry.UIUX.entities) {
 					drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+				}
+
+				for (Entity entity : boss_ui_entities) {
+					BossHealthBarUI& bhp = registry.bossHealthBarUIs.get(entity);
+					if (bhp.is_visible) {
+						drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+					}
 				}
 			}
 		}
 
-		//// Render user guide on screen
-		//if (WorldSystem::getInstance().get_display_instruction() == true) {
-		//	renderText("Press 'T' for tutorial", window_width_px / 3.3f, -window_height_px / 2.3f, 0.9f, glm::vec3(1), trans, false, 1.f);
-		//}
-
 		if (WorldSystem::getInstance().get_show_fps() == true) {
-			renderText("FPS:", window_width_px / 2.45f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans, false, 1.f);
+			renderText("FPS:", window_width_px / 2.6f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans, false, 1.f);
 			renderText(WorldSystem::getInstance().get_fps_in_string(), window_width_px / 2.2f, -window_height_px / 2.2f, 1.0f, glm::vec3(0, 1, 0), trans, false, 1.f);
 		}
 
@@ -649,6 +665,7 @@ void RenderSystem::draw()
 // This adapted from lecture material (Wednesday Feb 28th 2024)
 // fully transparent when transparency_rate = 0
 void RenderSystem::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat3& trans, bool in_world, float transparency_rate) {
+	if (menu.state == MENU_STATE::PLAY && option.hide_ui) return;
 	// activate the shaders!
 	glUseProgram(m_font_shaderProgram);
 
@@ -813,6 +830,12 @@ void RenderSystem::drawBulletsInstanced(const std::vector<Entity>& entities, con
 	if (boss_info.should_use_flandre_bullet) {
 		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::FLANDRE_BULLET];
 	}
+	else if (boss_info.should_use_sakuya_bullet) {
+		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::SAKUYA_BULLET];
+	}
+	else if (boss_info.should_use_remilia_bullet) {
+		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::REMILIA_BULLET];
+	}
 	else {
 		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::ENEMY_BULLET];
 	}
@@ -872,7 +895,7 @@ vec4 RenderSystem::get_spriteloc(TILE_NAME tile_name) {
 	// spriteloc will be scaled by (x,y)=(sprite_width/atlas_width, sprite_height/atlas_height)
 	// e.g. (1.f/2.f, 1.f/3.f) is the same as (32.f/64.f, 32.f/96.f) assuming each texture is 32x32. Also works for any texture size in atlas
 	// then shifted by (x,y)=(offset_x/atlas_width, offset_y/atlas_height), works the same with above example
-	const float ATLAS_WIDTH = 4.f;
+	const float ATLAS_WIDTH = 6.f;
 	const float ATLAS_HEIGHT = 7.f;
 	const vec4 DIVISOR = vec4(ATLAS_WIDTH, ATLAS_HEIGHT, ATLAS_WIDTH, ATLAS_HEIGHT);
 	vec4 spriteloc = { -1.f, -1.f, -1.f, -1.f };
@@ -926,17 +949,148 @@ vec4 RenderSystem::get_spriteloc(TILE_NAME tile_name) {
 	case TILE_NAME::BOTTOM_RIGHT:
 		spriteloc = { 2.f, 6.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME::CORRIDOR_BOTTOM_RIGHT_LIGHT:
-		spriteloc = { 0.f, 3.f, 1.0, 1.0 };
+		// SIDE TILES (on the right)
+	case TILE_NAME::TOP_RIGHT:
+		spriteloc = { 3.f, 2.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME::CORRIDOR_BOTTOM_LEFT_LIGHT:
-		spriteloc = { 2.f, 3.f, 1.0, 1.0 };
+	case TILE_NAME::TOP_LEFT:
+		spriteloc = { 3.f, 3.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME::BOTTOM_LEFT_LIGHT:
-		spriteloc = { 0.f, 4.f, 1.0, 1.0 };
+	case TILE_NAME::CORRIDOR_TOP_RIGHT:
+		spriteloc = { 3.f, 5.f, 1.0, 1.0 };
 		break;
-	case TILE_NAME::BOTTOM_RIGHT_LIGHT:
-		spriteloc = { 2.f, 4.f, 1.0, 1.0 };
+	case TILE_NAME::CORRIDOR_TOP_LEFT:
+		spriteloc = { 3.f, 4.f, 1.0, 1.0 };
+		break;
+	case TILE_NAME::TRANSPARENT_TILE:
+		spriteloc = { 3.f, 6.f, 1.0, 1.0 };
+		break;
+		// SKY TILES
+	case TILE_NAME::S02:
+		spriteloc = { 0.f, 2.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S12:
+		spriteloc = { 1.f, 2.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S22:
+		spriteloc = { 2.f, 2.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S03:
+		spriteloc = { 0.f, 3.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S13:
+		spriteloc = { 1.f, 3.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S23:
+		spriteloc = { 2.f, 3.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S04:
+		spriteloc = { 0.f, 4.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S14:
+		spriteloc = { 1.f, 4.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S24:
+		spriteloc = { 2.f, 4.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S05:
+		spriteloc = { 0.f, 5.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S15:
+		spriteloc = { 1.f, 5.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S25:
+		spriteloc = { 2.f, 5.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S00:
+		spriteloc = { 0.f, 0.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S10:
+		spriteloc = { 1.f, 0.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S20:
+		spriteloc = { 2.f, 0.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S30:
+		spriteloc = { 3.f, 0.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S01:
+		spriteloc = { 0.f, 1.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S11:
+		spriteloc = { 1.f, 1.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S21:
+		spriteloc = { 2.f, 1.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S31:
+		spriteloc = { 3.f, 1.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S32:
+		spriteloc = { 3.f, 2.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S33:
+		spriteloc = { 3.f, 3.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S34:
+		spriteloc = { 3.f, 4.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S35:
+		spriteloc = { 3.f, 5.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S06:
+		spriteloc = { 0.f, 6.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S16:
+		spriteloc = { 1.f, 6.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S26:
+		spriteloc = { 2.f, 6.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S36:
+		spriteloc = { 3.f, 6.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S40:
+		spriteloc = { 4.f, 0.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S50:
+		spriteloc = { 5.f, 0.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S41:
+		spriteloc = { 4.f, 1.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S51:
+		spriteloc = { 5.f, 1.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S42:
+		spriteloc = { 4.f, 2.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S52:
+		spriteloc = { 5.f, 2.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S43:
+		spriteloc = { 4.f, 3.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S53:
+		spriteloc = { 5.f, 3.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S44:
+		spriteloc = { 4.f, 4.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S54:
+		spriteloc = { 5.f, 4.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S45:
+		spriteloc = { 4.f, 5.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S55:
+		spriteloc = { 5.f, 5.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S46:
+		spriteloc = { 4.f, 6.f, 1.f, 1.f };
+		break;
+	case TILE_NAME::S56:
+		spriteloc = { 5.f, 6.f, 1.f, 1.f };
 		break;
 	default:
 		break;
@@ -973,6 +1127,12 @@ void RenderSystem::drawTilesInstanced(const glm::mat3& projection, const glm::ma
 	GLuint texture_id;
 	if (map_info.level == MAP_LEVEL::LEVEL2) {
 		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::TILES_ATLAS_RUINS];
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL3) {
+		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::TILES_ATLAS_WATER];
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL4) {
+		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::TILES_ATLAS_SKY];
 	}
 	else {
 		texture_id = texture_gl_handles[(GLuint)TEXTURE_ASSET_ID::TILES_ATLAS_SANDSTONE];
@@ -1043,7 +1203,10 @@ void RenderSystem::drawVisibilityTilesInstanced(const glm::mat3& projection, con
 	GLint color_uloc = glGetUniformLocation(visibility_tile_instance_program, "fcolor");
 	//const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
 	vec3 color;
-	if (map_info.level == MAP_LEVEL::LEVEL2) {
+	if (map_info.level == MAP_LEVEL::LEVEL3) {
+		color = vec3(52.f / 255.f, 144.f / 255.f, 151.f / 255.f);
+	}
+	else if (map_info.level == MAP_LEVEL::LEVEL2) {
 		color = vec3(131.f / 255.f, 164.f / 255.f, 72.f / 255.f);
 	}
 	else {

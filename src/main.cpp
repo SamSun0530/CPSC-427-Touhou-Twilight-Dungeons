@@ -94,11 +94,8 @@ int main()
 
 		}
 		else if (menu.state == MENU_STATE::DIALOGUE) {
-
 			world.dialogue_step(elapsed_ms);
 		}
-
-		// map.debug(); // Just to visualize the map
 
 		renderer.draw();
 	}
