@@ -165,18 +165,25 @@ void MapSystem::spawnEnemiesInRoom(Room_struct& room)
 			valid_spawn_points++;
 		}
 		std::uniform_real_distribution<> real_dist(0, 1);
+		float special_room_chance = real_dist(rng);
 		for (vec2 point : spawn_points) {
 
 			float random_number = real_dist(rng);
 			if (map_info.level == MAP_LEVEL::LEVEL1) {
-				if (random_number <= 0.50) {
-					room.enemies.push_back(createGargoyleEnemy(renderer, point));
-				}
-				else if (random_number <= 0.75) {
-					room.enemies.push_back(createSkeletonEnemy(renderer, point));
+				if (special_room_chance < 0.01) {
+					// special room: only spawn bomber enemy
+					room.enemies.push_back(createBomberEnemy(renderer, point));
 				}
 				else {
-					room.enemies.push_back(createBomberEnemy(renderer, point));
+					if (random_number <= 0.50) {
+						room.enemies.push_back(createGargoyleEnemy(renderer, point));
+					}
+					else if (random_number <= 0.75) {
+						room.enemies.push_back(createSkeletonEnemy(renderer, point));
+					}
+					else {
+						room.enemies.push_back(createBomberEnemy(renderer, point));
+					}
 				}
 			}
 			else if (map_info.level == MAP_LEVEL::LEVEL2) {
