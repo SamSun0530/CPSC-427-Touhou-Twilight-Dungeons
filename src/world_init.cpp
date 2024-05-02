@@ -2948,8 +2948,8 @@ Entity createMainMenu(RenderSystem* renderer, vec2 title_pos, float title_scale,
 	registry.meshPtrs.emplace(entity3, &mesh3);
 
 	Motion& motion3 = registry.motions.emplace(entity3);
-	motion3.position = background_pos;
-	motion3.scale = background_scale * vec2(PAUSE_BACKGROUND_WIDTH, PAUSE_BACKGROUND_HEIGHT);
+	motion3.position = background_pos - vec2(0, 10);
+	motion3.scale = background_scale * vec2(PAUSE_BACKGROUND_WIDTH, PAUSE_BACKGROUND_HEIGHT) * vec2(1.f, 1.2f);
 
 	registry.renderRequests.insert(
 		entity3,
