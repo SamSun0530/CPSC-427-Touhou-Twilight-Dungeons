@@ -8,6 +8,7 @@
 
 struct Option {
 	bool hide_ui = false;
+	bool fullscreen = true;
 };
 extern Option option;
 
@@ -95,7 +96,8 @@ enum class MENU_STATE {
 	//INVENTORY,
 	WIN,
 	LOSE,
-	INFOGRAPHIC
+	INFOGRAPHIC,
+	OPTIONS
 };
 
 struct Menu {
@@ -911,6 +913,10 @@ struct LoseMenu
 };
 
 struct InfographicMenu {
+
+};
+
+struct OptionMenu {
 
 };
 

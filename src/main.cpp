@@ -55,6 +55,7 @@ int main()
 	map.init(&renderer, &visibility_system);
 	animation.init(&renderer, window);
 	world.init_menu();
+	world.init_options_menu();
 	visibility_system.init(&renderer);
 	physics.init(&renderer);
 
@@ -72,7 +73,7 @@ int main()
 
 		audio.step(elapsed_ms);
 
-		if (menu.state == MENU_STATE::MAIN_MENU) {
+		if (menu.state == MENU_STATE::MAIN_MENU || menu.state == MENU_STATE::OPTIONS) {
 
 		}
 		else if (menu.state == MENU_STATE::PLAY) {

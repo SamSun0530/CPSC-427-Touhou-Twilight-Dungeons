@@ -50,6 +50,7 @@ public:
 	void init_win_menu();
 	void init_lose_menu();
 	void init_infographic_menu();
+	void init_options_menu();
 	void resume_game();
 
 	// Releases all associated resources
@@ -95,7 +96,8 @@ private:
 	void on_mouse_key(int button, int action, int mods);
 	void on_scroll(vec2 scroll_offset);
 	unsigned int loadScript(std::string file_name, std::vector<std::string>& scripts);
-	//void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
+	int loadOptions();
+	int saveOptions();
 
 	// State of keyboard
 	// Initial state is all false

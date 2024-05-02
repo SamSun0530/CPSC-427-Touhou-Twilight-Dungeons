@@ -5,7 +5,8 @@ void Audio::step(float elapsed) {
 		menu.state == MENU_STATE::PAUSE ||
 		menu.state == MENU_STATE::INFOGRAPHIC ||
 		menu.state == MENU_STATE::WIN || 
-		menu.state == MENU_STATE::LOSE) {
+		menu.state == MENU_STATE::LOSE ||
+		menu.state == MENU_STATE::OPTIONS) {
 		if (abackground_music.is_playing ||
 			aboss_music.is_playing) {
 			// Reset menu music

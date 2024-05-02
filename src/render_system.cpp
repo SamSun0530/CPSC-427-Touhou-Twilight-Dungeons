@@ -333,7 +333,10 @@ void RenderSystem::render_buttons(glm::mat3& projection_2D, glm::mat3& view_2D, 
 		Entity& entity = button_container.entities[i];
 		Motion& motion = registry.motions.get(entity);
 		RenderRequest& rr = registry.renderRequests.get(entity);
-		rr.used_texture = button.is_hovered ? TEXTURE_ASSET_ID::BUTTON_HOVERED : TEXTURE_ASSET_ID::BUTTON;
+		// only allow clicking if current state matches button state
+		if (menu.state == state) {
+			rr.used_texture = button.is_hovered ? TEXTURE_ASSET_ID::BUTTON_HOVERED : TEXTURE_ASSET_ID::BUTTON;
+		}
 
 		drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		renderText(button.text, motion.position.x, motion.position.y, button.text_scale, button.is_hovered ? vec3(0.03f) : vec3(0.5f), trans, false, 1.f);
@@ -442,6 +445,7 @@ void RenderSystem::draw()
 			if (registry.UIUX.has(entity)) continue;
 			if (registry.players.has(entity)) continue;
 			if (registry.dialogueMenus.has(entity)) continue;
+			if (registry.optionMenus.has(entity)) continue;
 			if (registry.winMenus.has(entity)) continue;
 			if (registry.loseMenus.has(entity)) continue;
 			if (registry.playerBullets.has(entity)) continue;
@@ -642,12 +646,20 @@ void RenderSystem::draw()
 		}
 
 	}
-	else if (menu.state == MENU_STATE::MAIN_MENU) {
+	else if (menu.state == MENU_STATE::MAIN_MENU || menu.state == MENU_STATE::OPTIONS) {
 		for (Entity entity : registry.mainMenus.entities) {
 			drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
 		}
-
+		
 		render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::MAIN_MENU);
+
+		if (menu.state == MENU_STATE::OPTIONS) {
+			for (Entity entity : registry.optionMenus.entities) {
+				drawTexturedMesh(entity, projection_2D, view_2D, view_2D_ui);
+			}
+
+			render_buttons(projection_2D, view_2D, view_2D_ui, MENU_STATE::OPTIONS);
+		}
 	}
 
 	// We have this here so that the black screen is retained when lost screen is shown

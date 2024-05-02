@@ -37,6 +37,7 @@ WorldSystem::WorldSystem()
 	loadScript("marisa.txt", marisa_script);
 	loadScript("remilia.txt", remilia_script);
 	loadScript("sakuya.txt", sakuya_script);
+	loadOptions();
 }
 
 WorldSystem::~WorldSystem() {
@@ -83,8 +84,13 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	//window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", nullptr, nullptr);
-	window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", glfwGetPrimaryMonitor(), nullptr);
+	if (option.fullscreen) {
+		window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", glfwGetPrimaryMonitor(), nullptr);
+	}
+	else {
+		window = glfwCreateWindow(window_width_px, window_height_px, "Touhou: Twilight Dungeons", nullptr, nullptr);
+	}
+
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -151,7 +157,8 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map,
 
 void WorldSystem::init_menu() {
 	// create buttons
-	int num_buttons = game_info.has_started ? 3 : 2;
+	int number_of_buttons_real = 4;
+	int num_buttons = game_info.has_started ? number_of_buttons_real : number_of_buttons_real - 1;
 	const float button_scale = 0.8f;
 	const float button_padding_y = 5.f;
 	const float offset_y_padding = 50.f;
@@ -160,7 +167,7 @@ void WorldSystem::init_menu() {
 	float offset_x = window_px_half.x / 2.2f;
 
 	// create main menu title and background
-	createMainMenu(renderer, { -window_px_half.x / 2.2f, 0.f }, 0.38f, { offset_x , offset_y_padding }, 1.f);
+	createMainMenu(renderer, { -window_px_half.x / 2.2f, 0.f }, 0.38f, { offset_x , offset_y_padding }, 1.2f);
 
 	if (game_info.has_started) {
 		createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Resume", 0.9f, [&]() {
@@ -168,13 +175,17 @@ void WorldSystem::init_menu() {
 			});
 		offset_y += offset_y_delta;
 	}
-	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "New Game", 1.f, [&]() {
+	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "New Game", 0.9f, [&]() {
 		map_info.level = MAP_LEVEL::LEVEL1;
 		Mix_PlayChannel(audio->abackground_music.channel, audio->level1_background_music, -1);
 		restart_game();
 		});
 	offset_y += offset_y_delta;
-	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Exit", 1.f, [&]() { glfwSetWindowShouldClose(window, true); });
+	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Options", 0.9f, [&]() {
+		menu.state = MENU_STATE::OPTIONS;
+		});
+	offset_y += offset_y_delta;
+	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Exit", 0.9f, [&]() { glfwSetWindowShouldClose(window, true); });
 }
 
 void WorldSystem::init_pause_menu() {
@@ -206,6 +217,32 @@ void WorldSystem::init_infographic_menu() {
 	const float button_scale = 0.7f;
 	createButton(renderer, { 0, 225 }, button_scale * 1.1, MENU_STATE::INFOGRAPHIC, "Back", 0.85f, [&]() {
 		menu.state = MENU_STATE::PAUSE;
+		});
+}
+
+void WorldSystem::init_options_menu() {
+	createOptions(renderer);
+	const float button_scale = 0.7f;
+	createButton(renderer, { -150, -50 }, button_scale * 1.1, MENU_STATE::OPTIONS, "Fullscreen", 0.85f, [&]() {
+		GLFWmonitor* monitor = glfwGetWindowMonitor(window);
+		if (!option.fullscreen && monitor == nullptr) {
+			option.fullscreen = true;
+			glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0, window_width_px, window_height_px, 60);
+		}
+		});
+	createButton(renderer, { 150, -50 }, button_scale * 1.1, MENU_STATE::OPTIONS, "Windowed", 0.85f, [&]() {
+		GLFWmonitor* monitor = glfwGetWindowMonitor(window);
+		if (option.fullscreen && monitor != nullptr) {
+			option.fullscreen = false;
+			glfwSetWindowMonitor(window, nullptr, 100, 100, window_width_px, window_height_px, 60);
+		}
+		});
+	createButton(renderer, { 0, 50 }, button_scale * 1.1, MENU_STATE::OPTIONS, "Toggle UI", 0.85f, [&]() {
+		option.hide_ui = !option.hide_ui;
+		});
+	createButton(renderer, { 0, 225 }, button_scale * 1.1, MENU_STATE::OPTIONS, "Back", 0.85f, [&]() {
+		menu.state = MENU_STATE::MAIN_MENU;
+		saveOptions();
 		});
 }
 
@@ -658,6 +695,63 @@ unsigned int WorldSystem::loadScript(std::string file_name, std::vector<std::str
 	return 0;
 }
 
+// Helper function to split string into array with space delimiter
+std::vector<std::string> split_string(std::string line, char delim) {
+	std::vector<std::string> temp;
+	std::stringstream ss(line);
+	std::string current;
+	while (std::getline(ss, current, delim)) {
+		temp.push_back(current);
+	}
+	return temp;
+}
+
+bool has_digit(const std::string& s) {
+	for (const char c : s) {
+		if (std::isdigit(c)) return true;
+	}
+	return false;
+}
+
+// load options if exists
+int WorldSystem::loadOptions() {
+	std::string path = misc_path("options.txt").c_str();
+	std::ifstream infile(path);
+	if (!infile.is_open()) {
+		std::cout << "Unable to open " << path << std::endl;
+		return -1;
+	}
+	std::string line;
+	while (getline(infile, line)) {
+		if (line.empty()) continue;
+		std::vector<std::string> parsed = split_string(line, ' ');
+		if (parsed.size() != 2) continue;
+		if (!parsed[0].compare("fullscreen:") && has_digit(parsed[1])) {
+			option.fullscreen = std::stoi(parsed[1]) == 1;
+		}
+		else if (!parsed[0].compare("hide_ui:") && has_digit(parsed[1])) {
+			option.hide_ui = std::stoi(parsed[1]) == 1;
+		}
+	}
+	infile.close();
+	std::cout << "Loaded " << path << std::endl;
+
+	return 0;
+}
+
+// creates options file if does not exist, otherwise overwrite
+int WorldSystem::saveOptions() {
+	std::ofstream outfile(misc_path("options.txt"), std::ios::trunc);
+	if (!outfile.is_open()) {
+		return -1;
+	}
+	outfile << "fullscreen: " << std::to_string(option.fullscreen == false ? 0 : 1) << std::endl;
+	outfile << "hide_ui: " << std::to_string(option.hide_ui == false ? 0 : 1) << std::endl;
+
+	outfile.close();
+	return 0;
+}
+
 void WorldSystem::next_level() {
 	assert(registry.screenStates.components.size() <= 1);
 	ScreenState& screen = registry.screenStates.components[0];
@@ -699,6 +793,7 @@ void WorldSystem::next_level() {
 	init_menu();
 	init_pause_menu();
 	init_infographic_menu();
+	init_options_menu();
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -811,6 +906,7 @@ void WorldSystem::restart_game() {
 	init_menu();
 	init_pause_menu();
 	init_infographic_menu();
+	init_options_menu();
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -1659,6 +1755,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		//	glfwSetWindowShouldClose(window, true);
 		//}
 	}
+	else if (menu.state == MENU_STATE::OPTIONS) {
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
+			menu.state = MENU_STATE::MAIN_MENU;
+		}
+	}
 	else if (menu.state == MENU_STATE::PAUSE) {
 		// back to game
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -2458,6 +2559,11 @@ void WorldSystem::on_mouse_key(int button, int action, int mods) {
 					// this function should handle menu state change
 					// e.g. restart_game should set menu.state == MENU_STATE::PLAY
 					button.func();
+
+					// unhovered all buttons
+					for (Button& button : button_container.components) {
+						button.is_hovered = false;
+					}
 
 					break; // don't check any more buttons
 				}
