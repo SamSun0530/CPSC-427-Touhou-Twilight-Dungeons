@@ -103,6 +103,7 @@ public:
 	ComponentContainer<SeagullEnemy> seagullEnemies;
 	ComponentContainer<PlaceboWall> placeboWalls;
 	ComponentContainer<RoomSignifier> roomSignifiers;
+	ComponentContainer<OptionMenu> optionMenus;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -200,6 +201,7 @@ public:
 		registry_list.push_back(&seagullEnemies);
 		registry_list.push_back(&placeboWalls);
 		registry_list.push_back(&roomSignifiers);
+		registry_list.push_back(&optionMenus);
 	}
 
 	void clear_all_components() {

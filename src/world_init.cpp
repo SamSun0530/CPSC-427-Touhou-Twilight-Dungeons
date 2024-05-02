@@ -938,6 +938,27 @@ Entity createInfographic(RenderSystem* renderer) {
 	return entity;
 }
 
+Entity createOptions(RenderSystem* renderer) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = vec2(0, 0);
+	motion.scale = vec2(1100, 690);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::WINDEATH_SCREEN,
+			EFFECT_ASSET_ID::UI,
+			GEOMETRY_BUFFER_ID::SPRITE });
+	registry.optionMenus.emplace(entity);
+
+	return entity;
+}
+
 Entity createLose(RenderSystem* renderer) {
 	// Pause menu background
 	auto entity = Entity();

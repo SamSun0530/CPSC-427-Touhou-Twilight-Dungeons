@@ -1,0 +1,2 @@
+fullscreen: 1
+hide_ui: 0
