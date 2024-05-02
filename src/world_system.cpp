@@ -145,19 +145,11 @@ void WorldSystem::init(RenderSystem* renderer_arg, Audio* audio, MapSystem* map,
 	this->visibility_system = visibility_arg;
 	this->boss_system = boss_arg;
 	renderer->initFont(window, font_filename, font_default_size);
-	//Sets the size of the empty world
-	//world_map = std::vector<std::vector<int>>(world_width, std::vector<int>(world_height, (int)TILE_TYPE::EMPTY));
-	//Mix_PlayChannel(1, audio->menu_music, -1);
-	// TODO: remove, redundant (as we start in menu instead)
-	//if (menu.state == MENU_STATE::PLAY) {
-	//	// Set all states to default
-	//	restart_game();
-	//}
 }
 
 void WorldSystem::init_menu() {
 	// create buttons
-	int number_of_buttons_real = 4;
+	int number_of_buttons_real = 5;
 	int num_buttons = game_info.has_started ? number_of_buttons_real : number_of_buttons_real - 1;
 	const float button_scale = 0.8f;
 	const float button_padding_y = 5.f;
@@ -177,7 +169,11 @@ void WorldSystem::init_menu() {
 	}
 	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "New Game", 0.9f, [&]() {
 		map_info.level = MAP_LEVEL::LEVEL1;
-		Mix_PlayChannel(audio->abackground_music.channel, audio->level1_background_music, -1);
+		restart_game();
+		});
+	offset_y += offset_y_delta;
+	createButton(renderer, { offset_x, offset_y }, button_scale, MENU_STATE::MAIN_MENU, "Tutorial", 0.9f, [&]() {
+		map_info.level = MAP_LEVEL::TUTORIAL;
 		restart_game();
 		});
 	offset_y += offset_y_delta;
@@ -869,6 +865,24 @@ void WorldSystem::restart_game() {
 
 	if (map_info.level != MAP_LEVEL::TUTORIAL) {
 		start_pt = 0;
+		dialogue_info.cirno_pt = 1000;
+		dialogue_info.cirno_after_pt = 1000;
+		dialogue_info.cirno_played = false;
+		dialogue_info.flandre_pt = 1000;
+		dialogue_info.marisa_pt = 1000;
+		dialogue_info.sakuya_pt = 1000;
+		dialogue_info.sakuya_after_pt = 1000;
+		dialogue_info.sakuya_played = false;
+		dialogue_info.remilia_pt = 1000;
+		dialogue_info.remilia_after_pt = 1000;
+		dialogue_info.remilia_played = false;
+		dialogue_info.flandre_after_pt = 1000;
+		dialogue_info.flandre_played = false;
+		dialogue_info.marisa_played = false;
+		start_dialogue_timer = 1000.f;
+	}
+	else if (map_info.level == MAP_LEVEL::TUTORIAL) {
+		start_pt = 1000;
 		dialogue_info.cirno_pt = 1000;
 		dialogue_info.cirno_after_pt = 1000;
 		dialogue_info.cirno_played = false;
